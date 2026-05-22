@@ -2459,6 +2459,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/protocol/validation.py`, `weisile-link/tests/test_validation.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Bluetooth Classic transport as the Phase 2 fallback transport, using Python stdlib RFCOMM where supported and preserving the WiFi transport/degradation behavior.
 
+### [2026-05-22] Standalone EV3SC ownership rule
+- **Status**: ✅ Completed
+- **Commit**: `8a3be37`
+- **What was done**: Updated assistant workflow rules so `/Users/yukii/Desktop/EV3SC/` must independently contain the complete VSLE Scratch-EV3 implementation, including runtime code, tests, docs, setup scripts, and deployment assets. External folders such as `/Users/yukii/Desktop/scratch ai/` are now explicitly source references only and cannot be required at runtime, test time, build time, or deployment time.
+- **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Bluetooth Classic transport as the Phase 2 fallback transport, using Python stdlib RFCOMM where supported and preserving the WiFi transport/degradation behavior.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
