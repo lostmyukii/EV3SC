@@ -2375,6 +2375,13 @@ material into:
 - **Files created/modified**: `.gitignore`, `docs/SOURCE_REGISTER.md`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/protocol/*.py`, `weisile-link/tests/*.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement WeisileLink error-code mapping and reconnect/degradation skeleton based on Section 16, reusing the JSON-RPC helpers from this step.
 
+### [2026-05-22] Complete scoped implementation rule added
+- **Status**: ✅ Completed
+- **Commit**: `fbf2535`
+- **What was done**: Updated `AGENTS.md` and `CLAUDE.md` so completed development steps cannot be minimal, placeholder, happy-path-only, or patch-later work. Each scoped step now must include the full required behavior, validation, error handling, source-backed API behavior, tests, and documentation/progress updates for that scope.
+- **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement WeisileLink error-code mapping and reconnect/degradation skeleton based on Section 16, reusing the JSON-RPC helpers from the completed baseline.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
