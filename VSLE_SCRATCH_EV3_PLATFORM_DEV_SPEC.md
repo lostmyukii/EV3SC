@@ -2417,6 +2417,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/*.py`, `weisile-link/weisile_link/runtime/degradation.py`, `weisile-link/tests/test_wifi_transport.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement `weisile-link/weisile_link/json_rpc_server.py` as the Scratch-compatible local JSON-RPC/WebSocket server on `ws://localhost:20111/scratch/bt`, using the WiFi transport, JSON-RPC helpers, EV3 ack mapping, and observability baselines.
 
+### [2026-05-22] Scratch-compatible JSON-RPC server
+- **Status**: ✅ Completed
+- **Commit**: `42a25bb`
+- **What was done**: Added the local Scratch Link compatible JSON-RPC/WebSocket server for `ws://127.0.0.1:20111/scratch/bt`, including path rejection, `getVersion`, `discover`, `connect`, high-level `send`, direct VSLE EV3 method forwarding, notification subscription handling, EV3 ack-to-JSON-RPC mapping, transport error mapping, sensor update notifications for VSLE and official Scratch VM method names, JSON-RPC notification no-response semantics, and `/api/status` integration. Added tests for all server paths and preserved the source register with Scratch Link and Scratch VM references.
+- **Files created/modified**: `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement the VSLE-EV3 unsandboxed extension skeleton and the first 14 motor blocks, porting from the verified local Scratch VM EV3 extension style without changing Scratch visual design.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
