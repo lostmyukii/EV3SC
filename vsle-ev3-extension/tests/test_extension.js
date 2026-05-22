@@ -4,6 +4,7 @@ const test = require('node:test');
 const {
     LEGO_RED,
     MOTOR_BLOCK_OPCODES,
+    SENSOR_BLOCK_OPCODES,
     SensorCache,
     VSLEEV3Extension,
     WeisileLinkClient,
@@ -65,15 +66,39 @@ test('register requires unsandboxed TurboWarp extension context', () => {
     );
 });
 
-test('getInfo exposes exactly the Phase 1 motor blocks in LEGO red', () => {
+test('getInfo exposes the Phase 1 motor and sensor blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
     assert.equal(info.name, 'VSLE EV3');
     assert.equal(info.color1, LEGO_RED);
-    assert.equal(info.blocks.length, 14);
-    assert.deepEqual(info.blocks.map(block => block.opcode), MOTOR_BLOCK_OPCODES);
+    assert.equal(info.blocks.length, 34);
+    assert.deepEqual(
+        info.blocks.map(block => block.opcode),
+        [...MOTOR_BLOCK_OPCODES, ...SENSOR_BLOCK_OPCODES]
+    );
     assert.equal(info.menus.motorPorts.items.length, 4);
+    assert.deepEqual(info.menus.sensorPorts.items, ['S1', 'S2', 'S3', 'S4']);
+    assert.deepEqual(info.menus.rgbChannels.items, ['R', 'G', 'B']);
+    assert.deepEqual(info.menus.irChannels.items, ['1', '2', '3', '4']);
+    assert.ok(info.menus.brickButtons.items.includes('center'));
+});
+
+test('SensorCache provides default EV3 state and merges partial updates', () => {
+    const sensorCache = new SensorCache({clock: () => 1000});
+
+    assert.equal(sensorCache.get('sensors.S1.color'), 0);
+    assert.equal(sensorCache.get('sensors.S2.distance_cm'), 0);
+    assert.equal(sensorCache.get('system.battery_pct'), 100);
+    assert.equal(sensorCache.updateRate, 0);
+
+    sensorCache.update({sensors: {S1: {color: 4}}});
+    sensorCache.update({sensors: {S2: {distance_cm: 18.5}}});
+
+    assert.equal(sensorCache.get('sensors.S1.color'), 4);
+    assert.equal(sensorCache.get('sensors.S2.distance_cm'), 18.5);
+    assert.equal(sensorCache.get('sensors.S1.reflected'), 0);
+    assert.equal(sensorCache.get('system.buttons.center'), false);
 });
 
 test('motor command blocks normalize arguments before sending to WeisileLink', async () => {
@@ -142,6 +167,88 @@ test('waitMotorStopped polls cache instead of sending network commands', async (
     await extension.waitMotorStopped({PORT: 'A'});
 
     assert.deepEqual(sent, []);
+});
+
+test('sensor reporter and boolean blocks synchronously read sensor cache', () => {
+    const {extension, sensorCache, sent} = makeExtension();
+    sensorCache.update({
+        sensors: {
+            S1: {color: 5, reflected: 67, ambient: 12, rgb: [10, 20, 30]},
+            S2: {distance_cm: 24.5, distance_inch: 9.65},
+            S3: {angle: -45, rate: 7},
+            S4: {
+                pressed: true,
+                distance: 63,
+                beacon: {
+                    2: {heading: -7, distance: 44}
+                },
+                remote: {
+                    2: {buttons: ['top_left', 'bottom_right']}
+                }
+            }
+        },
+        system: {
+            battery_pct: 87,
+            buttons: {center: true}
+        }
+    });
+
+    const values = [
+        extension.getColorSensorColor({PORT: 'S1'}),
+        extension.getColorSensorReflected({PORT: 'S1'}),
+        extension.getColorSensorAmbient({PORT: 'S1'}),
+        extension.getColorSensorRGB({PORT: 'S1', CHANNEL: 'G'}),
+        extension.isColor({PORT: 'S1', COLOR: '5'}),
+        extension.getUltrasonicDistance({PORT: 'S2'}),
+        extension.getUltrasonicDistanceInch({PORT: 'S2'}),
+        extension.isUltrasonicNear({PORT: 'S2', DISTANCE: 30}),
+        extension.getGyroAngle({PORT: 'S3'}),
+        extension.getGyroRate({PORT: 'S3'}),
+        extension.getTouchPressed({PORT: 'S4'}),
+        extension.getIRDistance({PORT: 'S4'}),
+        extension.getIRBeaconHeading({PORT: 'S4', CHANNEL: '2'}),
+        extension.getIRBeaconDistance({PORT: 'S4', CHANNEL: '2'}),
+        extension.getIRRemoteButton({PORT: 'S4', CHANNEL: '2'}),
+        extension.isBrickButtonPressed({BUTTON: 'center'}),
+        extension.getBatteryLevel()
+    ];
+
+    assert.deepEqual(values, [
+        5,
+        67,
+        12,
+        20,
+        true,
+        24.5,
+        9.65,
+        true,
+        -45,
+        7,
+        true,
+        63,
+        -7,
+        44,
+        'top_left,bottom_right',
+        true,
+        87
+    ]);
+    assert.equal(values.some(value => value instanceof Promise), false);
+    assert.deepEqual(sent, []);
+});
+
+test('sensor command and wait blocks use validated ports and cache polling', async () => {
+    const {extension, sensorCache, sent} = makeExtension();
+    sensorCache.update({sensors: {S4: {pressed: true}, S3: {angle: 18}}});
+
+    await extension.resetGyro({PORT: 's3'});
+    await extension.resetGyro({PORT: 'z9'});
+    await extension.waitTouchPress({PORT: 'S4'});
+    sensorCache.update({sensors: {S4: {pressed: false}}});
+    await extension.waitTouchRelease({PORT: 'S4'});
+
+    assert.deepEqual(sent, [
+        {method: 'gyro.reset', params: {port: 'S3'}}
+    ]);
 });
 
 test('WeisileLink client sends JSON-RPC 2.0 commands to local Scratch endpoint', async () => {

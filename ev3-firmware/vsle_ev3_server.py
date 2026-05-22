@@ -458,8 +458,60 @@ class EV3DevHardware:
         if hasattr(sensor, "is_pressed"):
             return {"type": "touch", "pressed": sensor.is_pressed}
         if hasattr(sensor, "proximity"):
-            return {"type": "infrared", "distance": sensor.proximity}
+            return {
+                "type": "infrared",
+                "distance": sensor.proximity,
+                "beacon": self._read_ir_beacon_channels(sensor),
+                "remote": self._read_ir_remote_channels(sensor),
+            }
         return {"type": "unknown"}
+
+    def _read_ir_beacon_channels(self, sensor: Any) -> Dict[str, Any]:
+        data = {}
+        for channel in range(1, 5):
+            heading = 0
+            distance = 0
+            try:
+                if hasattr(sensor, "heading_and_distance"):
+                    heading, distance = sensor.heading_and_distance(channel)
+                else:
+                    if hasattr(sensor, "heading"):
+                        heading = sensor.heading(channel)
+                    if hasattr(sensor, "distance"):
+                        distance = sensor.distance(channel)
+            except Exception:
+                heading = 0
+                distance = 0
+            data[str(channel)] = {
+                "heading": 0 if heading is None else heading,
+                "distance": 0 if distance is None else distance,
+            }
+        return data
+
+    def _read_ir_remote_channels(self, sensor: Any) -> Dict[str, Any]:
+        data = {}
+        for channel in range(1, 5):
+            buttons = []
+            try:
+                if hasattr(sensor, "buttons_pressed"):
+                    buttons = list(sensor.buttons_pressed(channel) or [])
+                else:
+                    buttons = [
+                        name
+                        for name in [
+                            "top_left",
+                            "bottom_left",
+                            "top_right",
+                            "bottom_right",
+                            "beacon",
+                        ]
+                        if hasattr(sensor, name)
+                        and getattr(sensor, name)(channel)
+                    ]
+            except Exception:
+                buttons = []
+            data[str(channel)] = {"buttons": buttons}
+        return data
 
     def _read_motors(self) -> Dict[str, Any]:
         data = {}

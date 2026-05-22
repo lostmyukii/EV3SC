@@ -89,6 +89,17 @@ ports. This register records the sources used for the current implementation.
 | Scratch VM BT socket | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/io/bt.js` | Scratch Link base64 notification behavior and `didReceiveMessage` naming used by the extension sensor-cache bridge |
 | WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Direct VSLE method forwarding and sensor update notification payloads consumed by the extension client |
 
+## Phase 1 Step 9 — Sensor Cache and 20 Sensor Blocks
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 4.3 second block category with 20 sensor/system blocks; Section 4.4 50Hz `SensorCache` state-store contract; Section 9 EV3 capability matrix; Phase 1 sensor acceptance criteria |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Sensor cache key names, sensor port names, no-network reporter/Boolean rule, and `gyro.reset` command name |
+| ev3dev2 sensors documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/sensors.html` | Official ColorSensor, UltrasonicSensor, GyroSensor, TouchSensor, and InfraredSensor properties/methods, including IR beacon and remote button APIs |
+| Scratch VM EV3 extension | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | Scratch-side sensor reporter/Boolean block shape, menu formatting, cast usage, and cache-backed sensor read pattern |
+| EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | EV3 sensor payload shape consumed by the extension and expanded for IR beacon/remote channel snapshots |
+| WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Base64 sensor notification path that forwards EV3 sensor payloads into the extension cache |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

@@ -252,6 +252,39 @@ def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
     }
 
 
+def test_infrared_sensor_payload_includes_beacon_and_remote_channels():
+    module = load_server_module()
+
+    class FakeInfrared:
+        proximity = 63
+
+        def heading_and_distance(self, channel):
+            return (-7, 44) if channel == 2 else (0, None)
+
+        def buttons_pressed(self, channel):
+            return ["top_left", "bottom_right"] if channel == 2 else []
+
+    hardware = object.__new__(module.EV3DevHardware)
+    payload = hardware._read_sensor(FakeInfrared())
+
+    assert payload == {
+        "type": "infrared",
+        "distance": 63,
+        "beacon": {
+            "1": {"heading": 0, "distance": 0},
+            "2": {"heading": -7, "distance": 44},
+            "3": {"heading": 0, "distance": 0},
+            "4": {"heading": 0, "distance": 0},
+        },
+        "remote": {
+            "1": {"buttons": []},
+            "2": {"buttons": ["top_left", "bottom_right"]},
+            "3": {"buttons": []},
+            "4": {"buttons": []},
+        },
+    }
+
+
 def test_data_collection_is_bounded_and_can_be_exported_and_cleared():
     module = load_server_module()
     server = module.VSLEEV3Server(

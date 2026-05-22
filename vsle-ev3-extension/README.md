@@ -34,13 +34,16 @@ npm run serve:3001
 
 ## Scope
 
-This step implements the source-backed Unsandboxed extension skeleton and the
-Phase 1 motor block category:
+This extension currently implements the source-backed Unsandboxed skeleton and
+the first two Phase 1 block categories:
 
 - 14 motor blocks from `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`.
+- 20 sensor/system reporter blocks for color, ultrasonic, gyro, touch,
+  infrared, EV3 brick buttons, and battery level.
 - JSON-RPC 2.0 command dispatch to `ws://127.0.0.1:20111/scratch/bt`.
 - Scratch Link base64 sensor notifications into `SensorCache`.
-- Synchronous motor reporter and Boolean cache reads.
+- Synchronous reporter and Boolean cache reads. The only sensor command in
+  this phase is `resetGyro`, which sends `gyro.reset` to WeisileLink.
 
 The extension does not modify Scratch GUI styling or existing Scratch visual
 design.
