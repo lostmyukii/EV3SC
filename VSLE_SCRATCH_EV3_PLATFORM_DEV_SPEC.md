@@ -2389,6 +2389,13 @@ material into:
 - **Files created/modified**: `docs/SOURCE_REGISTER.md`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/protocol/error_mapping.py`, `weisile-link/weisile_link/runtime/*.py`, `weisile-link/tests/test_error_mapping.py`, `weisile-link/tests/test_reconnect_degradation.py`, formatting updates in `weisile-link/weisile_link/protocol/json_rpc.py` and `weisile-link/weisile_link/protocol/validation.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement WeisileLink health check and structured logging baseline from Section 17, including `/api/status` shape, transport/sensor counters, and token-safe JSON log records.
 
+### [2026-05-22] WeisileLink health and structured logging baseline
+- **Status**: ✅ Completed
+- **Commit**: `9880416`
+- **What was done**: Added a Section 17 observability baseline with framework-neutral `GET /api/status` handling, status payload generation, alert threshold evaluation, UTC JSON structured logs, and log sanitization that redacts token-like fields and truncates labels to 64 characters. Added tests for connected/disconnected health payloads, alert thresholds, status endpoint routing, and token-safe log output.
+- **Files created/modified**: `docs/SOURCE_REGISTER.md`, `weisile-link/weisile_link/observability/*.py`, `weisile-link/tests/test_observability.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement ev3dev SD card preparation and autostart documentation/scripts, keeping all generated project files under `/Users/yukii/Desktop/EV3SC/`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
