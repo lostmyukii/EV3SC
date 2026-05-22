@@ -56,6 +56,16 @@ ports. This register records the sources used for the current implementation.
 | ev3dev2 display documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/display.html` | EV3 LCD drawing primitives for text, line, circle, clear, and display updates |
 | websockets documentation | `https://websockets.readthedocs.io/` | Async WebSocket server shape, `serve` lifecycle, ping interval, and coroutine-based client handling |
 
+## Phase 1 Step 6 — WeisileLink WiFi WebSocket Transport
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 5.6 WiFi transport API; Section 7.2 EV3 sensor update payload; Section 10.5 command validation; Section 16 timeout/disconnect degradation |
+| EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Pairing ack shape, command ack envelope, sensor update payload, and close-safety behavior expected by WeisileLink |
+| WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Reused command allowlist and normalization so invalid commands never reach EV3 |
+| WeisileLink error/degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Reused connection state, WiFi failure flags, sensor cache snapshots, and pending command tracking |
+| websockets documentation | `https://websockets.readthedocs.io/` | Async WebSocket client connection API, ping interval option, and single receiver loop pattern |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

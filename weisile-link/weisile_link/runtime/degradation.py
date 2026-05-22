@@ -122,6 +122,13 @@ class DegradationManager:
         if command_id not in self._pending_command_ids:
             self._pending_command_ids.append(command_id)
 
+    def clear_command_pending(self, command_id: str) -> None:
+        """Remove a command future after ack, timeout, or disconnect."""
+        try:
+            self._pending_command_ids.remove(command_id)
+        except ValueError:
+            return
+
     def record_collected_points(self, count: int) -> None:
         """Preserve bounded local data collection count across reconnects."""
         self.collected_points = max(0, min(count, self.max_collected_points))
