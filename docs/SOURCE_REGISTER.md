@@ -14,6 +14,15 @@ ports. This register records the sources used for the current implementation.
 | VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 10 API contracts, Section 13.6 critical gates, Section 15 security requirements, Section 16 error codes |
 | JSON-RPC 2.0 specification | `https://www.jsonrpc.org/specification` | Generic JSON-RPC 2.0 response and error envelope semantics |
 
+## Phase 1 Step 2 — Error Mapping and Reconnect/Degradation Baseline
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 10.4 Scratch-facing JSON-RPC error envelope; Section 16.1 error code and retryability catalog; Section 16.2 degradation rules; Section 16.3 reconnect behavior |
+| WeisileLink JSON-RPC baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/json_rpc.py` | Reused `make_result` and `make_error` helpers for Scratch-compatible response envelopes |
+| WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Confirms validation failures stop before transport dispatch; this step only maps runtime failures and degraded runtime state |
+| Python standard library documentation | `https://docs.python.org/3/library/random.html` | `random.uniform` jitter source for Section 16.3 reconnect backoff; no external runtime dependency introduced |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

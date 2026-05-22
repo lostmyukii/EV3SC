@@ -43,12 +43,16 @@ def _invalid_port(method: str, port: Any) -> ValidationError:
     )
 
 
-def _number(method: str, params: Dict[str, Any], field: str, default: Any = None) -> float:
+def _number(
+    method: str, params: Dict[str, Any], field: str, default: Any = None
+) -> float:
     value = params.get(field, default)
     try:
         return float(value)
     except (TypeError, ValueError) as exc:
-        raise _invalid_command(method, f"{field} must be numeric", field=field) from exc
+        raise _invalid_command(
+            method, f"{field} must be numeric", field=field
+        ) from exc
 
 
 def _int_or_float(value: float) -> Any:
@@ -60,25 +64,33 @@ def _clamp(value: float, lower: float, upper: float) -> Any:
     return _int_or_float(max(lower, min(upper, value)))
 
 
-def _motor_port(method: str, params: Dict[str, Any], field: str = "port") -> str:
+def _motor_port(
+    method: str, params: Dict[str, Any], field: str = "port"
+) -> str:
     port = str(params.get(field, "")).upper()
     if port not in MOTOR_PORTS:
         raise _invalid_port(method, params.get(field))
     return port
 
 
-def _sensor_port(method: str, params: Dict[str, Any], field: str = "port") -> str:
+def _sensor_port(
+    method: str, params: Dict[str, Any], field: str = "port"
+) -> str:
     port = str(params.get(field, "")).upper()
     if port not in SENSOR_PORTS:
         raise _invalid_port(method, params.get(field))
     return port
 
 
-def _speed(method: str, params: Dict[str, Any], field: str = "speed", default: Any = 0) -> Any:
+def _speed(
+    method: str, params: Dict[str, Any], field: str = "speed", default: Any = 0
+) -> Any:
     return _clamp(_number(method, params, field, default), -100, 100)
 
 
-def _duration(method: str, params: Dict[str, Any], field: str, default: Any = 0) -> Any:
+def _duration(
+    method: str, params: Dict[str, Any], field: str, default: Any = 0
+) -> Any:
     return _clamp(_number(method, params, field, default), 0, 60)
 
 
@@ -86,7 +98,12 @@ def _frequency(method: str, params: Dict[str, Any], field: str = "freq") -> Any:
     return _clamp(_number(method, params, field), 20, 20000)
 
 
-def _volume(method: str, params: Dict[str, Any], field: str = "volume", default: Any = 100) -> Any:
+def _volume(
+    method: str,
+    params: Dict[str, Any],
+    field: str = "volume",
+    default: Any = 100,
+) -> Any:
     return _clamp(_number(method, params, field, default), 0, 100)
 
 
@@ -102,7 +119,9 @@ def _coord(
 def _label(method: str, params: Dict[str, Any], field: str = "label") -> str:
     value = str(params.get(field, ""))
     if len(value) > MAX_LABEL_LENGTH:
-        raise _invalid_command(method, "label must be 64 characters or fewer", field=field)
+        raise _invalid_command(
+            method, "label must be 64 characters or fewer", field=field
+        )
     return value
 
 
@@ -115,7 +134,10 @@ def _single_motor(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _motor_speed(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
-    return {"port": _motor_port(method, params), "speed": _speed(method, params)}
+    return {
+        "port": _motor_port(method, params),
+        "speed": _speed(method, params),
+    }
 
 
 def _motor_timed(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -226,7 +248,9 @@ COMMAND_VALIDATORS: Dict[str, CommandValidator] = {
 }
 
 
-def validate_ev3_command(method: str, params: Dict[str, Any]) -> ValidatedCommand:
+def validate_ev3_command(
+    method: str, params: Dict[str, Any]
+) -> ValidatedCommand:
     """Validate and normalize an EV3 command envelope."""
     validator = COMMAND_VALIDATORS.get(method)
     if validator is None:

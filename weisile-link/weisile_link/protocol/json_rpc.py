@@ -64,7 +64,9 @@ def parse_json_rpc_request(raw: str) -> Dict[str, Any]:
             {"retryable": False},
         )
 
-    if request.get("jsonrpc") != "2.0" or not isinstance(request.get("method"), str):
+    if request.get("jsonrpc") != "2.0" or not isinstance(
+        request.get("method"), str
+    ):
         raise JsonRpcParseError(
             ErrorCode.EV3_INVALID_COMMAND,
             "JSON-RPC request must include jsonrpc='2.0' and method",
