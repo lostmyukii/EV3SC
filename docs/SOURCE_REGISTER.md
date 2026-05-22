@@ -168,6 +168,17 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink sensor router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Reused one router and bounded Trainer buffer per EV3 session to isolate Scratch notifications, Trainer streams, collected rows, and REST snapshots |
 | WeisileLink observability baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Extended `/api/status` with per-session health while preserving existing top-level health fields |
 
+## Phase 2 Step 6 — Sensor Data Panel UI
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 3.1-3.3 Scratch visual-preservation rules; Section 4.4 `SensorCache`; Section 11.3 sensor data panel layout, width, background, and active-state color; Phase 2 `Sensor data panel UI` task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Collapsible sensor panel allowed beside the stage, no Scratch visual changes, all sensor reads from `SensorCache`, EV3SC standalone ownership, and GitHub/progress workflow |
+| Scratch GUI colors | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/css/colors.css` | Scratch UI text color, white/primary surfaces, border transparency, and active UI color references used to keep the panel visually native |
+| Scratch GUI units and typography | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/css/units.css`, `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/css/typography.css` | Scratch spacing, border radius, and `"Helvetica Neue", Helvetica, Arial, sans-serif` font stack |
+| Scratch GUI monitor styling | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/monitor/monitor.css` | Monitor-style compact rows, borders, rounded meters, and stage-overlay-safe visual language for live values |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing `SensorCache`, data collection commands, and no-DOM-load integration boundary extended with the panel model, renderer, and explicit host mounting |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

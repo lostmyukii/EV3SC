@@ -53,6 +53,28 @@ and the full 62-block VSLE EV3 surface:
 - Synchronous reporter and Boolean cache reads. Sensor/system/data reporters
   read from `SensorCache`; command blocks send validated JSON-RPC envelopes to
   WeisileLink.
+- A cache-backed, collapsible sensor data panel implementation in
+  `src/ui/data_panel.js`. It renders Scratch-style HTML/CSS from `SensorCache`,
+  keeps the standard Scratch UI untouched until a host container explicitly
+  mounts it, and exposes buttons for starting collection and uploading to the
+  Trainer through the existing extension commands.
 
 The extension does not modify Scratch GUI styling or existing Scratch visual
 design.
+
+## Sensor Data Panel
+
+Use the panel only from a Scratch/TurboWarp host that provides an additive
+container beside the stage:
+
+```javascript
+const panel = extension.createSensorDataPanel({
+    container: document.querySelector('[data-vsle-sensor-panel-host]'),
+    collectionTarget: 30
+});
+
+panel.render();
+```
+
+The extension does not auto-insert this host. That keeps the normal Scratch
+stage, block palette, menu bar, sprite panes, and existing CSS unchanged.

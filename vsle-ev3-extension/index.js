@@ -24,6 +24,10 @@
     const WAIT_POLL_MS = 20;
     const WAIT_TIMEOUT_MS = 60000;
     const SENSOR_STALE_MS = 200;
+    const SENSOR_PANEL_WIDTH_PX = 280;
+    const SENSOR_PANEL_BACKGROUND = '#F5F5F5';
+    const SENSOR_PANEL_ACTIVE_GREEN = '#4CBF56';
+    const SENSOR_PANEL_COLLECTION_TARGET = 30;
 
     const FALLBACK_BLOCK_TYPE = {
         COMMAND: 'command',
@@ -305,6 +309,222 @@
                 decoded = params.message;
             }
             this.sensorCache.update(JSON.parse(decoded));
+        }
+    }
+
+    const buildSensorDataPanelModel = (sensorCache, options = {}) => {
+        const now = options.now || (() => Date.now());
+        const current = typeof sensorCache.get === 'function' ?
+            sensorCache.get() :
+            {};
+        const timestamp = safeNumber(
+            getPath(current, 'timestamp'),
+            0
+        );
+        const collectionTarget = Math.max(
+            1,
+            safeNumber(
+                options.collectionTarget,
+                SENSOR_PANEL_COLLECTION_TARGET
+            )
+        );
+        const collected = safeNumber(
+            getPath(current, 'system.collected_points'),
+            0
+        );
+        const count = Math.max(0, Math.round(collected));
+        const progressPct = clamp(
+            Math.round((count / collectionTarget) * 100),
+            0,
+            100
+        );
+
+        return {
+            layout: {
+                widthPx: SENSOR_PANEL_WIDTH_PX,
+                background: SENSOR_PANEL_BACKGROUND,
+                activeGreen: SENSOR_PANEL_ACTIVE_GREEN
+            },
+            connection: {
+                connected: timestamp > 0 &&
+                    now() - timestamp <= SENSOR_STALE_MS,
+                staleMs: timestamp > 0 ? Math.max(0, now() - timestamp) : null,
+                brickId: getPath(current, 'brick_id') || 'vsle-ev3-wifi',
+                brickName: getPath(current, 'brick_name') || 'VSLE EV3'
+            },
+            sensors: {
+                color: {
+                    port: 'S1',
+                    value: safeNumber(getPath(current, 'sensors.S1.color')),
+                    reflected: safeNumber(
+                        getPath(current, 'sensors.S1.reflected')
+                    ),
+                    ambient: safeNumber(getPath(current, 'sensors.S1.ambient')),
+                    rgb: normalRgb(getPath(current, 'sensors.S1.rgb'))
+                },
+                distance: {
+                    port: 'S2',
+                    value: safeNumber(
+                        getPath(current, 'sensors.S2.distance_cm')
+                    ),
+                    inch: safeNumber(
+                        getPath(current, 'sensors.S2.distance_inch')
+                    )
+                },
+                gyro: {
+                    port: 'S3',
+                    angle: safeNumber(getPath(current, 'sensors.S3.angle')),
+                    rate: safeNumber(getPath(current, 'sensors.S3.rate'))
+                },
+                touch: {
+                    port: 'S4',
+                    pressed: getPath(current, 'sensors.S4.pressed') === true
+                }
+            },
+            motors: MOTOR_PORTS.reduce((motors, port) => {
+                motors[port] = {
+                    port,
+                    position: safeNumber(
+                        getPath(current, `motors.${port}.position`)
+                    ),
+                    speed: safeNumber(getPath(current, `motors.${port}.speed`)),
+                    running: getPath(current, `motors.${port}.running`) === true
+                };
+                return motors;
+            }, {}),
+            system: {
+                batteryPct: safeNumber(
+                    getPath(current, 'system.battery_pct'),
+                    100
+                ),
+                batteryV: safeNumber(getPath(current, 'system.battery_v')),
+                updateRate: safeNumber(sensorCache.updateRate)
+            },
+            collection: {
+                collecting: getPath(current, 'system.collecting') === true,
+                label: getPath(current, 'system.collect_label') || '',
+                count,
+                target: collectionTarget,
+                progressPct
+            }
+        };
+    };
+
+    const renderSensorDataPanel = (sensorCache, options = {}) => {
+        const model = buildSensorDataPanelModel(sensorCache, options);
+        const collapsed = options.collapsed === true;
+        const bodyStyle = collapsed ? ' style="display:none"' : '';
+        const toggleText = collapsed ? '展开' : '收起';
+        const active = model.layout.activeGreen;
+        const inactive = '#D9E3F2';
+        const connectedText = model.connection.connected ? '已连接' : '未连接';
+        const connectedColor = model.connection.connected ? active : '#FF8C1A';
+        const touchText = model.sensors.touch.pressed ? '已按' : '未按';
+        const touchColor = model.sensors.touch.pressed ? active : inactive;
+        const collectionLabel = model.collection.collecting ?
+            `采集中 · ${escapeHtml(model.collection.label || '未命名')}` :
+            '未采集';
+
+        return [
+            `<section class="vsle-sensor-panel" data-vsle-component="sensor-panel" aria-expanded="${!collapsed}" style="width: ${model.layout.widthPx}px; background: ${model.layout.background}; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: #575E75; border-left: 1px solid rgba(0,0,0,0.15);">`,
+            '<style>',
+            SENSOR_DATA_PANEL_CSS,
+            '</style>',
+            '<div class="vsle-sensor-panel__header">',
+            '<strong>EV3 传感器实时数据</strong>',
+            `<button type="button" class="vsle-sensor-panel__toggle" data-vsle-action="toggle" aria-label="${toggleText}传感器面板">${toggleText}</button>`,
+            '</div>',
+            `<div class="vsle-sensor-panel__body"${bodyStyle}>`,
+            '<div class="vsle-sensor-panel__status">',
+            `<span class="vsle-sensor-panel__dot" style="background: ${connectedColor}"></span>`,
+            `<span>${escapeHtml(model.connection.brickName)} · ${connectedText}</span>`,
+            `<span>${model.system.batteryPct}% · ${model.system.updateRate}Hz</span>`,
+            '</div>',
+            '<div class="vsle-sensor-panel__group">',
+            sensorRow(
+                '颜色 S1',
+                `${model.sensors.color.reflected}`,
+                model.sensors.color.reflected,
+                active
+            ),
+            sensorRow(
+                '距离 S2',
+                `${formatNumber(model.sensors.distance.value)}cm`,
+                clamp(model.sensors.distance.value, 0, 100),
+                active
+            ),
+            sensorRow(
+                '陀螺 S3',
+                `${formatNumber(model.sensors.gyro.angle)}°`,
+                50 + clamp(model.sensors.gyro.angle, -90, 90) / 1.8,
+                active
+            ),
+            sensorRow('触碰 S4', touchText, 100, touchColor),
+            '</div>',
+            '<div class="vsle-sensor-panel__subhead">电机</div>',
+            '<div class="vsle-sensor-panel__group">',
+            MOTOR_PORTS.map(port => motorRow(model.motors[port], active)).join(''),
+            '</div>',
+            '<div class="vsle-sensor-panel__subhead">数据采集</div>',
+            '<div class="vsle-sensor-panel__collection">',
+            `<div class="vsle-sensor-panel__progress" aria-label="数据采集 ${model.collection.count}/${model.collection.target}">`,
+            `<span style="width: ${model.collection.progressPct}%; background: ${active}"></span>`,
+            '</div>',
+            `<span>${model.collection.count}/${model.collection.target}</span>`,
+            `<span>${collectionLabel}</span>`,
+            '</div>',
+            '<div class="vsle-sensor-panel__actions">',
+            '<button type="button" data-vsle-action="startCollect">开始采集</button>',
+            '<button type="button" data-vsle-action="uploadToTrainer">上传训练工场</button>',
+            '</div>',
+            '</div>',
+            '</section>'
+        ].join('');
+    };
+
+    class SensorDataPanel {
+        constructor (options = {}) {
+            if (!options.container) {
+                throw new Error('SensorDataPanel requires a host container');
+            }
+            this.sensorCache = options.sensorCache;
+            this.container = options.container;
+            this.now = options.now || (() => Date.now());
+            this.collectionTarget = options.collectionTarget ||
+                SENSOR_PANEL_COLLECTION_TARGET;
+            this.collapsed = options.collapsed === true;
+            this.onStartCollect = options.onStartCollect || (async () => {});
+            this.onUploadToTrainer = options.onUploadToTrainer ||
+                (async () => {});
+        }
+
+        render () {
+            this.container.innerHTML = renderSensorDataPanel(this.sensorCache, {
+                now: this.now,
+                collectionTarget: this.collectionTarget,
+                collapsed: this.collapsed
+            });
+            this._bindAction('toggle', () => this.toggle());
+            this._bindAction('startCollect', () => this.onStartCollect());
+            this._bindAction('uploadToTrainer', () => this.onUploadToTrainer());
+            return this.container;
+        }
+
+        toggle () {
+            this.collapsed = !this.collapsed;
+            this.render();
+        }
+
+        _bindAction (name, handler) {
+            if (!this.container.querySelector) {
+                return;
+            }
+            const element = this.container.querySelector(
+                `[data-vsle-action="${name}"]`
+            );
+            if (element && element.addEventListener) {
+                element.addEventListener('click', handler);
+            }
         }
     }
 
@@ -774,6 +994,22 @@
                 interval_ms: this._milliseconds(args.INTERVAL),
                 label
             });
+        }
+
+        createSensorDataPanel (options = {}) {
+            const panel = new SensorDataPanel({
+                sensorCache: this.sensorCache,
+                container: options.container,
+                now: options.now,
+                collectionTarget: options.collectionTarget,
+                collapsed: options.collapsed,
+                onStartCollect: () => this.startDataCollection({
+                    LABEL: options.collectionLabel || 'panel'
+                }),
+                onUploadToTrainer: () => this.uploadToTrainer()
+            });
+            panel.render();
+            return panel;
         }
 
         async _sendMotorCommand (method, params) {
@@ -1464,6 +1700,83 @@
 
     const deepClone = value => JSON.parse(JSON.stringify(value));
 
+    const getPath = (object, path) => path.split('.').reduce((current, key) => (
+        current === undefined || current === null ? undefined : current[key]
+    ), object);
+
+    const safeNumber = (value, defaultValue = 0) => {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : defaultValue;
+    };
+
+    const normalRgb = value => {
+        if (!Array.isArray(value)) {
+            return [0, 0, 0];
+        }
+        return [0, 1, 2].map(index => clamp(
+            Math.round(safeNumber(value[index])),
+            0,
+            255
+        ));
+    };
+
+    const formatNumber = value => {
+        const number = safeNumber(value);
+        return Number.isInteger(number) ? String(number) : number.toFixed(1);
+    };
+
+    const escapeHtml = value => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const sensorRow = (label, value, percentage, color) => [
+        '<div class="vsle-sensor-panel__row">',
+        `<span>${escapeHtml(label)}</span>`,
+        '<span class="vsle-sensor-panel__meter">',
+        `<i style="width: ${clamp(Math.round(percentage), 0, 100)}%; background: ${color}"></i>`,
+        '</span>',
+        `<strong>${escapeHtml(value)}</strong>`,
+        '</div>'
+    ].join('');
+
+    const motorRow = (motor, activeColor) => {
+        const color = motor.running ? activeColor : '#D9E3F2';
+        const state = motor.running ? `${motor.speed}%` : '停止';
+        return [
+            '<div class="vsle-sensor-panel__motor">',
+            `<span>${motor.port}: ${formatNumber(motor.position)}°</span>`,
+            `<i style="background: ${color}"></i>`,
+            `<strong>${escapeHtml(state)}</strong>`,
+            '</div>'
+        ].join('');
+    };
+
+    const SENSOR_DATA_PANEL_CSS = [
+        '.vsle-sensor-panel{box-sizing:border-box;min-height:100%;font-size:0.75rem;}',
+        '.vsle-sensor-panel *{box-sizing:border-box;}',
+        '.vsle-sensor-panel__header{display:flex;align-items:center;justify-content:space-between;padding:0.5rem;border-bottom:1px solid rgba(0,0,0,0.15);}',
+        '.vsle-sensor-panel__header strong{font-size:0.85rem;}',
+        '.vsle-sensor-panel__toggle,.vsle-sensor-panel__actions button{border:1px solid rgba(0,0,0,0.15);border-radius:0.25rem;background:#fff;color:#575E75;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;font-weight:600;font-size:0.75rem;padding:0.25rem 0.5rem;}',
+        '.vsle-sensor-panel__body{padding:0.5rem;}',
+        '.vsle-sensor-panel__status{display:grid;grid-template-columns:auto 1fr auto;gap:0.35rem;align-items:center;margin-bottom:0.5rem;}',
+        '.vsle-sensor-panel__dot{width:0.55rem;height:0.55rem;border-radius:50%;display:inline-block;}',
+        '.vsle-sensor-panel__group{background:#fff;border:1px solid rgba(0,0,0,0.15);border-radius:0.25rem;overflow:hidden;}',
+        '.vsle-sensor-panel__row,.vsle-sensor-panel__motor{display:grid;grid-template-columns:4.5rem 1fr 3.25rem;gap:0.35rem;align-items:center;min-height:1.8rem;padding:0.25rem 0.4rem;border-bottom:1px solid rgba(0,0,0,0.10);}',
+        '.vsle-sensor-panel__row:last-child,.vsle-sensor-panel__motor:last-child{border-bottom:0;}',
+        '.vsle-sensor-panel__meter{height:0.45rem;background:#E9F1FC;border-radius:0.25rem;overflow:hidden;}',
+        '.vsle-sensor-panel__meter i{display:block;height:100%;border-radius:0.25rem;}',
+        '.vsle-sensor-panel__motor i{width:0.65rem;height:0.65rem;display:inline-block;border-radius:0.15rem;}',
+        '.vsle-sensor-panel__subhead{font-weight:700;margin:0.65rem 0 0.25rem;}',
+        '.vsle-sensor-panel__collection{display:grid;grid-template-columns:1fr auto;gap:0.35rem;align-items:center;}',
+        '.vsle-sensor-panel__collection span:last-child{grid-column:1 / -1;}',
+        '.vsle-sensor-panel__progress{height:0.55rem;background:#E9F1FC;border-radius:0.25rem;overflow:hidden;}',
+        '.vsle-sensor-panel__progress span{display:block;height:100%;border-radius:0.25rem;}',
+        '.vsle-sensor-panel__actions{display:flex;gap:0.35rem;margin-top:0.5rem;}'
+    ].join('');
+
     const deepMerge = (base, patch) => {
         if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
             return patch;
@@ -1501,15 +1814,22 @@
 
     return {
         LEGO_RED,
+        SENSOR_DATA_PANEL_CSS,
+        SENSOR_PANEL_ACTIVE_GREEN,
+        SENSOR_PANEL_BACKGROUND,
+        SENSOR_PANEL_WIDTH_PX,
         DATA_BLOCK_OPCODES,
         DISPLAY_BLOCK_OPCODES,
         MOTOR_BLOCK_OPCODES,
         SENSOR_BLOCK_OPCODES,
         SOUND_BLOCK_OPCODES,
         SYSTEM_BLOCK_OPCODES,
+        SensorDataPanel,
         SensorCache,
         VSLEEV3Extension,
         WeisileLinkClient,
+        buildSensorDataPanelModel,
+        renderSensorDataPanel,
         register
     };
 });

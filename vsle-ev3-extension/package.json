@@ -5,7 +5,7 @@
   "description": "TurboWarp unsandboxed VSLE EV3 extension.",
   "type": "commonjs",
   "scripts": {
-    "check": "node --check index.js && node --check tests/test_extension.js && node --check tests/test_turbowarp_integration.js",
+    "check": "node --check index.js && node --check src/ui/data_panel.js && node --check tests/test_extension.js && node --check tests/test_turbowarp_integration.js && node --check tests/test_sensor_data_panel.js",
     "serve": "python3 -m http.server 8000 --directory ..",
     "serve:3001": "python3 -m http.server 3001 --directory ..",
     "test": "node --test tests/*.js",
