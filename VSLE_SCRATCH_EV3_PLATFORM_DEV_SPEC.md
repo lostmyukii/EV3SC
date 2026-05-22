@@ -2254,6 +2254,13 @@ material into:
 - **Files created/modified**: `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: `git init` in EV3SC if not already a repo, then begin Phase 1 — `vsle_ev3_server.py` + `wifi_transport.py`.
 
+### [2026-05-22] Audit remediation requirements incorporated
+- **Status**: ✅ Completed
+- **Commit**: `72394b6`
+- **What was done**: Updated the platform specification using `vsle_document_audit_final.md`. The spec now marks classroom deployment as blocked until critical remediation gates pass, adds security/privacy/safety, error handling, operations, compatibility, licensing, and governance sections, and corrects known code risks documented by the audit.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement and verify the Section 13.6 Critical Remediation Gates before any classroom pilot.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
