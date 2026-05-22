@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "vsle-ai-quest-sample-v1",
+  "id": "touch-stop-safety-collector",
+  "order": 3,
+  "title": "Touch Stop Safety Collector",
+  "ageBand": "7-15",
+  "goal": "Collect touch and motion readings for a safety-stop classifier.",
+  "estimatedMinutes": 15,
+  "hardware": {
+    "motors": ["A", "B"],
+    "sensors": ["S3", "S4"],
+    "transports": ["wifi", "bluetooth"]
+  },
+  "labels": ["moving", "pressed-stop"],
+  "workflow": [
+    {
+      "stage": "record",
+      "title": "Record moving and pressed-stop samples",
+      "script": [
+        {"opcode": "startDataCollection", "args": {"LABEL": "moving"}},
+        {"opcode": "motorSyncRun", "args": {"PORT_L": "A", "PORT_R": "B", "SPEED": 35, "TIME": 1.5}},
+        {"opcode": "stopDataCollection", "args": {}},
+        {"opcode": "startDataCollection", "args": {"LABEL": "pressed-stop"}},
+        {"opcode": "waitTouchPress", "args": {"PORT": "S4"}},
+        {"opcode": "stopAllEV3", "args": {}},
+        {"opcode": "stopDataCollection", "args": {}}
+      ]
+    },
+    {
+      "stage": "upload",
+      "title": "Upload safety rows to WeisileAI Trainer",
+      "script": [
+        {"opcode": "uploadToTrainer", "args": {}}
+      ]
+    },
+    {
+      "stage": "train",
+      "title": "Train a decision tree",
+      "trainerActions": ["clean-outliers", "select-features", "train-decision-tree"]
+    },
+    {
+      "stage": "export",
+      "title": "Export classroom data and model rules",
+      "script": [
+        {"opcode": "exportDataCSV", "args": {}}
+      ]
+    }
+  ],
+  "trainer": {
+    "features": ["touch_pressed", "gyro_angle", "motor_a_pos"],
+    "model": {"type": "decision_tree", "accuracyGate": 0.7},
+    "exportArtifacts": ["vsle_ev3_data.csv", "model_rules.json"]
+  },
+  "privacy": {
+    "localFirst": true,
+    "studentDataCollected": false,
+    "deleteRoute": "/api/data/clear",
+    "deletionInstructions": "Use clear session after export or at the end of class."
+  }
+}

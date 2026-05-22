@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "vsle-ai-quest-sample-v1",
+  "id": "obstacle-avoidance-collector",
+  "order": 1,
+  "title": "Obstacle Avoidance Collector",
+  "ageBand": "7-15",
+  "goal": "Collect safe-zone and obstacle-zone EV3 readings for an AI Quest obstacle classifier.",
+  "estimatedMinutes": 20,
+  "hardware": {
+    "motors": ["A"],
+    "sensors": ["S2", "S4"],
+    "transports": ["wifi", "bluetooth"]
+  },
+  "labels": ["safe-zone", "obstacle-zone"],
+  "workflow": [
+    {
+      "stage": "record",
+      "title": "Record labeled EV3 sensor data",
+      "script": [
+        {"opcode": "startDataCollection", "args": {"LABEL": "safe-zone"}},
+        {"opcode": "motorRunTimed", "args": {"PORT": "A", "SPEED": 50, "TIME": 0.5}},
+        {"opcode": "waitMilliseconds", "args": {"MS": 500}},
+        {"opcode": "stopDataCollection", "args": {}},
+        {"opcode": "startDataCollection", "args": {"LABEL": "obstacle-zone"}},
+        {"opcode": "waitTouchPress", "args": {"PORT": "S4"}},
+        {"opcode": "stopDataCollection", "args": {}}
+      ]
+    },
+    {
+      "stage": "upload",
+      "title": "Upload buffered rows to WeisileAI Trainer",
+      "script": [
+        {"opcode": "uploadToTrainer", "args": {}}
+      ]
+    },
+    {
+      "stage": "train",
+      "title": "Train a decision tree",
+      "trainerActions": ["clean-outliers", "select-features", "train-decision-tree"]
+    },
+    {
+      "stage": "export",
+      "title": "Export classroom data and model rules",
+      "script": [
+        {"opcode": "exportDataCSV", "args": {}}
+      ]
+    }
+  ],
+  "trainer": {
+    "features": ["ultrasonic_cm", "touch_pressed", "gyro_angle", "motor_a_pos"],
+    "model": {"type": "decision_tree", "accuracyGate": 0.7},
+    "exportArtifacts": ["vsle_ev3_data.csv", "model_rules.json"]
+  },
+  "privacy": {
+    "localFirst": true,
+    "studentDataCollected": false,
+    "deleteRoute": "/api/data/clear",
+    "deletionInstructions": "Use clear session after export or at the end of class."
+  }
+}

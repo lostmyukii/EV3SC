@@ -1,0 +1,12 @@
+{
+  "name": "@vsle/ai-quest-samples",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Source-backed AI Quest sample projects for VSLE EV3 data collection.",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node scripts/export_project_json.js",
+    "check": "node --check index.js && node --check scripts/export_project_json.js && node --check tests/test_samples.js",
+    "test": "node --test tests/*.js"
+  }
+}

@@ -190,6 +190,17 @@ ports. This register records the sources used for the current implementation.
 | Scratch official EV3 icon asset | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/lib/libraries/extensions/ev3/ev3-small.svg` | Copied into `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/assets/ev3-small.svg` so EV3SC remains standalone while matching Scratch's EV3 connection visuals |
 | WeisileLink transport baselines | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/wifi_transport.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/bluetooth_transport.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/selector.py` | Endpoint reconfiguration for modal-submitted `ev3_ip` and `ev3_bt` before reconnecting the selected transport |
 
+## Phase 3 Step 1 — AI Quest Sample Projects
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 8.2 `record -> upload -> train -> export` AI Quest workflow; Section 10 Trainer REST/WebSocket contracts; Section 15 local-first privacy and deletion controls; Phase 3 `AI Quest data collection sample projects` task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC standalone ownership, no Scratch visual-design changes, source-backed EV3/Scratch behavior, complete scoped implementation, GitHub/progress workflow |
+| Scratch VM SB3 serializer | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/serialization/sb3.js` | Source-backed `project.json` target/block/extension layout, `extensions` list, and extension opcode prefix behavior used by generated sample project JSON |
+| Scratch VM extension metadata docs | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-metadata.js` | Source-backed extension `id`, block `opcode`, argument metadata, and menu constraints used when validating `vsleev3_*` sample opcodes |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Current `getInfo()` block metadata used to validate each sample command opcode and prevent drift from the runnable extension |
+| WeisileLink Trainer router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Current Trainer feature fields, CSV export semantics, and local buffer behavior mirrored by sample workflow plans |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
