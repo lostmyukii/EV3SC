@@ -172,6 +172,18 @@ When implementing EV3, Scratch, TurboWarp, Scratch Link compatibility, ev3dev, o
 - Do not fabricate Scratch, TurboWarp, Scratch Link, EV3 bytecode, ev3dev, or ev3dev2 APIs from memory.
 - If no open-source reference exists for a required behavior, document the gap, ask the user, and mark the work as experimental until verified.
 
+### 7. Complete scoped implementation only — no patch-later development
+
+Every completed development step MUST be complete for its stated scope.
+Do not deliver a narrow "minimal implementation", placeholder, skeleton-only version, happy-path-only version, or temporary workaround with the intention of patching it later.
+
+For each committed step:
+- Implement the full behavior required by the current spec section, plan task, or acceptance gate.
+- Include validation, error handling, source-backed API behavior, tests, and documentation/progress updates required for that scope.
+- If the requested scope is too large to finish safely in one step, split it into smaller vertical slices, but each slice must still be complete and usable on its own.
+- Do not mark a step complete while known required behavior for that step remains missing.
+- Do not use "we will add this later" to defer requirements that belong to the current step.
+
 ---
 
 ## Project Structure
