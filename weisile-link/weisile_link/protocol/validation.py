@@ -19,6 +19,7 @@ LCD_Y_MAX = 127
 MAX_LABEL_LENGTH = 64
 SOUND_EXTENSIONS = {".wav"}
 IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
+STATUS_LIGHT_COLORS = {"green", "orange", "red", "amber", "yellow"}
 
 
 @dataclass(frozen=True)
@@ -125,6 +126,15 @@ def _label(method: str, params: Dict[str, Any], field: str = "label") -> str:
             method, "label must be 64 characters or fewer", field=field
         )
     return value
+
+
+def _milliseconds(
+    method: str,
+    params: Dict[str, Any],
+    field: str = "interval_ms",
+    default: Any = 100,
+) -> Any:
+    return _clamp(_number(method, params, field, default), 20, 60000)
 
 
 def _asset_name(
@@ -267,6 +277,24 @@ def _data_label(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     return {"label": _label(method, params)}
 
 
+def _status_light(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    color = str(params.get("color", "")).lower()
+    if color not in STATUS_LIGHT_COLORS:
+        raise _invalid_command(
+            method,
+            "status light color is not allowed",
+            field="color",
+        )
+    return {"color": color}
+
+
+def _auto_collect(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "interval_ms": _milliseconds(method, params),
+        "label": _label(method, params),
+    }
+
+
 CommandValidator = Callable[[str, Dict[str, Any]], Dict[str, Any]]
 
 COMMAND_VALIDATORS: Dict[str, CommandValidator] = {
@@ -294,11 +322,17 @@ COMMAND_VALIDATORS: Dict[str, CommandValidator] = {
     "display.drawCircle": _display_circle,
     "display.update": _empty,
     "gyro.reset": _gyro_reset,
+    "system.setStatusLight": _status_light,
+    "system.statusLightOff": _empty,
+    "system.stopAll": _empty,
     "data.startCollect": _data_label,
     "data.stopCollect": _empty,
     "data.addPoint": _data_label,
     "data.getAll": _empty,
     "data.clear": _empty,
+    "data.uploadToTrainer": _empty,
+    "data.exportCSV": _empty,
+    "data.startAutoCollect": _auto_collect,
 }
 
 

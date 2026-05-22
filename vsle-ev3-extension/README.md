@@ -35,8 +35,8 @@ npm run serve:3001
 
 ## Scope
 
-This extension currently implements the source-backed Unsandboxed skeleton,
-all Phase 1 blocks, and the first Phase 2 block group:
+This extension currently implements the source-backed Unsandboxed skeleton
+and the full 62-block VSLE EV3 surface:
 
 - 14 motor blocks from `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`.
 - 20 sensor/system reporter blocks for color, ultrasonic, gyro, touch,
@@ -44,10 +44,15 @@ all Phase 1 blocks, and the first Phase 2 block group:
 - 6 sound blocks for tone, tone-and-wait, file playback, volume, beep, and stop.
 - 8 display blocks for text, numbers, images, coordinates, lines, circles,
   clearing, and update.
+- 6 system blocks for status light control, millisecond waits, emergency stop,
+  connection state, and battery voltage.
+- 8 AI Quest data collection blocks for local labeled capture, manual samples,
+  auto collection, upload/export commands, clear, and count reporting.
 - JSON-RPC 2.0 command dispatch to `ws://127.0.0.1:20111/scratch/bt`.
 - Scratch Link base64 sensor notifications into `SensorCache`.
-- Synchronous reporter and Boolean cache reads. The only sensor command in
-  this phase is `resetGyro`, which sends `gyro.reset` to WeisileLink.
+- Synchronous reporter and Boolean cache reads. Sensor/system/data reporters
+  read from `SensorCache`; command blocks send validated JSON-RPC envelopes to
+  WeisileLink.
 
 The extension does not modify Scratch GUI styling or existing Scratch visual
 design.

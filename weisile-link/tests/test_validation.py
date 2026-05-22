@@ -105,6 +105,40 @@ def test_display_number_text_at_and_update_commands_normalize_params():
     assert update.params == {}
 
 
+def test_system_status_light_and_stop_commands_normalize_params():
+    light = validate_ev3_command("system.setStatusLight", {"color": "GREEN"})
+    off = validate_ev3_command("system.statusLightOff", {})
+    stop = validate_ev3_command("system.stopAll", {})
+
+    assert light.params == {"color": "green"}
+    assert off.params == {}
+    assert stop.params == {}
+
+    with pytest.raises(ValidationError) as exc_info:
+        validate_ev3_command("system.setStatusLight", {"color": "purple"})
+
+    error = exc_info.value
+    assert error.code == ErrorCode.EV3_INVALID_COMMAND
+    assert error.data == {
+        "method": "system.setStatusLight",
+        "field": "color",
+        "retryable": False,
+    }
+
+
+def test_data_upload_export_and_auto_collect_commands_normalize_params():
+    upload = validate_ev3_command("data.uploadToTrainer", {})
+    export = validate_ev3_command("data.exportCSV", {})
+    auto = validate_ev3_command(
+        "data.startAutoCollect",
+        {"interval_ms": 5, "label": "safe"},
+    )
+
+    assert upload.params == {}
+    assert export.params == {}
+    assert auto.params == {"interval_ms": 20, "label": "safe"}
+
+
 def test_label_longer_than_64_characters_is_rejected():
     with pytest.raises(ValidationError) as exc_info:
         validate_ev3_command("data.startCollect", {"label": "x" * 65})

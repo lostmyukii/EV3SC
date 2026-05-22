@@ -3,10 +3,12 @@ const test = require('node:test');
 
 const {
     LEGO_RED,
+    DATA_BLOCK_OPCODES,
     DISPLAY_BLOCK_OPCODES,
     MOTOR_BLOCK_OPCODES,
     SENSOR_BLOCK_OPCODES,
     SOUND_BLOCK_OPCODES,
+    SYSTEM_BLOCK_OPCODES,
     SensorCache,
     VSLEEV3Extension,
     WeisileLinkClient,
@@ -68,20 +70,22 @@ test('register requires unsandboxed TurboWarp extension context', () => {
     );
 });
 
-test('getInfo exposes motor, sensor, sound, and display blocks in LEGO red', () => {
+test('getInfo exposes all 62 EV3 blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
     assert.equal(info.name, 'VSLE EV3');
     assert.equal(info.color1, LEGO_RED);
-    assert.equal(info.blocks.length, 48);
+    assert.equal(info.blocks.length, 62);
     assert.deepEqual(
         info.blocks.map(block => block.opcode),
         [
             ...MOTOR_BLOCK_OPCODES,
             ...SENSOR_BLOCK_OPCODES,
             ...SOUND_BLOCK_OPCODES,
-            ...DISPLAY_BLOCK_OPCODES
+            ...DISPLAY_BLOCK_OPCODES,
+            ...SYSTEM_BLOCK_OPCODES,
+            ...DATA_BLOCK_OPCODES
         ]
     );
     assert.equal(info.menus.motorPorts.items.length, 4);
@@ -91,6 +95,7 @@ test('getInfo exposes motor, sensor, sound, and display blocks in LEGO red', () 
     assert.ok(info.menus.brickButtons.items.includes('center'));
     assert.ok(info.menus.soundFiles.items.includes('ready.wav'));
     assert.ok(info.menus.displayImages.items.includes('smile.png'));
+    assert.ok(info.menus.statusLightColors.items.includes('green'));
 });
 
 test('SensorCache provides default EV3 state and merges partial updates', () => {
@@ -304,6 +309,59 @@ test('display command blocks normalize arguments before sending to WeisileLink',
         {method: 'display.drawCircle', params: {x: 90, y: 64, r: 127}},
         {method: 'display.update', params: {}}
     ]);
+});
+
+test('system blocks use cache for reporters and normalize commands', async () => {
+    const {extension, sent, sensorCache} = makeExtension();
+    sensorCache.update({
+        system: {
+            battery_v: 7.82,
+            collected_points: 12,
+            collecting: true
+        }
+    });
+
+    await extension.setStatusLight({COLOR: 'green'});
+    await extension.setStatusLight({COLOR: 'purple'});
+    await extension.statusLightOff();
+    await extension.waitMilliseconds({MS: -20});
+    await extension.waitMilliseconds({MS: 1});
+    await extension.stopAllEV3();
+
+    assert.equal(extension.isConnected(), true);
+    assert.equal(extension.getBatteryVoltage(), 7.82);
+    assert.deepEqual(sent, [
+        {method: 'system.setStatusLight', params: {color: 'green'}},
+        {method: 'system.statusLightOff', params: {}},
+        {method: 'system.stopAll', params: {}}
+    ]);
+});
+
+test('data collection blocks normalize commands and keep reporters synchronous', async () => {
+    const {extension, sent, sensorCache} = makeExtension();
+    sensorCache.update({system: {collected_points: 7}});
+
+    await extension.startDataCollection({LABEL: 'safe'});
+    await extension.startDataCollection({LABEL: 'x'.repeat(65)});
+    await extension.stopDataCollection();
+    await extension.addDataPoint({LABEL: 'turn'});
+    await extension.uploadToTrainer();
+    await extension.clearCollectedData();
+    const csv = await extension.exportDataCSV();
+    await extension.startAutoCollect({INTERVAL: 5, LABEL: 'auto'});
+
+    assert.equal(extension.getDataCount(), 7);
+    assert.equal(extension.getDataCount() instanceof Promise, false);
+    assert.deepEqual(sent, [
+        {method: 'data.startCollect', params: {label: 'safe'}},
+        {method: 'data.stopCollect', params: {}},
+        {method: 'data.addPoint', params: {label: 'turn'}},
+        {method: 'data.uploadToTrainer', params: {}},
+        {method: 'data.clear', params: {}},
+        {method: 'data.exportCSV', params: {}},
+        {method: 'data.startAutoCollect', params: {interval_ms: 20, label: 'auto'}}
+    ]);
+    assert.deepEqual(csv, {ok: true});
 });
 
 test('WeisileLink client sends JSON-RPC 2.0 commands to local Scratch endpoint', async () => {

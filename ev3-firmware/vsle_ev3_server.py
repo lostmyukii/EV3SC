@@ -12,6 +12,8 @@ runner is used.
 """
 
 import asyncio
+import csv
+import io
 import json
 import os
 import signal
@@ -31,6 +33,7 @@ LCD_Y_MAX = 127
 MAX_LABEL_LENGTH = 64
 SOUND_EXTENSIONS = {".wav"}
 IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
+STATUS_LIGHT_COLORS = {"green", "orange", "red", "amber", "yellow"}
 
 
 class EV3CommandError(Exception):
@@ -134,6 +137,14 @@ def _label(params: Dict[str, Any], field: str = "label") -> str:
             {"field": field},
         )
     return value
+
+
+def _milliseconds(
+    params: Dict[str, Any],
+    field: str = "interval_ms",
+    default: Any = 100,
+) -> Any:
+    return _clamp(_number(params, field, default), 20, 60000)
 
 
 def _asset_name(
@@ -248,9 +259,32 @@ def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
         normalized = {}
     elif method == "gyro.reset":
         normalized = {"port": _sensor_port(params)}
+    elif method == "system.setStatusLight":
+        color = str(params.get("color", "")).lower()
+        if color not in STATUS_LIGHT_COLORS:
+            raise EV3CommandError(
+                "EV3_INVALID_COMMAND",
+                "status light color is not allowed",
+                False,
+                {"field": "color"},
+            )
+        normalized = {"color": color}
+    elif method in {"system.statusLightOff", "system.stopAll"}:
+        normalized = {}
     elif method in {"data.startCollect", "data.addPoint"}:
         normalized = {"label": _label(params)}
-    elif method in {"data.stopCollect", "data.getAll", "data.clear"}:
+    elif method == "data.startAutoCollect":
+        normalized = {
+            "interval_ms": _milliseconds(params),
+            "label": _label(params),
+        }
+    elif method in {
+        "data.stopCollect",
+        "data.getAll",
+        "data.clear",
+        "data.uploadToTrainer",
+        "data.exportCSV",
+    }:
         normalized = {}
     else:
         raise EV3CommandError(
@@ -268,6 +302,7 @@ class EV3DevHardware:
     def __init__(self) -> None:
         from ev3dev2.button import Button
         from ev3dev2.display import Display
+        from ev3dev2.led import Leds
         from ev3dev2.motor import (
             LargeMotor,
             MediumMotor,
@@ -317,6 +352,11 @@ class EV3DevHardware:
         self._last_sound_handle = None
         self.display = Display()
         self.buttons = Button()
+        self.leds = Leds()
+        self._led_groups = (
+            getattr(Leds, "LEFT", "LEFT"),
+            getattr(Leds, "RIGHT", "RIGHT"),
+        )
 
     def _detect_motors(self) -> Dict[str, Any]:
         motors = {}
@@ -475,6 +515,20 @@ class EV3DevHardware:
         self.display.circle(False, x, y, radius)
         self.display.update()
 
+    def status_light_set(self, color: str) -> None:
+        ev3_color = color.upper()
+        for group in self._led_groups:
+            self.leds.set_color(group, ev3_color)
+
+    def status_light_off(self) -> None:
+        for group in self._led_groups:
+            self.leds.set_color(group, "BLACK")
+
+    def system_stop_all(self) -> None:
+        self.motor_stop_all()
+        self.sound_stop()
+        self.status_light_off()
+
     def gyro_reset(self, port: str) -> None:
         sensor = self.sensors.get(port)
         if sensor is None or not hasattr(sensor, "reset"):
@@ -621,6 +675,8 @@ class VSLEEV3Server:
         self.clients: Set[Any] = set()
         self.collecting = False
         self.collect_label = ""
+        self.auto_collect_interval_s: Optional[float] = None
+        self.last_auto_collect_at: Optional[float] = None
         self.collected_data: List[Dict[str, Any]] = []
         self._stopping = False
 
@@ -776,17 +832,43 @@ class VSLEEV3Server:
             self.hardware.display_update()
         elif method == "gyro.reset":
             self.hardware.gyro_reset(params["port"])
+        elif method == "system.setStatusLight":
+            self.hardware.status_light_set(params["color"])
+        elif method == "system.statusLightOff":
+            self.hardware.status_light_off()
+        elif method == "system.stopAll":
+            self.hardware.system_stop_all()
         elif method == "data.startCollect":
             self.collecting = True
             self.collect_label = params["label"]
+            self.auto_collect_interval_s = None
+            self.last_auto_collect_at = None
         elif method == "data.stopCollect":
             self.collecting = False
+            self.auto_collect_interval_s = None
+            self.last_auto_collect_at = None
         elif method == "data.addPoint":
             self.record_data_point(params["label"])
         elif method == "data.getAll":
             return {"data": list(self.collected_data)}
         elif method == "data.clear":
             self.collected_data.clear()
+        elif method == "data.exportCSV":
+            return {
+                "filename": "vsle_ev3_data.csv",
+                "csv": self.export_data_csv(),
+            }
+        elif method == "data.uploadToTrainer":
+            raise EV3CommandError(
+                "TRAINER_UNAVAILABLE",
+                "WeisileAI Trainer upload endpoint is not connected",
+                True,
+            )
+        elif method == "data.startAutoCollect":
+            self.collecting = True
+            self.collect_label = params["label"]
+            self.auto_collect_interval_s = params["interval_ms"] / 1000
+            self.last_auto_collect_at = None
 
         return None
 
@@ -806,12 +888,20 @@ class VSLEEV3Server:
     def build_sensor_update(self) -> Dict[str, Any]:
         """Build one 50Hz sensor update payload."""
         snapshot = self.hardware.read_all()
+        system = dict(snapshot.get("system", {}))
+        system.update(
+            {
+                "collected_points": len(self.collected_data),
+                "collecting": self.collecting,
+                "collect_label": self.collect_label,
+            }
+        )
         return {
             "type": "sensor_update",
             "timestamp": self.clock(),
             "sensors": snapshot.get("sensors", {}),
             "motors": snapshot.get("motors", {}),
-            "system": snapshot.get("system", {}),
+            "system": system,
         }
 
     def record_data_point(self, label: Optional[str] = None) -> None:
@@ -830,17 +920,60 @@ class VSLEEV3Server:
         payload["label"] = label if label is not None else self.collect_label
         self.collected_data.append(payload)
 
+    def maybe_record_collected_data(self) -> bool:
+        """Record when collection is enabled and interval rules allow it."""
+        if not self.collecting:
+            return False
+        now = self.clock()
+        if self.auto_collect_interval_s is not None:
+            if (
+                self.last_auto_collect_at is not None
+                and now - self.last_auto_collect_at
+                < self.auto_collect_interval_s
+            ):
+                return False
+            self.last_auto_collect_at = now
+        self.record_data_point()
+        return True
+
+    def export_data_csv(self) -> str:
+        """Return collected data as flat CSV for classroom export."""
+        rows = [
+            self._flatten_data_point(point) for point in self.collected_data
+        ]
+        if not rows:
+            return "label,timestamp\n"
+        fieldnames = sorted({key for row in rows for key in row.keys()})
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+        return output.getvalue()
+
+    def _flatten_data_point(
+        self, point: Dict[str, Any], prefix: str = ""
+    ) -> Dict[str, Any]:
+        flat: Dict[str, Any] = {}
+        for key, value in point.items():
+            name = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict):
+                flat.update(self._flatten_data_point(value, name))
+            elif isinstance(value, list):
+                flat[name] = json.dumps(value, separators=(",", ":"))
+            else:
+                flat[name] = value
+        return flat
+
     async def sensor_broadcast_loop(self) -> None:
         """Broadcast sensor updates at 50Hz and keep bounded local data."""
         next_tick = time.monotonic()
         while not self._stopping:
             if self.clients:
+                try:
+                    self.maybe_record_collected_data()
+                except EV3CommandError:
+                    self.collecting = False
                 payload = self.build_sensor_update()
-                if self.collecting:
-                    try:
-                        self.record_data_point()
-                    except EV3CommandError:
-                        self.collecting = False
                 await self._broadcast(payload)
 
             next_tick += SENSOR_INTERVAL

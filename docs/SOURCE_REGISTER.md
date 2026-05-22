@@ -121,6 +121,18 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Command allowlist and normalization rules extended for `sound.playFile`, `display.number`, `display.image`, `display.textAt`, and `display.update` |
 | EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Existing sound/display dispatch path extended to cover all 14 sound/display blocks |
 
+## Phase 2 Step 2 — System and Data Collection Blocks
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 4.3 system and AI Quest data collection block definitions; Section 7 data-pipeline payload shape; Section 8 AI Quest workflow; Section 9 capability matrix; Phase 2 `System + data collection blocks (14 blocks)` task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Sensor cache reporter rule, JSON-RPC command compatibility, GitHub/progress workflow, and complete scoped implementation rule |
+| ev3dev2 LEDs documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/leds.html` | Official `Leds` status-light adapter and `set_color` behavior for EV3 brick LEDs |
+| EV3 server data baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Existing bounded data collection buffer, 50Hz collection loop, sensor snapshot payloads, and EV3 ack/error envelope extended for auto collect, CSV export, Trainer-unavailable fallback, and system commands |
+| WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Command allowlist and normalization extended for system LED/stop commands, Trainer upload/export commands, and bounded auto-collection intervals |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing Unsandboxed extension, cache-backed reporter pattern, JSON-RPC command dispatch, and TurboWarp registration surface expanded from 48 to all 62 blocks |
+| Python CSV standard library | `https://docs.python.org/3/library/csv.html` | Dependency-free CSV export for collected classroom sensor samples |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

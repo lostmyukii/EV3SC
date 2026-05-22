@@ -97,6 +97,15 @@ class FakeHardware:
     def display_draw_circle(self, x, y, radius):
         self.actions.append(("display_draw_circle", x, y, radius))
 
+    def status_light_set(self, color):
+        self.actions.append(("status_light_set", color))
+
+    def status_light_off(self):
+        self.actions.append(("status_light_off",))
+
+    def system_stop_all(self):
+        self.actions.append(("system_stop_all",))
+
     def gyro_reset(self, port):
         self.actions.append(("gyro_reset", port))
 
@@ -290,6 +299,44 @@ def test_sound_display_and_gyro_commands_dispatch_to_hardware():
     ]
 
 
+def test_system_commands_dispatch_to_hardware_and_validate_color():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    responses = [
+        server.handle_command(
+            {
+                "id": "led",
+                "method": "system.setStatusLight",
+                "params": {"color": "GREEN"},
+            }
+        ),
+        server.handle_command({"id": "off", "method": "system.statusLightOff"}),
+        server.handle_command({"id": "stop", "method": "system.stopAll"}),
+        server.handle_command(
+            {
+                "id": "bad-led",
+                "method": "system.setStatusLight",
+                "params": {"color": "purple"},
+            }
+        ),
+    ]
+
+    assert responses[:3] == [
+        {"type": "ack", "id": "led", "ok": True},
+        {"type": "ack", "id": "off", "ok": True},
+        {"type": "ack", "id": "stop", "ok": True},
+    ]
+    assert responses[3]["ok"] is False
+    assert responses[3]["code"] == "EV3_INVALID_COMMAND"
+    assert hardware.actions == [
+        ("status_light_set", "green"),
+        ("status_light_off",),
+        ("system_stop_all",),
+    ]
+
+
 def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
     module = load_server_module()
     server = module.VSLEEV3Server(
@@ -309,6 +356,9 @@ def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
             "battery_pct": 87,
             "battery_v": 7.5,
             "buttons": {"up": False, "center": True},
+            "collected_points": 0,
+            "collecting": False,
+            "collect_label": "",
         },
     }
 
@@ -372,8 +422,50 @@ def test_data_collection_is_bounded_and_can_be_exported_and_cleared():
     assert exported["ok"] is True
     assert len(exported["data"]) == 2
 
+    csv_export = server.handle_command({"id": 5, "method": "data.exportCSV"})
+    assert csv_export["ok"] is True
+    assert csv_export["filename"] == "vsle_ev3_data.csv"
+    assert "label" in csv_export["csv"]
+    assert "first" in csv_export["csv"]
+
+    upload = server.handle_command({"id": 6, "method": "data.uploadToTrainer"})
+    assert upload["ok"] is False
+    assert upload["code"] == "TRAINER_UNAVAILABLE"
+
     server.handle_command({"id": 4, "method": "data.clear"})
     assert server.collected_data == []
+
+
+def test_auto_collect_records_on_configured_interval_only():
+    module = load_server_module()
+    now = [10.0]
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="",
+        max_collected_points=5,
+        clock=lambda: now[0],
+    )
+
+    response = server.handle_command(
+        {
+            "id": 1,
+            "method": "data.startAutoCollect",
+            "params": {"interval_ms": 100, "label": "auto"},
+        }
+    )
+    first = server.maybe_record_collected_data()
+    second = server.maybe_record_collected_data()
+    now[0] = 10.101
+    third = server.maybe_record_collected_data()
+
+    assert response == {"type": "ack", "id": 1, "ok": True}
+    assert first is True
+    assert second is False
+    assert third is True
+    assert [point["label"] for point in server.collected_data] == [
+        "auto",
+        "auto",
+    ]
 
 
 def test_client_disconnect_stops_all_motors_for_safety():

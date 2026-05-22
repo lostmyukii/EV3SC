@@ -16,12 +16,14 @@
     const RGB_CHANNELS = ['R', 'G', 'B'];
     const IR_CHANNELS = ['1', '2', '3', '4'];
     const BRICK_BUTTONS = ['up', 'down', 'left', 'right', 'center'];
+    const STATUS_LIGHT_COLORS = ['green', 'orange', 'red', 'amber', 'yellow'];
     const SOUND_FILES = ['ready.wav', 'success.wav', 'error.wav'];
     const DISPLAY_IMAGES = ['smile.png', 'heart.png', 'arrow.png'];
     const LCD_X_MAX = 177;
     const LCD_Y_MAX = 127;
     const WAIT_POLL_MS = 20;
     const WAIT_TIMEOUT_MS = 60000;
+    const SENSOR_STALE_MS = 200;
 
     const FALLBACK_BLOCK_TYPE = {
         COMMAND: 'command',
@@ -102,6 +104,26 @@
         'displayUpdate'
     ];
 
+    const SYSTEM_BLOCK_OPCODES = [
+        'setStatusLight',
+        'statusLightOff',
+        'waitMilliseconds',
+        'stopAllEV3',
+        'isConnected',
+        'getBatteryVoltage'
+    ];
+
+    const DATA_BLOCK_OPCODES = [
+        'startDataCollection',
+        'stopDataCollection',
+        'addDataPoint',
+        'uploadToTrainer',
+        'clearCollectedData',
+        'getDataCount',
+        'exportDataCSV',
+        'startAutoCollect'
+    ];
+
     const DEFAULT_SENSOR_DATA = {
         sensors: {
             S1: {
@@ -123,6 +145,9 @@
         system: {
             battery_pct: 100,
             battery_v: 7.5,
+            collected_points: 0,
+            collecting: false,
+            collect_label: '',
             buttons: {
                 up: false,
                 down: false,
@@ -306,7 +331,9 @@
                 blocks: this._motorBlocks()
                     .concat(this._sensorBlocks())
                     .concat(this._soundBlocks())
-                    .concat(this._displayBlocks()),
+                    .concat(this._displayBlocks())
+                    .concat(this._systemBlocks())
+                    .concat(this._dataBlocks()),
                 menus: {
                     motorPorts: {
                         acceptReporters: true,
@@ -339,6 +366,10 @@
                     displayImages: {
                         acceptReporters: true,
                         items: DISPLAY_IMAGES
+                    },
+                    statusLightColors: {
+                        acceptReporters: true,
+                        items: STATUS_LIGHT_COLORS
                     }
                 }
             };
@@ -681,13 +712,77 @@
             return this._sendDisplayCommand('display.update', {});
         }
 
+        async setStatusLight (args) {
+            const color = this._statusLightColor(args.COLOR);
+            return this._sendSystemCommand('system.setStatusLight', {color});
+        }
+
+        async statusLightOff () {
+            return this._sendSystemCommand('system.statusLightOff', {});
+        }
+
+        async waitMilliseconds (args) {
+            await sleep(this._waitMilliseconds(args.MS));
+        }
+
+        async stopAllEV3 () {
+            return this._sendSystemCommand('system.stopAll', {});
+        }
+
+        isConnected () {
+            const timestamp = this._cacheNumber('timestamp', 0);
+            return timestamp > 0 && Date.now() - timestamp <= SENSOR_STALE_MS;
+        }
+
+        getBatteryVoltage () {
+            return this._cacheNumber('system.battery_v', 0);
+        }
+
+        async startDataCollection (args) {
+            const label = this._label(args.LABEL);
+            return this._sendDataCommand('data.startCollect', {label});
+        }
+
+        async stopDataCollection () {
+            return this._sendDataCommand('data.stopCollect', {});
+        }
+
+        async addDataPoint (args) {
+            const label = this._label(args.LABEL);
+            return this._sendDataCommand('data.addPoint', {label});
+        }
+
+        async uploadToTrainer () {
+            return this._sendDataCommand('data.uploadToTrainer', {});
+        }
+
+        async clearCollectedData () {
+            return this._sendDataCommand('data.clear', {});
+        }
+
+        getDataCount () {
+            return this._cacheNumber('system.collected_points', 0);
+        }
+
+        async exportDataCSV () {
+            return this._sendDataCommand('data.exportCSV', {});
+        }
+
+        async startAutoCollect (args) {
+            const label = this._label(args.LABEL);
+            return this._sendDataCommand('data.startAutoCollect', {
+                interval_ms: this._milliseconds(args.INTERVAL),
+                label
+            });
+        }
+
         async _sendMotorCommand (method, params) {
             if (!params ||
                 Object.keys(params).some(key => params[key] === null ||
                     params[key] === undefined)) {
                 return;
             }
-            await this.link.sendCommand({method, params});
+            return this.link.sendCommand({method, params});
         }
 
         async _sendSoundCommand (method, params) {
@@ -699,12 +794,15 @@
         }
 
         async _sendSensorCommand (method, params) {
-            if (!params ||
-                Object.keys(params).some(key => params[key] === null ||
-                    params[key] === undefined)) {
-                return;
-            }
-            await this.link.sendCommand({method, params});
+            return this._sendMotorCommand(method, params);
+        }
+
+        async _sendSystemCommand (method, params) {
+            return this._sendMotorCommand(method, params);
+        }
+
+        async _sendDataCommand (method, params) {
+            return this._sendMotorCommand(method, params);
         }
 
         _motorPort (value) {
@@ -739,6 +837,11 @@
             return BRICK_BUTTONS.includes(button) ? button : 'center';
         }
 
+        _statusLightColor (value) {
+            const color = this.Cast.toString(value).toLowerCase();
+            return STATUS_LIGHT_COLORS.includes(color) ? color : null;
+        }
+
         _number (value, defaultValue = 0) {
             const number = this.Cast.toNumber(
                 value === undefined || value === null ? defaultValue : value
@@ -768,6 +871,19 @@
 
         _coord (value, upper) {
             return clamp(this._number(value), 0, upper);
+        }
+
+        _milliseconds (value) {
+            return clamp(this._number(value), 20, 60000);
+        }
+
+        _waitMilliseconds (value) {
+            return clamp(this._number(value), 0, 60000);
+        }
+
+        _label (value) {
+            const label = this.Cast.toString(value);
+            return label.length <= 64 ? label : null;
         }
 
         _assetName (value, extensions) {
@@ -1201,6 +1317,105 @@
                 }
             ];
         }
+
+        _systemBlocks () {
+            const command = this.BlockType.COMMAND;
+            const reporter = this.BlockType.REPORTER;
+            const bool = this.BlockType.BOOLEAN;
+            const string = this.ArgumentType.STRING;
+            const number = this.ArgumentType.NUMBER;
+            return [
+                {
+                    opcode: 'setStatusLight',
+                    blockType: command,
+                    text: '设置状态灯为 [COLOR]',
+                    arguments: {
+                        COLOR: menuArg(string, 'statusLightColors', 'green')
+                    }
+                },
+                {
+                    opcode: 'statusLightOff',
+                    blockType: command,
+                    text: '关闭状态灯'
+                },
+                {
+                    opcode: 'waitMilliseconds',
+                    blockType: command,
+                    text: '等待 [MS] 毫秒',
+                    arguments: {MS: numberArg(number, 100)}
+                },
+                {
+                    opcode: 'stopAllEV3',
+                    blockType: command,
+                    text: '停止所有EV3功能'
+                },
+                {
+                    opcode: 'isConnected',
+                    blockType: bool,
+                    text: 'EV3已连接?'
+                },
+                {
+                    opcode: 'getBatteryVoltage',
+                    blockType: reporter,
+                    text: 'EV3电池电压 (V)'
+                }
+            ];
+        }
+
+        _dataBlocks () {
+            const command = this.BlockType.COMMAND;
+            const reporter = this.BlockType.REPORTER;
+            const string = this.ArgumentType.STRING;
+            const number = this.ArgumentType.NUMBER;
+            return [
+                {
+                    opcode: 'startDataCollection',
+                    blockType: command,
+                    text: '开始采集数据 标签=[LABEL]',
+                    arguments: {LABEL: stringArg(string, '类别A')}
+                },
+                {
+                    opcode: 'stopDataCollection',
+                    blockType: command,
+                    text: '停止数据采集'
+                },
+                {
+                    opcode: 'addDataPoint',
+                    blockType: command,
+                    text: '手动记录一条数据 标签=[LABEL]',
+                    arguments: {LABEL: stringArg(string, '类别A')}
+                },
+                {
+                    opcode: 'uploadToTrainer',
+                    blockType: command,
+                    text: '上传数据到训练工场'
+                },
+                {
+                    opcode: 'clearCollectedData',
+                    blockType: command,
+                    text: '清空已采集数据'
+                },
+                {
+                    opcode: 'getDataCount',
+                    blockType: reporter,
+                    text: '已采集数据条数'
+                },
+                {
+                    opcode: 'exportDataCSV',
+                    blockType: command,
+                    text: '导出数据为CSV文件'
+                },
+                {
+                    opcode: 'startAutoCollect',
+                    blockType: command,
+                    text: '每 [INTERVAL] 毫秒自动采集一条 标签=[LABEL]',
+                    arguments: {
+                        INTERVAL: numberArg(number, 100),
+                        LABEL: stringArg(string, '类别A')
+                    }
+                }
+            ];
+        }
     }
 
     const register = scratchApi => {
@@ -1286,10 +1501,12 @@
 
     return {
         LEGO_RED,
+        DATA_BLOCK_OPCODES,
         DISPLAY_BLOCK_OPCODES,
         MOTOR_BLOCK_OPCODES,
         SENSOR_BLOCK_OPCODES,
         SOUND_BLOCK_OPCODES,
+        SYSTEM_BLOCK_OPCODES,
         SensorCache,
         VSLEEV3Extension,
         WeisileLinkClient,
