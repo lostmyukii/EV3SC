@@ -2382,6 +2382,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement WeisileLink error-code mapping and reconnect/degradation skeleton based on Section 16, reusing the JSON-RPC helpers from the completed baseline.
 
+### [2026-05-22] WeisileLink error and degradation baseline
+- **Status**: ✅ Completed
+- **Commit**: `2523510`
+- **What was done**: Added the Section 16 error catalog and retryability metadata, runtime exception-to-protocol mapping, EV3 ack-to-JSON-RPC translation, reconnect backoff policy with jitter, and degradation state handling for WiFi/BT fallback, Trainer outages, stale sensors, pending command clearing, and bounded data buffers. Added unit tests covering all spec error codes and the reconnect/degradation rules, and configured Black with the project-required 80-character line limit.
+- **Files created/modified**: `docs/SOURCE_REGISTER.md`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/protocol/error_mapping.py`, `weisile-link/weisile_link/runtime/*.py`, `weisile-link/tests/test_error_mapping.py`, `weisile-link/tests/test_reconnect_degradation.py`, formatting updates in `weisile-link/weisile_link/protocol/json_rpc.py` and `weisile-link/weisile_link/protocol/validation.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement WeisileLink health check and structured logging baseline from Section 17, including `/api/status` shape, transport/sensor counters, and token-safe JSON log records.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
