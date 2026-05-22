@@ -31,13 +31,37 @@ If a component already exists in `/Users/yukii/Desktop/scratch ai/` (scratchai f
 - You MAY copy/port it into the EV3SC directory structure.
 - You MUST NOT modify, delete, or break anything in the scratchai folder.
 - After porting, treat the EV3SC copy as the authoritative source.
+- EV3SC MUST NOT depend on the scratchai folder at runtime, test time, build time, or deployment time.
 
 ```
 CORRECT: cp -r "/Users/yukii/Desktop/scratch ai/foo" /Users/yukii/Desktop/EV3SC/foo
 WRONG:   editing files under "/Users/yukii/Desktop/scratch ai/" directly
 ```
 
-### B. Every development step must be committed to git
+### B. EV3SC must independently implement the complete platform
+
+`/Users/yukii/Desktop/EV3SC/` is the standalone project root. It must contain
+everything required to build, run, test, deploy, and document the VSLE
+Scratch-EV3 platform.
+
+Required in-repo ownership:
+
+- TurboWarp/Scratch integration code and VSLE-EV3 extension source.
+- WeisileLink Python bridge source, protocols, transports, runtime logic, and tests.
+- EV3 firmware/server source, setup scripts, systemd units, and tests.
+- WeisileAI Trainer integration code created for this project.
+- Documentation, source register, progress log, configuration, and test assets.
+
+External paths, including `/Users/yukii/Desktop/scratch ai/`, are source
+references only. They may be read or copied from, but they must never be
+required for EV3SC to function after the relevant code has been ported.
+
+Before marking a feature complete, verify the EV3SC copy has the runnable
+implementation, tests, and documentation needed for that feature. A feature is
+not complete if it only points to an external folder, describes future work, or
+depends on unported source outside EV3SC.
+
+### C. Every development step must be committed to git
 
 - Initialize `git init` in `/Users/yukii/Desktop/EV3SC/` if not already a repo.
 - Commit after each discrete completed task (a file created, a feature working, a test passing).
@@ -53,7 +77,7 @@ docs(spec): record Phase 1 completion
 - Never batch multiple unrelated changes into a single commit.
 - Never skip committing a completed step "to do it later".
 
-### C. Every completed step must be pushed to GitHub
+### D. Every completed step must be pushed to GitHub
 
 - After each completed-step commit, push the current branch to the GitHub remote.
 - The GitHub remote must be named `origin` unless the user explicitly configures another remote.
@@ -61,7 +85,7 @@ docs(spec): record Phase 1 completion
 - If no GitHub remote is configured, authentication fails, or the network blocks the push, record the blocker in the progress log and ask the user for the missing GitHub setup before continuing development.
 - Never use "will push later" as a substitute for GitHub synchronization.
 
-### D. Record every completed step in the spec document
+### E. Record every completed step in the spec document
 
 After each completed task or milestone, append a progress entry to
 `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` under the section `## Development Progress Log`
