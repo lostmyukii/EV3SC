@@ -6,7 +6,16 @@
 > **Standard Reference**: Google Engineering Practices · IEEE 730-2014 · ISO/IEC 25010
 > **Authors**: WeisileEDU Engineering Team
 > **Date**: 2026-05-22
-> **Status**: APPROVED FOR DEVELOPMENT
+> **Status**: CONDITIONALLY APPROVED FOR PHASE 1 DEVELOPMENT
+> **Deployment Gate**: NOT APPROVED FOR CLASSROOM DEPLOYMENT until all Critical remediation items in Section 15-17 and Section 13.6 are verified.
+
+### Audit Remediation Notice
+
+This v1.0 specification has been corrected against `vsle_document_audit_final.md`
+(2026-05-22). The audit found that the core architecture is sound, but security,
+error handling, operations, and test governance were not complete enough for a
+7-15 student classroom deployment. This document now treats those areas as
+blocking requirements rather than optional follow-up work.
 
 ---
 
@@ -26,6 +35,12 @@
 12. [Development Phases](#12-development-phases)
 13. [Testing Requirements](#13-testing-requirements)
 14. [Deployment](#14-deployment)
+15. [Security, Privacy, and Safety](#15-security-privacy-and-safety)
+16. [Error Handling and Degradation](#16-error-handling-and-degradation)
+17. [Operations and Monitoring](#17-operations-and-monitoring)
+18. [Compatibility Matrix](#18-compatibility-matrix)
+19. [Licensing and Open Source Compliance](#19-licensing-and-open-source-compliance)
+20. [Document Governance](#20-document-governance)
 
 ---
 
@@ -33,11 +48,11 @@
 
 ### 1.1 Problem Statement
 
-The official Scratch Link + EV3 integration has three fundamental limitations confirmed by the feasibility report (`scratch_ev3_feasibility_report.docx`):
+The official Scratch Link + EV3 integration has five fundamental limitations confirmed by the feasibility report (`scratch_ev3_feasibility_report.docx`):
 
 | Limitation | Impact | Our Solution |
 |-----------|--------|--------------|
-| Only 11 EV3 blocks (sensor coverage <40%) | Severely restricts curriculum | 60+ blocks covering all EV3 capabilities |
+| Only 11 EV3 blocks (sensor coverage <40%) | Severely restricts curriculum | 62 blocks covering all EV3 capabilities |
 | Scratch Link requires native OS installation | Deployment friction in classrooms | WeisileLink: pure Python, zero-install server |
 | No continuous sensor data streaming (Mailbox is unidirectional) | Cannot support AI data collection | 50Hz WebSocket push pipeline |
 | Bluetooth Classic only, no multi-device | 1 EV3 per computer maximum | WiFi transport: 30+ EV3 simultaneous |
@@ -52,7 +67,7 @@ The official Scratch Link + EV3 integration has three fundamental limitations co
 │  + WeisileAI Trainer panel (side panel, Scratch-native look)      │
 ├──────────────────────────────────────────────────────────────────┤
 │  LAYER 2: VSLE-EV3 EXTENSION (JavaScript, TurboWarp)             │
-│  60+ blocks · Full sensor coverage · 50Hz realtime cache          │
+│  62 blocks · Full sensor coverage · 50Hz realtime cache           │
 │  AI Quest data collection blocks · WeisileLink WebSocket client   │
 ├──────────────────────────────────────────────────────────────────┤
 │  LAYER 3: WeisileLink BRIDGE SERVICE (Python asyncio)             │
@@ -73,10 +88,21 @@ The official Scratch Link + EV3 integration has three fundamental limitations co
 | Extension type | Unsandboxed Extension | Eliminates Worker postMessage overhead; required for 50Hz sensor polling |
 | EV3 OS | ev3dev (GPL-2.0) | Only option supporting Python WebSocket server on EV3 hardware |
 | Bridge protocol | JSON-RPC 2.0 over WebSocket | Scratch Link compatible; enables drop-in replacement |
-| BT transport | Python `socket` stdlib (RFCOMM) | No pybluez dependency; works on all platforms |
+| BT transport | Python `socket` stdlib (RFCOMM) where OS supports `AF_BLUETOOTH` | No pybluez dependency; Linux/ev3dev supported, macOS/Windows use WiFi first |
 | WiFi transport | asyncio WebSocket (WiFi dongle) | Enables multi-EV3, 50Hz streaming, eliminates Bluetooth |
 | UI preservation | Strict Scratch visual identity | Zero learning curve for existing Scratch users |
 | Data pipeline | WebSocket broadcast router | Single EV3 data stream → multiple consumers simultaneously |
+
+### 1.4 Alternatives Considered
+
+| Alternative | Rejected / Deferred Reason |
+|-------------|----------------------------|
+| Official Scratch Link only | Limited EV3 block coverage, Bluetooth-only, no 50Hz sensor stream |
+| Sandboxed Scratch extension | Worker/postMessage latency is not suitable for motor control |
+| Browser Web Bluetooth direct to EV3 | Browser support and EV3 protocol coverage are insufficient for classrooms |
+| Running ML on EV3 | EV3 CPU/RAM constraints make classroom AI training unreliable |
+| pybluez Bluetooth stack | Abandoned dependency with macOS/Python compatibility risk |
+| Cloud-only data collection | Adds privacy and classroom connectivity risks; local-first is required |
 
 ---
 
@@ -95,7 +121,7 @@ The official Scratch Link + EV3 integration has three fundamental limitations co
 │  │  ┌────────────────────────────┐  │  │  Real-time sensor      │   │
 │  │  │ VSLE-EV3 Extension (JS)    │  │  │  charts + data labels  │   │
 │  │  │ Unsandboxed, zero-latency  │  │  │  + training pipeline   │   │
-│  │  │ 60+ EV3 blocks             │◄─┼──┼─►                      │   │
+│  │  │ 62 EV3 blocks              │◄─┼──┼─►                      │   │
 │  │  │ Sensor cache @50Hz         │  │  │  ws://localhost:8766   │   │
 │  │  └────────────┬───────────────┘  │  └───────────────────────┘   │
 │  └───────────────┼──────────────────┘                               │
@@ -254,14 +280,20 @@ vsle-scratch-ev3/                          ← Project root
 
 module.exports = {
     allowedExtensions: [
-        'http://localhost:3001/vsle-ev3-extension/index.js', // dev
-        'https://platform.vsle.cn/extensions/ev3/index.js'  // prod
+        'http://localhost:8000/vsle-ev3-extension/index.js', // default dev host
+        'http://localhost:3001/vsle-ev3-extension/index.js', // allowed only when dev server uses 3001
+        'https://platform.vsle.cn/extensions/ev3/index.js'   // prod
     ],
     unsandboxedExtensions: true,  // REQUIRED for EV3 real-time control
     turboMode: false,              // Don't force turbo — preserve Scratch behavior
     interpolation: false
 };
 ```
+
+**Whitelist rule**: the development server host MUST be present in
+`allowedExtensions` before loading the Unsandboxed Extension. Use
+`localhost:8000` as the default documented dev host. `localhost:3001` is
+acceptable only when the TurboWarp fork is configured to allow that exact URL.
 
 ### 3.5 Extension Loading Flow
 
@@ -746,14 +778,31 @@ class SensorDataRouter:
 
         # Send to all consumers concurrently
         tasks = []
+        targets = []
         for consumer in self.consumers:
             if consumer.consumer_type == 'scratch':
                 tasks.append(consumer.send(scratch_payload))
+                targets.append(consumer)
             elif consumer.consumer_type == 'trainer':
                 tasks.append(consumer.send(trainer_payload))
+                targets.append(consumer)
 
-        await asyncio.gather(*tasks, return_exceptions=True)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for consumer, result in zip(targets, results):
+            if isinstance(result, Exception):
+                logging.warning(
+                    "sensor_broadcast_failed",
+                    extra={
+                        "consumer_type": consumer.consumer_type,
+                        "error": repr(result)
+                    }
+                )
+                consumer.mark_unhealthy(result)
 ```
+
+Router failures MUST be observable. `return_exceptions=True` is permitted only
+when each exception is logged, counted in metrics, and reflected in the health
+status for that consumer.
 
 ### 5.5 Bluetooth Classic Transport (Python stdlib)
 
@@ -771,7 +820,12 @@ class BluetoothTransport:
     """
     Bluetooth Classic RFCOMM transport.
     Uses Python 3.3+ socket module with AF_BLUETOOTH / BTPROTO_RFCOMM.
-    No external dependencies required.
+    No pybluez dependency is permitted.
+
+    Platform note:
+    - Linux and ev3dev support AF_BLUETOOTH directly.
+    - macOS and Windows teacher machines MUST default to WiFi transport unless
+      an OS-specific Bluetooth adapter is implemented and tested separately.
     """
 
     def __init__(self, ev3_address: str):
@@ -873,7 +927,7 @@ import websockets
 import json
 import time
 import logging
-from collections import defaultdict
+from collections import deque
 
 # ev3dev2 imports
 from ev3dev2.sensor.lego import (
@@ -892,6 +946,8 @@ from ev3dev2.button import Button
 
 SENSOR_HZ = 50          # Target sensor polling rate
 WS_PORT    = 8765       # WebSocket server port
+SENSOR_INTERVAL = 1.0 / SENSOR_HZ
+MAX_COLLECTED_POINTS = 10000  # classroom-safe bounded buffer
 
 class VsleEV3Server:
 
@@ -900,7 +956,8 @@ class VsleEV3Server:
         self.clients: set = set()
         self.collecting: bool = False
         self.collect_label: str = ''
-        self.collected_data: list = []
+        self.collected_data = deque(maxlen=MAX_COLLECTED_POINTS)
+        self._active_sound_process = None
 
     def _init_hardware(self):
         """Initialize all available hardware. Use try/except per port."""
@@ -1008,7 +1065,7 @@ class VsleEV3Server:
 
     async def sensor_broadcast_loop(self):
         """50Hz sensor data broadcast to all connected clients."""
-        interval = 1.0 / SENSOR_HZ
+        next_tick = time.monotonic()
         while True:
             if self.clients:
                 data = self._read_all_sensors()
@@ -1028,7 +1085,15 @@ class VsleEV3Server:
                     except websockets.exceptions.ConnectionClosed:
                         disconnected.add(ws)
                 self.clients -= disconnected
-            await asyncio.sleep(interval)
+
+            next_tick += SENSOR_INTERVAL
+            sleep_for = next_tick - time.monotonic()
+            if sleep_for <= 0:
+                # If a slow hardware read or network send overruns the 20ms
+                # budget, skip catch-up sleeps instead of building latency.
+                next_tick = time.monotonic()
+                sleep_for = 0
+            await asyncio.sleep(sleep_for)
 
     async def command_handler(self, websocket, message: str):
         """Execute command received from WeisileLink."""
@@ -1116,7 +1181,12 @@ class VsleEV3Server:
                 self.sound.beep()
 
             elif method == 'sound.stop':
-                self.sound.play_tone(0, 0)
+                stop = getattr(self.sound, 'stop', None)
+                if callable(stop):
+                    stop()
+                elif self._active_sound_process:
+                    self._active_sound_process.terminate()
+                    self._active_sound_process = None
 
             elif method == 'sound.setVolume':
                 self.sound.set_volume(params['volume'])
@@ -1135,9 +1205,21 @@ class VsleEV3Server:
                 self.display.update()
 
             elif method == 'display.drawLine':
-                self.display.draw.line(
-                    [params['x1'], params['y1'],
-                     params['x2'], params['y2']]
+                self.display.line(
+                    clear_screen=False,
+                    x1=params['x1'],
+                    y1=params['y1'],
+                    x2=params['x2'],
+                    y2=params['y2']
+                )
+                self.display.update()
+
+            elif method == 'display.drawCircle':
+                self.display.circle(
+                    clear_screen=False,
+                    x=params['x'],
+                    y=params['y'],
+                    radius=params['r']
                 )
                 self.display.update()
 
@@ -1159,7 +1241,7 @@ class VsleEV3Server:
                 self.collected_data.append(snapshot)
 
             elif method == 'data.getAll':
-                result = {'ok': True, 'data': self.collected_data}
+                result = {'ok': True, 'data': list(self.collected_data)}
 
             elif method == 'data.clear':
                 self.collected_data.clear()
@@ -1182,17 +1264,28 @@ class VsleEV3Server:
             self.clients.discard(websocket)
 
     async def run(self):
-        server = websockets.serve(self.handler, '0.0.0.0', WS_PORT)
-        await asyncio.gather(
-            server,
-            self.sensor_broadcast_loop()
-        )
+        async with websockets.serve(self.handler, '0.0.0.0', WS_PORT):
+            await self.sensor_broadcast_loop()
 
 
 if __name__ == '__main__':
     server = VsleEV3Server()
     asyncio.get_event_loop().run_until_complete(server.run())
 ```
+
+### 6.2 Hardware Detection Requirements
+
+Sensor and motor auto-detection must be explicit and diagnosable:
+
+- Detect each physical port independently; multiple sensors of the same class on
+  different ports must be supported.
+- After constructing a sensor or motor, verify that the device address matches
+  the requested port before accepting it.
+- Log all detected hardware with port, driver name, and class.
+- Log detection failures at debug level, but never hide a connected port from
+  `/api/status`.
+- Missing hardware is not fatal; commands targeting missing ports return
+  `EV3_INVALID_PORT`.
 
 ---
 
@@ -1495,6 +1588,72 @@ All responses use:
 }
 ```
 
+### 10.4 JSON-RPC Error Envelope
+
+All Scratch-facing errors MUST use JSON-RPC 2.0 error format. EV3-facing
+transport acknowledgments MAY use the `ack` envelope above, but WeisileLink must
+translate failures back into JSON-RPC errors before returning to Scratch.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "uuid-v4-string",
+  "error": {
+    "code": -32021,
+    "message": "EV3 motor port is not connected",
+    "data": {
+      "method": "motor.runTimed",
+      "port": "A",
+      "retryable": false
+    }
+  }
+}
+```
+
+### 10.5 Required Payload Validation
+
+Every command received by WeisileLink and `vsle_ev3_server.py` MUST validate:
+
+| Field | Rule |
+|-------|------|
+| `method` | Must be in the command allowlist |
+| `port` | Motors: `A-D`; sensors: `S1-S4`; reject unknown ports |
+| `speed` | Clamp to `-100..100`; reject non-numeric values |
+| `time` / `duration` | Clamp to `0..60` seconds for classroom safety |
+| `freq` | Clamp to `20..20000` Hz |
+| `volume` | Clamp to `0..100` |
+| `label` | UTF-8 string, max 64 characters |
+| display coordinates | Clamp to EV3 LCD bounds `0..177` x `0..127` |
+
+Invalid commands MUST fail closed: no motor or actuator action is executed after
+validation fails.
+
+### 10.6 Trainer REST Response Schema
+
+REST endpoints return a common envelope:
+
+```json
+{
+  "ok": true,
+  "timestamp": "2026-05-22T12:00:00Z",
+  "data": {}
+}
+```
+
+Failure response:
+
+```json
+{
+  "ok": false,
+  "timestamp": "2026-05-22T12:00:00Z",
+  "error": {
+    "code": "EV3_TRANSPORT_DISCONNECTED",
+    "message": "No EV3 transport is connected",
+    "retryable": true
+  }
+}
+```
+
 ---
 
 ## 11. UI/UX Requirements
@@ -1588,8 +1747,14 @@ EV3 blocks use standard Scratch block design language:
 
 **Goal**: Single EV3 controlled from Scratch via WiFi, basic sensor reading
 
+**Additional Gate**: Critical audit remediation must be completed before any
+classroom deployment, even if Phase 1 functionality appears to work.
+
 | Task | Responsible | Duration |
 |------|------------|----------|
+| Security/privacy baseline + command validation | Backend | 2 days |
+| Error code system + reconnect/degradation rules | Backend | 1 day |
+| Health check + structured logging baseline | Backend | 1 day |
 | ev3dev SD card preparation + autostart | Hardware | 3 days |
 | `vsle_ev3_server.py` — sensor loop + motor control | Backend | 5 days |
 | `wifi_transport.py` in WeisileLink | Backend | 3 days |
@@ -1606,6 +1771,7 @@ EV3 blocks use standard Scratch block design language:
 - [ ] Touch sensor boolean works in Scratch `if` block
 - [ ] Connection modal shows EV3 status
 - [ ] Scratch visual design unchanged from standard Scratch
+- [ ] Section 13.6 Critical Remediation Gates pass for local pilot use
 
 ### Phase 2 — Full Capability (Weeks 5–8)
 
@@ -1704,6 +1870,69 @@ test_bluetooth_reconnect:
   Simulate BT disconnect → auto-reconnect within 5 seconds
 ```
 
+### 13.5 JavaScript Extension Tests
+
+The 62 Scratch blocks require dedicated JavaScript tests before Phase 2 exit:
+
+```
+test_getInfo_contains_all_62_blocks:
+  getInfo() exposes every block listed in Section 4.3
+
+test_reporter_blocks_are_sync:
+  Reporter and Boolean opcodes never return Promise and never await network I/O
+
+test_sensor_cache_path_defaults:
+  Missing sensor paths return safe typed defaults: number=0, bool=false, string=''
+
+test_command_validation:
+  Invalid ports, speeds, labels, and durations are rejected or clamped before send
+
+test_json_rpc_client_error_mapping:
+  JSON-RPC error responses surface clear Scratch-visible error state
+```
+
+### 13.6 Critical Remediation Gates
+
+Classroom deployment is blocked until all gates below pass:
+
+| Gate | Verification |
+|------|--------------|
+| Security | Localhost-only bridge by default, token pairing enabled, command validation tests pass |
+| Privacy | Student data minimization documented, export/delete workflow tested |
+| Error handling | JSON-RPC error codes covered by unit tests and reconnect integration tests |
+| Operations | `/api/status` and EV3 health checks return actionable status |
+| 50Hz timing | 4-hour sustained test, drift bounded, dropped updates `<0.1%` |
+| Data buffer | `MAX_COLLECTED_POINTS` cap verified; no unbounded memory growth |
+| Known code fixes | `websockets.serve`, display draw API, sound stop behavior covered by tests |
+| Scratch identity | Screenshot diff passes with only allowed EV3 additions |
+
+### 13.7 Manual Classroom Acceptance Test
+
+Before any pilot class, QA must run a 30-device rehearsal:
+
+1. Start 30 WeisileLink instances or simulated EV3 transports on the classroom LAN.
+2. Connect at least 10 real EV3 bricks if hardware is available.
+3. Run a 45-minute student workflow: connect, drive motors, stream sensors,
+   collect labeled data, upload to Trainer, export model rules.
+4. Record disconnects, reconnect time, dropped updates, memory growth, and teacher
+   recovery steps.
+5. Pilot is blocked if any failure requires code changes during class.
+
+### 13.8 CI/CD Minimum Pipeline
+
+Every pull request must run:
+
+```yaml
+required_checks:
+  - python: black --check . && python -m pytest
+  - javascript: npm run lint && npm test
+  - extension: getInfo block count and sync reporter tests
+  - docs: markdown link check for docs/*.md
+  - package: build Scratch editor and WeisileLink artifacts
+```
+
+Merges are blocked when any required check fails.
+
 ---
 
 ## 14. Deployment
@@ -1745,6 +1974,254 @@ cd packages/scratch-editor
 npm install && npm run build
 # Serve dist/ folder on local HTTP server
 ```
+
+### 14.4 Deployment Configuration
+
+All deployment-time values MUST be configurable through environment variables
+or a checked-in example config file:
+
+| Setting | Default | Required Rule |
+|---------|---------|---------------|
+| `WEISILE_LINK_HOST` | `127.0.0.1` | Bind localhost by default; LAN binding requires explicit teacher action |
+| `WEISILE_LINK_PORT` | `20111` | Scratch JSON-RPC endpoint |
+| `TRAINER_WS_PORT` | `8766` | Trainer subscription endpoint |
+| `EV3_WS_PORT` | `8765` | EV3 firmware WebSocket endpoint |
+| `WEISILE_PAIRING_TOKEN` | generated | Required for non-localhost clients |
+| `MAX_COLLECTED_POINTS` | `10000` | Must remain bounded |
+| `LOG_LEVEL` | `INFO` | `DEBUG` only for development |
+
+Secrets and pairing tokens MUST NOT be committed to git.
+
+### 14.5 Rollback and Recovery
+
+Production releases must include:
+
+- A versioned WeisileLink package with previous version retained locally.
+- EV3 firmware install script that backs up the previous `vsle_ev3_server.py`.
+- One-command rollback for teacher computers and EV3 bricks.
+- A documented "classroom emergency stop": stop all motors, stop sound, clear
+  command queue, disconnect EV3 transports, and preserve collected data.
+
+### 14.6 Release Checklist
+
+- [ ] Section 13.6 Critical Remediation Gates pass
+- [ ] CI runs Python, JavaScript, lint, and packaging checks
+- [ ] EV3 firmware package installed on a clean ev3dev SD card
+- [ ] WeisileLink starts after reboot on the teacher computer
+- [ ] Logs and health endpoints confirm transport, sensor rate, and client count
+- [ ] Rollback tested at least once on both teacher computer and EV3
+
+---
+
+## 15. Security, Privacy, and Safety
+
+This platform controls physical robots around children. Security failures can
+become physical safety failures, so security is a classroom launch blocker.
+
+### 15.1 Threat Model
+
+| Threat | Required Mitigation |
+|--------|---------------------|
+| Unauthorized motor command on classroom LAN | Pairing token, command allowlist, localhost binding by default |
+| Malicious web page connecting to WeisileLink | Origin allowlist and token challenge before command acceptance |
+| Oversized payload or label causing memory growth | Payload size limits and bounded data buffers |
+| Student data leakage | Data minimization, local-first storage, explicit export/delete controls |
+| Unsafe actuator values | Input validation and classroom speed/time limits |
+| Lost connection while motors run | Transport watchdog stops motors on disconnect |
+
+### 15.2 Transport Security
+
+- WeisileLink binds to `127.0.0.1` by default.
+- LAN access requires explicit teacher configuration and pairing token generation.
+- Production browser access uses HTTPS/WSS.
+- EV3 WiFi transport may run on classroom LAN without TLS only when isolated from
+  the public internet; the pairing token still applies.
+- Bluetooth is a fallback transport, not the primary classroom deployment path.
+
+### 15.3 Privacy Requirements
+
+The platform is used by students aged 7-15, so data handling must assume COPPA,
+FERPA, GDPR-K, and local school policy sensitivity:
+
+- Do not collect names, account IDs, photos, voice, or location in EV3 telemetry.
+- Training labels are user-entered educational categories only; max 64 characters.
+- Raw sensor data stays local unless a teacher explicitly exports or uploads it.
+- Every export must include timestamp, project ID, and deletion instructions.
+- Teacher-facing tooling must provide "delete collected data" and "clear session".
+
+### 15.4 Physical Safety Controls
+
+- Motor speeds are clamped to `-100..100`.
+- Timed commands are capped at 60 seconds.
+- On bridge disconnect, EV3 server must stop all motors within 500ms.
+- Emergency stop command `motor.stopAll` must remain available even when data
+  collection or Trainer upload is active.
+- Firmware must reject unknown commands rather than ignore and continue silently.
+
+## 16. Error Handling and Degradation
+
+### 16.1 Error Code System
+
+| Code | Meaning | Retryable |
+|------|---------|-----------|
+| `EV3_TRANSPORT_DISCONNECTED` | No active BT/WiFi transport | yes |
+| `EV3_COMMAND_TIMEOUT` | Command ack not received before timeout | yes |
+| `EV3_INVALID_COMMAND` | Method not in allowlist | no |
+| `EV3_INVALID_PORT` | Motor/sensor port is invalid or absent | no |
+| `EV3_SENSOR_STALE` | Sensor cache older than freshness budget | yes |
+| `EV3_HARDWARE_ERROR` | ev3dev2 raised hardware exception | maybe |
+| `TRAINER_UNAVAILABLE` | WeisileAI Trainer subscription/upload unavailable | yes |
+| `DATA_BUFFER_FULL` | Collection buffer reached configured cap | no |
+
+### 16.2 Degradation Rules
+
+- If WiFi fails, try Bluetooth only when the host OS supports stdlib RFCOMM.
+- If both transports fail, Scratch blocks remain visible but connection state is
+  false and command blocks return JSON-RPC errors.
+- If Trainer is unavailable, robot control and local data collection continue.
+- If sensor data becomes stale for more than 200ms, reporter blocks return last
+  known safe value and `isConnected` becomes false.
+- If any command validation fails, do not send a partial command to EV3.
+
+### 16.3 Reconnect Behavior
+
+WeisileLink must use exponential backoff with jitter:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | 0.5s |
+| 2 | 1s |
+| 3 | 2s |
+| 4+ | 5s max |
+
+On reconnect, WeisileLink refreshes sensor cache, clears pending command futures,
+and leaves collected data intact.
+
+## 17. Operations and Monitoring
+
+### 17.1 Structured Logging
+
+All services log structured JSON lines:
+
+```json
+{
+  "ts": "2026-05-22T12:00:00.000Z",
+  "level": "INFO",
+  "service": "weisile-link",
+  "event": "transport_connected",
+  "transport": "wifi",
+  "ev3_ip": "192.168.1.100"
+}
+```
+
+Logs must never include pairing tokens or student-entered labels longer than
+64 characters.
+
+### 17.2 Health Checks
+
+`GET /api/status` must include:
+
+```json
+{
+  "ok": true,
+  "transport": "wifi",
+  "ev3_connected": true,
+  "scratch_clients": 1,
+  "trainer_clients": 1,
+  "sensor_hz": 49.8,
+  "sensor_age_ms": 12,
+  "collected_points": 240,
+  "memory_mb": 82
+}
+```
+
+### 17.3 Metrics and Alerts
+
+Minimum runtime metrics:
+
+| Metric | Alert Threshold |
+|--------|-----------------|
+| `sensor_hz` | `<45Hz` for 10 seconds |
+| `sensor_age_ms` | `>200ms` |
+| `command_timeout_count` | `>3` in 60 seconds |
+| `transport_reconnect_count` | `>5` in 10 minutes |
+| `collected_points` | `>=MAX_COLLECTED_POINTS` |
+| `memory_mb` | grows `>50MB` during 4-hour test |
+
+Teacher-facing UI should translate alerts into plain recovery steps.
+
+## 18. Compatibility Matrix
+
+| Component | Supported | Notes |
+|-----------|-----------|-------|
+| Browser | Current Chrome/Edge/Safari | Must support WebSocket and TurboWarp build |
+| Scratch runtime | TurboWarp fork | Unsandboxed Extension required |
+| Teacher computer WiFi transport | macOS, Windows, Linux | Primary supported classroom path |
+| Teacher computer Bluetooth transport | Linux only for stdlib RFCOMM | macOS/Windows require future adapter or WiFi |
+| EV3 OS | ev3dev Stretch/Buster compatible image | Must support Python 3 and ev3dev2 |
+| EV3 hardware | LEGO MINDSTORMS EV3 | WiFi USB dongle recommended |
+| Python | 3.9+ on teacher computer; EV3-compatible Python on brick | Avoid pybluez |
+
+## 19. Licensing and Open Source Compliance
+
+### 19.1 License Position
+
+The repository must include `LICENSE` and `NOTICE` before external release.
+Planned license selection:
+
+| Component | Upstream License | VSLE Handling |
+|-----------|------------------|---------------|
+| TurboWarp-derived editor | MIT | Preserve notices and modifications |
+| ev3dev / ev3dev2 runtime | GPL-2.0 ecosystem | Keep firmware/server distribution compliant |
+| New VSLE extension and bridge code | TBD before release | Recommended: MIT or Apache-2.0 |
+| Scratch assets or visual patterns | Scratch/TurboWarp terms | Do not redistribute restricted assets without review |
+
+### 19.2 Compliance Tasks
+
+- Add root `LICENSE`.
+- Add `NOTICE` listing TurboWarp, Scratch, LEGO EV3 references, ev3dev, and
+  Python package dependencies.
+- Document which assets are original VSLE-created assets.
+- Avoid implying LEGO, Scratch, or MIT endorsement.
+
+## 20. Document Governance
+
+### 20.1 Required Follow-up Documents
+
+The main specification must remain readable. Phase 2 should split detailed
+material into:
+
+- `docs/SECURITY_PRIVACY.md`
+- `docs/API_REFERENCE.md`
+- `docs/TEST_PLAN.md`
+- `docs/DEPLOYMENT.md`
+- `docs/OPERATIONS_RUNBOOK.md`
+- `docs/EV3_BLOCK_REFERENCE.md`
+- `docs/GLOSSARY.md`
+
+### 20.2 Glossary
+
+| Term | Definition |
+|------|------------|
+| Sensor Cache | In-memory 50Hz state store read synchronously by Scratch reporter blocks |
+| WeisileLink | Python bridge replacing Scratch Link while preserving JSON-RPC compatibility |
+| Trainer | WeisileAI data collection and model training interface |
+| Unsandboxed Extension | TurboWarp extension mode that runs without Worker isolation for low latency |
+| Classroom Deployment | Any pilot or production use with students present |
+
+### 20.3 Change Control
+
+- Every completed development or documentation step must be committed.
+- Every completed step must be logged in `Development Progress Log`.
+- Critical remediation items must not be closed without verification evidence.
+- Status may change from conditional to approved only after Section 13.6 gates pass.
+
+### 20.4 Revision History
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-22 | Initial unified platform specification |
+| v1.0-audit-remediated | 2026-05-22 | Added audit-driven security, reliability, operations, testing, deployment, licensing, and governance requirements |
 
 ---
 
