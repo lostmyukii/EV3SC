@@ -32,6 +32,17 @@ ports. This register records the sources used for the current implementation.
 | Python standard library documentation | `https://docs.python.org/3/library/json.html` | JSON serialization for health endpoint responses and structured JSON line logs |
 | Python standard library documentation | `https://docs.python.org/3/library/datetime.html` | UTC ISO-8601 timestamp generation for structured log records |
 
+## Phase 1 Step 4 — ev3dev SD Card Preparation and Autostart
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 1 ev3dev SD card/autostart task; Section 14.2 EV3 setup; Section 14.5 rollback and recovery; Section 14.6 release checklist |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3 setup defaults: ev3dev, `robot@ev3dev.local`, default password, `websockets` and `ev3dev2`, no pybluez |
+| ev3dev Getting Started | `https://www.ev3dev.org/docs/getting-started/` | Official SD card, boot, networking, SSH, and shutdown flow for EV3 |
+| ev3dev Downloads | `https://www.ev3dev.org/downloads/` | Official EV3 image source and image-selection guidance |
+| Debian systemd service manual | `https://manpages.debian.org/man/systemd.service` | Service unit sections and directives including `ExecStart`, `Restart`, and process handling |
+| Debian systemd wiki | `https://wiki.debian.org/systemd/Services` | `systemctl enable` service startup workflow reference |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

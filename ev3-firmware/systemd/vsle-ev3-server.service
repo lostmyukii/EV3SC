@@ -1,0 +1,26 @@
+[Unit]
+Description=VSLE EV3 WebSocket server
+Documentation=https://www.ev3dev.org/docs/getting-started/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=robot
+Group=robot
+WorkingDirectory=/home/robot
+EnvironmentFile=-/home/robot/.config/vsle/ev3.env
+Environment=EV3_WS_PORT=8765
+Environment=MAX_COLLECTED_POINTS=10000
+Environment=LOG_LEVEL=INFO
+ExecStartPre=/usr/bin/test -r /home/robot/vsle_ev3_server.py
+ExecStart=/usr/bin/python3 /home/robot/vsle_ev3_server.py
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
