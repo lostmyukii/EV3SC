@@ -2361,6 +2361,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Configure a GitHub `origin` remote for `/Users/yukii/Desktop/EV3SC/`, then push the pending commits.
 
+### [2026-05-22] GitHub origin configured and synchronized
+- **Status**: ✅ Completed
+- **Commit**: `5b3547b`
+- **What was done**: Confirmed `origin` is configured as `https://github.com/lostmyukii/EV3SC.git` and the local `main` branch is synchronized with `origin/main`. The previous GitHub blocker is cleared; future completed-step commits must be pushed immediately.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Continue Phase 1 work with source-backed EV3/Scratch implementation and push every completed-step commit to GitHub.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
