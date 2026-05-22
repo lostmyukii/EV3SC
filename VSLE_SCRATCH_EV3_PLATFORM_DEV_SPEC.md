@@ -2396,6 +2396,13 @@ material into:
 - **Files created/modified**: `docs/SOURCE_REGISTER.md`, `weisile-link/weisile_link/observability/*.py`, `weisile-link/tests/test_observability.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement ev3dev SD card preparation and autostart documentation/scripts, keeping all generated project files under `/Users/yukii/Desktop/EV3SC/`.
 
+### [2026-05-22] ev3dev SD card and autostart setup
+- **Status**: ✅ Completed
+- **Commit**: `fcb2776`
+- **What was done**: Added official-source-backed EV3 setup documentation, a systemd service unit for `vsle_ev3_server.py`, install and rollback scripts that back up existing EV3 files, generate a local pairing token env file, install `websockets` and `ev3dev2`, enable autostart, and fail closed when the server file is absent. Added tests for service contents, bash syntax, executable permissions, installer behavior, rollback behavior, and setup documentation coverage.
+- **Files created/modified**: `docs/EV3DEV_SETUP.md`, `docs/SOURCE_REGISTER.md`, `ev3-firmware/README.md`, `ev3-firmware/scripts/*.sh`, `ev3-firmware/systemd/vsle-ev3-server.service`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement `ev3-firmware/vsle_ev3_server.py` with sensor loop, motor control, pairing handshake, command validation, and safety shutdown behavior based on the spec and ev3dev2 documentation.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
