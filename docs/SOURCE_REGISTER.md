@@ -144,6 +144,19 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink WiFi transport baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/wifi_transport.py` | Reused command validation, ack-future resolution, sensor cache updates, timeout handling, and degradation-state behavior for Bluetooth parity |
 | WeisileLink degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Reused `TransportKind.BLUETOOTH`, WiFi-first fallback flags, connection state, and sensor freshness cache |
 
+## Phase 2 Step 4 — Sensor Router and WeisileAI Trainer Integration
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 5.4 Sensor Data Router; Section 7.2 Scratch and Trainer payload shapes; Section 8.1 Trainer `sensor_stream` buffering behavior; Section 10.1/10.2 Trainer REST and WebSocket endpoints; Section 10.6 REST envelope; Section 15 local-first privacy; Section 16.2 Trainer degradation; Section 17.2 `trainer_clients` status field |
+| Scratch Link Network Protocol | `/Users/yukii/Desktop/scratch ai/scratch-link/Documentation/NetworkProtocol.md` | Preserved Scratch-facing JSON-RPC notification semantics while moving sensor broadcast into the shared router |
+| Scratch VM BT socket | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/io/bt.js` | Preserved official `didReceiveMessage` notification compatibility for Scratch clients |
+| EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Reused the EV3 `sensor_update` payload shape, `system.collecting`, `system.collect_label`, `system.collected_points`, motors, sensors, and bounded data semantics |
+| WeisileLink observability baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Reused `RuntimeCounters.trainer_clients`, `/api/status` payload generation, and alert-compatible collected point counts |
+| WeisileLink degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Reused Trainer-unavailable degradation and bounded collected-point state without breaking robot control |
+| WeisileAI middleware reference | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/ai-middleware/` | Confirmed there is no existing EV3 Trainer endpoint to port yet; this step keeps EV3 Trainer integration local to EV3SC using the spec-defined WebSocket stream and internal REST contracts |
+| Python standard library documentation | `https://docs.python.org/3/library/csv.html` | Dependency-free CSV export for the bounded local Trainer buffer |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

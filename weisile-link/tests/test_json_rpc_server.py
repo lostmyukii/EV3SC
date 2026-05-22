@@ -32,6 +32,23 @@ class FakeWebSocket:
         return self.incoming.pop(0)
 
 
+class HoldingWebSocket(FakeWebSocket):
+    def __init__(self):
+        super().__init__()
+        self.release = None
+
+    def __aiter__(self):
+        self.release = asyncio.Event()
+        return self
+
+    async def __anext__(self):
+        await self.release.wait()
+        raise StopAsyncIteration
+
+    def stop(self):
+        self.release.set()
+
+
 class FakeTransport:
     def __init__(self, manager=None, connect_result=True):
         self.manager = manager or DegradationManager()
@@ -359,6 +376,199 @@ def test_start_notifications_broadcasts_vsle_and_official_scratch_messages():
     asyncio.run(scenario())
 
 
+def test_trainer_websocket_receives_sensor_stream_and_status_counts_client():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        trainer = HoldingWebSocket()
+        task = asyncio.create_task(server.handle_trainer_client(trainer))
+        while server.trainer_client_count == 0 or trainer.release is None:
+            await asyncio.sleep(0)
+
+        await server.handle_sensor_data(
+            {
+                "type": "sensor_update",
+                "timestamp": 1716387600.123,
+                "sensors": {
+                    "S1": {
+                        "type": "color",
+                        "reflected": 45,
+                        "ambient": 12,
+                        "color": 3,
+                    }
+                },
+                "motors": {"A": {"position": 360}},
+                "system": {
+                    "battery_pct": 87,
+                    "collecting": True,
+                    "collect_label": "obstacle",
+                },
+            }
+        )
+
+        status = json.loads(server.handle_get("/api/status").body)
+        assert server.trainer_client_count == 1
+        assert status["trainer_clients"] == 1
+        assert trainer.sent == [
+            {
+                "type": "sensor_stream",
+                "t": 1716387600123,
+                "color_reflected": 45,
+                "color_ambient": 12,
+                "color_id": 3,
+                "ultrasonic_cm": 0,
+                "gyro_angle": 0,
+                "gyro_rate": 0,
+                "touch_pressed": False,
+                "motor_a_pos": 360,
+                "motor_b_pos": 0,
+                "battery_pct": 87,
+                "collecting": True,
+                "label": "obstacle",
+            }
+        ]
+
+        trainer.stop()
+        await task
+        assert server.trainer_client_count == 0
+
+    asyncio.run(scenario())
+
+
+def test_upload_to_trainer_reports_unavailable_without_trainer_client():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        websocket = FakeWebSocket()
+
+        await server.handle_json_rpc_message(
+            websocket,
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "upload-1",
+                    "method": "data.uploadToTrainer",
+                }
+            ),
+        )
+
+        assert websocket.sent == [
+            {
+                "jsonrpc": "2.0",
+                "id": "upload-1",
+                "error": {
+                    "code": "TRAINER_UNAVAILABLE",
+                    "message": (
+                        "WeisileAI Trainer subscription/upload unavailable"
+                    ),
+                    "data": {"retryable": True},
+                },
+            }
+        ]
+
+    asyncio.run(scenario())
+
+
+def test_upload_to_trainer_succeeds_when_subscription_path_is_active():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        trainer = HoldingWebSocket()
+        task = asyncio.create_task(server.handle_trainer_client(trainer))
+        while server.trainer_client_count == 0 or trainer.release is None:
+            await asyncio.sleep(0)
+        await server.handle_sensor_data(
+            {
+                "type": "sensor_update",
+                "timestamp": 1716387600.123,
+                "sensors": {"S4": {"type": "touch", "pressed": True}},
+                "motors": {},
+                "system": {"collecting": True, "collect_label": "touch"},
+            }
+        )
+
+        websocket = FakeWebSocket()
+        await server.handle_json_rpc_message(
+            websocket,
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "upload-2",
+                    "method": "data.uploadToTrainer",
+                }
+            ),
+        )
+
+        assert transport.commands == []
+        assert websocket.sent == [
+            {
+                "jsonrpc": "2.0",
+                "id": "upload-2",
+                "result": {
+                    "uploaded_points": 1,
+                    "trainer_clients": 1,
+                },
+            }
+        ]
+
+        trainer.stop()
+        await task
+
+    asyncio.run(scenario())
+
+
+def test_internal_trainer_rest_routes_use_common_envelope():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        await server.handle_sensor_data(
+            {
+                "type": "sensor_update",
+                "timestamp": 1716387600.123,
+                "sensors": {"S2": {"type": "ultrasonic", "distance_cm": 9.5}},
+                "motors": {"B": {"position": -180}},
+                "system": {"collecting": True, "collect_label": "near"},
+            }
+        )
+
+        sensors = json.loads(server.handle_get("/api/ev3/sensors").body)
+        motors = json.loads(server.handle_get("/api/ev3/motors").body)
+        collected = json.loads(server.handle_get("/api/data/collected").body)
+        export = json.loads((await server.handle_post("/api/data/export")).body)
+        command = json.loads(
+            (
+                await server.handle_post(
+                    "/api/ev3/command",
+                    json.dumps(
+                        {
+                            "method": "motor.stop",
+                            "params": {"port": "A"},
+                        }
+                    ),
+                )
+            ).body
+        )
+        cleared = json.loads((await server.handle_post("/api/data/clear")).body)
+
+        assert sensors["ok"] is True
+        assert sensors["data"] == {
+            "S2": {"type": "ultrasonic", "distance_cm": 9.5}
+        }
+        assert motors["data"] == {"B": {"position": -180}}
+        assert collected["data"]["count"] == 1
+        assert collected["data"]["rows"][0]["label"] == "near"
+        assert export["data"]["filename"] == "vsle_ev3_data.csv"
+        assert "ultrasonic_cm" in export["data"]["csv"]
+        assert command["data"]["ok"] is True
+        assert transport.commands[-1]["method"] == "motor.stop"
+        assert cleared["data"] == {"cleared_points": 1}
+        assert server.sensor_router.buffer.rows() == []
+
+    asyncio.run(scenario())
+
+
 def test_invalid_json_rpc_returns_structured_error_with_null_id():
     async def scenario():
         server = ScratchJsonRpcServer(FakeTransport())
@@ -440,5 +650,31 @@ def test_run_binds_localhost_default_scratch_port_and_path_handler():
         assert port == 20111
         assert kwargs["ping_interval"] == 5
         assert server.path == SCRATCH_BT_PATH
+
+    asyncio.run(scenario())
+
+
+def test_run_trainer_binds_localhost_default_trainer_port():
+    async def scenario():
+        calls = []
+
+        async def fake_serve(handler, host, port, **kwargs):
+            calls.append((handler, host, port, kwargs))
+
+            class FakeServer:
+                async def serve_forever(self):
+                    return None
+
+            return FakeServer()
+
+        server = ScratchJsonRpcServer(FakeTransport())
+
+        await server.run_trainer(serve=fake_serve)
+
+        handler, host, port, kwargs = calls[0]
+        assert handler == server.handle_trainer_client
+        assert host == "127.0.0.1"
+        assert port == 8766
+        assert kwargs["ping_interval"] == 5
 
     asyncio.run(scenario())

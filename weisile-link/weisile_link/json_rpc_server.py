@@ -9,7 +9,7 @@ Sources:
 """
 
 import asyncio
-import base64
+from datetime import datetime, timezone
 import json
 import os
 import time
@@ -39,6 +39,11 @@ from weisile_link.protocol.json_rpc import (
     parse_json_rpc_request,
 )
 from weisile_link.protocol.validation import COMMAND_VALIDATORS
+from weisile_link.router.sensor_router import (
+    SensorDataRouter,
+    SensorStreamBuffer,
+    WebSocketConsumer,
+)
 from weisile_link.runtime.degradation import DegradationManager
 from weisile_link.transport.bluetooth_transport import BluetoothTransport
 from weisile_link.transport.selector import AutoTransport
@@ -48,6 +53,7 @@ SCRATCH_BT_PATH = "/scratch/bt"
 SCRATCH_LINK_PROTOCOL_VERSION = "1.3"
 WEISILE_LINK_HOST = os.getenv("WEISILE_LINK_HOST", "127.0.0.1")
 WEISILE_LINK_PORT = int(os.getenv("WEISILE_LINK_PORT", "20111"))
+TRAINER_WS_PORT = int(os.getenv("TRAINER_WS_PORT", "8766"))
 DEFAULT_PERIPHERAL_ID = "vsle-ev3-wifi"
 DEFAULT_PERIPHERAL_NAME = "VSLE EV3 WiFi"
 
@@ -58,6 +64,8 @@ class ScratchServerConfig:
 
     host: str = WEISILE_LINK_HOST
     port: int = WEISILE_LINK_PORT
+    trainer_host: str = WEISILE_LINK_HOST
+    trainer_port: int = TRAINER_WS_PORT
     path: str = SCRATCH_BT_PATH
     peripheral_id: str = DEFAULT_PERIPHERAL_ID
     peripheral_name: str = DEFAULT_PERIPHERAL_NAME
@@ -83,8 +91,16 @@ class ScratchJsonRpcServer:
         self.config = config
         self.path = config.path
         self.clock_ms = clock_ms
+        buffer = SensorStreamBuffer(
+            max_points=self.manager.max_collected_points,
+            manager=self.manager,
+        )
+        self.sensor_router = SensorDataRouter(buffer=buffer)
         self.scratch_clients: Set[Any] = set()
         self.notification_clients: Set[Any] = set()
+        self.trainer_clients: Set[Any] = set()
+        self._scratch_consumers: Dict[Any, WebSocketConsumer] = {}
+        self._trainer_consumers: Dict[Any, WebSocketConsumer] = {}
         self.command_timeout_count = 0
         self._last_sensor_at_ms: Optional[float] = None
         self._sensor_count = 0
@@ -94,6 +110,11 @@ class ScratchJsonRpcServer:
     def scratch_client_count(self) -> int:
         """Return the number of connected Scratch WebSocket clients."""
         return len(self.scratch_clients)
+
+    @property
+    def trainer_client_count(self) -> int:
+        """Return the number of connected Trainer WebSocket clients."""
+        return len(self.trainer_clients)
 
     async def handle_client(self, websocket: Any, path: str = "") -> None:
         """Serve one Scratch Link WebSocket client."""
@@ -110,7 +131,7 @@ class ScratchJsonRpcServer:
                 await self.handle_json_rpc_message(websocket, raw)
         finally:
             self.scratch_clients.discard(websocket)
-            self.notification_clients.discard(websocket)
+            self._unregister_scratch_notifications(websocket)
 
     async def handle_json_rpc_message(self, websocket: Any, raw: str) -> None:
         """Handle one client JSON-RPC request or notification."""
@@ -164,16 +185,20 @@ class ScratchJsonRpcServer:
         if method == "connect":
             return await self._handle_connect(request_id, params)
         if method in {"startNotifications", "vsle.subscribe"}:
-            self.notification_clients.add(websocket)
+            self._register_scratch_notifications(websocket)
             return make_result(request_id, None)
         if method == "stopNotifications":
-            self.notification_clients.discard(websocket)
+            self._unregister_scratch_notifications(websocket)
             return make_result(request_id, None)
         if method == "vsle.setTransport":
             return await self._handle_set_transport(request_id, params)
         if method == "send":
             command = self._command_from_send(request_id, params)
+            if command.get("method") == "data.uploadToTrainer":
+                return self._handle_upload_to_trainer(request_id)
             return await self._send_ev3_command(request_id, command)
+        if method == "data.uploadToTrainer":
+            return self._handle_upload_to_trainer(request_id)
         if method in COMMAND_VALIDATORS:
             return await self._send_ev3_command(
                 request_id,
@@ -256,7 +281,13 @@ class ScratchJsonRpcServer:
     ) -> Dict[str, Any]:
         try:
             ack = await self.transport.send_command(command)
-            return ev3_ack_to_json_rpc(request_id, ack)
+            response = ev3_ack_to_json_rpc(request_id, ack)
+            if (
+                command.get("method") == "data.clear"
+                and response.get("result", {}).get("ok") is True
+            ):
+                self.sensor_router.buffer.clear()
+            return response
         except TimeoutError:
             self.command_timeout_count += 1
             raise
@@ -298,43 +329,10 @@ class ScratchJsonRpcServer:
         return command
 
     async def handle_sensor_data(self, sensor_data: Dict[str, Any]) -> None:
-        """Broadcast one EV3 sensor update to subscribed Scratch clients."""
+        """Route one EV3 sensor update to Scratch and Trainer consumers."""
         self._last_sensor_at_ms = self.clock_ms()
         self._sensor_count += 1
-        if not self.notification_clients:
-            return
-
-        params = self._notification_params(sensor_data)
-        payloads = [
-            {
-                "jsonrpc": "2.0",
-                "method": "notifyDeviceDidReceiveMessage",
-                "params": params,
-            },
-            {
-                "jsonrpc": "2.0",
-                "method": "didReceiveMessage",
-                "params": params,
-            },
-        ]
-
-        stale_clients = set()
-        for client in set(self.notification_clients):
-            try:
-                for payload in payloads:
-                    await self._send_json(client, payload)
-            except Exception:
-                stale_clients.add(client)
-        self.notification_clients -= stale_clients
-        self.scratch_clients -= stale_clients
-
-    def _notification_params(
-        self, sensor_data: Dict[str, Any]
-    ) -> Dict[str, str]:
-        encoded = base64.b64encode(
-            json.dumps(sensor_data, separators=(",", ":")).encode("utf-8")
-        ).decode("ascii")
-        return {"message": encoded, "encoding": "base64"}
+        await self.sensor_router.broadcast(sensor_data)
 
     async def _send_discovered_peripheral(self, websocket: Any) -> None:
         await self._send_json(
@@ -351,11 +349,24 @@ class ScratchJsonRpcServer:
         )
 
     def handle_get(self, path: str) -> HttpResponse:
-        """Expose existing observability status payloads for `/api/status`."""
+        """Expose framework-neutral internal Trainer REST GET routes."""
+        if path == "/api/ev3/sensors":
+            return self._rest_ok(
+                self.sensor_router.latest_sensor_data.get("sensors", {})
+            )
+        if path == "/api/ev3/motors":
+            return self._rest_ok(
+                self.sensor_router.latest_sensor_data.get("motors", {})
+            )
+        if path == "/api/data/collected":
+            rows = self.sensor_router.buffer.rows()
+            return self._rest_ok({"count": len(rows), "rows": rows})
+
         endpoint = StatusEndpoint(
             self.manager,
             RuntimeCounters(
                 scratch_clients=self.scratch_client_count,
+                trainer_clients=self.trainer_client_count,
                 command_timeout_count_60s=self.command_timeout_count,
             ),
             RuntimeMetrics(
@@ -363,7 +374,104 @@ class ScratchJsonRpcServer:
                 sensor_age_ms=self._sensor_age_ms(),
             ),
         )
-        return endpoint.handle_get(path)
+        response = endpoint.handle_get(path)
+        if response.status != 404:
+            return response
+        return self._rest_error(
+            404,
+            "NOT_FOUND",
+            "Route not found",
+            retryable=False,
+        )
+
+    async def handle_post(self, path: str, body: str = "") -> HttpResponse:
+        """Expose framework-neutral internal Trainer REST POST routes."""
+        if path == "/api/data/clear":
+            cleared = self.sensor_router.buffer.clear()
+            return self._rest_ok({"cleared_points": cleared})
+        if path == "/api/data/export":
+            rows = self.sensor_router.buffer.rows()
+            return self._rest_ok(
+                {
+                    "filename": "vsle_ev3_data.csv",
+                    "csv": self.sensor_router.buffer.export_csv(),
+                    "count": len(rows),
+                }
+            )
+        if path == "/api/ev3/command":
+            try:
+                command = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    ErrorCode.EV3_INVALID_COMMAND.value,
+                    "Invalid command JSON",
+                    retryable=False,
+                )
+            response = await self._send_ev3_command(
+                command.get("id"),
+                {
+                    "id": command.get("id"),
+                    "method": command.get("method"),
+                    "params": command.get("params", {}),
+                },
+            )
+            if "error" in response:
+                error = response["error"]
+                data = error.get("data", {})
+                return self._rest_error(
+                    400,
+                    error["code"],
+                    error["message"],
+                    retryable=data.get("retryable", False),
+                    data=data,
+                )
+            return self._rest_ok(response["result"])
+        return self._rest_error(
+            404,
+            "NOT_FOUND",
+            "Route not found",
+            retryable=False,
+        )
+
+    async def handle_trainer_client(
+        self,
+        websocket: Any,
+        _path: str = "",
+    ) -> None:
+        """Serve one WeisileAI Trainer subscription WebSocket client."""
+        consumer = WebSocketConsumer(websocket, "trainer")
+        self.trainer_clients.add(websocket)
+        self._trainer_consumers[websocket] = consumer
+        self.sensor_router.register(consumer)
+        self.manager.trainer_available = True
+        try:
+            async for _raw in websocket:
+                continue
+        finally:
+            self.trainer_clients.discard(websocket)
+            self.sensor_router.unregister(consumer)
+            self._trainer_consumers.pop(websocket, None)
+
+    async def run_trainer(
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        serve: Optional[Callable[..., Any]] = None,
+    ) -> None:
+        """Run the local Trainer subscription WebSocket server."""
+        if serve is None:
+            import websockets
+
+            serve = websockets.serve
+
+        server = await serve(
+            self.handle_trainer_client,
+            host or self.config.trainer_host,
+            port or self.config.trainer_port,
+            ping_interval=5,
+        )
+        await server.serve_forever()
 
     async def run(
         self,
@@ -395,6 +503,78 @@ class ScratchJsonRpcServer:
     async def _send_json(self, websocket: Any, payload: Dict[str, Any]) -> None:
         await websocket.send(json.dumps(payload, separators=(",", ":")))
 
+    def _register_scratch_notifications(self, websocket: Any) -> None:
+        self.notification_clients.add(websocket)
+        if websocket in self._scratch_consumers:
+            return
+        consumer = WebSocketConsumer(websocket, "scratch")
+        self._scratch_consumers[websocket] = consumer
+        self.sensor_router.register(consumer)
+
+    def _unregister_scratch_notifications(self, websocket: Any) -> None:
+        self.notification_clients.discard(websocket)
+        consumer = self._scratch_consumers.pop(websocket, None)
+        if consumer is not None:
+            self.sensor_router.unregister(consumer)
+
+    def _handle_upload_to_trainer(
+        self, request_id: JsonRpcId
+    ) -> Dict[str, Any]:
+        if self.trainer_client_count == 0:
+            self.manager.record_trainer_unavailable("trainer not connected")
+            return self.manager.trainer_error_response(request_id)
+        self.manager.trainer_available = True
+        return make_result(
+            request_id,
+            {
+                "uploaded_points": len(self.sensor_router.buffer.rows()),
+                "trainer_clients": self.trainer_client_count,
+            },
+        )
+
+    def _rest_ok(self, data: Dict[str, Any]) -> HttpResponse:
+        return HttpResponse(
+            status=200,
+            headers={"content-type": "application/json"},
+            body=json.dumps(
+                {
+                    "ok": True,
+                    "timestamp": _utc_timestamp(),
+                    "data": data,
+                },
+                separators=(",", ":"),
+            ),
+        )
+
+    def _rest_error(
+        self,
+        status: int,
+        code: str,
+        message: str,
+        *,
+        retryable: bool,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> HttpResponse:
+        error = {
+            "code": code,
+            "message": message,
+            "retryable": retryable,
+        }
+        if data:
+            error["data"] = data
+        return HttpResponse(
+            status=status,
+            headers={"content-type": "application/json"},
+            body=json.dumps(
+                {
+                    "ok": False,
+                    "timestamp": _utc_timestamp(),
+                    "error": error,
+                },
+                separators=(",", ":"),
+            ),
+        )
+
     def _sensor_hz(self) -> float:
         elapsed_s = max(0.001, (self.clock_ms() - self._started_at_ms) / 1000)
         return round(self._sensor_count / elapsed_s, 3)
@@ -421,6 +601,10 @@ class ScratchJsonRpcServer:
         if isinstance(decoded, dict) and isinstance(decoded.get("method"), str):
             return decoded["method"]
         return None
+
+
+def _utc_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def create_default_server(
