@@ -2368,6 +2368,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Continue Phase 1 work with source-backed EV3/Scratch implementation and push every completed-step commit to GitHub.
 
+### [2026-05-22] WeisileLink JSON-RPC validation baseline
+- **Status**: ✅ Completed
+- **Commit**: `bbefe96`
+- **What was done**: Created the `weisile-link` Python project skeleton with JSON-RPC 2.0 response helpers, request parsing, VSLE EV3 command allowlist validation, structured protocol errors, and tests. Added `docs/SOURCE_REGISTER.md` to record the Scratch Link, Scratch VM EV3 extension, JSON-RPC, and VSLE spec sources used for this source-backed implementation.
+- **Files created/modified**: `.gitignore`, `docs/SOURCE_REGISTER.md`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/protocol/*.py`, `weisile-link/tests/*.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement WeisileLink error-code mapping and reconnect/degradation skeleton based on Section 16, reusing the JSON-RPC helpers from this step.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
