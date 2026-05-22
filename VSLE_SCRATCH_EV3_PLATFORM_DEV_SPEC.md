@@ -2487,6 +2487,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/tests/test_multi_ev3_sessions.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 2 sensor data panel UI, keeping Scratch visual identity unchanged and using cache-backed sensor status.
 
+### [2026-05-23] Sensor data panel UI
+- **Status**: ✅ Completed
+- **Commit**: `43cfa0f`
+- **What was done**: Added a cache-backed, collapsible Scratch-style EV3 sensor panel with normalized sensor/motor/collection state, 280px additive panel rendering, explicit host mounting, collection/upload action bindings, and tests that preserve the no-DOM-load TurboWarp boundary. The implementation is fully inside EV3SC and reads from `SensorCache` instead of making network requests.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/src/ui/data_panel.js`, `vsle-ev3-extension/tests/test_sensor_data_panel.js`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 2 connection modal polish for WiFi/Bluetooth selection, preserving Scratch's standard hardware connection modal style.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
