@@ -1,6 +1,6 @@
-# CLAUDE.md — VSLE Scratch-EV3 Platform
+# AGENTS.md — VSLE Scratch-EV3 Platform
 
-> **For Claude Code and AI assistants working on this project.**
+> **For Codex and AI assistants working on this project.**
 > Read this file completely before touching any code.
 
 ---
@@ -178,7 +178,7 @@ When implementing EV3, Scratch, TurboWarp, Scratch Link compatibility, ev3dev, o
 
 ```
 /Users/yukii/Desktop/scratch ai/
-├── CLAUDE.md                              ← You are here
+├── AGENTS.md                              ← You are here
 ├── VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md ← Full spec
 ├── scratch-ai-platform/
 │   └── scratch-editor/
