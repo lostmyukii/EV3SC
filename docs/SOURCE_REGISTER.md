@@ -43,6 +43,19 @@ ports. This register records the sources used for the current implementation.
 | Debian systemd service manual | `https://manpages.debian.org/man/systemd.service` | Service unit sections and directives including `ExecStart`, `Restart`, and process handling |
 | Debian systemd wiki | `https://wiki.debian.org/systemd/Services` | `systemctl enable` service startup workflow reference |
 
+## Phase 1 Step 5 — EV3 Server Sensor Loop and Motor Control
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 6.1 EV3 command/data flow; Section 10.5 command protocol; Section 14.2 EV3 setup; Section 15.4 pairing-token control; Section 16 error and degradation rules |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3 WebSocket port, sensor data key names, motor/sensor port names, 50Hz sensor loop requirement, stdlib/no-pybluez rule, and safety expectations |
+| ev3dev2 overview | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/` | Official Python API surface for the EV3 runtime used by the brick server |
+| ev3dev2 motors documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/motors.html` | `LargeMotor`, `MediumMotor`, motor speed, timed run, position run, stop, and reset behavior |
+| ev3dev2 sensors documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/sensors.html` | Color, ultrasonic, gyro, touch, and infrared sensor classes and value accessors |
+| ev3dev2 sound documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/sound.html` | EV3 sound volume, tone, beep, and stop-equivalent behavior |
+| ev3dev2 display documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/display.html` | EV3 LCD drawing primitives for text, line, circle, clear, and display updates |
+| websockets documentation | `https://websockets.readthedocs.io/` | Async WebSocket server shape, `serve` lifecycle, ping interval, and coroutine-based client handling |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

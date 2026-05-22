@@ -1,0 +1,330 @@
+import asyncio
+import importlib.util
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SERVER_PATH = ROOT / "ev3-firmware" / "vsle_ev3_server.py"
+
+
+def load_server_module():
+    spec = importlib.util.spec_from_file_location(
+        "vsle_ev3_server", SERVER_PATH
+    )
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+class FakeHardware:
+    def __init__(self):
+        self.actions = []
+        self.sensor_payload = {
+            "sensors": {"S2": {"type": "ultrasonic", "distance_cm": 24.5}},
+            "motors": {"A": {"position": 90, "speed": 0, "running": False}},
+            "system": {
+                "battery_pct": 87,
+                "battery_v": 7.5,
+                "buttons": {"up": False, "center": True},
+            },
+        }
+
+    def motor_run_forever(self, port, speed):
+        self.actions.append(("motor_run_forever", port, speed))
+
+    def motor_run_timed(self, port, speed, seconds):
+        self.actions.append(("motor_run_timed", port, speed, seconds))
+
+    def motor_run_to_abs_pos(self, port, degrees, speed):
+        self.actions.append(("motor_run_to_abs_pos", port, degrees, speed))
+
+    def motor_run_to_rel_pos(self, port, degrees, speed):
+        self.actions.append(("motor_run_to_rel_pos", port, degrees, speed))
+
+    def motor_stop(self, port):
+        self.actions.append(("motor_stop", port))
+
+    def motor_stop_all(self):
+        self.actions.append(("motor_stop_all",))
+
+    def motor_reset_position(self, port):
+        self.actions.append(("motor_reset_position", port))
+
+    def sync_run(self, port_l, port_r, speed, seconds):
+        self.actions.append(("sync_run", port_l, port_r, speed, seconds))
+
+    def sync_turn(self, port_l, port_r, speed, turn):
+        self.actions.append(("sync_turn", port_l, port_r, speed, turn))
+
+    def sound_play_tone(self, freq, duration, volume, wait=False):
+        self.actions.append(("sound_play_tone", freq, duration, volume, wait))
+
+    def sound_beep(self):
+        self.actions.append(("sound_beep",))
+
+    def sound_stop(self):
+        self.actions.append(("sound_stop",))
+
+    def sound_set_volume(self, volume):
+        self.actions.append(("sound_set_volume", volume))
+
+    def display_text(self, text, line):
+        self.actions.append(("display_text", text, line))
+
+    def display_clear(self):
+        self.actions.append(("display_clear",))
+
+    def display_draw_line(self, x1, y1, x2, y2):
+        self.actions.append(("display_draw_line", x1, y1, x2, y2))
+
+    def display_draw_circle(self, x, y, radius):
+        self.actions.append(("display_draw_circle", x, y, radius))
+
+    def gyro_reset(self, port):
+        self.actions.append(("gyro_reset", port))
+
+    def read_all(self):
+        return self.sensor_payload
+
+
+class FakeWebSocket:
+    def __init__(self, incoming=None):
+        self.incoming = list(incoming or [])
+        self.sent = []
+        self.closed = None
+
+    async def recv(self):
+        if not self.incoming:
+            raise asyncio.TimeoutError()
+        return self.incoming.pop(0)
+
+    async def send(self, message):
+        self.sent.append(json.loads(message))
+
+    async def close(self, code=None, reason=None):
+        self.closed = (code, reason)
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if not self.incoming:
+            raise StopAsyncIteration
+        return self.incoming.pop(0)
+
+
+def test_auth_pair_required_and_accepted():
+    module = load_server_module()
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="secret")
+    ws = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "pair-1",
+                    "method": "auth.pair",
+                    "params": {"token": "secret"},
+                }
+            )
+        ]
+    )
+
+    assert asyncio.run(server.authenticate_client(ws)) is True
+    assert ws.sent == [{"type": "ack", "id": "pair-1", "ok": True}]
+    assert ws.closed is None
+
+
+def test_auth_pair_rejects_bad_token_and_closes_policy_violation():
+    module = load_server_module()
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="secret")
+    ws = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "pair-1",
+                    "method": "auth.pair",
+                    "params": {"token": "wrong"},
+                }
+            )
+        ]
+    )
+
+    assert asyncio.run(server.authenticate_client(ws)) is False
+    assert ws.sent == []
+    assert ws.closed == (1008, "pairing failed")
+
+
+def test_invalid_command_fails_closed_without_hardware_action():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    response = server.handle_command({"id": "bad-1", "method": "motor.fly"})
+
+    assert response == {
+        "type": "ack",
+        "id": "bad-1",
+        "ok": False,
+        "code": "EV3_INVALID_COMMAND",
+        "error": "EV3 command method is not allowed",
+        "retryable": False,
+    }
+    assert hardware.actions == []
+
+
+def test_motor_run_timed_validates_and_clamps_before_dispatch():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    response = server.handle_command(
+        {
+            "id": "cmd-1",
+            "method": "motor.runTimed",
+            "params": {"port": "a", "speed": 125, "time": 90},
+        }
+    )
+
+    assert response == {"type": "ack", "id": "cmd-1", "ok": True}
+    assert hardware.actions == [("motor_run_timed", "A", 100, 60)]
+
+
+def test_sound_display_and_gyro_commands_dispatch_to_hardware():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    commands = [
+        {
+            "id": "tone",
+            "method": "sound.playTone",
+            "params": {"freq": 440, "duration": 1, "volume": 80},
+        },
+        {"id": "beep", "method": "sound.beep"},
+        {"id": "stop", "method": "sound.stop"},
+        {
+            "id": "text",
+            "method": "display.text",
+            "params": {"text": "Hi", "line": 2},
+        },
+        {
+            "id": "circle",
+            "method": "display.drawCircle",
+            "params": {"x": 90, "y": 64, "r": 10},
+        },
+        {"id": "gyro", "method": "gyro.reset", "params": {"port": "S3"}},
+    ]
+
+    responses = [server.handle_command(command) for command in commands]
+
+    assert all(response["ok"] is True for response in responses)
+    assert hardware.actions == [
+        ("sound_play_tone", 440, 1, 80, False),
+        ("sound_beep",),
+        ("sound_stop",),
+        ("display_text", "Hi", 2),
+        ("display_draw_circle", 90, 64, 10),
+        ("gyro_reset", "S3"),
+    ]
+
+
+def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
+    module = load_server_module()
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="",
+        clock=lambda: 123.456,
+    )
+
+    payload = server.build_sensor_update()
+
+    assert payload == {
+        "type": "sensor_update",
+        "timestamp": 123.456,
+        "sensors": {"S2": {"type": "ultrasonic", "distance_cm": 24.5}},
+        "motors": {"A": {"position": 90, "speed": 0, "running": False}},
+        "system": {
+            "battery_pct": 87,
+            "battery_v": 7.5,
+            "buttons": {"up": False, "center": True},
+        },
+    }
+
+
+def test_data_collection_is_bounded_and_can_be_exported_and_cleared():
+    module = load_server_module()
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="",
+        max_collected_points=2,
+        clock=lambda: 1,
+    )
+
+    assert server.handle_command(
+        {"id": 1, "method": "data.startCollect", "params": {"label": "turn"}}
+    ) == {"type": "ack", "id": 1, "ok": True}
+    server.record_data_point("first")
+    server.record_data_point("second")
+    full = server.handle_command(
+        {"id": 2, "method": "data.addPoint", "params": {"label": "third"}}
+    )
+
+    assert full["ok"] is False
+    assert full["code"] == "DATA_BUFFER_FULL"
+    assert len(server.collected_data) == 2
+
+    exported = server.handle_command({"id": 3, "method": "data.getAll"})
+    assert exported["ok"] is True
+    assert len(exported["data"]) == 2
+
+    server.handle_command({"id": 4, "method": "data.clear"})
+    assert server.collected_data == []
+
+
+def test_client_disconnect_stops_all_motors_for_safety():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+    ws = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "cmd-1",
+                    "method": "motor.runForever",
+                    "params": {"port": "A", "speed": 50},
+                }
+            )
+        ]
+    )
+
+    asyncio.run(server.handle_client(ws))
+
+    assert ("motor_run_forever", "A", 50) in hardware.actions
+    assert hardware.actions[-1] == ("motor_stop_all",)
+    assert server.clients == set()
+
+
+def test_run_uses_websockets_serve_with_configured_host_and_port():
+    module = load_server_module()
+    calls = []
+
+    async def fake_serve(handler, host, port, **kwargs):
+        calls.append((handler, host, port, kwargs))
+
+        class FakeServer:
+            async def serve_forever(self):
+                return None
+
+        return FakeServer()
+
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="")
+
+    asyncio.run(server.run(host="127.0.0.1", port=8765, serve=fake_serve))
+
+    assert calls
+    handler, host, port, kwargs = calls[0]
+    assert handler == server.handle_client
+    assert host == "127.0.0.1"
+    assert port == 8765
+    assert kwargs["ping_interval"] == 5
