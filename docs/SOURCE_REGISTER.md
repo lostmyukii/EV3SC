@@ -100,6 +100,16 @@ ports. This register records the sources used for the current implementation.
 | EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | EV3 sensor payload shape consumed by the extension and expanded for IR beacon/remote channel snapshots |
 | WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Base64 sensor notification path that forwards EV3 sensor payloads into the extension cache |
 
+## Phase 1 Step 10 — TurboWarp Integration Test Baseline
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 3.1-3.5 Scratch visual preservation, Unsandboxed extension loading flow, and allowlisted extension URL; Phase 1 TurboWarp integration testing task and acceptance criteria |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | No Scratch visual design changes, Unsandboxed-only loading, local development URL, sensor cache reporter rule, and GitHub/progress workflow |
+| TurboWarp Unsandboxed Extensions documentation | `https://docs.turbowarp.org/development/extensions/unsandboxed` | Expected global `Scratch` registration path, `Scratch.extensions.unsandboxed` guard, and `Scratch.extensions.register` integration behavior |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Actual extension load path, `getInfo()` block surface, JSON-RPC command dispatch, and cache-backed sensor reporters under the TurboWarp-style VM harness |
+| WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Local Scratch Link compatible endpoint and base64 sensor notification envelope used by the integration harness |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
