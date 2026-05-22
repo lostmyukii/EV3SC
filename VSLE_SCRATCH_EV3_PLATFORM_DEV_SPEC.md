@@ -2438,6 +2438,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/README.md`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Run TurboWarp integration testing for the Phase 1 Scratch extension flow, including loading the Unsandboxed extension, confirming Scratch visual design remains unchanged, and verifying EV3 motor/sensor acceptance criteria against the local WeisileLink server.
 
+### [2026-05-22] TurboWarp integration test baseline
+- **Status**: ✅ Completed
+- **Commit**: `243ef16`
+- **What was done**: Added a repeatable TurboWarp-style integration harness that loads the extension through a global `Scratch` object, verifies Unsandboxed registration, confirms all 34 Phase 1 blocks are exposed, guards against Scratch GUI DOM access, sends a motor command through the local WeisileLink JSON-RPC endpoint shape, and injects base64 sensor notifications into `SensorCache`. Added a Phase 1 integration report that records automated coverage and clearly separates simulated checks from real EV3 hardware, screenshot-diff, and classroom rehearsal gates.
+- **Files created/modified**: `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Begin Phase 2 by implementing the 14 sound and display blocks, source-backed by the existing EV3 server command handlers and ev3dev2 sound/display APIs.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
