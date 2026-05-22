@@ -2431,6 +2431,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `docs/SOURCE_REGISTER.md`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement SensorCache + 20 sensor blocks for color, ultrasonic, gyro, touch, and infrared reporters/booleans, keeping all reporter and Boolean blocks synchronous cache reads.
 
+### [2026-05-22] Sensor cache and sensor blocks
+- **Status**: ✅ Completed
+- **Commit**: `9c9add1`
+- **What was done**: Expanded the VSLE-EV3 extension from 14 motor blocks to 34 Phase 1 blocks by adding the 20 sensor/system blocks, a defaulted deep-merge `SensorCache`, synchronous cache-backed reporter/Boolean reads, cache-polled touch wait blocks, and `gyro.reset` command dispatch. Extended the EV3 sensor snapshot for infrared beacon and remote channel data using the official ev3dev2 InfraredSensor API, and added tests for all new extension behavior plus IR payload shape.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/README.md`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Run TurboWarp integration testing for the Phase 1 Scratch extension flow, including loading the Unsandboxed extension, confirming Scratch visual design remains unchanged, and verifying EV3 motor/sensor acceptance criteria against the local WeisileLink server.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
