@@ -446,7 +446,7 @@ The extension registers **6 block categories**:
   text: '超声波传感器 [PORT] 距离 (厘米)',
   blockType: 'reporter'
 },
-{ opcode: 'getUltrasonicDistancInch',
+{ opcode: 'getUltrasonicDistanceInch',
   text: '超声波传感器 [PORT] 距离 (英寸)',             // NEW
   blockType: 'reporter'
 },
@@ -870,6 +870,7 @@ class BluetoothTransport:
 import asyncio
 import websockets
 import json
+import os
 
 class WiFiTransport:
     """
@@ -882,14 +883,25 @@ class WiFiTransport:
         self.uri = f"ws://{ev3_ip}:{port}"
         self.ws = None
         self._sensor_callback = None
+        self._receive_task = None
+        self._pairing_token = os.environ.get('WEISILE_PAIRING_TOKEN', '')
 
     async def connect(self, on_sensor_data) -> bool:
         self._sensor_callback = on_sensor_data
         try:
             self.ws = await websockets.connect(self.uri, ping_interval=5)
-            asyncio.ensure_future(self._receive_loop())
+            if self._pairing_token:
+                await self.ws.send(json.dumps({
+                    'method': 'auth.pair',
+                    'params': {'token': self._pairing_token}
+                }))
+                auth_ack = json.loads(await self.ws.recv())
+                if not auth_ack.get('ok'):
+                    await self.ws.close(code=1008, reason='pairing failed')
+                    return False
+            self._receive_task = asyncio.create_task(self._receive_loop())
             return True
-        except (OSError, websockets.exceptions.WebSocketException):
+        except (OSError, json.JSONDecodeError, websockets.exceptions.WebSocketException):
             return False
 
     async def _receive_loop(self):
@@ -927,6 +939,7 @@ import websockets
 import json
 import time
 import logging
+import os
 from collections import deque
 
 # ev3dev2 imports
@@ -948,6 +961,7 @@ SENSOR_HZ = 50          # Target sensor polling rate
 WS_PORT    = 8765       # WebSocket server port
 SENSOR_INTERVAL = 1.0 / SENSOR_HZ
 MAX_COLLECTED_POINTS = 10000  # classroom-safe bounded buffer
+PAIRING_TOKEN = os.environ.get('WEISILE_PAIRING_TOKEN', '')
 
 class VsleEV3Server:
 
@@ -970,9 +984,27 @@ class VsleEV3Server:
                                   TouchSensor, InfraredSensor]:
                 try:
                     sensor = SensorClass(f'in{port}')
+                    if not str(getattr(sensor, 'address', '')).endswith(f'in{port}'):
+                        continue
                     self.sensors[port_name] = sensor
+                    logging.info(
+                        "sensor_detected",
+                        extra={
+                            "port": port_name,
+                            "driver": getattr(sensor, "driver_name", ""),
+                            "class": SensorClass.__name__
+                        }
+                    )
                     break
-                except Exception:
+                except Exception as exc:
+                    logging.debug(
+                        "sensor_detection_failed",
+                        extra={
+                            "port": port_name,
+                            "class": SensorClass.__name__,
+                            "error": repr(exc)
+                        }
+                    )
                     continue
 
         # Auto-detect motors on ports A-D
@@ -983,9 +1015,27 @@ class VsleEV3Server:
             for MotorClass in [LargeMotor, MediumMotor]:
                 try:
                     motor = MotorClass(port_const)
+                    if not str(getattr(motor, 'address', '')).endswith(port_const):
+                        continue
                     self.motors[port_name] = motor
+                    logging.info(
+                        "motor_detected",
+                        extra={
+                            "port": port_name,
+                            "driver": getattr(motor, "driver_name", ""),
+                            "class": MotorClass.__name__
+                        }
+                    )
                     break
-                except Exception:
+                except Exception as exc:
+                    logging.debug(
+                        "motor_detection_failed",
+                        extra={
+                            "port": port_name,
+                            "class": MotorClass.__name__,
+                            "error": repr(exc)
+                        }
+                    )
                     continue
 
         # System hardware
@@ -1062,6 +1112,30 @@ class VsleEV3Server:
                 readings['motors'][port_name] = {'error': str(e)}
 
         return readings
+
+    async def _authenticate_client(self, websocket) -> bool:
+        """Require pairing token before accepting non-public EV3 commands."""
+        if not PAIRING_TOKEN:
+            return True
+
+        try:
+            message = await asyncio.wait_for(websocket.recv(), timeout=5)
+            cmd = json.loads(message)
+        except (asyncio.TimeoutError, json.JSONDecodeError):
+            await websocket.close(code=1008, reason='pairing required')
+            return False
+
+        token = cmd.get('params', {}).get('token')
+        if cmd.get('method') != 'auth.pair' or token != PAIRING_TOKEN:
+            await websocket.close(code=1008, reason='pairing failed')
+            return False
+
+        await websocket.send(json.dumps({
+            'type': 'ack',
+            'id': cmd.get('id'),
+            'ok': True
+        }))
+        return True
 
     async def sensor_broadcast_loop(self):
         """50Hz sensor data broadcast to all connected clients."""
@@ -1254,6 +1328,9 @@ class VsleEV3Server:
         await websocket.send(ack)
 
     async def handler(self, websocket, path):
+        if not await self._authenticate_client(websocket):
+            return
+
         self.clients.add(websocket)
         try:
             async for message in websocket:
@@ -1504,7 +1581,7 @@ This matrix documents every hardware capability exposed through VSLE blocks:
 | Ambient light | Color Sensor | `sensor.ambient_light_intensity` | ✅ getColorSensorAmbient | |
 | RGB values | Color Sensor | `sensor.rgb` | ✅ getColorSensorRGB | |
 | Distance (cm) | Ultrasonic | `sensor.distance_centimeters` | ✅ getUltrasonicDistance | 3 |
-| Distance (inch) | Ultrasonic | `sensor.distance_inches` | ✅ getUltrasonicDistancInch | |
+| Distance (inch) | Ultrasonic | `sensor.distance_inches` | ✅ getUltrasonicDistanceInch | |
 | Gyro angle | Gyro Sensor | `sensor.angle` | ✅ getGyroAngle | 3 |
 | Gyro rate | Gyro Sensor | `sensor.rate` | ✅ getGyroRate | |
 | Gyro reset | Gyro Sensor | `sensor.reset()` | ✅ resetGyro | |
@@ -1897,7 +1974,7 @@ Classroom deployment is blocked until all gates below pass:
 
 | Gate | Verification |
 |------|--------------|
-| Security | Localhost-only bridge by default, token pairing enabled, command validation tests pass |
+| Security | Localhost-only bridge by default, EV3 `auth.pair` token handshake verified, command validation tests pass |
 | Privacy | Student data minimization documented, export/delete workflow tested |
 | Error handling | JSON-RPC error codes covered by unit tests and reconnect integration tests |
 | Operations | `/api/status` and EV3 health checks return actionable status |
@@ -2036,6 +2113,8 @@ become physical safety failures, so security is a classroom launch blocker.
 - Production browser access uses HTTPS/WSS.
 - EV3 WiFi transport may run on classroom LAN without TLS only when isolated from
   the public internet; the pairing token still applies.
+- EV3 firmware implements an `auth.pair` handshake before accepting command or
+  sensor-stream clients when `WEISILE_PAIRING_TOKEN` is configured.
 - Bluetooth is a fallback transport, not the primary classroom deployment path.
 
 ### 15.3 Privacy Requirements
@@ -2222,6 +2301,13 @@ material into:
 |---------|------|--------|
 | v1.0 | 2026-05-22 | Initial unified platform specification |
 | v1.0-audit-remediated | 2026-05-22 | Added audit-driven security, reliability, operations, testing, deployment, licensing, and governance requirements |
+| v1.0-round2-remediated | 2026-05-22 | Closed second-audit remaining items: typo fix, Python task API update, EV3 pairing handshake, hardware detection implementation guidance, and time-series data-store debt |
+
+### 20.5 Technical Debt Register
+
+| ID | Topic | Status | Decision Needed By | Notes |
+|----|-------|--------|--------------------|-------|
+| TD-01 | Time-series data store for long-running classroom telemetry | Open | Phase 2 data pipeline design | Choose between InfluxDB, TimescaleDB, or local file-backed storage after measuring classroom retention, query, and deployment needs. Phase 1 remains local-first with bounded in-memory buffers and explicit CSV export. |
 
 ---
 
