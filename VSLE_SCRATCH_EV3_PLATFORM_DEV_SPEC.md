@@ -2354,6 +2354,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Begin Phase 1 implementation against the updated Critical Remediation Gates and resolve `TD-01` during Phase 2 data pipeline design.
 
+### [2026-05-22] GitHub and open-source workflow rules added
+- **Status**: ✅ Completed
+- **Commit**: `bed3338`
+- **What was done**: Updated `AGENTS.md` and `CLAUDE.md` so every completed-step commit must be pushed to GitHub, and EV3/Scratch development must use open-source source code, official repositories, official documentation, or verified local ports instead of invented APIs. Attempted `git push`, but GitHub sync is currently blocked because no remote is configured.
+- **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Configure a GitHub `origin` remote for `/Users/yukii/Desktop/EV3SC/`, then push the pending commits.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
