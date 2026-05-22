@@ -2466,6 +2466,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Bluetooth Classic transport as the Phase 2 fallback transport, using Python stdlib RFCOMM where supported and preserving the WiFi transport/degradation behavior.
 
+### [2026-05-23] Bluetooth Classic fallback transport
+- **Status**: ✅ Completed
+- **Commit**: `5faef4a`
+- **What was done**: Added a source-backed WeisileLink Bluetooth Classic RFCOMM transport that uses Python stdlib sockets, validates commands before send, resolves EV3 ack futures, routes sensor updates into the shared cache, handles pairing, timeout, disconnect, and Linux-only stdlib RFCOMM support checks. Added WiFi-first auto transport fallback, `vsle.setTransport` switching, and an optional EV3-side RFCOMM JSON-line listener that reuses the existing EV3 pairing, command, ack, sensor, and safety shutdown behavior.
+- **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/weisile_link/transport/__init__.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_bluetooth_transport.py`, `weisile-link/tests/test_transport_selector.py`, `weisile-link/tests/test_json_rpc_server.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/EV3DEV_SETUP.md`, `ev3-firmware/README.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement the Phase 2 sensor data router and WeisileAI Trainer integration, including multi-consumer 50Hz broadcast, Trainer subscription/upload path, health counters, and tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
