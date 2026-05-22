@@ -10,6 +10,8 @@ This directory contains the files deployed to an EV3 brick running ev3dev.
   systemd service.
 - `scripts/rollback_ev3_autostart.sh`: restores the newest backup created by
   the installer.
+- `vsle_ev3_server.py`: WiFi WebSocket server plus optional Bluetooth Classic
+  RFCOMM JSON-line fallback server.
 
 The installer expects `ev3-firmware/vsle_ev3_server.py` to exist before it is
 run on the brick. If the server file is absent, installation fails closed and
@@ -33,3 +35,23 @@ cd ~/vsle-ev3-firmware
 ```
 
 Full SD card and network preparation steps are in `docs/EV3DEV_SETUP.md`.
+
+## Optional Bluetooth fallback
+
+WiFi remains the classroom default. To enable the EV3-side Bluetooth Classic
+fallback server on ev3dev, set this in `/home/robot/.config/vsle/ev3.env`:
+
+```bash
+EV3_ENABLE_BLUETOOTH=1
+EV3_BT_RFCOMM_CHANNEL=1
+```
+
+Then restart:
+
+```bash
+sudo systemctl restart vsle-ev3-server
+```
+
+The fallback uses Python stdlib `socket.AF_BLUETOOTH` with RFCOMM and keeps the
+same pairing token, JSON command envelopes, ack envelopes, sensor payloads, and
+motor-stop-on-disconnect safety behavior as the WiFi server.

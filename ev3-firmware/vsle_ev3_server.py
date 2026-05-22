@@ -17,11 +17,13 @@ import io
 import json
 import os
 import signal
+import socket
 import time
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Set
 
 WS_PORT = int(os.getenv("EV3_WS_PORT", "8765"))
+BT_RFCOMM_CHANNEL = int(os.getenv("EV3_BT_RFCOMM_CHANNEL", "1"))
 SENSOR_INTERVAL = 0.02
 MAX_COLLECTED_POINTS = int(os.getenv("MAX_COLLECTED_POINTS", "10000"))
 PAIRING_TOKEN = os.getenv("WEISILE_PAIRING_TOKEN", "")
@@ -51,6 +53,74 @@ class EV3CommandError(Exception):
         self.message = message
         self.retryable = retryable
         self.data = data or {}
+
+
+class BluetoothLineEndpoint:
+    """Async JSON-line adapter for one RFCOMM client socket."""
+
+    def __init__(self, client_socket: Any) -> None:
+        self.client_socket = client_socket
+        self._buffer = b""
+        self._closed = False
+
+    async def recv(self) -> str:
+        """Read one newline-terminated UTF-8 JSON message."""
+        loop = asyncio.get_running_loop()
+        while b"\n" not in self._buffer:
+            chunk = await loop.run_in_executor(
+                None,
+                self.client_socket.recv,
+                4096,
+            )
+            if not chunk:
+                raise ConnectionError("Bluetooth RFCOMM client closed")
+            self._buffer += chunk
+
+        line, self._buffer = self._buffer.split(b"\n", 1)
+        return line.decode("utf-8")
+
+    async def send(self, message: str) -> None:
+        """Send one newline-terminated UTF-8 JSON message."""
+        payload = message.encode("utf-8")
+        if not payload.endswith(b"\n"):
+            payload += b"\n"
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.client_socket.sendall, payload)
+
+    async def close(self, code: Any = None, reason: Any = None) -> None:
+        """Close the RFCOMM client socket."""
+        if self._closed:
+            return
+        self._closed = True
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.client_socket.close)
+
+    def __aiter__(self) -> "BluetoothLineEndpoint":
+        return self
+
+    async def __anext__(self) -> str:
+        try:
+            return await self.recv()
+        except ConnectionError:
+            raise StopAsyncIteration
+
+
+def build_bluetooth_listener(
+    *,
+    socket_module: Any = socket,
+    address: str = "",
+    channel: int = BT_RFCOMM_CHANNEL,
+    backlog: int = 1,
+) -> Any:
+    """Build a stdlib RFCOMM listener for EV3-side JSON-line transport."""
+    listener = socket_module.socket(
+        socket_module.AF_BLUETOOTH,
+        socket_module.SOCK_STREAM,
+        socket_module.BTPROTO_RFCOMM,
+    )
+    listener.bind((address, channel))
+    listener.listen(backlog)
+    return listener
 
 
 @dataclass(frozen=True)
@@ -147,9 +217,7 @@ def _milliseconds(
     return _clamp(_number(params, field, default), 20, 60000)
 
 
-def _asset_name(
-    params: Dict[str, Any], field: str, extensions: Set[str]
-) -> str:
+def _asset_name(params: Dict[str, Any], field: str, extensions: Set[str]) -> str:
     value = str(params.get(field, "")).strip()
     lower_value = value.lower()
     if (
@@ -392,25 +460,19 @@ class EV3DevHardware:
         return motor
 
     def motor_run_forever(self, port: str, speed: int) -> None:
-        self._motor(port).on(
-            self._speed_percent(speed), brake=False, block=False
-        )
+        self._motor(port).on(self._speed_percent(speed), brake=False, block=False)
 
     def motor_run_timed(self, port: str, speed: int, seconds: float) -> None:
         self._motor(port).on_for_seconds(
             self._speed_percent(speed), seconds, brake=True, block=False
         )
 
-    def motor_run_to_abs_pos(
-        self, port: str, degrees: float, speed: int
-    ) -> None:
+    def motor_run_to_abs_pos(self, port: str, degrees: float, speed: int) -> None:
         self._motor(port).on_to_position(
             self._speed_percent(speed), degrees, brake=True, block=False
         )
 
-    def motor_run_to_rel_pos(
-        self, port: str, degrees: float, speed: int
-    ) -> None:
+    def motor_run_to_rel_pos(self, port: str, degrees: float, speed: int) -> None:
         motor = self._motor(port)
         target = getattr(motor, "position", 0) + degrees
         motor.on_to_position(
@@ -430,15 +492,11 @@ class EV3DevHardware:
     def motor_reset_position(self, port: str) -> None:
         self._motor(port).reset()
 
-    def sync_run(
-        self, port_l: str, port_r: str, speed: int, seconds: float
-    ) -> None:
+    def sync_run(self, port_l: str, port_r: str, speed: int, seconds: float) -> None:
         self.motor_run_timed(port_l, speed, seconds)
         self.motor_run_timed(port_r, speed, seconds)
 
-    def sync_turn(
-        self, port_l: str, port_r: str, speed: int, turn: int
-    ) -> None:
+    def sync_turn(self, port_l: str, port_r: str, speed: int, turn: int) -> None:
         self.motor_run_forever(port_l, speed + turn)
         self.motor_run_forever(port_r, speed - turn)
 
@@ -481,9 +539,7 @@ class EV3DevHardware:
         )
 
     def display_text(self, text: str, line: int) -> None:
-        self.display.text_pixels(
-            text, x=0, y=(line - 1) * 16, clear_screen=False
-        )
+        self.display.text_pixels(text, x=0, y=(line - 1) * 16, clear_screen=False)
         self.display.update()
 
     def display_number(self, number: Any, line: int) -> None:
@@ -623,8 +679,7 @@ class EV3DevHardware:
                             "bottom_right",
                             "beacon",
                         ]
-                        if hasattr(sensor, name)
-                        and getattr(sensor, name)(channel)
+                        if hasattr(sensor, name) and getattr(sensor, name)(channel)
                     ]
             except Exception:
                 buttons = []
@@ -717,6 +772,13 @@ class VSLEEV3Server:
             self.clients.discard(websocket)
             self.hardware.motor_stop_all()
 
+    async def handle_bluetooth_endpoint(
+        self,
+        endpoint: BluetoothLineEndpoint,
+    ) -> None:
+        """Handle one Bluetooth RFCOMM JSON-line client."""
+        await self.handle_client(endpoint)
+
     def handle_raw_message(self, raw: str) -> Dict[str, Any]:
         """Decode a JSON command and return an EV3 ack envelope."""
         try:
@@ -724,9 +786,7 @@ class VSLEEV3Server:
         except json.JSONDecodeError:
             return self._error_ack(
                 None,
-                EV3CommandError(
-                    "EV3_INVALID_COMMAND", "Invalid JSON command", False
-                ),
+                EV3CommandError("EV3_INVALID_COMMAND", "Invalid JSON command", False),
             )
         return self.handle_command(message)
 
@@ -753,9 +813,7 @@ class VSLEEV3Server:
             return {"type": "ack", "id": request_id, "ok": True}
         return {"type": "ack", "id": request_id, "ok": True, **result}
 
-    def _execute_command(
-        self, command: ValidatedCommand
-    ) -> Optional[Dict[str, Any]]:
+    def _execute_command(self, command: ValidatedCommand) -> Optional[Dict[str, Any]]:
         method = command.method
         params = command.params
 
@@ -817,17 +875,13 @@ class VSLEEV3Server:
         elif method == "display.image":
             self.hardware.display_image(params["image"])
         elif method == "display.textAt":
-            self.hardware.display_text_at(
-                params["text"], params["x"], params["y"]
-            )
+            self.hardware.display_text_at(params["text"], params["x"], params["y"])
         elif method == "display.drawLine":
             self.hardware.display_draw_line(
                 params["x1"], params["y1"], params["x2"], params["y2"]
             )
         elif method == "display.drawCircle":
-            self.hardware.display_draw_circle(
-                params["x"], params["y"], params["r"]
-            )
+            self.hardware.display_draw_circle(params["x"], params["y"], params["r"])
         elif method == "display.update":
             self.hardware.display_update()
         elif method == "gyro.reset":
@@ -872,9 +926,7 @@ class VSLEEV3Server:
 
         return None
 
-    def _error_ack(
-        self, request_id: Any, error: EV3CommandError
-    ) -> Dict[str, Any]:
+    def _error_ack(self, request_id: Any, error: EV3CommandError) -> Dict[str, Any]:
         return {
             "type": "ack",
             "id": request_id,
@@ -928,8 +980,7 @@ class VSLEEV3Server:
         if self.auto_collect_interval_s is not None:
             if (
                 self.last_auto_collect_at is not None
-                and now - self.last_auto_collect_at
-                < self.auto_collect_interval_s
+                and now - self.last_auto_collect_at < self.auto_collect_interval_s
             ):
                 return False
             self.last_auto_collect_at = now
@@ -938,9 +989,7 @@ class VSLEEV3Server:
 
     def export_data_csv(self) -> str:
         """Return collected data as flat CSV for classroom export."""
-        rows = [
-            self._flatten_data_point(point) for point in self.collected_data
-        ]
+        rows = [self._flatten_data_point(point) for point in self.collected_data]
         if not rows:
             return "label,timestamp\n"
         fieldnames = sorted({key for row in rows for key in row.keys()})
@@ -1001,8 +1050,12 @@ class VSLEEV3Server:
         host: str = "0.0.0.0",
         port: int = WS_PORT,
         serve: Optional[Callable[..., Any]] = None,
+        enable_bluetooth: bool = False,
+        bluetooth_address: str = "",
+        bluetooth_channel: int = BT_RFCOMM_CHANNEL,
+        socket_module: Any = socket,
     ) -> None:
-        """Run the WebSocket server until cancelled or signaled."""
+        """Run the WebSocket server and optional Bluetooth fallback server."""
         if serve is None:
             import websockets
 
@@ -1019,17 +1072,65 @@ class VSLEEV3Server:
                     pass
 
         sensor_task = asyncio.create_task(self.sensor_broadcast_loop())
+        bluetooth_task = None
+        if enable_bluetooth:
+            bluetooth_task = asyncio.create_task(
+                self.run_bluetooth(
+                    address=bluetooth_address,
+                    channel=bluetooth_channel,
+                    socket_module=socket_module,
+                )
+            )
         server = await serve(self.handle_client, host, port, ping_interval=5)
         try:
             await server.serve_forever()
         finally:
             self.stop()
             sensor_task.cancel()
+            if bluetooth_task is not None:
+                bluetooth_task.cancel()
             self.hardware.motor_stop_all()
             try:
                 await sensor_task
             except asyncio.CancelledError:
                 pass
+            if bluetooth_task is not None:
+                try:
+                    await bluetooth_task
+                except asyncio.CancelledError:
+                    pass
+
+    async def run_bluetooth(
+        self,
+        *,
+        address: str = "",
+        channel: int = BT_RFCOMM_CHANNEL,
+        socket_module: Any = socket,
+    ) -> None:
+        """Run a stdlib RFCOMM JSON-line server until cancelled."""
+        listener = build_bluetooth_listener(
+            socket_module=socket_module,
+            address=address,
+            channel=channel,
+        )
+        loop = asyncio.get_running_loop()
+        tasks: Set[asyncio.Task] = set()
+        try:
+            while not self._stopping:
+                client_socket, _client_address = await loop.run_in_executor(
+                    None,
+                    listener.accept,
+                )
+                endpoint = BluetoothLineEndpoint(client_socket)
+                task = asyncio.create_task(self.handle_bluetooth_endpoint(endpoint))
+                tasks.add(task)
+                task.add_done_callback(tasks.discard)
+        finally:
+            listener.close()
+            for task in set(tasks):
+                task.cancel()
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
 
     def stop(self) -> None:
         """Request server shutdown and stop all motors for safety."""
@@ -1041,8 +1142,19 @@ def main() -> None:
     """CLI entrypoint for systemd."""
     host = os.getenv("EV3_WS_HOST", "0.0.0.0")
     port = int(os.getenv("EV3_WS_PORT", str(WS_PORT)))
+    enable_bluetooth = os.getenv("EV3_ENABLE_BLUETOOTH", "0") == "1"
+    bluetooth_address = os.getenv("EV3_BT_ADDRESS", "")
+    bluetooth_channel = int(os.getenv("EV3_BT_RFCOMM_CHANNEL", str(BT_RFCOMM_CHANNEL)))
     server = VSLEEV3Server(EV3DevHardware(), pairing_token=PAIRING_TOKEN)
-    asyncio.run(server.run(host=host, port=port))
+    asyncio.run(
+        server.run(
+            host=host,
+            port=port,
+            enable_bluetooth=enable_bluetooth,
+            bluetooth_address=bluetooth_address,
+            bluetooth_channel=bluetooth_channel,
+        )
+    )
 
 
 if __name__ == "__main__":

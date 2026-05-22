@@ -40,6 +40,8 @@ from weisile_link.protocol.json_rpc import (
 )
 from weisile_link.protocol.validation import COMMAND_VALIDATORS
 from weisile_link.runtime.degradation import DegradationManager
+from weisile_link.transport.bluetooth_transport import BluetoothTransport
+from weisile_link.transport.selector import AutoTransport
 from weisile_link.transport.wifi_transport import WiFiTransport
 
 SCRATCH_BT_PATH = "/scratch/bt"
@@ -168,7 +170,7 @@ class ScratchJsonRpcServer:
             self.notification_clients.discard(websocket)
             return make_result(request_id, None)
         if method == "vsle.setTransport":
-            return self._handle_set_transport(request_id, params)
+            return await self._handle_set_transport(request_id, params)
         if method == "send":
             command = self._command_from_send(request_id, params)
             return await self._send_ev3_command(request_id, command)
@@ -211,20 +213,41 @@ class ScratchJsonRpcServer:
             return self.manager.command_error_response(request_id, "connect")
         return make_result(request_id, None)
 
-    def _handle_set_transport(
+    async def _handle_set_transport(
         self,
         request_id: JsonRpcId,
         params: Dict[str, Any],
     ) -> Dict[str, Any]:
-        transport = params.get("transport", "wifi")
-        if transport != "wifi":
+        transport = str(params.get("transport", "wifi")).lower()
+        set_transport = getattr(self.transport, "set_transport", None)
+        if set_transport is not None:
+            try:
+                result = set_transport(transport, self.handle_sensor_data)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                return make_result(request_id, result)
+            except Exception as exc:
+                return protocol_error_to_json_rpc(
+                    request_id,
+                    exception_to_protocol_error(
+                        exc,
+                        method="vsle.setTransport",
+                    ),
+                )
+
+        active_transport = getattr(
+            self.transport,
+            "active_transport_name",
+            "wifi",
+        )
+        if transport != active_transport:
             return make_error(
                 request_id,
                 ErrorCode.EV3_TRANSPORT_DISCONNECTED,
-                "Only WiFi transport is active in this Phase 1 server",
+                "Requested EV3 transport is not configured",
                 {"transport": transport, "retryable": True},
             )
-        return make_result(request_id, {"transport": "wifi"})
+        return make_result(request_id, {"transport": active_transport})
 
     async def _send_ev3_command(
         self,
@@ -400,8 +423,34 @@ class ScratchJsonRpcServer:
         return None
 
 
-def create_default_server(ev3_ip: str) -> ScratchJsonRpcServer:
-    """Create the default Phase 1 WiFi-backed Scratch JSON-RPC server."""
+def create_default_server(
+    ev3_ip: str,
+    *,
+    ev3_bt: Optional[str] = None,
+    transport_mode: str = "auto",
+) -> ScratchJsonRpcServer:
+    """Create the default WiFi-first Scratch JSON-RPC server."""
     manager = DegradationManager()
-    transport = WiFiTransport(ev3_ip, manager=manager)
+    wifi_transport = WiFiTransport(ev3_ip, manager=manager)
+    bluetooth_transport = None
+    if ev3_bt:
+        bluetooth_transport = BluetoothTransport(ev3_bt, manager=manager)
+        manager.bluetooth_supported = bluetooth_transport.supported
+
+    if transport_mode == "wifi" or bluetooth_transport is None:
+        transport = wifi_transport
+    elif transport_mode == "bluetooth":
+        transport = AutoTransport(
+            wifi_transport,
+            bluetooth_transport,
+            manager=manager,
+            preferred="bluetooth",
+        )
+    else:
+        transport = AutoTransport(
+            wifi_transport,
+            bluetooth_transport,
+            manager=manager,
+            preferred="wifi",
+        )
     return ScratchJsonRpcServer(transport, manager=manager)

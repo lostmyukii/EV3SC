@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import inspect
 import json
 
 from weisile_link.json_rpc_server import (
@@ -39,6 +40,8 @@ class FakeTransport:
         self.connect_callbacks = []
         self.commands = []
         self.disconnected = False
+        self.transport_switches = []
+        self.active_transport_name = "wifi"
 
     async def connect(self, on_sensor_data):
         self.connect_callbacks.append(on_sensor_data)
@@ -65,6 +68,13 @@ class FakeTransport:
     async def disconnect(self):
         self.disconnected = True
         self.connected = False
+
+    async def set_transport(self, transport, on_sensor_data):
+        self.transport_switches.append(
+            (transport, inspect.iscoroutinefunction(on_sensor_data))
+        )
+        self.active_transport_name = transport
+        return {"transport": transport}
 
 
 def decode_notification_payload(notification):
@@ -231,6 +241,36 @@ def test_send_method_accepts_high_level_command_wrapper():
             }
         ]
         assert websocket.sent[0]["result"]["ok"] is True
+
+    asyncio.run(scenario())
+
+
+def test_set_transport_delegates_to_transport_selector():
+    async def scenario():
+        transport = FakeTransport()
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        websocket = FakeWebSocket()
+
+        await server.handle_json_rpc_message(
+            websocket,
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "transport-1",
+                    "method": "vsle.setTransport",
+                    "params": {"transport": "bluetooth"},
+                }
+            ),
+        )
+
+        assert transport.transport_switches == [("bluetooth", True)]
+        assert websocket.sent == [
+            {
+                "jsonrpc": "2.0",
+                "id": "transport-1",
+                "result": {"transport": "bluetooth"},
+            }
+        ]
 
     asyncio.run(scenario())
 

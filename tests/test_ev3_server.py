@@ -9,9 +9,7 @@ SERVER_PATH = ROOT / "ev3-firmware" / "vsle_ev3_server.py"
 
 
 def load_server_module():
-    spec = importlib.util.spec_from_file_location(
-        "vsle_ev3_server", SERVER_PATH
-    )
+    spec = importlib.util.spec_from_file_location("vsle_ev3_server", SERVER_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -137,6 +135,48 @@ class FakeWebSocket:
         if not self.incoming:
             raise StopAsyncIteration
         return self.incoming.pop(0)
+
+
+class FakeBluetoothSocket:
+    def __init__(self):
+        self.sent = []
+        self.closed = False
+
+    def sendall(self, payload):
+        self.sent.append(payload)
+
+    def close(self):
+        self.closed = True
+
+
+class FakeBluetoothListener:
+    def __init__(self):
+        self.bound = None
+        self.listen_backlog = None
+        self.closed = False
+
+    def bind(self, address):
+        self.bound = address
+
+    def listen(self, backlog):
+        self.listen_backlog = backlog
+
+    def close(self):
+        self.closed = True
+
+
+class FakeSocketModule:
+    AF_BLUETOOTH = 31
+    SOCK_STREAM = 1
+    BTPROTO_RFCOMM = 3
+
+    def __init__(self):
+        self.listener = FakeBluetoothListener()
+        self.calls = []
+
+    def socket(self, family, kind, proto):
+        self.calls.append((family, kind, proto))
+        return self.listener
 
 
 def test_auth_pair_required_and_accepted():
@@ -514,3 +554,32 @@ def test_run_uses_websockets_serve_with_configured_host_and_port():
     assert host == "127.0.0.1"
     assert port == 8765
     assert kwargs["ping_interval"] == 5
+
+
+def test_bluetooth_line_endpoint_sends_json_lines_and_closes_socket():
+    module = load_server_module()
+    fake_socket = FakeBluetoothSocket()
+    endpoint = module.BluetoothLineEndpoint(fake_socket)
+
+    asyncio.run(endpoint.send(json.dumps({"type": "ack", "ok": True})))
+    asyncio.run(endpoint.close(code=1000, reason="done"))
+
+    assert fake_socket.sent == [b'{"type": "ack", "ok": true}\n']
+    assert fake_socket.closed is True
+
+
+def test_build_bluetooth_listener_uses_stdlib_rfcomm_socket():
+    module = load_server_module()
+    socket_module = FakeSocketModule()
+
+    listener = module.build_bluetooth_listener(
+        socket_module=socket_module,
+        address="",
+        channel=1,
+        backlog=1,
+    )
+
+    assert listener is socket_module.listener
+    assert socket_module.calls == [(31, 1, 3)]
+    assert listener.bound == ("", 1)
+    assert listener.listen_backlog == 1

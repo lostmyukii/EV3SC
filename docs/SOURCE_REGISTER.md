@@ -133,6 +133,17 @@ ports. This register records the sources used for the current implementation.
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing Unsandboxed extension, cache-backed reporter pattern, JSON-RPC command dispatch, and TurboWarp registration surface expanded from 48 to all 62 blocks |
 | Python CSV standard library | `https://docs.python.org/3/library/csv.html` | Dependency-free CSV export for collected classroom sensor samples |
 
+## Phase 2 Step 3 — Bluetooth Classic Transport Fallback
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 5.2 transport selection; Section 5.5 Bluetooth Classic stdlib transport; Section 16 WiFi-to-Bluetooth degradation and reconnect behavior; Phase 2 Bluetooth fallback task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Non-negotiable Python stdlib Bluetooth rule, no pybluez, EV3SC standalone ownership, GitHub/progress workflow |
+| Python socket documentation | `https://docs.python.org/3/library/socket.html` | `AF_BLUETOOTH`, `SOCK_STREAM`, `BTPROTO_RFCOMM`, and RFCOMM address tuple behavior |
+| EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Reused the existing pairing, JSON command, ack envelope, safety shutdown, and 50Hz sensor payload over an RFCOMM JSON-line stream |
+| WeisileLink WiFi transport baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/wifi_transport.py` | Reused command validation, ack-future resolution, sensor cache updates, timeout handling, and degradation-state behavior for Bluetooth parity |
+| WeisileLink degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Reused `TransportKind.BLUETOOTH`, WiFi-first fallback flags, connection state, and sensor freshness cache |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

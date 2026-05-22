@@ -101,6 +101,24 @@ with default EV3 server port `8765`. The expected local env file is:
 /home/robot/.config/vsle/ev3.env
 ```
 
+Optional Bluetooth Classic fallback is disabled by default because WiFi is the
+primary classroom path. On EV3 bricks that should accept RFCOMM fallback
+connections, add these lines to the same env file:
+
+```bash
+EV3_ENABLE_BLUETOOTH=1
+EV3_BT_RFCOMM_CHANNEL=1
+```
+
+Then restart the service:
+
+```bash
+sudo systemctl restart vsle-ev3-server
+```
+
+The RFCOMM path uses Python stdlib Bluetooth sockets, not pybluez. It reuses the
+same pairing token and command/sensor JSON envelopes as the WiFi server.
+
 ## 6. Roll back
 
 If a new install fails or a class needs to recover quickly:
