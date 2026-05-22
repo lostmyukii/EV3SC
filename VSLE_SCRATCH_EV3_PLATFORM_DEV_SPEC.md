@@ -2424,6 +2424,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the VSLE-EV3 unsandboxed extension skeleton and the first 14 motor blocks, porting from the verified local Scratch VM EV3 extension style without changing Scratch visual design.
 
+### [2026-05-22] VSLE-EV3 unsandboxed motor blocks
+- **Status**: ✅ Completed
+- **Commit**: `7fe564f`
+- **What was done**: Added the TurboWarp Unsandboxed VSLE-EV3 extension skeleton, the full Phase 1 14-block motor category, JSON-RPC 2.0 command dispatch to the local WeisileLink Scratch endpoint, Scratch Link base64 sensor notification ingestion into `SensorCache`, and synchronous motor reporter/Boolean cache reads. Added Node tests and a no-dependency development entry point for checking, testing, and serving the extension.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `docs/SOURCE_REGISTER.md`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement SensorCache + 20 sensor blocks for color, ultrasonic, gyro, touch, and infrared reporters/booleans, keeping all reporter and Boolean blocks synchronous cache reads.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
