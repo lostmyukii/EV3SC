@@ -2501,6 +2501,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/src/ui/connection_modal.js`, `vsle-ev3-extension/tests/test_connection_modal.js`, `vsle-ev3-extension/assets/ev3-small.svg`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/transport/wifi_transport.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/tests/test_json_rpc_server.py`, `weisile-link/tests/test_wifi_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Begin Phase 3 AI Quest data collection sample projects, including source-backed sample workflows for record, upload, train, and export.
 
+### [2026-05-23] AI Quest data collection sample projects
+- **Status**: ✅ Completed
+- **Commit**: `9173a85`
+- **What was done**: Added the first Phase 3 AI Quest sample package with three source-backed classroom workflows for obstacle avoidance, line patrol, and touch-stop safety. Each sample validates the `record -> upload -> train -> export` flow, uses current `vsleev3_*` block opcodes from the extension, documents privacy/deletion controls, and can export Scratch `project.json` files for TurboWarp/Scratch packaging.
+- **Files created/modified**: `ai-quest-samples/index.js`, `ai-quest-samples/package.json`, `ai-quest-samples/projects/*.json`, `ai-quest-samples/scripts/export_project_json.js`, `ai-quest-samples/tests/test_samples.js`, `ai-quest-samples/README.md`, `docs/AI_QUEST_SAMPLE_PROJECTS.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 3 motor PID parameter blocks, source-backed by ev3dev2 motor PID attributes and end-to-end validation across VSLE extension, WeisileLink, and EV3 firmware.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
