@@ -2403,6 +2403,13 @@ material into:
 - **Files created/modified**: `docs/EV3DEV_SETUP.md`, `docs/SOURCE_REGISTER.md`, `ev3-firmware/README.md`, `ev3-firmware/scripts/*.sh`, `ev3-firmware/systemd/vsle-ev3-server.service`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement `ev3-firmware/vsle_ev3_server.py` with sensor loop, motor control, pairing handshake, command validation, and safety shutdown behavior based on the spec and ev3dev2 documentation.
 
+### [2026-05-22] ev3dev server sensor loop and motor control
+- **Status**: ✅ Completed
+- **Commit**: `d78b78b`
+- **What was done**: Added the EV3 brick WebSocket server with pairing-token handshake, 50Hz sensor broadcast loop, command validation/clamping, motor/sound/display/gyro/data command dispatch, bounded data collection, and fail-safe motor stop on client disconnect or shutdown. Added source-backed unit tests for authentication, invalid commands, command normalization, hardware dispatch, sensor payload shape, data buffer limits, disconnect safety, and server startup options.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement `weisile-link/weisile_link/transport/wifi_transport.py` for WeisileLink-to-EV3 WebSocket transport, reusing the existing error mapping, reconnect/degradation, health, and EV3 ack handling baselines.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
