@@ -2452,6 +2452,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/protocol/validation.py`, `weisile-link/tests/test_validation.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the Phase 2 system and data collection blocks, including extension commands, WeisileLink validation, EV3 server dispatch, cache-backed system reporters, and tests.
 
+### [2026-05-22] System and data collection block baseline
+- **Status**: ✅ Completed
+- **Commit**: `d06b1f4`
+- **What was done**: Added the remaining Phase 2 system and AI Quest data collection block group, expanding the Unsandboxed extension to the full 62-block VSLE EV3 surface. Extended WeisileLink validation and EV3 firmware dispatch for status light control, emergency stop, cache-backed connection/battery/data reporters, bounded auto collection, CSV export, and Trainer-unavailable degradation.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/protocol/validation.py`, `weisile-link/tests/test_validation.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Bluetooth Classic transport as the Phase 2 fallback transport, using Python stdlib RFCOMM where supported and preserving the WiFi transport/degradation behavior.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
