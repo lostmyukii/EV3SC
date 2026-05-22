@@ -275,6 +275,7 @@ class ScratchJsonRpcServer:
             result = await session.set_transport(
                 transport,
                 self.handle_session_sensor_data,
+                **self._transport_config_from_params(params),
             )
             return make_result(request_id, result)
         except KeyError:
@@ -661,6 +662,16 @@ class ScratchJsonRpcServer:
             or self._client_sessions.get(websocket)
             or self.sessions.default_brick_id
         )
+
+    def _transport_config_from_params(
+        self,
+        params: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        config: Dict[str, Any] = {}
+        for key in ("ev3_ip", "ev3_bt", "port", "channel"):
+            if params.get(key) not in (None, ""):
+                config[key] = params[key]
+        return config
 
     def _rest_session(self, session_id: Optional[str]) -> EV3Session:
         return self.sessions.require_session(session_id)

@@ -58,6 +58,10 @@ and the full 62-block VSLE EV3 surface:
   keeps the standard Scratch UI untouched until a host container explicitly
   mounts it, and exposes buttons for starting collection and uploading to the
   Trainer through the existing extension commands.
+- A Scratch-style EV3 connection modal implementation in
+  `src/ui/connection_modal.js`. It supports WiFi IP and Bluetooth address
+  selection, uses the official Scratch EV3 small icon copied into this package,
+  and calls `vsle.setTransport` without auto-inserting UI into Scratch.
 
 The extension does not modify Scratch GUI styling or existing Scratch visual
 design.
@@ -78,3 +82,20 @@ panel.render();
 
 The extension does not auto-insert this host. That keeps the normal Scratch
 stage, block palette, menu bar, sprite panes, and existing CSS unchanged.
+
+## Connection Modal
+
+Use the connection modal from an additive Scratch/TurboWarp modal host:
+
+```javascript
+const modal = extension.createConnectionModal({
+    container: document.querySelector('[data-vsle-connection-modal-host]'),
+    ev3Ip: '192.168.1.100'
+});
+
+modal.render();
+```
+
+Selecting WiFi sends `vsle.setTransport` with `ev3_ip`. Selecting Bluetooth
+sends `vsle.setTransport` with `ev3_bt`. The modal mirrors Scratch's hardware
+connection modal structure and does not change existing Scratch GUI files.

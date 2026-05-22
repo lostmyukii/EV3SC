@@ -179,6 +179,17 @@ ports. This register records the sources used for the current implementation.
 | Scratch GUI monitor styling | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/monitor/monitor.css` | Monitor-style compact rows, borders, rounded meters, and stage-overlay-safe visual language for live values |
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing `SensorCache`, data collection commands, and no-DOM-load integration boundary extended with the panel model, renderer, and explicit host mounting |
 
+## Phase 2 Step 7 — Connection Modal Polish
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 3.1-3.5 connection flow and strict Scratch visual preservation; Section 5.2 transport selection; Section 11.2 WiFi/Bluetooth connection modal layout; Phase 2 `Connection modal polish (WiFi/BT selection)` task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Connection modal may be added only when it copies Scratch's hardware modal style; no existing Scratch visual design changes; WiFi and Bluetooth development must be source-backed |
+| Scratch GUI connection modal component | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/connection-modal.jsx` | Scratch hardware modal structure, phases, header behavior, help/cancel hooks, and modal ID |
+| Scratch GUI connection modal styles | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/connection-modal.css`, `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/modal/modal.css` | Modal width, header/body/footer layout, button radius, purple connection button, green success color, dots, and font stack |
+| Scratch official EV3 icon asset | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/lib/libraries/extensions/ev3/ev3-small.svg` | Copied into `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/assets/ev3-small.svg` so EV3SC remains standalone while matching Scratch's EV3 connection visuals |
+| WeisileLink transport baselines | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/wifi_transport.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/bluetooth_transport.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/selector.py` | Endpoint reconfiguration for modal-submitted `ev3_ip` and `ev3_bt` before reconnecting the selected transport |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

@@ -101,6 +101,26 @@ def test_support_detection_requires_linux_stdlib_rfcomm_symbols():
     assert not host_supports_stdlib_rfcomm(fake_module, platform_name="Linux")
 
 
+def test_configure_endpoint_updates_bluetooth_address_and_channel():
+    async def scenario():
+        transport = BluetoothTransport(
+            "00:16:53:00:00:01",
+            channel=1,
+            platform_name="Linux",
+        )
+
+        result = transport.configure_endpoint(
+            ev3_bt="00:16:53:AA:BB:CC",
+            channel=3,
+        )
+
+        assert result == {"ev3_bt": "00:16:53:AA:BB:CC", "channel": 3}
+        assert transport.ev3_address == "00:16:53:AA:BB:CC"
+        assert transport.channel == 3
+
+    asyncio.run(scenario())
+
+
 def test_connect_pairs_and_routes_sensor_updates_to_callback_and_cache():
     async def scenario():
         fake_file = FakeBluetoothFile(

@@ -99,6 +99,22 @@ class BluetoothTransport:
             platform_name=self._platform_name,
         )
 
+    def configure_endpoint(
+        self,
+        *,
+        ev3_bt: Optional[str] = None,
+        ev3_address: Optional[str] = None,
+        channel: Optional[int] = None,
+        **_: Any,
+    ) -> Dict[str, Any]:
+        """Update the EV3 Bluetooth endpoint before opening RFCOMM."""
+        address = ev3_bt or ev3_address
+        if address:
+            self.ev3_address = str(address).strip()
+        if channel is not None:
+            self.channel = int(channel)
+        return {"ev3_bt": self.ev3_address, "channel": self.channel}
+
     async def connect(self, on_sensor_data: SensorCallback) -> bool:
         """Open RFCOMM, pair if configured, and start the receive loop."""
         self._sensor_callback = on_sensor_data

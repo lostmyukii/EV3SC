@@ -112,6 +112,17 @@ def test_connect_pairs_and_routes_sensor_updates_to_callback_and_cache():
     asyncio.run(scenario())
 
 
+def test_configure_endpoint_updates_wifi_uri_before_connection():
+    transport = WiFiTransport("192.168.1.100", port=8765)
+
+    result = transport.configure_endpoint(ev3_ip="10.0.0.9", port=9000)
+
+    assert result == {"ev3_ip": "10.0.0.9", "port": 9000}
+    assert transport.ev3_ip == "10.0.0.9"
+    assert transport.port == 9000
+    assert transport.uri == "ws://10.0.0.9:9000"
+
+
 def test_send_command_validates_normalizes_and_resolves_ack_from_receive_loop():
     async def scenario():
         websocket = FakeWebSocket()

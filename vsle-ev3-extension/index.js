@@ -28,6 +28,11 @@
     const SENSOR_PANEL_BACKGROUND = '#F5F5F5';
     const SENSOR_PANEL_ACTIVE_GREEN = '#4CBF56';
     const SENSOR_PANEL_COLLECTION_TARGET = 30;
+    const CONNECTION_MODAL_WIDTH_PX = 480;
+    const CONNECTION_MODAL_HEADER_GREEN = '#0B8E69';
+    const CONNECTION_MODAL_BUTTON_PURPLE = '#855CD6';
+    const CONNECTION_MODAL_DEFAULT_WIFI_IP = '192.168.1.100';
+    const CONNECTION_MODAL_EV3_ICON_URL = 'assets/ev3-small.svg';
 
     const FALLBACK_BLOCK_TYPE = {
         COMMAND: 'command',
@@ -528,6 +533,207 @@
         }
     }
 
+    const buildConnectionModalModel = (options = {}) => {
+        const transport = normalizeTransport(options.transport);
+        const status = normalizeConnectionStatus(options.status);
+        const defaultMessage = {
+            idle: '请选择连接方式',
+            connecting: '正在连接...',
+            connected: '已连接',
+            error: '连接失败'
+        }[status];
+        return {
+            transport,
+            ev3Ip: trimOrDefault(
+                options.ev3Ip || options.ev3_ip,
+                CONNECTION_MODAL_DEFAULT_WIFI_IP
+            ),
+            ev3Bt: trimOrDefault(options.ev3Bt || options.ev3_bt, ''),
+            status,
+            message: trimOrDefault(options.message, defaultMessage),
+            layout: {
+                widthPx: CONNECTION_MODAL_WIDTH_PX,
+                headerGreen: CONNECTION_MODAL_HEADER_GREEN,
+                buttonPurple: CONNECTION_MODAL_BUTTON_PURPLE
+            }
+        };
+    };
+
+    const renderConnectionModal = (options = {}) => {
+        const model = buildConnectionModalModel(options);
+        const wifiChecked = model.transport === 'wifi' ? ' checked' : '';
+        const bluetoothChecked = model.transport === 'bluetooth' ?
+            ' checked' :
+            '';
+        const wifiHidden = model.transport === 'wifi' ? '' : ' hidden';
+        const btHidden = model.transport === 'bluetooth' ? '' : ' hidden';
+        const dotsClass = model.status === 'connected' ?
+            'vsle-connection-modal__dots--success' :
+            '';
+        const connectLabel = model.status === 'connecting' ?
+            '连接中...' :
+            '连接';
+
+        return [
+            `<section id="connectionModal" class="vsle-connection-modal" role="dialog" aria-modal="true" aria-labelledby="vsle-connection-title" style="width: ${model.layout.widthPx}px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: #575E75;">`,
+            '<style>',
+            CONNECTION_MODAL_CSS,
+            '</style>',
+            `<header class="vsle-connection-modal__header" style="background-color: ${model.layout.headerGreen}">`,
+            '<button type="button" class="vsle-connection-modal__close" data-vsle-action="cancel" aria-label="关闭">×</button>',
+            '<strong id="vsle-connection-title">连接到 EV3</strong>',
+            '<span aria-hidden="true"></span>',
+            '</header>',
+            '<div class="vsle-connection-modal__body">',
+            '<p class="vsle-connection-modal__label">连接方式</p>',
+            '<div class="vsle-connection-modal__transport-row">',
+            '<label>',
+            `<input type="radio" name="vsle-transport" value="wifi" data-vsle-transport="wifi"${wifiChecked}>`,
+            ' WiFi (推荐)',
+            '</label>',
+            '<label>',
+            `<input type="radio" name="vsle-transport" value="bluetooth" data-vsle-transport="bluetooth"${bluetoothChecked}>`,
+            ' 蓝牙',
+            '</label>',
+            '</div>',
+            `<label class="vsle-connection-modal__field"${wifiHidden}>`,
+            '<span>EV3 IP地址:</span>',
+            `<input type="text" data-vsle-input="wifi-ip" value="${escapeHtml(model.ev3Ip)}" inputmode="numeric">`,
+            '</label>',
+            `<label class="vsle-connection-modal__field"${btHidden}>`,
+            '<span>EV3 蓝牙地址:</span>',
+            `<input type="text" data-vsle-input="bt-address" value="${escapeHtml(model.ev3Bt)}" placeholder="00:16:53:AA:BB:CC">`,
+            '</label>',
+            '<div class="vsle-connection-modal__activity">',
+            `<img alt="EV3" src="${CONNECTION_MODAL_EV3_ICON_URL}" class="vsle-connection-modal__ev3-icon">`,
+            '<span class="vsle-connection-modal__radio" aria-hidden="true"></span>',
+            '</div>',
+            '<div class="vsle-connection-modal__status-row">',
+            `<span>状态: ${escapeHtml(model.message)}</span>`,
+            `<span class="vsle-connection-modal__dots ${dotsClass}" aria-hidden="true"><i></i><i></i><i></i></span>`,
+            '</div>',
+            '</div>',
+            '<footer class="vsle-connection-modal__footer">',
+            '<button type="button" class="vsle-connection-modal__help" data-vsle-action="help">帮助</button>',
+            `<button type="button" class="vsle-connection-modal__connect" data-vsle-action="connect" style="background: ${model.layout.buttonPurple}">${connectLabel}</button>`,
+            '</footer>',
+            '</section>'
+        ].join('');
+    };
+
+    class ConnectionModal {
+        constructor (options = {}) {
+            if (!options.container) {
+                throw new Error('ConnectionModal requires a host container');
+            }
+            const model = buildConnectionModalModel(options);
+            this.container = options.container;
+            this.transport = model.transport;
+            this.ev3Ip = model.ev3Ip;
+            this.ev3Bt = model.ev3Bt;
+            this.status = model.status;
+            this.message = model.message;
+            this.onConnect = options.onConnect || (async () => {});
+            this.onCancel = options.onCancel || (() => {});
+            this.onHelp = options.onHelp || (() => {});
+        }
+
+        render () {
+            this.container.innerHTML = renderConnectionModal({
+                transport: this.transport,
+                ev3Ip: this.ev3Ip,
+                ev3Bt: this.ev3Bt,
+                status: this.status,
+                message: this.message
+            });
+            this._bind('connect', () => this.connect());
+            this._bind('cancel', () => this.onCancel());
+            this._bind('help', () => this.onHelp());
+            this._bindTransport('wifi');
+            this._bindTransport('bluetooth');
+            this._bindInput('wifi-ip', value => {
+                this.ev3Ip = value.trim();
+            });
+            this._bindInput('bt-address', value => {
+                this.ev3Bt = value.trim();
+            });
+            return this.container;
+        }
+
+        selectTransport (transport) {
+            this.transport = normalizeTransport(transport);
+            this.render();
+        }
+
+        async connect () {
+            this.status = 'connecting';
+            this.message = '正在连接...';
+            this.render();
+            try {
+                await this.onConnect(this._connectionParams());
+                this.status = 'connected';
+                this.message = '已连接';
+            } catch (error) {
+                this.status = 'error';
+                this.message = error && error.message ? error.message : '连接失败';
+            }
+            this.render();
+        }
+
+        _connectionParams () {
+            if (this.transport === 'bluetooth') {
+                return {
+                    transport: 'bluetooth',
+                    ev3Bt: this.ev3Bt
+                };
+            }
+            return {
+                transport: 'wifi',
+                ev3Ip: this.ev3Ip
+            };
+        }
+
+        _bind (name, handler) {
+            if (!this.container.querySelector) {
+                return;
+            }
+            const element = this.container.querySelector(
+                `[data-vsle-action="${name}"]`
+            );
+            if (element && element.addEventListener) {
+                element.addEventListener('click', handler);
+            }
+        }
+
+        _bindTransport (transport) {
+            if (!this.container.querySelector) {
+                return;
+            }
+            const element = this.container.querySelector(
+                `[data-vsle-transport="${transport}"]`
+            );
+            if (element && element.addEventListener) {
+                element.addEventListener('change', () => {
+                    this.selectTransport(transport);
+                });
+            }
+        }
+
+        _bindInput (name, handler) {
+            if (!this.container.querySelector) {
+                return;
+            }
+            const element = this.container.querySelector(
+                `[data-vsle-input="${name}"]`
+            );
+            if (element && element.addEventListener) {
+                element.addEventListener('input', event => {
+                    handler(event && event.target ? event.target.value : '');
+                });
+            }
+        }
+    }
+
     class VSLEEV3Extension {
         constructor (options = {}) {
             this.Scratch = options.Scratch || Scratch || {};
@@ -996,6 +1202,26 @@
             });
         }
 
+        async setTransport (args) {
+            const transport = normalizeTransport(args.TRANSPORT || args.transport);
+            const params = {transport};
+            if (transport === 'bluetooth') {
+                params.ev3_bt = trimOrDefault(
+                    args.EV3_BT || args.ev3Bt || args.ev3_bt,
+                    ''
+                );
+            } else {
+                params.ev3_ip = trimOrDefault(
+                    args.EV3_IP || args.ev3Ip || args.ev3_ip,
+                    CONNECTION_MODAL_DEFAULT_WIFI_IP
+                );
+            }
+            return this.link.sendCommand({
+                method: 'vsle.setTransport',
+                params
+            });
+        }
+
         createSensorDataPanel (options = {}) {
             const panel = new SensorDataPanel({
                 sensorCache: this.sensorCache,
@@ -1010,6 +1236,22 @@
             });
             panel.render();
             return panel;
+        }
+
+        createConnectionModal (options = {}) {
+            const modal = new ConnectionModal({
+                container: options.container,
+                transport: options.transport,
+                ev3Ip: options.ev3Ip,
+                ev3Bt: options.ev3Bt,
+                status: options.status,
+                message: options.message,
+                onCancel: options.onCancel,
+                onHelp: options.onHelp,
+                onConnect: params => this.setTransport(params)
+            });
+            modal.render();
+            return modal;
         }
 
         async _sendMotorCommand (method, params) {
@@ -1694,6 +1936,24 @@
         defaultValue
     });
 
+    const normalizeTransport = value => {
+        const transport = String(value || 'wifi').toLowerCase();
+        return transport === 'bluetooth' ? 'bluetooth' : 'wifi';
+    };
+
+    const normalizeConnectionStatus = value => {
+        const status = String(value || 'idle').toLowerCase();
+        return ['idle', 'connecting', 'connected', 'error'].includes(status) ?
+            status :
+            'idle';
+    };
+
+    const trimOrDefault = (value, defaultValue) => {
+        const text = value === undefined || value === null ? '' : String(value);
+        const trimmed = text.trim();
+        return trimmed || defaultValue;
+    };
+
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -1777,6 +2037,31 @@
         '.vsle-sensor-panel__actions{display:flex;gap:0.35rem;margin-top:0.5rem;}'
     ].join('');
 
+    const CONNECTION_MODAL_CSS = [
+        '.vsle-connection-modal{box-sizing:border-box;margin:100px auto;border:4px solid rgba(255,255,255,0.25);border-radius:0.5rem;background:#fff;overflow:hidden;line-height:1.75;user-select:none;}',
+        '.vsle-connection-modal *{box-sizing:border-box;}',
+        '.vsle-connection-modal__header{height:3.125rem;display:grid;grid-template-columns:4rem 1fr 4rem;align-items:center;color:#fff;}',
+        '.vsle-connection-modal__header strong{text-align:center;font-size:1rem;font-weight:400;letter-spacing:0.4px;}',
+        '.vsle-connection-modal__close{border:0;background:transparent;color:#fff;font-size:1.45rem;line-height:1;cursor:pointer;}',
+        '.vsle-connection-modal__body{background:#fff;padding:1rem 1.25rem 0.75rem;}',
+        '.vsle-connection-modal__label{font-weight:500;margin:0 0 0.5rem;}',
+        '.vsle-connection-modal__transport-row{display:flex;gap:1.5rem;margin-bottom:0.75rem;}',
+        '.vsle-connection-modal__transport-row label{font-weight:600;}',
+        '.vsle-connection-modal__field{display:grid;grid-template-columns:6rem 1fr;align-items:center;gap:0.5rem;margin-bottom:0.75rem;}',
+        '.vsle-connection-modal__field input{border:1px solid rgba(0,0,0,0.15);border-radius:0.25rem;color:#575E75;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;font-size:0.875rem;padding:0.45rem 0.5rem;}',
+        '.vsle-connection-modal__activity{height:8rem;background:rgba(133,92,214,0.15);display:flex;justify-content:center;align-items:center;position:relative;margin:0 -1.25rem 0.75rem;}',
+        '.vsle-connection-modal__ev3-icon{width:80px;height:80px;}',
+        '.vsle-connection-modal__radio{position:absolute;width:2rem;height:2rem;right:11.5rem;top:1.4rem;border-radius:100%;background:#855CD6;box-shadow:0 0 0 4px rgba(133,92,214,0.35);}',
+        '.vsle-connection-modal__status-row{display:flex;justify-content:center;align-items:center;gap:0.75rem;text-align:center;}',
+        '.vsle-connection-modal__dots{display:flex;padding:0.25rem 0.1rem;border-radius:1rem;background:rgba(133,92,214,0.15);}',
+        '.vsle-connection-modal__dots i{width:0.5rem;height:0.5rem;margin:0 0.3rem;border-radius:100%;background:#855CD6;}',
+        '.vsle-connection-modal__dots--success{background:rgba(15,189,140,0.25);}',
+        '.vsle-connection-modal__dots--success i{background:#0FBD8C;}',
+        '.vsle-connection-modal__footer{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;background:#fff;}',
+        '.vsle-connection-modal__footer button{border:0;border-radius:0.5rem;color:#fff;cursor:pointer;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;font-size:0.85rem;font-weight:600;padding:0.6rem 0.75rem;}',
+        '.vsle-connection-modal__help{background:#0B8E69;}'
+    ].join('');
+
     const deepMerge = (base, patch) => {
         if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
             return patch;
@@ -1814,6 +2099,11 @@
 
     return {
         LEGO_RED,
+        CONNECTION_MODAL_BUTTON_PURPLE,
+        CONNECTION_MODAL_CSS,
+        CONNECTION_MODAL_EV3_ICON_URL,
+        CONNECTION_MODAL_HEADER_GREEN,
+        CONNECTION_MODAL_WIDTH_PX,
         SENSOR_DATA_PANEL_CSS,
         SENSOR_PANEL_ACTIVE_GREEN,
         SENSOR_PANEL_BACKGROUND,
@@ -1824,11 +2114,14 @@
         SENSOR_BLOCK_OPCODES,
         SOUND_BLOCK_OPCODES,
         SYSTEM_BLOCK_OPCODES,
+        ConnectionModal,
         SensorDataPanel,
         SensorCache,
         VSLEEV3Extension,
         WeisileLinkClient,
+        buildConnectionModalModel,
         buildSensorDataPanelModel,
+        renderConnectionModal,
         renderSensorDataPanel,
         register
     };

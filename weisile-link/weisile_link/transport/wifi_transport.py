@@ -74,6 +74,21 @@ class WiFiTransport:
         """Whether the WiFi transport currently has an active EV3 session."""
         return self.manager.connection_state.connected
 
+    def configure_endpoint(
+        self,
+        *,
+        ev3_ip: Optional[str] = None,
+        port: Optional[int] = None,
+        **_: Any,
+    ) -> Dict[str, Any]:
+        """Update the EV3 WiFi endpoint before opening a new connection."""
+        if ev3_ip:
+            self.ev3_ip = str(ev3_ip).strip()
+        if port is not None:
+            self.port = int(port)
+        self.uri = f"ws://{self.ev3_ip}:{self.port}"
+        return {"ev3_ip": self.ev3_ip, "port": self.port}
+
     async def connect(self, on_sensor_data: SensorCallback) -> bool:
         """Connect to EV3, pair when required, and start the receive loop."""
         self._sensor_callback = on_sensor_data

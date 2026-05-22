@@ -53,11 +53,17 @@ class AutoTransport:
         self._active_transport = None
         return False
 
-    async def set_transport(self, transport: str, on_sensor_data) -> dict:
+    async def set_transport(
+        self,
+        transport: str,
+        on_sensor_data,
+        **config: Any,
+    ) -> dict:
         """Explicitly switch WiFi/Bluetooth from `vsle.setTransport`."""
         normalized = str(transport).lower()
         if normalized not in {"wifi", "bluetooth", "auto"}:
             raise ConnectionError(f"Unsupported EV3 transport: {transport}")
+        self._configure_endpoints(config)
 
         if self._active_transport is not None:
             await self._disconnect_transport(self._active_transport)
@@ -114,6 +120,14 @@ class AutoTransport:
         if name == "bluetooth":
             return self.bluetooth_transport
         return None
+
+    def _configure_endpoints(self, config: dict) -> None:
+        if not config:
+            return
+        for transport in (self.wifi_transport, self.bluetooth_transport):
+            configure = getattr(transport, "configure_endpoint", None)
+            if configure is not None:
+                configure(**config)
 
     async def _disconnect_transport(self, transport: Any) -> None:
         disconnect = getattr(transport, "disconnect", None)

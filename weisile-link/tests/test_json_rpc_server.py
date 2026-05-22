@@ -86,9 +86,9 @@ class FakeTransport:
         self.disconnected = True
         self.connected = False
 
-    async def set_transport(self, transport, on_sensor_data):
+    async def set_transport(self, transport, on_sensor_data, **config):
         self.transport_switches.append(
-            (transport, inspect.iscoroutinefunction(on_sensor_data))
+            (transport, inspect.iscoroutinefunction(on_sensor_data), config)
         )
         self.active_transport_name = transport
         return {"transport": transport}
@@ -282,7 +282,7 @@ def test_set_transport_delegates_to_transport_selector():
             ),
         )
 
-        assert transport.transport_switches == [("bluetooth", True)]
+        assert transport.transport_switches == [("bluetooth", True, {})]
         assert websocket.sent == [
             {
                 "jsonrpc": "2.0",
@@ -290,6 +290,43 @@ def test_set_transport_delegates_to_transport_selector():
                 "result": {"transport": "bluetooth"},
             }
         ]
+
+    asyncio.run(scenario())
+
+
+def test_set_transport_passes_modal_endpoint_configuration():
+    async def scenario():
+        transport = FakeTransport()
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        websocket = FakeWebSocket()
+
+        await server.handle_json_rpc_message(
+            websocket,
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "transport-2",
+                    "method": "vsle.setTransport",
+                    "params": {
+                        "transport": "wifi",
+                        "ev3_ip": "192.168.5.42",
+                        "ev3_bt": "00:16:53:AA:BB:CC",
+                    },
+                }
+            ),
+        )
+
+        assert transport.transport_switches == [
+            (
+                "wifi",
+                True,
+                {
+                    "ev3_ip": "192.168.5.42",
+                    "ev3_bt": "00:16:53:AA:BB:CC",
+                },
+            )
+        ]
+        assert websocket.sent[0]["result"] == {"transport": "wifi"}
 
     asyncio.run(scenario())
 

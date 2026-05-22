@@ -68,10 +68,14 @@ class EV3Session:
         self,
         transport_name: str,
         on_sensor_data: SensorCallback,
+        **config: Any,
     ) -> Dict[str, Any]:
         """Switch this brick transport while preserving session identity."""
         set_transport = getattr(self.transport, "set_transport", None)
         if set_transport is None:
+            configure = getattr(self.transport, "configure_endpoint", None)
+            if configure is not None:
+                configure(**config)
             active_transport = getattr(
                 self.transport,
                 "active_transport_name",
@@ -81,12 +85,26 @@ class EV3Session:
                 raise ConnectionError(
                     f"EV3 {transport_name} transport is disconnected"
                 )
+
+            async def route_to_session(payload: Dict[str, Any]) -> None:
+                await on_sensor_data(self.brick_id, payload)
+
+            disconnect = getattr(self.transport, "disconnect", None)
+            if disconnect is not None:
+                result = disconnect()
+                if hasattr(result, "__await__"):
+                    await result
+            connected = await self.transport.connect(route_to_session)
+            if not connected:
+                raise ConnectionError(
+                    f"EV3 {transport_name} transport is disconnected"
+                )
             return {"transport": active_transport}
 
         async def route_to_session(payload: Dict[str, Any]) -> None:
             await on_sensor_data(self.brick_id, payload)
 
-        result = set_transport(transport_name, route_to_session)
+        result = set_transport(transport_name, route_to_session, **config)
         if hasattr(result, "__await__"):
             result = await result
         return result
