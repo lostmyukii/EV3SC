@@ -24,7 +24,8 @@ The integration test verifies:
   object instead of CommonJS `require`.
 - `Scratch.extensions.unsandboxed` registration through
   `Scratch.extensions.register`.
-- The full Phase 1 extension block surface: 34 blocks total.
+- The full current extension block surface: 48 blocks total, including the
+  34-block Phase 1 surface plus the first 14 Phase 2 sound/display blocks.
 - LEGO EV3 red category color `#E6001F` and `showStatusButton: true`.
 - No Scratch GUI DOM reads or writes during extension load.
 - Motor command flow from a Scratch block method to a JSON-RPC 2.0 request at

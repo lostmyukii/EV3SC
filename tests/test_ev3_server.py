@@ -70,11 +70,26 @@ class FakeHardware:
     def sound_set_volume(self, volume):
         self.actions.append(("sound_set_volume", volume))
 
+    def sound_play_file(self, file):
+        self.actions.append(("sound_play_file", file))
+
     def display_text(self, text, line):
         self.actions.append(("display_text", text, line))
 
+    def display_number(self, number, line):
+        self.actions.append(("display_number", number, line))
+
+    def display_text_at(self, text, x, y):
+        self.actions.append(("display_text_at", text, x, y))
+
     def display_clear(self):
         self.actions.append(("display_clear",))
+
+    def display_image(self, image):
+        self.actions.append(("display_image", image))
+
+    def display_update(self):
+        self.actions.append(("display_update",))
 
     def display_draw_line(self, x1, y1, x2, y2):
         self.actions.append(("display_draw_line", x1, y1, x2, y2))
@@ -201,18 +216,55 @@ def test_sound_display_and_gyro_commands_dispatch_to_hardware():
             "method": "sound.playTone",
             "params": {"freq": 440, "duration": 1, "volume": 80},
         },
+        {
+            "id": "tone-wait",
+            "method": "sound.playToneWait",
+            "params": {"freq": 880, "duration": 0.5, "volume": 70},
+        },
+        {
+            "id": "file",
+            "method": "sound.playFile",
+            "params": {"file": "ready.wav"},
+        },
         {"id": "beep", "method": "sound.beep"},
         {"id": "stop", "method": "sound.stop"},
+        {
+            "id": "volume",
+            "method": "sound.setVolume",
+            "params": {"volume": 42},
+        },
         {
             "id": "text",
             "method": "display.text",
             "params": {"text": "Hi", "line": 2},
         },
         {
+            "id": "number",
+            "method": "display.number",
+            "params": {"number": 12.5, "line": 3},
+        },
+        {"id": "clear", "method": "display.clear"},
+        {
+            "id": "image",
+            "method": "display.image",
+            "params": {"image": "smile.png"},
+        },
+        {
+            "id": "text-at",
+            "method": "display.textAt",
+            "params": {"text": "XY", "x": 20, "y": 30},
+        },
+        {
+            "id": "line",
+            "method": "display.drawLine",
+            "params": {"x1": 0, "y1": 1, "x2": 2, "y2": 3},
+        },
+        {
             "id": "circle",
             "method": "display.drawCircle",
             "params": {"x": 90, "y": 64, "r": 10},
         },
+        {"id": "update", "method": "display.update"},
         {"id": "gyro", "method": "gyro.reset", "params": {"port": "S3"}},
     ]
 
@@ -221,10 +273,19 @@ def test_sound_display_and_gyro_commands_dispatch_to_hardware():
     assert all(response["ok"] is True for response in responses)
     assert hardware.actions == [
         ("sound_play_tone", 440, 1, 80, False),
+        ("sound_play_tone", 880, 0.5, 70, True),
+        ("sound_play_file", "ready.wav"),
         ("sound_beep",),
         ("sound_stop",),
+        ("sound_set_volume", 42),
         ("display_text", "Hi", 2),
+        ("display_number", 12.5, 3),
+        ("display_clear",),
+        ("display_image", "smile.png"),
+        ("display_text_at", "XY", 20, 30),
+        ("display_draw_line", 0, 1, 2, 3),
         ("display_draw_circle", 90, 64, 10),
+        ("display_update",),
         ("gyro_reset", "S3"),
     ]
 

@@ -35,12 +35,15 @@ npm run serve:3001
 
 ## Scope
 
-This extension currently implements the source-backed Unsandboxed skeleton and
-the first two Phase 1 block categories:
+This extension currently implements the source-backed Unsandboxed skeleton,
+all Phase 1 blocks, and the first Phase 2 block group:
 
 - 14 motor blocks from `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`.
 - 20 sensor/system reporter blocks for color, ultrasonic, gyro, touch,
   infrared, EV3 brick buttons, and battery level.
+- 6 sound blocks for tone, tone-and-wait, file playback, volume, beep, and stop.
+- 8 display blocks for text, numbers, images, coordinates, lines, circles,
+  clearing, and update.
 - JSON-RPC 2.0 command dispatch to `ws://127.0.0.1:20111/scratch/bt`.
 - Scratch Link base64 sensor notifications into `SensorCache`.
 - Synchronous reporter and Boolean cache reads. The only sensor command in

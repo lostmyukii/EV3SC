@@ -124,7 +124,7 @@ test('TurboWarp-style URL load registers unsandboxed EV3 blocks without DOM writ
     const info = extension.getInfo();
 
     assert.equal(info.id, 'vsleev3');
-    assert.equal(info.blocks.length, 34);
+    assert.equal(info.blocks.length, 48);
     assert.equal(info.showStatusButton, true);
     assert.equal(info.color1, '#E6001F');
 });

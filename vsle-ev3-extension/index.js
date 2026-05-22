@@ -16,6 +16,10 @@
     const RGB_CHANNELS = ['R', 'G', 'B'];
     const IR_CHANNELS = ['1', '2', '3', '4'];
     const BRICK_BUTTONS = ['up', 'down', 'left', 'right', 'center'];
+    const SOUND_FILES = ['ready.wav', 'success.wav', 'error.wav'];
+    const DISPLAY_IMAGES = ['smile.png', 'heart.png', 'arrow.png'];
+    const LCD_X_MAX = 177;
+    const LCD_Y_MAX = 127;
     const WAIT_POLL_MS = 20;
     const WAIT_TIMEOUT_MS = 60000;
 
@@ -76,6 +80,26 @@
         'getIRRemoteButton',
         'isBrickButtonPressed',
         'getBatteryLevel'
+    ];
+
+    const SOUND_BLOCK_OPCODES = [
+        'playTone',
+        'playToneAndWait',
+        'playSoundFile',
+        'setVolume',
+        'beep',
+        'stopSound'
+    ];
+
+    const DISPLAY_BLOCK_OPCODES = [
+        'displayText',
+        'displayNumber',
+        'displayClear',
+        'displayImage',
+        'displayTextAt',
+        'drawLine',
+        'drawCircle',
+        'displayUpdate'
     ];
 
     const DEFAULT_SENSOR_DATA = {
@@ -279,7 +303,10 @@
                 color2: '#CC001B',
                 color3: '#990014',
                 showStatusButton: true,
-                blocks: this._motorBlocks().concat(this._sensorBlocks()),
+                blocks: this._motorBlocks()
+                    .concat(this._sensorBlocks())
+                    .concat(this._soundBlocks())
+                    .concat(this._displayBlocks()),
                 menus: {
                     motorPorts: {
                         acceptReporters: true,
@@ -304,6 +331,14 @@
                     brickButtons: {
                         acceptReporters: true,
                         items: BRICK_BUTTONS
+                    },
+                    soundFiles: {
+                        acceptReporters: true,
+                        items: SOUND_FILES
+                    },
+                    displayImages: {
+                        acceptReporters: true,
+                        items: DISPLAY_IMAGES
                     }
                 }
             };
@@ -552,6 +587,100 @@
             return this._cacheNumber('system.battery_pct', 100);
         }
 
+        async playTone (args) {
+            return this._sendSoundCommand('sound.playTone', {
+                freq: this._frequency(args.FREQ),
+                duration: this._duration(args.DURATION),
+                volume: this._volume(args.VOLUME)
+            });
+        }
+
+        async playToneAndWait (args) {
+            return this._sendSoundCommand('sound.playToneWait', {
+                freq: this._frequency(args.FREQ),
+                duration: this._duration(args.DURATION),
+                volume: this._volume(args.VOLUME)
+            });
+        }
+
+        async playSoundFile (args) {
+            return this._sendSoundCommand('sound.playFile', {
+                file: this._assetName(args.FILE, ['.wav'])
+            });
+        }
+
+        async setVolume (args) {
+            return this._sendSoundCommand('sound.setVolume', {
+                volume: this._volume(args.VOLUME)
+            });
+        }
+
+        async beep () {
+            return this._sendSoundCommand('sound.beep', {});
+        }
+
+        async stopSound () {
+            return this._sendSoundCommand('sound.stop', {});
+        }
+
+        async displayText (args) {
+            return this._sendDisplayCommand('display.text', {
+                text: this.Cast.toString(args.TEXT),
+                line: this._line(args.LINE)
+            });
+        }
+
+        async displayNumber (args) {
+            return this._sendDisplayCommand('display.number', {
+                number: this._number(args.NUMBER),
+                line: this._line(args.LINE)
+            });
+        }
+
+        async displayClear () {
+            return this._sendDisplayCommand('display.clear', {});
+        }
+
+        async displayImage (args) {
+            return this._sendDisplayCommand('display.image', {
+                image: this._assetName(args.IMAGE, [
+                    '.png',
+                    '.bmp',
+                    '.jpg',
+                    '.jpeg'
+                ])
+            });
+        }
+
+        async displayTextAt (args) {
+            return this._sendDisplayCommand('display.textAt', {
+                text: this.Cast.toString(args.TEXT),
+                x: this._coord(args.X, LCD_X_MAX),
+                y: this._coord(args.Y, LCD_Y_MAX)
+            });
+        }
+
+        async drawLine (args) {
+            return this._sendDisplayCommand('display.drawLine', {
+                x1: this._coord(args.X1, LCD_X_MAX),
+                y1: this._coord(args.Y1, LCD_Y_MAX),
+                x2: this._coord(args.X2, LCD_X_MAX),
+                y2: this._coord(args.Y2, LCD_Y_MAX)
+            });
+        }
+
+        async drawCircle (args) {
+            return this._sendDisplayCommand('display.drawCircle', {
+                x: this._coord(args.X, LCD_X_MAX),
+                y: this._coord(args.Y, LCD_Y_MAX),
+                r: this._coord(args.R, LCD_Y_MAX)
+            });
+        }
+
+        async displayUpdate () {
+            return this._sendDisplayCommand('display.update', {});
+        }
+
         async _sendMotorCommand (method, params) {
             if (!params ||
                 Object.keys(params).some(key => params[key] === null ||
@@ -559,6 +688,14 @@
                 return;
             }
             await this.link.sendCommand({method, params});
+        }
+
+        async _sendSoundCommand (method, params) {
+            return this._sendMotorCommand(method, params);
+        }
+
+        async _sendDisplayCommand (method, params) {
+            return this._sendMotorCommand(method, params);
         }
 
         async _sendSensorCommand (method, params) {
@@ -615,6 +752,34 @@
 
         _duration (value) {
             return clamp(this._number(value), 0, 60);
+        }
+
+        _frequency (value) {
+            return clamp(this._number(value), 20, 20000);
+        }
+
+        _volume (value) {
+            return clamp(this._number(value, 100), 0, 100);
+        }
+
+        _line (value) {
+            return clamp(this._number(value, 1), 1, 8);
+        }
+
+        _coord (value, upper) {
+            return clamp(this._number(value), 0, upper);
+        }
+
+        _assetName (value, extensions) {
+            const name = this.Cast.toString(value).trim();
+            const lowerName = name.toLowerCase();
+            const safe = name.length > 0 &&
+                name.length <= 64 &&
+                !name.includes('/') &&
+                !name.includes('\\') &&
+                !name.includes('\u0000') &&
+                extensions.some(extension => lowerName.endsWith(extension));
+            return safe ? name : null;
         }
 
         _cacheNumber (path, defaultValue = 0) {
@@ -909,6 +1074,133 @@
                 }
             ];
         }
+
+        _soundBlocks () {
+            const command = this.BlockType.COMMAND;
+            const string = this.ArgumentType.STRING;
+            const number = this.ArgumentType.NUMBER;
+            return [
+                {
+                    opcode: 'playTone',
+                    blockType: command,
+                    text: '播放音调 [FREQ] Hz 持续 [DURATION] 秒',
+                    arguments: {
+                        FREQ: numberArg(number, 440),
+                        DURATION: numberArg(number, 0.5),
+                        VOLUME: numberArg(number, 100)
+                    }
+                },
+                {
+                    opcode: 'playToneAndWait',
+                    blockType: command,
+                    text: '播放音调 [FREQ] Hz 持续 [DURATION] 秒 并等待',
+                    arguments: {
+                        FREQ: numberArg(number, 440),
+                        DURATION: numberArg(number, 0.5),
+                        VOLUME: numberArg(number, 100)
+                    }
+                },
+                {
+                    opcode: 'playSoundFile',
+                    blockType: command,
+                    text: '播放声音文件 [FILE]',
+                    arguments: {
+                        FILE: menuArg(string, 'soundFiles', 'ready.wav')
+                    }
+                },
+                {
+                    opcode: 'setVolume',
+                    blockType: command,
+                    text: '设置音量为 [VOLUME] %',
+                    arguments: {VOLUME: numberArg(number, 100)}
+                },
+                {
+                    opcode: 'beep',
+                    blockType: command,
+                    text: '发出哔声'
+                },
+                {
+                    opcode: 'stopSound',
+                    blockType: command,
+                    text: '停止声音'
+                }
+            ];
+        }
+
+        _displayBlocks () {
+            const command = this.BlockType.COMMAND;
+            const string = this.ArgumentType.STRING;
+            const number = this.ArgumentType.NUMBER;
+            return [
+                {
+                    opcode: 'displayText',
+                    blockType: command,
+                    text: '在第 [LINE] 行显示 [TEXT]',
+                    arguments: {
+                        TEXT: stringArg(string, 'Hello'),
+                        LINE: numberArg(number, 1)
+                    }
+                },
+                {
+                    opcode: 'displayNumber',
+                    blockType: command,
+                    text: '在第 [LINE] 行显示数字 [NUMBER]',
+                    arguments: {
+                        NUMBER: numberArg(number, 0),
+                        LINE: numberArg(number, 1)
+                    }
+                },
+                {
+                    opcode: 'displayClear',
+                    blockType: command,
+                    text: '清空显示屏'
+                },
+                {
+                    opcode: 'displayImage',
+                    blockType: command,
+                    text: '显示图案 [IMAGE]',
+                    arguments: {
+                        IMAGE: menuArg(string, 'displayImages', 'smile.png')
+                    }
+                },
+                {
+                    opcode: 'displayTextAt',
+                    blockType: command,
+                    text: '在位置 X=[X] Y=[Y] 显示 [TEXT]',
+                    arguments: {
+                        TEXT: stringArg(string, 'Hello'),
+                        X: numberArg(number, 0),
+                        Y: numberArg(number, 0)
+                    }
+                },
+                {
+                    opcode: 'drawLine',
+                    blockType: command,
+                    text: '从 [X1],[Y1] 到 [X2],[Y2] 画线',
+                    arguments: {
+                        X1: numberArg(number, 0),
+                        Y1: numberArg(number, 0),
+                        X2: numberArg(number, 177),
+                        Y2: numberArg(number, 127)
+                    }
+                },
+                {
+                    opcode: 'drawCircle',
+                    blockType: command,
+                    text: '在 [X],[Y] 画圆形 半径=[R]',
+                    arguments: {
+                        X: numberArg(number, 90),
+                        Y: numberArg(number, 64),
+                        R: numberArg(number, 10)
+                    }
+                },
+                {
+                    opcode: 'displayUpdate',
+                    blockType: command,
+                    text: '刷新显示屏'
+                }
+            ];
+        }
     }
 
     const register = scratchApi => {
@@ -942,6 +1234,11 @@
     });
 
     const numberArg = (type, defaultValue) => ({
+        type,
+        defaultValue
+    });
+
+    const stringArg = (type, defaultValue) => ({
         type,
         defaultValue
     });
@@ -989,8 +1286,10 @@
 
     return {
         LEGO_RED,
+        DISPLAY_BLOCK_OPCODES,
         MOTOR_BLOCK_OPCODES,
         SENSOR_BLOCK_OPCODES,
+        SOUND_BLOCK_OPCODES,
         SensorCache,
         VSLEEV3Extension,
         WeisileLinkClient,

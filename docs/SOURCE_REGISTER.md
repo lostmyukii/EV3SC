@@ -110,6 +110,17 @@ ports. This register records the sources used for the current implementation.
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Actual extension load path, `getInfo()` block surface, JSON-RPC command dispatch, and cache-backed sensor reporters under the TurboWarp-style VM harness |
 | WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Local Scratch Link compatible endpoint and base64 sensor notification envelope used by the integration harness |
 
+## Phase 2 Step 1 — Sound and Display Blocks
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 4.3 sound/display block definitions; Section 9 sound and display capability matrix; Phase 2 `Sound + display blocks (14 blocks)` task |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Sound/display command naming, display coordinate bounds, JSON-RPC compatibility, and complete scoped implementation rule |
+| ev3dev2 sound documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/sound.html` | Official `Sound.play_tone`, `Sound.play_file`, `Sound.beep`, `Sound.set_volume`, and sound process behavior |
+| ev3dev2 display documentation | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/display.html` | Official `Display.text_pixels`, `Display.clear`, drawing primitives, image canvas, and `Display.update` behavior |
+| WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Command allowlist and normalization rules extended for `sound.playFile`, `display.number`, `display.image`, `display.textAt`, and `display.update` |
+| EV3 server baseline | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Existing sound/display dispatch path extended to cover all 14 sound/display blocks |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

@@ -17,6 +17,8 @@ SENSOR_PORTS = {"S1", "S2", "S3", "S4"}
 LCD_X_MAX = 177
 LCD_Y_MAX = 127
 MAX_LABEL_LENGTH = 64
+SOUND_EXTENSIONS = {".wav"}
+IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,30 @@ def _label(method: str, params: Dict[str, Any], field: str = "label") -> str:
     return value
 
 
+def _asset_name(
+    method: str,
+    params: Dict[str, Any],
+    field: str,
+    extensions: set,
+) -> str:
+    value = str(params.get(field, "")).strip()
+    lower_value = value.lower()
+    if (
+        not value
+        or len(value) > MAX_LABEL_LENGTH
+        or "/" in value
+        or "\\" in value
+        or "\x00" in value
+        or not any(lower_value.endswith(extension) for extension in extensions)
+    ):
+        raise _invalid_command(
+            method,
+            f"{field} must be a safe asset filename",
+            field=field,
+        )
+    return value
+
+
 def _empty(_method: str, _params: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
@@ -186,10 +212,33 @@ def _set_volume(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     return {"volume": _volume(method, params)}
 
 
+def _sound_file(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    return {"file": _asset_name(method, params, "file", SOUND_EXTENSIONS)}
+
+
 def _display_text(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "text": str(params.get("text", "")),
         "line": _clamp(_number(method, params, "line", 1), 1, 8),
+    }
+
+
+def _display_number(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "number": _int_or_float(_number(method, params, "number", 0)),
+        "line": _clamp(_number(method, params, "line", 1), 1, 8),
+    }
+
+
+def _display_image(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    return {"image": _asset_name(method, params, "image", IMAGE_EXTENSIONS)}
+
+
+def _display_text_at(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "text": str(params.get("text", "")),
+        "x": _coord(method, params, "x", LCD_X_MAX),
+        "y": _coord(method, params, "y", LCD_Y_MAX),
     }
 
 
@@ -232,13 +281,18 @@ COMMAND_VALIDATORS: Dict[str, CommandValidator] = {
     "motor.resetPosition": _single_motor,
     "sound.playTone": _tone,
     "sound.playToneWait": _tone,
+    "sound.playFile": _sound_file,
     "sound.beep": _empty,
     "sound.stop": _empty,
     "sound.setVolume": _set_volume,
     "display.text": _display_text,
+    "display.number": _display_number,
     "display.clear": _empty,
+    "display.image": _display_image,
+    "display.textAt": _display_text_at,
     "display.drawLine": _display_line,
     "display.drawCircle": _display_circle,
+    "display.update": _empty,
     "gyro.reset": _gyro_reset,
     "data.startCollect": _data_label,
     "data.stopCollect": _empty,

@@ -3,8 +3,10 @@ const test = require('node:test');
 
 const {
     LEGO_RED,
+    DISPLAY_BLOCK_OPCODES,
     MOTOR_BLOCK_OPCODES,
     SENSOR_BLOCK_OPCODES,
+    SOUND_BLOCK_OPCODES,
     SensorCache,
     VSLEEV3Extension,
     WeisileLinkClient,
@@ -66,22 +68,29 @@ test('register requires unsandboxed TurboWarp extension context', () => {
     );
 });
 
-test('getInfo exposes the Phase 1 motor and sensor blocks in LEGO red', () => {
+test('getInfo exposes motor, sensor, sound, and display blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
     assert.equal(info.name, 'VSLE EV3');
     assert.equal(info.color1, LEGO_RED);
-    assert.equal(info.blocks.length, 34);
+    assert.equal(info.blocks.length, 48);
     assert.deepEqual(
         info.blocks.map(block => block.opcode),
-        [...MOTOR_BLOCK_OPCODES, ...SENSOR_BLOCK_OPCODES]
+        [
+            ...MOTOR_BLOCK_OPCODES,
+            ...SENSOR_BLOCK_OPCODES,
+            ...SOUND_BLOCK_OPCODES,
+            ...DISPLAY_BLOCK_OPCODES
+        ]
     );
     assert.equal(info.menus.motorPorts.items.length, 4);
     assert.deepEqual(info.menus.sensorPorts.items, ['S1', 'S2', 'S3', 'S4']);
     assert.deepEqual(info.menus.rgbChannels.items, ['R', 'G', 'B']);
     assert.deepEqual(info.menus.irChannels.items, ['1', '2', '3', '4']);
     assert.ok(info.menus.brickButtons.items.includes('center'));
+    assert.ok(info.menus.soundFiles.items.includes('ready.wav'));
+    assert.ok(info.menus.displayImages.items.includes('smile.png'));
 });
 
 test('SensorCache provides default EV3 state and merges partial updates', () => {
@@ -248,6 +257,52 @@ test('sensor command and wait blocks use validated ports and cache polling', asy
 
     assert.deepEqual(sent, [
         {method: 'gyro.reset', params: {port: 'S3'}}
+    ]);
+});
+
+test('sound command blocks normalize arguments before sending to WeisileLink', async () => {
+    const {extension, sent} = makeExtension();
+
+    await extension.playTone({FREQ: 5, DURATION: 90, VOLUME: 101});
+    await extension.playToneAndWait({FREQ: 22000, DURATION: -1, VOLUME: -5});
+    await extension.playSoundFile({FILE: 'ready.wav'});
+    await extension.playSoundFile({FILE: '../secret.wav'});
+    await extension.setVolume({VOLUME: 120});
+    await extension.beep();
+    await extension.stopSound();
+
+    assert.deepEqual(sent, [
+        {method: 'sound.playTone', params: {freq: 20, duration: 60, volume: 100}},
+        {method: 'sound.playToneWait', params: {freq: 20000, duration: 0, volume: 0}},
+        {method: 'sound.playFile', params: {file: 'ready.wav'}},
+        {method: 'sound.setVolume', params: {volume: 100}},
+        {method: 'sound.beep', params: {}},
+        {method: 'sound.stop', params: {}}
+    ]);
+});
+
+test('display command blocks normalize arguments before sending to WeisileLink', async () => {
+    const {extension, sent} = makeExtension();
+
+    await extension.displayText({TEXT: 'Hello', LINE: 10});
+    await extension.displayNumber({NUMBER: 123.5, LINE: -1});
+    await extension.displayClear();
+    await extension.displayImage({IMAGE: 'smile.png'});
+    await extension.displayImage({IMAGE: 'bad/path.png'});
+    await extension.displayTextAt({TEXT: 'XY', X: -9, Y: 300});
+    await extension.drawLine({X1: -1, Y1: 200, X2: 999, Y2: -5});
+    await extension.drawCircle({X: 90, Y: 64, R: 400});
+    await extension.displayUpdate();
+
+    assert.deepEqual(sent, [
+        {method: 'display.text', params: {text: 'Hello', line: 8}},
+        {method: 'display.number', params: {number: 123.5, line: 1}},
+        {method: 'display.clear', params: {}},
+        {method: 'display.image', params: {image: 'smile.png'}},
+        {method: 'display.textAt', params: {text: 'XY', x: 0, y: 127}},
+        {method: 'display.drawLine', params: {x1: 0, y1: 127, x2: 177, y2: 0}},
+        {method: 'display.drawCircle', params: {x: 90, y: 64, r: 127}},
+        {method: 'display.update', params: {}}
     ]);
 });
 

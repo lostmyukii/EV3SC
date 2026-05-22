@@ -29,6 +29,8 @@ SENSOR_PORTS = {"S1", "S2", "S3", "S4"}
 LCD_X_MAX = 177
 LCD_Y_MAX = 127
 MAX_LABEL_LENGTH = 64
+SOUND_EXTENSIONS = {".wav"}
+IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
 
 
 class EV3CommandError(Exception):
@@ -134,6 +136,28 @@ def _label(params: Dict[str, Any], field: str = "label") -> str:
     return value
 
 
+def _asset_name(
+    params: Dict[str, Any], field: str, extensions: Set[str]
+) -> str:
+    value = str(params.get(field, "")).strip()
+    lower_value = value.lower()
+    if (
+        not value
+        or len(value) > MAX_LABEL_LENGTH
+        or "/" in value
+        or "\\" in value
+        or "\x00" in value
+        or not any(lower_value.endswith(extension) for extension in extensions)
+    ):
+        raise EV3CommandError(
+            "EV3_INVALID_COMMAND",
+            f"{field} must be a safe asset filename",
+            False,
+            {"field": field},
+        )
+    return value
+
+
 def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
     """Validate the EV3 command allowlist and normalize params."""
     method = str(message.get("method", ""))
@@ -183,6 +207,8 @@ def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
             "duration": _duration(params, "duration", 0.5),
             "volume": _volume(params),
         }
+    elif method == "sound.playFile":
+        normalized = {"file": _asset_name(params, "file", SOUND_EXTENSIONS)}
     elif method in {"sound.beep", "sound.stop", "display.clear"}:
         normalized = {}
     elif method == "sound.setVolume":
@@ -191,6 +217,19 @@ def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
         normalized = {
             "text": str(params.get("text", "")),
             "line": _clamp(_number(params, "line", 1), 1, 8),
+        }
+    elif method == "display.number":
+        normalized = {
+            "number": _int_or_float(_number(params, "number", 0)),
+            "line": _clamp(_number(params, "line", 1), 1, 8),
+        }
+    elif method == "display.image":
+        normalized = {"image": _asset_name(params, "image", IMAGE_EXTENSIONS)}
+    elif method == "display.textAt":
+        normalized = {
+            "text": str(params.get("text", "")),
+            "x": _coord(params, "x", LCD_X_MAX),
+            "y": _coord(params, "y", LCD_Y_MAX),
         }
     elif method == "display.drawLine":
         normalized = {
@@ -205,6 +244,8 @@ def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
             "y": _coord(params, "y", LCD_Y_MAX),
             "r": _clamp(_number(params, "r"), 0, LCD_Y_MAX),
         }
+    elif method == "display.update":
+        normalized = {}
     elif method == "gyro.reset":
         normalized = {"port": _sensor_port(params)}
     elif method in {"data.startCollect", "data.addPoint"}:
@@ -393,14 +434,37 @@ class EV3DevHardware:
     def sound_set_volume(self, volume: int) -> None:
         self.sound.set_volume(volume)
 
+    def sound_play_file(self, file: str) -> None:
+        self._last_sound_handle = self.sound.play_file(
+            file,
+            play_type=self._play_no_wait,
+        )
+
     def display_text(self, text: str, line: int) -> None:
         self.display.text_pixels(
             text, x=0, y=(line - 1) * 16, clear_screen=False
         )
         self.display.update()
 
+    def display_number(self, number: Any, line: int) -> None:
+        self.display_text(str(number), line)
+
+    def display_text_at(self, text: str, x: int, y: int) -> None:
+        self.display.text_pixels(text, x=x, y=y, clear_screen=False)
+        self.display.update()
+
     def display_clear(self) -> None:
         self.display.clear()
+        self.display.update()
+
+    def display_image(self, image: str) -> None:
+        from PIL import Image
+
+        picture = Image.open(image)
+        self.display.image.paste(picture, (0, 0))
+        self.display.update()
+
+    def display_update(self) -> None:
         self.display.update()
 
     def display_draw_line(self, x1: int, y1: int, x2: int, y2: int) -> None:
@@ -680,6 +744,8 @@ class VSLEEV3Server:
                 params["volume"],
                 wait=method.endswith("Wait"),
             )
+        elif method == "sound.playFile":
+            self.hardware.sound_play_file(params["file"])
         elif method == "sound.beep":
             self.hardware.sound_beep()
         elif method == "sound.stop":
@@ -688,8 +754,16 @@ class VSLEEV3Server:
             self.hardware.sound_set_volume(params["volume"])
         elif method == "display.text":
             self.hardware.display_text(params["text"], params["line"])
+        elif method == "display.number":
+            self.hardware.display_number(params["number"], params["line"])
         elif method == "display.clear":
             self.hardware.display_clear()
+        elif method == "display.image":
+            self.hardware.display_image(params["image"])
+        elif method == "display.textAt":
+            self.hardware.display_text_at(
+                params["text"], params["x"], params["y"]
+            )
         elif method == "display.drawLine":
             self.hardware.display_draw_line(
                 params["x1"], params["y1"], params["x2"], params["y2"]
@@ -698,6 +772,8 @@ class VSLEEV3Server:
             self.hardware.display_draw_circle(
                 params["x"], params["y"], params["r"]
             )
+        elif method == "display.update":
+            self.hardware.display_update()
         elif method == "gyro.reset":
             self.hardware.gyro_reset(params["port"])
         elif method == "data.startCollect":
