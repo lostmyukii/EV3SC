@@ -2473,6 +2473,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/weisile_link/transport/__init__.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_bluetooth_transport.py`, `weisile-link/tests/test_transport_selector.py`, `weisile-link/tests/test_json_rpc_server.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/EV3DEV_SETUP.md`, `ev3-firmware/README.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the Phase 2 sensor data router and WeisileAI Trainer integration, including multi-consumer 50Hz broadcast, Trainer subscription/upload path, health counters, and tests.
 
+### [2026-05-23] Sensor router and WeisileAI Trainer integration
+- **Status**: ✅ Completed
+- **Commit**: `9ab9987`
+- **What was done**: Added a WeisileLink `SensorDataRouter` that broadcasts each EV3 `sensor_update` concurrently to Scratch JSON-RPC notification consumers and WeisileAI Trainer `sensor_stream` consumers. Added a bounded local Trainer buffer, CSV export, Trainer WebSocket endpoint on port `8766`, `data.uploadToTrainer` availability handling, Trainer client health counts, and internal Trainer REST routes for sensors, motors, collected data, clear, export, and direct EV3 command dispatch.
+- **Files created/modified**: `weisile-link/weisile_link/router/__init__.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_sensor_router.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 2 multi-EV3 session management, including per-brick session identity, routing isolation, client-visible status, and tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
