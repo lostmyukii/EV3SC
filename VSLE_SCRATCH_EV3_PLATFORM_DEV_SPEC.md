@@ -2480,6 +2480,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/router/__init__.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_sensor_router.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 2 multi-EV3 session management, including per-brick session identity, routing isolation, client-visible status, and tests.
 
+### [2026-05-23] Multi-EV3 session management
+- **Status**: ✅ Completed
+- **Commit**: `7fa5fc5`
+- **What was done**: Added per-brick WeisileLink EV3 sessions, Scratch peripheral discovery/connect routing by `peripheralId`, isolated per-session sensor routers and training buffers, Trainer streams tagged with `brick_id`, per-session REST filters, and `/api/status` session summaries.
+- **Files created/modified**: `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/tests/test_multi_ev3_sessions.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 2 sensor data panel UI, keeping Scratch visual identity unchanged and using cache-backed sensor status.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
