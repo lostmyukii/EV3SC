@@ -2347,6 +2347,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement and verify the Section 13.6 Critical Remediation Gates before any classroom pilot.
 
+### [2026-05-22] Round two audit findings resolved
+- **Status**: ✅ Completed
+- **Commit**: `4410881`
+- **What was done**: Applied the remaining findings from `vsle_audit_round2_final.md`. Fixed the ultrasonic inch opcode spelling, replaced the deprecated asyncio task API in the WiFi transport example, added EV3 `auth.pair` token handshake logic, strengthened hardware detection guidance in the server example, and recorded the time-series data-store decision as technical debt.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Begin Phase 1 implementation against the updated Critical Remediation Gates and resolve `TD-01` during Phase 2 data pipeline design.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
