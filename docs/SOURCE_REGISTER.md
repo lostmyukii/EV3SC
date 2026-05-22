@@ -23,6 +23,15 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink validation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | Confirms validation failures stop before transport dispatch; this step only maps runtime failures and degraded runtime state |
 | Python standard library documentation | `https://docs.python.org/3/library/random.html` | `random.uniform` jitter source for Section 16.3 reconnect backoff; no external runtime dependency introduced |
 
+## Phase 1 Step 3 — Health Check and Structured Logging Baseline
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 17.1 JSON structured log fields and log privacy rules; Section 17.2 `/api/status` response fields; Section 17.3 metrics and alert thresholds |
+| WeisileLink degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Connection state, active transport, reconnect count, and collected point count used by `/api/status` |
+| Python standard library documentation | `https://docs.python.org/3/library/json.html` | JSON serialization for health endpoint responses and structured JSON line logs |
+| Python standard library documentation | `https://docs.python.org/3/library/datetime.html` | UTC ISO-8601 timestamp generation for structured log records |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
