@@ -30,7 +30,9 @@ def test_systemd_unit_matches_ev3_autostart_contract():
     assert "EnvironmentFile=-/home/robot/.config/vsle/ev3.env" in text
     assert "Environment=EV3_WS_PORT=8765" in text
     assert "Environment=MAX_COLLECTED_POINTS=10000" in text
-    assert "ExecStartPre=/usr/bin/test -r /home/robot/vsle_ev3_server.py" in text
+    assert (
+        "ExecStartPre=/usr/bin/test -r /home/robot/vsle_ev3_server.py" in text
+    )
     assert text.count("ExecStart=") == 1
     assert "ExecStart=/usr/bin/python3 /home/robot/vsle_ev3_server.py" in text
     assert "Restart=on-failure" in text
@@ -54,7 +56,10 @@ def test_install_script_backs_up_installs_dependencies_and_enables_service():
     assert "set -euo pipefail" in text
     assert 'SERVICE_NAME="vsle-ev3-server.service"' in text
     assert 'SERVER_DST="${SERVER_DST:-/home/robot/vsle_ev3_server.py}"' in text
-    assert 'SERVICE_DST="${SERVICE_DST:-/etc/systemd/system/${SERVICE_NAME}}"' in text
+    assert (
+        'SERVICE_DST="${SERVICE_DST:-/etc/systemd/system/${SERVICE_NAME}}"'
+        in text
+    )
     assert 'BACKUP_ROOT="${BACKUP_ROOT:-/home/robot/vsle-backups}"' in text
     assert "SERVER_SRC" in text
     assert "vsle_ev3_server.py not found" in text

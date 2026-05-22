@@ -77,6 +77,18 @@ ports. This register records the sources used for the current implementation.
 | VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 5.3 JSON-RPC compatibility; Section 7.2 sensor notifications; Section 10.2 endpoints; Section 10.4 error envelopes; Section 17 status observability |
 | WeisileLink protocol/runtime baselines | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/*.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Reused JSON-RPC helpers, EV3 ack mapping, command validation, degradation responses, and `/api/status` payload generation |
 
+## Phase 1 Step 8 — VSLE-EV3 Unsandboxed Extension and Motor Blocks
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 3.4/3.5 Unsandboxed extension loading; Section 4.1 extension architecture; Section 4.2 category color/block counts; Section 4.3 first 14 motor blocks; Section 10.2 Scratch WebSocket endpoint |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Unsandboxed-only extension rule, no Scratch visual design changes, motor port names, SensorCache reporter rule, and WeisileLink command names |
+| TurboWarp Unsandboxed Extensions documentation | `https://docs.turbowarp.org/development/extensions/unsandboxed` | IIFE registration pattern, `Scratch.extensions.unsandboxed` guard, `Scratch.extensions.register`, and unsandboxed block safety rules |
+| Scratch VM EV3 extension | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | Scratch extension `getInfo()` shape, block/menu definitions, argument casting style, and EV3 extension source style |
+| Scratch VM WebSocket client | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/util/scratch-link-websocket.js` | Local Scratch Link endpoint convention that points Scratch-compatible clients at `ws://127.0.0.1:20111/scratch/bt` |
+| Scratch VM BT socket | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/io/bt.js` | Scratch Link base64 notification behavior and `didReceiveMessage` naming used by the extension sensor-cache bridge |
+| WeisileLink Scratch JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Direct VSLE method forwarding and sensor update notification payloads consumed by the extension client |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

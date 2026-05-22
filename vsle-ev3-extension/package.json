@@ -1,0 +1,13 @@
+{
+  "name": "@vsle/ev3-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TurboWarp unsandboxed VSLE EV3 extension.",
+  "type": "commonjs",
+  "scripts": {
+    "check": "node --check index.js && node --check tests/test_extension.js",
+    "serve": "python3 -m http.server 8000 --directory ..",
+    "serve:3001": "python3 -m http.server 3001 --directory ..",
+    "test": "node --test tests/*.js"
+  }
+}
