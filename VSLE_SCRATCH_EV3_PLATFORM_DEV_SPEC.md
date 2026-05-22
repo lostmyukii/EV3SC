@@ -2494,6 +2494,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/src/ui/data_panel.js`, `vsle-ev3-extension/tests/test_sensor_data_panel.js`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 2 connection modal polish for WiFi/Bluetooth selection, preserving Scratch's standard hardware connection modal style.
 
+### [2026-05-23] Connection modal polish
+- **Status**: ✅ Completed
+- **Commit**: `4d1c7a6`
+- **What was done**: Added a Scratch-style EV3 connection modal with WiFi IP and Bluetooth address selection, explicit host mounting, the official EV3 icon copied into EV3SC, and `vsle.setTransport` action binding. Extended WeisileLink transport switching so modal-submitted `ev3_ip` and `ev3_bt` reconfigure WiFi/Bluetooth endpoints before reconnecting.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/src/ui/connection_modal.js`, `vsle-ev3-extension/tests/test_connection_modal.js`, `vsle-ev3-extension/assets/ev3-small.svg`, `vsle-ev3-extension/package.json`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/transport/wifi_transport.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/tests/test_json_rpc_server.py`, `weisile-link/tests/test_wifi_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Begin Phase 3 AI Quest data collection sample projects, including source-backed sample workflows for record, upload, train, and export.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
