@@ -245,6 +245,7 @@ class SensorDataRouter:
         return {
             "type": "sensor_stream",
             "t": _timestamp_ms(sensor_data, self.clock),
+            **_brick_identity(sensor_data),
             "color_reflected": color.get("reflected", 0),
             "color_ambient": color.get("ambient", 0),
             "color_id": color.get("color", 0),
@@ -296,6 +297,15 @@ def _motor_position(motors: Dict[str, Any], port: str) -> Any:
     if isinstance(value, dict):
         return value.get("position", 0)
     return 0
+
+
+def _brick_identity(sensor_data: Dict[str, Any]) -> Dict[str, Any]:
+    identity = {}
+    if "brick_id" in sensor_data:
+        identity["brick_id"] = sensor_data["brick_id"]
+    if "brick_name" in sensor_data:
+        identity["brick_name"] = sensor_data["brick_name"]
+    return identity
 
 
 def _timestamp_ms(sensor_data: Dict[str, Any], clock: Any) -> int:

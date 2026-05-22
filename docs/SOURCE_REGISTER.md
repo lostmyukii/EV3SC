@@ -157,6 +157,17 @@ ports. This register records the sources used for the current implementation.
 | WeisileAI middleware reference | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/ai-middleware/` | Confirmed there is no existing EV3 Trainer endpoint to port yet; this step keeps EV3 Trainer integration local to EV3SC using the spec-defined WebSocket stream and internal REST contracts |
 | Python standard library documentation | `https://docs.python.org/3/library/csv.html` | Dependency-free CSV export for the bounded local Trainer buffer |
 
+## Phase 2 Step 5 — Multi-EV3 Session Management
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 1.3 WiFi multi-device rationale; Section 5.6 WiFi transport; Phase 2 `Multi-EV3 session management`; Section 13.2 `test_multi_ev3` no-cross-contamination requirement; Phase 2 acceptance criterion for 2 simultaneous EV3 bricks |
+| Scratch Link Network Protocol | `/Users/yukii/Desktop/scratch ai/scratch-link/Documentation/NetworkProtocol.md` | Preserved discovery/connect flow and device selection by Scratch Link peripheral identity |
+| Scratch VM BT socket | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/io/bt.js` | Preserved Scratch-facing `didDiscoverPeripheral` and `didReceiveMessage` compatibility while adding EV3 session identity |
+| WeisileLink WiFi transport baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/wifi_transport.py` | Reused one WiFi transport per EV3 session with independent command validation, ack futures, sensor callback, and degradation state |
+| WeisileLink sensor router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Reused one router and bounded Trainer buffer per EV3 session to isolate Scratch notifications, Trainer streams, collected rows, and REST snapshots |
+| WeisileLink observability baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Extended `/api/status` with per-session health while preserving existing top-level health fields |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

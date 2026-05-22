@@ -211,6 +211,7 @@ def test_connect_uses_transport_and_subsequent_ev3_method_maps_ack_to_json_rpc()
                 "id": "cmd-1",
                 "method": "motor.runTimed",
                 "params": {"port": "a", "speed": 125, "time": 90},
+                "peripheralId": "vsle-ev3-wifi",
             }
         ]
         assert websocket.sent[1] == {
@@ -255,6 +256,7 @@ def test_send_method_accepts_high_level_command_wrapper():
                 "id": "send-1",
                 "method": "motor.stop",
                 "params": {"port": "A"},
+                "peripheralId": "vsle-ev3-wifi",
             }
         ]
         assert websocket.sent[0]["result"]["ok"] is True
@@ -370,6 +372,8 @@ def test_start_notifications_broadcasts_vsle_and_official_scratch_messages():
             "type": "sensor_update",
             "timestamp": 123.456,
             "sensors": {"S2": {"distance_cm": 24.5}},
+            "brick_id": "vsle-ev3-wifi",
+            "brick_name": "VSLE EV3 WiFi",
         }
         assert official_notification["params"] == vsle_notification["params"]
 
@@ -412,6 +416,8 @@ def test_trainer_websocket_receives_sensor_stream_and_status_counts_client():
             {
                 "type": "sensor_stream",
                 "t": 1716387600123,
+                "brick_id": "vsle-ev3-wifi",
+                "brick_name": "VSLE EV3 WiFi",
                 "color_reflected": 45,
                 "color_ambient": 12,
                 "color_id": 3,
