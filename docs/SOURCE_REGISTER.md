@@ -66,6 +66,17 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink error/degradation baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py` | Reused connection state, WiFi failure flags, sensor cache snapshots, and pending command tracking |
 | websockets documentation | `https://websockets.readthedocs.io/` | Async WebSocket client connection API, ping interval option, and single receiver loop pattern |
 
+## Phase 1 Step 7 — Scratch-Compatible JSON-RPC Server
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| Scratch Link Network Protocol | `/Users/yukii/Desktop/scratch ai/scratch-link/Documentation/NetworkProtocol.md` | `/scratch/bt` path, JSON-RPC request/response/notification semantics, `getVersion`, `discover`, `connect`, `send`, and base64 message conventions |
+| Scratch Link Architecture | `/Users/yukii/Desktop/scratch ai/scratch-link/Documentation/Architecture.md` | WebSocket listener, JSON-RPC message handler, and session boundary used by the local Scratch-compatible server |
+| Scratch VM BT socket | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/io/bt.js` | Official VM notifications: `didDiscoverPeripheral`, `didReceiveMessage`, request handling, and no-response notification behavior |
+| Scratch VM WebSocket client | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/util/scratch-link-websocket.js` | Official local endpoint selection: `ws://127.0.0.1:20111/scratch/bt` |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 5.3 JSON-RPC compatibility; Section 7.2 sensor notifications; Section 10.2 endpoints; Section 10.4 error envelopes; Section 17 status observability |
+| WeisileLink protocol/runtime baselines | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/*.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/runtime/degradation.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Reused JSON-RPC helpers, EV3 ack mapping, command validation, degradation responses, and `/api/status` payload generation |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
