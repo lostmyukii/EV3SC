@@ -771,6 +771,112 @@ def render_rehearsal_report(
     return "\n".join(lines)
 
 
+def render_smoke_handoff(
+    *,
+    root: Path,
+    ev3_host: str = "ev3dev.local",
+    ev3_port: int = 8765,
+    weisile_link_url: str = "ws://127.0.0.1:20111/scratch/bt",
+) -> str:
+    """Render the operator handoff for confirmed physical EV3 smoke capture."""
+
+    root = root.resolve()
+    smoke_command = (
+        ".venv/bin/python scripts/run_real_ev3_rehearsal.py \\\n"
+        "  --capture-smoke \\\n"
+        "  --confirm-real-ev3 \\\n"
+        "  --run-safe-motor-test \\\n"
+        f"  --weisile-link-url {weisile_link_url} \\\n"
+        "  --capture-seconds 10 \\\n"
+        "  --capture-smoke-evidence "
+        "docs/classroom/real_ev3_smoke_evidence.json \\\n"
+        "  --capture-smoke-transcript "
+        "docs/classroom/evidence/real_ev3_smoke_transcript.json \\\n"
+        "  --json-report docs/classroom/real_ev3_smoke_report.json \\\n"
+        "  --report docs/classroom/REAL_EV3_REHEARSAL.md \\\n"
+        "  --expected-devices 1 \\\n"
+        "  --expected-transport-instances 1"
+    )
+    full_rehearsal_command = (
+        ".venv/bin/python scripts/run_real_ev3_rehearsal.py \\\n"
+        "  --evidence-json docs/classroom/real_ev3_rehearsal_evidence.json \\\n"
+        "  --json-report docs/classroom/real_ev3_rehearsal_report.json \\\n"
+        "  --report docs/classroom/REAL_EV3_REHEARSAL.md \\\n"
+        "  --require-passed"
+    )
+    lines = [
+        "# Real EV3 Smoke Handoff",
+        "",
+        "This handoff is for the physical EV3 operator. Local preview, simulator,",
+        "or localhost-only success is not enough for classroom approval.",
+        "",
+        "Do not use `--confirm-real-ev3` unless the connected endpoint is a",
+        "physical LEGO EV3 brick running the EV3SC `vsle_ev3_server.py` on",
+        "ev3dev.",
+        "",
+        "## Repository",
+        "",
+        f"- Run all commands from `{root}`.",
+        "- Do not edit or depend on the external ScratchAI reference folder.",
+        "",
+        "## EV3 Brick Preflight",
+        "",
+        "On the teacher computer:",
+        "",
+        "```bash",
+        f"ping -c 1 {ev3_host}",
+        f"nc -z -w 2 {ev3_host} {ev3_port}",
+        "```",
+        "",
+        "On the EV3 brick:",
+        "",
+        "```bash",
+        "systemctl status vsle-ev3-server",
+        "journalctl -u vsle-ev3-server -n 80 --no-pager",
+        "```",
+        "",
+        "## WeisileLink Real Transport",
+        "",
+        "Start WeisileLink against the physical EV3 endpoint:",
+        "",
+        "```bash",
+        f"PYTHONPATH=weisile-link EV3_IP={ev3_host} EV3_WS_PORT={ev3_port} \\",
+        "  WEISILE_TRANSPORT=wifi .venv/bin/python -m weisile_link",
+        "```",
+        "",
+        "Then verify the local Scratch Link compatible endpoint is reachable:",
+        "",
+        "```bash",
+        "nc -z -w 2 127.0.0.1 20111",
+        "```",
+        "",
+        "## Confirmed One-Brick Smoke Capture",
+        "",
+        "Run only after physically confirming the EV3 endpoint and clearing the",
+        "motor area for the low-speed 0.25s motor A test:",
+        "",
+        "```bash",
+        smoke_command,
+        "```",
+        "",
+        "Expected smoke result: `real-ev3-endpoint`,",
+        "`weisilelink-real-transport`, and `motor-command-safety` can pass,",
+        "while the full classroom gate remains blocked until 45-minute sensor,",
+        "AI Quest, and multi-device evidence is attached.",
+        "",
+        "## Section 13.7 Full Classroom Rehearsal",
+        "",
+        "After the confirmed smoke capture, collect the full evidence JSON for",
+        "the 30-transport / 10-real-brick rehearsal and run:",
+        "",
+        "```bash",
+        full_rehearsal_command,
+        "```",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _write_json(path: Path, payload: Mapping[str, Any], root: Path) -> None:
     path = _require_inside_root(path, root)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -831,6 +937,11 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--report", type=Path)
     parser.add_argument("--write-template", type=Path)
     parser.add_argument(
+        "--write-smoke-handoff",
+        type=Path,
+        help="Write the physical EV3 smoke-capture operator handoff.",
+    )
+    parser.add_argument(
         "--capture-smoke",
         action="store_true",
         help="Capture one real EV3 smoke transcript through WeisileLink.",
@@ -859,6 +970,8 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--operator", default="")
     parser.add_argument("--classroom-or-lab", default="")
     parser.add_argument("--transport-mode", default="wifi")
+    parser.add_argument("--ev3-host", default="ev3dev.local")
+    parser.add_argument("--ev3-port", type=int, default=8765)
     parser.add_argument(
         "--run-safe-motor-test",
         action="store_true",
@@ -900,6 +1013,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     template = pending_evidence_template(plan)
     if args.write_template:
         _write_json(args.write_template, template, plan.root)
+    if args.write_smoke_handoff:
+        _write_text(
+            args.write_smoke_handoff,
+            render_smoke_handoff(
+                root=plan.root,
+                ev3_host=args.ev3_host,
+                ev3_port=args.ev3_port,
+                weisile_link_url=args.weisile_link_url,
+            ),
+            plan.root,
+        )
 
     if args.capture_smoke:
         config = SmokeCaptureConfig(

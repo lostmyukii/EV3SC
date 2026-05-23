@@ -8,6 +8,7 @@ from scripts.run_real_ev3_rehearsal import (
     evaluate_rehearsal_evidence,
     pending_evidence_template,
     render_rehearsal_report,
+    render_smoke_handoff,
     smoke_capture_to_evidence,
 )
 
@@ -239,3 +240,24 @@ def test_smoke_capture_artifact_paths_are_recorded_relative_to_root():
         "docs/classroom/real_ev3_smoke_evidence.json",
         "docs/classroom/evidence/real_ev3_smoke_transcript.json",
     ]
+
+
+def test_smoke_handoff_records_physical_ev3_confirmation_commands():
+    markdown = render_smoke_handoff(
+        root=ROOT,
+        ev3_host="ev3dev.local",
+        ev3_port=8765,
+        weisile_link_url="ws://127.0.0.1:20111/scratch/bt",
+    )
+
+    assert "# Real EV3 Smoke Handoff" in markdown
+    assert "Do not use `--confirm-real-ev3`" in markdown
+    assert "ping -c 1 ev3dev.local" in markdown
+    assert "nc -z -w 2 ev3dev.local 8765" in markdown
+    assert "PYTHONPATH=weisile-link" in markdown
+    assert "EV3_IP=ev3dev.local" in markdown
+    assert "--capture-smoke" in markdown
+    assert "--confirm-real-ev3" in markdown
+    assert "--run-safe-motor-test" in markdown
+    assert "--require-passed" in markdown
+    assert "/Users/yukii/Desktop/scratch ai" not in markdown

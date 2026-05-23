@@ -13,6 +13,7 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `WORKBOOK_LINE_PATROL.md` | Students | Collect reflected-light data for line and floor classification. |
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
 | `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
+| `REAL_EV3_SMOKE_HANDOFF.md` | Physical EV3 operator | Run the real-brick preflight, start WeisileLink against real hardware, and capture the confirmed one-brick smoke evidence. |
 | `real_ev3_rehearsal_evidence.template.json` | QA or pilot lead | Record real hardware, sensor, AI Quest, and multi-device evidence for the rehearsal runner. |
 
 ## Source Alignment
@@ -30,7 +31,8 @@ gate, and export artifacts listed in the matching sample manifest.
 
 Start with a single-brick smoke capture. The `--confirm-real-ev3` flag is an
 operator assertion that the connected endpoint is physical EV3 hardware, not
-the local preview simulator.
+the local preview simulator. Use `REAL_EV3_SMOKE_HANDOFF.md` as the operator
+handoff before running the confirmed hardware command.
 
 ```bash
 .venv/bin/python scripts/run_real_ev3_rehearsal.py \
