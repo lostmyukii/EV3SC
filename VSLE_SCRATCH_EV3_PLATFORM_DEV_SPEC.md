@@ -2610,6 +2610,13 @@ material into:
 - **Files created/modified**: `scripts/check_scratchai_standalone.py`, `tests/test_scratchai_port_scripts.py`
 - **Next step**: Run ScratchAI service package tests inside EV3SC and record baseline results.
 
+### [2026-05-23] ScratchAI service baseline
+- **Status**: ✅ Completed
+- **Commit**: `f91c0e0`
+- **What was done**: Ran baseline tests for the EV3SC-owned ScratchAI middleware, asset worker, preview server, standalone ownership checker, and port verification scripts. Recorded the command results in the ScratchAI baseline report.
+- **Files created/modified**: `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Install Scratch editor dependencies from the EV3SC-owned lockfile and run the first Scratch editor baseline checks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
