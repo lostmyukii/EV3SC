@@ -66,7 +66,9 @@ class FakeTransport:
         if self.connect_result:
             self.manager.record_reconnected(TransportKind.WIFI)
         else:
-            self.manager.record_transport_failure(TransportKind.WIFI, "connect refused")
+            self.manager.record_transport_failure(
+                TransportKind.WIFI, "connect refused"
+            )
         return self.connect_result
 
     async def send_command(self, command):
@@ -528,7 +530,9 @@ def test_upload_to_trainer_reports_unavailable_without_trainer_client():
                 "id": "upload-1",
                 "error": {
                     "code": "TRAINER_UNAVAILABLE",
-                    "message": ("WeisileAI Trainer subscription/upload unavailable"),
+                    "message": (
+                        "WeisileAI Trainer subscription/upload unavailable"
+                    ),
                     "data": {"retryable": True},
                 },
             }
@@ -623,7 +627,9 @@ def test_internal_trainer_rest_routes_use_common_envelope():
         cleared = json.loads((await server.handle_post("/api/data/clear")).body)
 
         assert sensors["ok"] is True
-        assert sensors["data"] == {"S2": {"type": "ultrasonic", "distance_cm": 9.5}}
+        assert sensors["data"] == {
+            "S2": {"type": "ultrasonic", "distance_cm": 9.5}
+        }
         assert motors["data"] == {"B": {"position": -180}}
         assert collected["data"]["count"] == 1
         assert collected["data"]["rows"][0]["label"] == "near"
@@ -633,6 +639,104 @@ def test_internal_trainer_rest_routes_use_common_envelope():
         assert transport.commands[-1]["method"] == "motor.stop"
         assert cleared["data"] == {"cleared_points": 1}
         assert server.sensor_router.buffer.rows() == []
+
+    asyncio.run(scenario())
+
+
+def test_trainer_rest_train_and_export_complete_ai_quest_pipeline():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        trainer = HoldingWebSocket()
+        task = asyncio.create_task(server.handle_trainer_client(trainer))
+        while server.trainer_client_count == 0 or trainer.release is None:
+            await asyncio.sleep(0)
+
+        for distance, label in (
+            (8.0, "obstacle"),
+            (12.0, "obstacle"),
+            (35.0, "safe"),
+            (42.0, "safe"),
+        ):
+            await server.handle_sensor_data(
+                {
+                    "type": "sensor_update",
+                    "timestamp": 1716387600.123,
+                    "sensors": {
+                        "S2": {
+                            "type": "ultrasonic",
+                            "distance_cm": distance,
+                        }
+                    },
+                    "motors": {"A": {"position": 0}},
+                    "system": {
+                        "collecting": True,
+                        "collect_label": label,
+                    },
+                }
+            )
+
+        websocket = FakeWebSocket()
+        await server.handle_json_rpc_message(
+            websocket,
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "upload-e2e",
+                    "method": "data.uploadToTrainer",
+                }
+            ),
+        )
+        trained = json.loads(
+            (
+                await server.handle_post(
+                    "/api/trainer/train",
+                    json.dumps({"accuracy_gate": 0.7}),
+                )
+            ).body
+        )
+        exported = json.loads(
+            (await server.handle_post("/api/trainer/export")).body
+        )
+        model_rules = json.loads(exported["data"]["json"])
+
+        assert websocket.sent[0]["result"] == {
+            "uploaded_points": 4,
+            "trainer_clients": 1,
+        }
+        assert trained["ok"] is True
+        assert trained["data"]["accuracy"] == 1.0
+        assert trained["data"]["model"]["rule"]["feature"] == "ultrasonic_cm"
+        assert exported["ok"] is True
+        assert exported["data"]["filename"] == "model_rules.json"
+        assert exported["data"]["accuracy"] == 1.0
+        assert model_rules["model"]["type"] == "decision_tree"
+        assert model_rules["privacy"]["studentDataIncluded"] is False
+        assert "rows" not in model_rules
+        assert transport.commands == []
+
+        trainer.stop()
+        await task
+
+    asyncio.run(scenario())
+
+
+def test_trainer_rest_export_requires_trained_model():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+
+        response = json.loads(
+            (await server.handle_post("/api/trainer/export")).body
+        )
+
+        assert response["ok"] is False
+        assert response["error"] == {
+            "code": "TRAINER_MODEL_NOT_TRAINED",
+            "message": "Train a WeisileAI model before exporting rules",
+            "retryable": False,
+        }
 
     asyncio.run(scenario())
 

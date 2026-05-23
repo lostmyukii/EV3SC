@@ -48,7 +48,9 @@ The build command writes one Scratch `project.json` per sample into
 
 ## Boundaries
 
-This step creates sample projects and exportable project JSON. It does not train
-a model end to end; that is the next Phase 3 step, where the EV3 data to
-WeisileAI Trainer training pipeline will be exercised across collection,
-training, and model rule export.
+The Phase 3 Trainer pipeline now exercises the sample workflow end to end inside
+WeisileLink: collected rows can be uploaded through the Trainer subscription
+path, trained through `POST /api/trainer/train`, and exported through
+`POST /api/trainer/export` as `model_rules.json`. The exported rules contain the
+decision-tree metadata, selected feature threshold, accuracy, and privacy flags,
+but not raw student data rows.

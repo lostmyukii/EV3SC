@@ -28,6 +28,7 @@ class EV3Session:
     transport: Any
     manager: DegradationManager
     router: SensorDataRouter
+    trainer_model: Optional[Dict[str, Any]] = None
 
     @classmethod
     def create(

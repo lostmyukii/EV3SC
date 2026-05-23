@@ -1638,6 +1638,8 @@ POST /api/ev3/command           → Send direct command
 GET  /api/data/collected        → Get all collected data
 POST /api/data/clear            → Clear collected data
 POST /api/data/export           → Download as CSV
+POST /api/trainer/train         → Train local Decision Tree rules
+POST /api/trainer/export        → Export model_rules.json
 ```
 
 ### 10.2 WeisileLink WebSocket Endpoints

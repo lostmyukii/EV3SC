@@ -215,6 +215,16 @@ ports. This register records the sources used for the current implementation.
 | python-ev3dev2 motor docs | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/latest/motors.html` | Source-backed `Motor.position_p`, `position_i`, `position_d`, `speed_p`, `speed_i`, and `speed_d` attributes used for the PID set/read implementation |
 | ev3dev LEGO Linux motor driver docs | `https://docs.ev3dev.org/projects/lego-linux-drivers/en/ev3dev-jessie/motors.html` | Kernel driver-backed `hold_pid/Kp`, `hold_pid/Ki`, `hold_pid/Kd`, `speed_pid/Kp`, `speed_pid/Ki`, and `speed_pid/Kd` read/write semantics mapped through ev3dev2 properties |
 
+## Phase 3 Step 3 — Trainer Training Pipeline E2E
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 8.2 `record -> upload -> train -> export` workflow, Decision Tree model requirement, 70% accuracy gate, `model_rules.json` export, Section 10 REST envelopes, and Section 15 local-first privacy/deletion controls |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC-only ownership, complete scoped implementation, source-backed behavior, no Scratch visual-design changes, GitHub/progress workflow |
+| WeisileLink Trainer router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Existing bounded EV3 Trainer rows, supported feature fields, label limits, and CSV export semantics used as the input contract for local training |
+| WeisileAI middleware reference | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/ai-middleware/README.md` | Read-only reference for keeping AI/model work behind server-side contracts and avoiding raw student data or secrets in exported artifacts |
+| Python standard library documentation | `https://docs.python.org/3/library/json.html` | Dependency-free deterministic `model_rules.json` serialization for the exported classroom rules model |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

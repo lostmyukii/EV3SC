@@ -43,6 +43,12 @@ from weisile_link.protocol.validation import COMMAND_VALIDATORS
 from weisile_link.router.sensor_router import WebSocketConsumer
 from weisile_link.runtime.degradation import DegradationManager
 from weisile_link.sessions import EV3Session, EV3SessionManager
+from weisile_link.trainer_pipeline import (
+    DEFAULT_ACCURACY_GATE,
+    TrainerPipelineError,
+    export_model_rules,
+    train_decision_tree,
+)
 from weisile_link.transport.bluetooth_transport import BluetoothTransport
 from weisile_link.transport.selector import AutoTransport
 from weisile_link.transport.wifi_transport import WiFiTransport
@@ -211,7 +217,9 @@ class ScratchJsonRpcServer:
             self._unregister_scratch_notifications(websocket)
             return make_result(request_id, None)
         if method == "vsle.setTransport":
-            return await self._handle_set_transport(websocket, request_id, params)
+            return await self._handle_set_transport(
+                websocket, request_id, params
+            )
         if method == "send":
             command = self._command_from_send(request_id, params)
             if command.get("method") == "data.uploadToTrainer":
@@ -296,7 +304,9 @@ class ScratchJsonRpcServer:
                 ErrorCode.EV3_TRANSPORT_DISCONNECTED,
                 "Requested EV3 peripheral is not available",
                 {
-                    "peripheralId": self._session_id_from_params(websocket, params),
+                    "peripheralId": self._session_id_from_params(
+                        websocket, params
+                    ),
                     "retryable": True,
                 },
             )
@@ -406,7 +416,9 @@ class ScratchJsonRpcServer:
     def handle_get(self, path: str) -> HttpResponse:
         """Expose framework-neutral internal Trainer REST GET routes."""
         route, query = _split_path(path)
-        session_id = _first_query_value(query, "brick_id") or _first_query_value(
+        session_id = _first_query_value(
+            query, "brick_id"
+        ) or _first_query_value(
             query,
             "peripheralId",
         )
@@ -450,7 +462,12 @@ class ScratchJsonRpcServer:
     async def handle_post(self, path: str, body: str = "") -> HttpResponse:
         """Expose framework-neutral internal Trainer REST POST routes."""
         route, query = _split_path(path)
-        query_session_id = _first_query_value(query, "brick_id")
+        query_session_id = _first_query_value(
+            query, "brick_id"
+        ) or _first_query_value(
+            query,
+            "peripheralId",
+        )
         if route == "/api/data/clear":
             session = self._rest_session(query_session_id)
             cleared = session.router.buffer.clear()
@@ -501,6 +518,76 @@ class ScratchJsonRpcServer:
                     data=data,
                 )
             return self._rest_ok(response["result"])
+        if route == "/api/trainer/train":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "TRAINER_INVALID_REQUEST",
+                    "Invalid Trainer training JSON",
+                    retryable=False,
+                )
+            session = self._rest_session(
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id
+            )
+            try:
+                model = train_decision_tree(
+                    session.router.buffer.rows(),
+                    accuracy_gate=payload.get(
+                        "accuracy_gate",
+                        DEFAULT_ACCURACY_GATE,
+                    ),
+                )
+            except TrainerPipelineError as exc:
+                return self._trainer_error_response(exc)
+            session.trainer_model = model
+            return self._rest_ok(
+                {
+                    "training_rows": model["training"]["rows"],
+                    "accuracy": model["model"]["accuracy"],
+                    "accuracy_gate": model["model"]["accuracyGate"],
+                    "model": model,
+                }
+            )
+        if route == "/api/trainer/export":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "TRAINER_INVALID_REQUEST",
+                    "Invalid Trainer export JSON",
+                    retryable=False,
+                )
+            session = self._rest_session(
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id
+            )
+            if session.trainer_model is None:
+                return self._rest_error(
+                    409,
+                    "TRAINER_MODEL_NOT_TRAINED",
+                    "Train a WeisileAI model before exporting rules",
+                    retryable=False,
+                )
+            try:
+                exported = export_model_rules(session.trainer_model)
+            except TrainerPipelineError as exc:
+                return self._trainer_error_response(exc)
+            return self._rest_ok(
+                {
+                    "filename": "model_rules.json",
+                    "json": exported,
+                    "accuracy": session.trainer_model["model"]["accuracy"],
+                    "schemaVersion": session.trainer_model["schemaVersion"],
+                }
+            )
         return self._rest_error(
             404,
             "NOT_FOUND",
@@ -585,9 +672,9 @@ class ScratchJsonRpcServer:
         if existing is not None:
             previous_session_id, previous_consumer = existing
             try:
-                self.sessions.require_session(previous_session_id).router.unregister(
-                    previous_consumer
-                )
+                self.sessions.require_session(
+                    previous_session_id
+                ).router.unregister(previous_consumer)
             except KeyError:
                 pass
         consumer = WebSocketConsumer(websocket, "scratch")
@@ -600,7 +687,9 @@ class ScratchJsonRpcServer:
         if item is not None:
             session_id, consumer = item
             try:
-                self.sessions.require_session(session_id).router.unregister(consumer)
+                self.sessions.require_session(session_id).router.unregister(
+                    consumer
+                )
             except KeyError:
                 return
 
@@ -629,7 +718,9 @@ class ScratchJsonRpcServer:
         )
 
     def _session_for_websocket(self, websocket: Any) -> EV3Session:
-        return self.sessions.require_session(self._client_sessions.get(websocket))
+        return self.sessions.require_session(
+            self._client_sessions.get(websocket)
+        )
 
     def _session_id_from_params(
         self,
@@ -737,6 +828,17 @@ class ScratchJsonRpcServer:
                 },
                 separators=(",", ":"),
             ),
+        )
+
+    def _trainer_error_response(
+        self, exc: TrainerPipelineError
+    ) -> HttpResponse:
+        return self._rest_error(
+            400,
+            exc.code,
+            exc.message,
+            retryable=False,
+            data=exc.data,
         )
 
     def _sensor_hz(self) -> float:
