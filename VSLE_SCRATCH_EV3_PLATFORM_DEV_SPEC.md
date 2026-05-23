@@ -2666,6 +2666,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Add the real provider abstraction layer, including a WeisileAI provider shell, a mock third-party adapter, provider configuration, retry/error mapping, and provider-specific normalization tests behind the AI Quest contract.
 
+### [2026-05-23] ScratchAI EV3 AI Quest provider abstraction
+- **Status**: ✅ Completed
+- **Commit**: `85ffd77`
+- **What was done**: Added the EV3SC-owned AI Quest provider abstraction behind the ScratchAI EV3 contract, including server-side WeisileAI provider shell configuration, dependency-free HTTPS JSON calls, retryable provider error mapping, mock third-party response adaptation, deterministic local preview provider, and cloud-only model references for providers that return safe `model_id` values without local rules.
+- **Files created/modified**: `weisile-link/weisile_link/ai_quest_providers.py`, `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/tests/test_ai_quest_providers.py`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Add full AI Quest raw time-series governance, including consent/progress states, audit log records, dataset deletion, model deletion, and user-visible retry/error handling across JSON-RPC and REST routes.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
