@@ -2638,6 +2638,13 @@ material into:
 - **Files created/modified**: `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Create a local ScratchAI preview startup path inside EV3SC and verify the Scratch editor loads before replacing the EV3 extension entry with VSLE-EV3.
 
+### [2026-05-23] ScratchAI editor preview startup
+- **Status**: ✅ Completed
+- **Commit**: `8bdf87d`
+- **What was done**: Added an EV3SC-local ScratchAI editor preview launcher and verifier that start the EV3SC-owned `scratch-gui` webpack server, embed ScratchAI feature flags, and verify the Scratch GUI HTML plus `gui.js` bundle. Confirmed the editor loads in Playwright Chromium with the Scratch title, Motion/Looks/Events categories, canvas rendering, and no page errors.
+- **Files created/modified**: `scripts/start_scratchai_preview.py`, `scripts/verify_scratchai_preview.py`, `tests/test_scratchai_preview_startup.py`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Replace the ScratchAI extension library `EV3` entry so clicking `EV3` loads the complete VSLE-EV3 implementation instead of Scratch's official EV3 extension.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
