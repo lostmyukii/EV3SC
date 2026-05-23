@@ -76,7 +76,7 @@ test('getInfo exposes all 64 EV3 blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
-    assert.equal(info.name, 'VSLE EV3');
+    assert.equal(info.name, 'EV3');
     assert.equal(info.color1, LEGO_RED);
     assert.equal(info.blocks.length, 64);
     assert.deepEqual(

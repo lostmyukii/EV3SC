@@ -15,6 +15,12 @@ const readExtensionIds = () => {
     return extensionLibrary.map(extension => extension.extensionId);
 };
 
+const readExtension = extensionId => {
+    jest.resetModules();
+    const extensionLibrary = require('../../../src/lib/libraries/extensions/index.jsx').default;
+    return extensionLibrary.find(extension => extension.extensionId === extensionId);
+};
+
 describe('extensions library', () => {
     beforeEach(clearGlobalFlags);
     afterEach(clearGlobalFlags);
@@ -34,5 +40,20 @@ describe('extensions library', () => {
 
         expect(extensionIds).toContain('text2speech');
         expect(extensionIds).toContain('translate');
+    });
+
+    test('routes the EV3 card to the VSLE-EV3 unsandboxed extension URL', () => {
+        const ev3Extension = readExtension('ev3');
+
+        expect(ev3Extension).toEqual(expect.objectContaining({
+            extensionId: 'ev3',
+            loadedExtensionId: 'vsleev3',
+            name: 'EV3',
+            extensionURL: 'http://localhost:8000/vsle-ev3-extension/index.js',
+            featured: true,
+            disabled: false
+        }));
+        expect(ev3Extension.iconURL).toBeTruthy();
+        expect(ev3Extension.insetIconURL).toBeTruthy();
     });
 });

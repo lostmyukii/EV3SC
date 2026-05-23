@@ -206,6 +206,37 @@ def test_accepts_allowed_local_browser_origin():
     asyncio.run(scenario())
 
 
+def test_accepts_scratchai_editor_preview_origin():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        websocket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "version-scratchai-preview",
+                        "method": "getVersion",
+                    }
+                )
+            ]
+        )
+        websocket.request = type(
+            "Request",
+            (),
+            {
+                "path": SCRATCH_BT_PATH,
+                "headers": {"Origin": "http://127.0.0.1:8601"},
+            },
+        )()
+
+        await server.handle_client(websocket)
+
+        assert websocket.closed is None
+        assert websocket.sent[0]["id"] == "version-scratchai-preview"
+
+    asyncio.run(scenario())
+
+
 def test_get_version_returns_scratch_link_protocol_envelope():
     async def scenario():
         server = ScratchJsonRpcServer(FakeTransport())

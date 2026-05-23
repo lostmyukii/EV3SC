@@ -37,6 +37,18 @@ The script starts `webpack serve` from the EV3SC-owned `scratch-gui` package
 and embeds ScratchAI feature flags plus the default local middleware URL
 `http://127.0.0.1:8787`.
 
+To let the ScratchAI `EV3` extension card load the project-owned VSLE-EV3
+extension during development, also serve the EV3SC repo root on the
+spec-defined extension host:
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+The ScratchAI `EV3` card loads
+`http://localhost:8000/vsle-ev3-extension/index.js` as an Unsandboxed
+Extension and selects the loaded `vsleev3` block category.
+
 To inspect the exact command without starting the server:
 
 ```bash

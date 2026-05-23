@@ -51,6 +51,11 @@ import gdxforConnectionSmallIconURL from './gdxfor/gdxfor-small.svg';
 import faceSensingIconURL from './faceSensing/faceSensing.png';
 import faceSensingInsetIconURL from './faceSensing/faceSensing-small.svg';
 
+export const VSLE_EV3_EXTENSION_URL = (
+    process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL ||
+    'http://localhost:8000/vsle-ev3-extension/index.js'
+);
+
 const extensionLibrary = [
     {
         name: (
@@ -280,8 +285,10 @@ const extensionLibrary = [
         helpLink: 'https://scratch.mit.edu/vernier'
     },
     {
-        name: 'LEGO MINDSTORMS EV3',
+        name: 'EV3',
         extensionId: 'ev3',
+        loadedExtensionId: 'vsleev3',
+        extensionURL: VSLE_EV3_EXTENSION_URL,
         collaborator: 'LEGO',
         iconURL: ev3IconURL,
         insetIconURL: ev3InsetIconURL,

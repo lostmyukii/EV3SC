@@ -32,6 +32,7 @@ class ExtensionLibrary extends React.PureComponent {
     }
     handleItemSelect (item) {
         const id = item.extensionId;
+        const categoryId = item.loadedExtensionId || id;
         let url = item.extensionURL ? item.extensionURL : id;
         if (!item.disabled && !id) {
             // eslint-disable-next-line no-alert
@@ -39,13 +40,14 @@ class ExtensionLibrary extends React.PureComponent {
         }
         if (id && !item.disabled) {
             if (this.props.vm.extensionManager.isExtensionLoaded(url)) {
-                this.props.onCategorySelected(id);
+                this.props.onCategorySelected(categoryId);
             } else {
-                this.props.vm.extensionManager.loadExtensionURL(url).then(() => {
-                    this.props.onCategorySelected(id);
+                return this.props.vm.extensionManager.loadExtensionURL(url).then(() => {
+                    this.props.onCategorySelected(categoryId);
                 });
             }
         }
+        return Promise.resolve();
     }
     render () {
         const extensionLibraryThumbnailData = extensionLibraryContent.map(extension => ({
@@ -73,5 +75,7 @@ ExtensionLibrary.propTypes = {
     visible: PropTypes.bool,
     vm: PropTypes.instanceOf(VM).isRequired
 };
+
+export {ExtensionLibrary};
 
 export default injectIntl(ExtensionLibrary);

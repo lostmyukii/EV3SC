@@ -49,11 +49,19 @@ Notes:
 
 ## Not Covered In This Baseline
 
-- EV3 extension replacement inside ScratchAI.
 - AI Quest cloud API contract.
 - Official EV3 opcode compatibility mapping.
 
-The ScratchAI editor can now be locally previewed from EV3SC; replacing the
-extension library `EV3` tile remains the next integration phase.
+The ScratchAI editor can now be locally previewed from EV3SC.
 
-These are planned follow-up phases after the owned ScratchAI source tree is established.
+## ScratchAI EV3 Extension Entry
+
+| Command | Expected result | Result |
+|---|---|---|
+| `npm --workspace @scratch/scratch-gui run test:unit -- --runTestsByPath test/unit/util/extensions-library.test.jsx test/unit/containers/extension-library.test.jsx` | exits 0 | passed; EV3 extension library card points to `http://localhost:8000/vsle-ev3-extension/index.js` and selects loaded category `vsleev3` |
+| `npm --workspace @scratch/scratch-vm exec -- tap test/unit/extension_unsandboxed_loader.js` | exits 0 | passed; VSLE-EV3 URL is allowlisted for Unsandboxed loading and registers through the main-thread Scratch API |
+| `.venv/bin/python -m pytest weisile-link/tests/test_json_rpc_server.py -v` | exits 0 | passed; WeisileLink accepts the ScratchAI editor preview Origin `http://127.0.0.1:8601` while preserving Origin rejection tests |
+| `cd vsle-ev3-extension && npm test` | exits 0 | passed; VSLE-EV3 extension still exposes the complete 64-block surface with category name `EV3` |
+| `npm --workspace @scratch/scratch-vm run build` | exits 0 | passed; Scratch VM builds after adding the allowlisted Unsandboxed extension URL loader |
+| `npm --workspace @scratch/scratch-gui run build:dev` | exits 0 | passed; Scratch GUI development bundle builds with the EV3 entry routed to VSLE-EV3 |
+| Playwright smoke against `http://127.0.0.1:8601/` with `python3 -m http.server 8000 --bind 127.0.0.1` serving EV3SC | EV3 card click loads VSLE-EV3 blocks | passed; clicked extension library `EV3`, fetched `http://localhost:8000/vsle-ev3-extension/index.js` with HTTP 200, and found VSLE-EV3 block text including `停止所有EV3功能`, `EV3电池电压`, and `EV3已连接?` |

@@ -272,6 +272,17 @@ ports. This register records the sources used for the current implementation.
 | Deployment package | `/Users/yukii/Desktop/EV3SC/deploy/env.example`, `/Users/yukii/Desktop/EV3SC/deploy/docker-compose.yml`, `/Users/yukii/Desktop/EV3SC/deploy/README.md` | Localhost-only published ports, safe checked-in env defaults, omitted pairing token, and teacher-facing Origin/pairing guidance |
 | WeisileLink structured logging | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/logging.py` | Token redaction and label truncation evidence for Section 17.1 privacy-safe logs |
 
+## ScratchAI Integration — EV3 Extension Entry
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Requirement that the ScratchAI extension library `EV3` entry loads complete VSLE-EV3, preserves the Scratch UI surface, and selects the EV3 block category after click |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 3.4 allowed Unsandboxed extension URLs, Section 3.5 extension loading flow, and Scratch visual preservation constraints |
+| Scratch GUI extension library baseline | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/lib/libraries/extensions/index.jsx` | Existing Scratch extension picker card metadata and icon assets reused while changing only the EV3 target URL/category mapping |
+| Scratch GUI extension library container | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-gui/src/containers/extension-library.jsx` | Existing click flow that already calls `vm.extensionManager.loadExtensionURL`, extended to select the loaded VSLE category id |
+| Scratch VM extension manager baseline | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js` | Existing extension registration and primitive preparation path reused for the allowlisted main-thread Unsandboxed loader |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Project-owned complete EV3 block surface loaded behind the ScratchAI `EV3` card |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

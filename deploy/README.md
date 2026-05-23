@@ -64,7 +64,7 @@ Browser WebSocket clients are also checked against `WEISILE_ALLOWED_ORIGINS`.
 Keep the checked default for local preview and extension hosts:
 
 ```text
-http://localhost:3001,http://127.0.0.1:3001,http://localhost:8000,http://127.0.0.1:8000
+http://localhost:3001,http://127.0.0.1:3001,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8601,http://127.0.0.1:8601
 ```
 
 The container binds `WEISILE_LINK_HOST=0.0.0.0` internally so Docker can publish

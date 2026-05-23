@@ -65,10 +65,14 @@ DEFAULT_ALLOWED_ORIGINS = (
     "http://127.0.0.1:8000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
+    "http://localhost:8601",
+    "http://127.0.0.1:8601",
     "https://localhost:8000",
     "https://127.0.0.1:8000",
     "https://localhost:3001",
     "https://127.0.0.1:3001",
+    "https://localhost:8601",
+    "https://127.0.0.1:8601",
 )
 
 

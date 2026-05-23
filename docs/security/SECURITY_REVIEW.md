@@ -16,7 +16,7 @@ WEISILE_PAIRING_TOKEN, and a matching WEISILE_ALLOWED_ORIGINS value.
 | Gate | Evidence | Status |
 |------|----------|--------|
 | localhost-only bridge | `WEISILE_LINK_HOST=127.0.0.1` in `deploy/env.example`; Compose publishes `20111`, `8766`, and `3001` to `127.0.0.1` only | Pass |
-| Origin allowlist | `ScratchJsonRpcServer` rejects browser WebSocket clients whose Origin is outside `WEISILE_ALLOWED_ORIGINS`; defaults cover localhost `8000` and `3001` | Pass |
+| Origin allowlist | `ScratchJsonRpcServer` rejects browser WebSocket clients whose Origin is outside `WEISILE_ALLOWED_ORIGINS`; defaults cover localhost `3001`, `8000`, and ScratchAI editor preview `8601` | Pass |
 | EV3 pairing | WiFi and Bluetooth transports send `auth.pair` when WEISILE_PAIRING_TOKEN is configured; EV3 firmware requires `auth.pair` before command handling when token is set | Pass |
 | command validation | WeisileLink uses COMMAND_VALIDATORS before transport dispatch; EV3 firmware validates the same command surface and rejects unknown methods | Pass |
 | unsafe actuator values | Motor speeds are clamped, timed commands are capped at 60 seconds, PID values are bounded, and `motor.stopAll` stays allowlisted | Pass |
@@ -37,6 +37,8 @@ default permits the local preview and extension hosts only:
 - `http://127.0.0.1:3001`
 - `http://localhost:8000`
 - `http://127.0.0.1:8000`
+- `http://localhost:8601`
+- `http://127.0.0.1:8601`
 
 Non-browser clients without an Origin header remain accepted so health probes,
 tests, and native tooling can connect without fabricating browser metadata.

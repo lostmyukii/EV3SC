@@ -92,6 +92,8 @@ const baseConfig = new ScratchWebpackConfigBuilder(
             defineStringEnv('SCRATCH_AI_SCRATCH_LINK_REMOTE_FALLBACK_ENABLED'),
         'process.env.SCRATCH_AI_SCRATCH_LINK_CONNECT_TIMEOUT_MS':
             defineStringEnv('SCRATCH_AI_SCRATCH_LINK_CONNECT_TIMEOUT_MS'),
+        'process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL':
+            defineStringEnv('SCRATCH_AI_VSLE_EV3_EXTENSION_URL'),
         'process.env.SCRATCH_AI_EXTERNAL_TUTORIAL_VIDEOS_ENABLED':
             defineStringEnv('SCRATCH_AI_EXTERNAL_TUTORIAL_VIDEOS_ENABLED'),
         'process.env.SCRATCH_AI_TUTORIAL_TRACKING_PIXELS_ENABLED':
@@ -124,6 +126,8 @@ const baseConfig = new ScratchWebpackConfigBuilder(
             defineStringEnv('SCRATCH_AI_SCRATCH_LINK_REMOTE_FALLBACK_ENABLED'),
         '__SCRATCH_AI_SCRATCH_LINK_CONNECT_TIMEOUT_MS__':
             defineStringEnv('SCRATCH_AI_SCRATCH_LINK_CONNECT_TIMEOUT_MS'),
+        '__SCRATCH_AI_VSLE_EV3_EXTENSION_URL__':
+            defineStringEnv('SCRATCH_AI_VSLE_EV3_EXTENSION_URL'),
         '__SCRATCH_AI_EXTERNAL_TUTORIAL_VIDEOS_ENABLED__':
             defineStringEnv('SCRATCH_AI_EXTERNAL_TUTORIAL_VIDEOS_ENABLED'),
         '__SCRATCH_AI_TUTORIAL_TRACKING_PIXELS_ENABLED__':

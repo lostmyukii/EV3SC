@@ -1,6 +1,7 @@
 const dispatch = require('../dispatch/central-dispatch');
 const log = require('../util/log');
 const maybeFormatMessage = require('../util/maybe-format-message');
+const Cast = require('../util/cast');
 const {
     isScratchAIExtensionEnabled,
     isSpeechToTextExtensionEnabled,
@@ -9,6 +10,18 @@ const {
 } = require('../util/ai-feature-flags');
 
 const BlockType = require('./block-type');
+const ArgumentType = require('./argument-type');
+const TargetType = require('./target-type');
+
+const UNSANDBOXED_EXTENSION_URLS = [
+    'http://localhost:8000/vsle-ev3-extension/index.js',
+    'http://localhost:3001/vsle-ev3-extension/index.js',
+    'https://platform.vsle.cn/extensions/ev3/index.js'
+];
+
+const isUnsandboxedExtensionURL = extensionURL => (
+    UNSANDBOXED_EXTENSION_URLS.indexOf(extensionURL) !== -1
+);
 
 // These extensions are currently built into the VM repository but should not be loaded at startup.
 // TODO: move these out into a separate repository?
@@ -186,6 +199,10 @@ class ExtensionManager {
             return Promise.resolve();
         }
 
+        if (isUnsandboxedExtensionURL(extensionURL)) {
+            return this._loadUnsandboxedExtensionURL(extensionURL);
+        }
+
         return new Promise((resolve, reject) => {
             // If we `require` this at the global level it breaks non-webpack targets, including tests
             const worker = new Worker('./extension-worker.js');
@@ -266,6 +283,81 @@ class ExtensionManager {
         dispatch.setServiceSync(serviceName, extensionObject);
         dispatch.callSync('extensions', 'registerExtensionServiceSync', serviceName);
         return serviceName;
+    }
+
+    /**
+     * Load a trusted extension on the main thread with an Unsandboxed Scratch API.
+     * VSLE-EV3 requires this path so motor commands and cache-backed sensor
+     * reporters do not pay worker round-trip latency.
+     * @param {string} extensionURL - URL of an allowlisted unsandboxed extension.
+     * @returns {Promise} resolved after the extension registers its block info.
+     * @private
+     */
+    _loadUnsandboxedExtensionURL (extensionURL) {
+        if (this.isExtensionLoaded(extensionURL)) {
+            const message = `Rejecting attempt to load a second extension with URL ${extensionURL}`;
+            log.warn(message);
+            return Promise.resolve();
+        }
+
+        const globalObject = typeof globalThis !== 'undefined' ? globalThis : window;
+        const documentObject = globalObject.document;
+        if (!documentObject || !documentObject.createElement) {
+            return Promise.reject(new Error(
+                `Cannot load unsandboxed extension without a document: ${extensionURL}`
+            ));
+        }
+
+        return new Promise((resolve, reject) => {
+            let settled = false;
+            const finish = () => {
+                settled = true;
+                resolve();
+            };
+            const fail = error => {
+                if (!settled) {
+                    settled = true;
+                    reject(error);
+                }
+            };
+
+            globalObject.Scratch = {
+                ArgumentType,
+                BlockType,
+                Cast,
+                TargetType,
+                extensions: {
+                    unsandboxed: true,
+                    register: extensionObject => {
+                        try {
+                            const serviceName = this._registerInternalExtension(extensionObject);
+                            const extensionInfo = extensionObject.getInfo();
+                            this._loadedExtensions.set(extensionURL, serviceName);
+                            this._loadedExtensions.set(extensionInfo.id, serviceName);
+                            finish();
+                        } catch (error) {
+                            fail(error);
+                        }
+                    }
+                }
+            };
+
+            const script = documentObject.createElement('script');
+            script.async = true;
+            script.src = extensionURL;
+            script.onerror = () => fail(new Error(
+                `Failed to load unsandboxed extension: ${extensionURL}`
+            ));
+            script.onload = () => {
+                if (!settled) {
+                    fail(new Error(
+                        `Unsandboxed extension did not register: ${extensionURL}`
+                    ));
+                }
+            };
+            const parent = documentObject.head || documentObject.body;
+            parent.appendChild(script);
+        });
     }
 
     /**
@@ -469,3 +561,5 @@ class ExtensionManager {
 }
 
 module.exports = ExtensionManager;
+module.exports.UNSANDBOXED_EXTENSION_URLS = UNSANDBOXED_EXTENSION_URLS;
+module.exports.isUnsandboxedExtensionURL = isUnsandboxedExtensionURL;

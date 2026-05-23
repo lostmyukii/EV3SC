@@ -781,7 +781,7 @@
         getInfo () {
             return {
                 id: 'vsleev3',
-                name: 'VSLE EV3',
+                name: 'EV3',
                 color1: LEGO_RED,
                 color2: '#CC001B',
                 color3: '#990014',
