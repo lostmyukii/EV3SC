@@ -2575,6 +2575,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/tests/test_json_rpc_server.py`, `tests/test_security_review.py`, `docs/security/SECURITY_REVIEW.md`, `deploy/env.example`, `deploy/README.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the final release readiness and classroom hardware acceptance pass, including Section 14.6 release checklist review, Section 13.7 30-device rehearsal planning, and any real-EV3 hardware evidence the pilot requires.
 
+### [2026-05-23] ScratchAI VSLE-EV3 integration design
+- **Status**: ✅ Completed
+- **Commit**: `bd5b957`
+- **What was done**: Captured the confirmed requirement that ScratchAI is the main product surface and its `EV3` extension entry must load the complete self-developed VSLE-EV3 module instead of Scratch's official 11-block EV3 extension. The design also defines old official EV3 project compatibility, AI Quest cloud API boundaries, raw EV3 time-series upload, model scopes, cloud/cached/local fallback prediction, and required tests.
+- **Files created/modified**: `docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md`
+- **Next step**: User review of the written design, then implementation planning for porting ScratchAI into EV3SC and running baseline ScratchAI regression checks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
