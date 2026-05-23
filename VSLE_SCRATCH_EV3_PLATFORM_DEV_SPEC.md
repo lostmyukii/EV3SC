@@ -2596,6 +2596,13 @@ material into:
 - **Files created/modified**: `.gitignore`, `scripts/port_scratchai_platform.py`, `tests/test_scratchai_port_scripts.py`
 - **Next step**: Use the port tool to create the EV3SC-owned `scratch-ai-platform/` source tree.
 
+### [2026-05-23] ScratchAI source port
+- **Status**: ✅ Completed
+- **Commit**: `ee3cf8b`
+- **What was done**: Ported the complete ScratchAI platform source into EV3SC under `scratch-ai-platform/` while excluding generated dependency and build artifacts. The copied source now gives EV3SC in-repo ownership of ScratchAI editor, middleware, asset worker, preview server, scripts, lockfiles, tests, and docs needed for later EV3 integration.
+- **Files created/modified**: `scratch-ai-platform/**`
+- **Next step**: Add standalone ownership checks that fail if the copied ScratchAI tree depends on the original scratchai folder.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
