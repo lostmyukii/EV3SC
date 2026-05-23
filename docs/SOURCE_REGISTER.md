@@ -303,6 +303,16 @@ ports. This register records the sources used for the current implementation.
 | Sensor router buffer | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Existing bounded EV3 training buffer extended with raw EV3 time-series frames for contract-level upload sanitization |
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing EV3 data collection blocks extended with AI Quest contract commands and synchronous prediction/status reporters |
 
+## ScratchAI Integration — AI Quest Provider Abstraction
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Sections 8, 9, 11, and 13 define the provider abstraction, server-side credentials, allowed raw time-series upload, cloud/cached/local prediction, and provider-unavailable error states |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 10.6 REST envelope and Section 15 privacy requirements for keeping provider credentials server-side and mapping retryable cloud failures safely |
+| AI Quest contract baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/ai_quest_contract.py` | Existing contract-level normalization and cloud/cached/local fallback behavior extended to support configured providers and cloud-only model references |
+| Local Trainer pipeline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | Source-backed local decision tree behavior reused by the deterministic mock provider and cached model export |
+| Python standard library documentation | `https://docs.python.org/3/library/urllib.request.html` | Dependency-free HTTPS JSON request implementation for the WeisileAI provider shell |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

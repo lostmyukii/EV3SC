@@ -46,10 +46,24 @@ The contract strips disallowed content before provider upload:
 
 ## Provider Boundary
 
-The current implementation uses `AIQuestContractService` with a deterministic
-`MockAIQuestProvider` for local development and classroom preview. Provider
-responses are normalized through the same contract shape used by future
-WeisileAI or third-party providers:
+`AIQuestContractService` calls provider adapters through
+`weisile_link.ai_quest_providers`. Empty local development configuration uses
+the deterministic `MockAIQuestProvider`; production-style configuration can
+select a WeisileAI shell or a mock third-party adapter without exposing cloud
+credentials to Scratch.
+
+Supported server-side configuration:
+
+- `AI_QUEST_PROVIDER=weisileai`
+- `WEISILE_AIQUEST_ENDPOINT`
+- `WEISILE_AIQUEST_TOKEN`
+- `AI_QUEST_PROVIDER=mock-third-party`
+- `AI_QUEST_THIRD_PARTY_ENDPOINT`
+- `AI_QUEST_THIRD_PARTY_TOKEN`
+- `AI_QUEST_TIMEOUT_SECONDS`
+- `AI_QUEST_MAX_RETRIES`
+
+Provider responses are normalized through the same contract shape:
 
 - dataset: `dataset_id`, `status`, `uploaded_samples`, `audit`
 - training: `job_id`, `status`, `model_id`, `metrics.accuracy`
@@ -57,6 +71,16 @@ WeisileAI or third-party providers:
 
 Credentials remain server-side. Browser/Scratch blocks never receive provider
 tokens and only store safe dataset/model references.
+
+The WeisileAI shell uses dependency-free server-side HTTPS JSON calls and
+retries retryable provider failures such as HTTP 429 and 5xx responses.
+Retry exhaustion is mapped to `AIQUEST_PROVIDER_UNAVAILABLE` with
+`retryable: true`. Invalid provider responses map to
+`AIQUEST_PROVIDER_INVALID_RESPONSE` with `retryable: false`.
+
+Training providers may return only a safe cloud `model_id` without local model
+rules. That cloud-only model reference can still be selected for cloud
+prediction. Cached prediction is used only when local model rules are present.
 
 ## Prediction Modes
 

@@ -12,11 +12,16 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+from weisile_link.ai_quest_providers import (
+    AIQuestProviderOperationError,
+    AIQuestProviderUnavailable,
+    MockAIQuestProvider,
+    build_ai_quest_provider_from_env,
+)
 from weisile_link.trainer_pipeline import (
     DEFAULT_ACCURACY_GATE,
     TrainerPipelineError,
     export_model_rules,
-    train_decision_tree,
 )
 
 MODEL_SCOPES = {"project", "classSession", "courseTask"}
@@ -66,10 +71,6 @@ class AIQuestContractError(Exception):
         self.message = message
         self.retryable = retryable
         self.data = data or {}
-
-
-class AIQuestProviderUnavailable(Exception):
-    """Raised when a cloud provider cannot serve a prediction request."""
 
 
 @dataclass(frozen=True)
@@ -177,70 +178,6 @@ def normalize_provider_prediction_response(
     }
 
 
-class MockAIQuestProvider:
-    """Deterministic local provider used by tests and classroom preview."""
-
-    name = "mock"
-
-    def __init__(self) -> None:
-        self.available = True
-        self.uploads: List[Dict[str, Any]] = []
-        self._datasets: Dict[str, Sequence[Dict[str, Any]]] = {}
-        self._models: Dict[str, Dict[str, Any]] = {}
-        self._counter = 0
-
-    def upload_dataset(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        self._counter += 1
-        dataset_id = f"mock-dataset-{self._counter}"
-        self.uploads.append(payload)
-        self._datasets[dataset_id] = payload["rows"]
-        return {
-            "id": dataset_id,
-            "state": "ready",
-            "items": len(payload["samples"]),
-            "auditId": f"mock-audit-{self._counter}",
-        }
-
-    def start_training(
-        self,
-        dataset_id: str,
-        rows: Sequence[Dict[str, Any]],
-        *,
-        accuracy_gate: float,
-    ) -> Dict[str, Any]:
-        model = train_decision_tree(rows, accuracy_gate=accuracy_gate)
-        model_id = f"mock-model-{len(self._models) + 1}"
-        model["model"]["id"] = model_id
-        self._models[model_id] = model
-        return {
-            "job": {"id": f"mock-job-{len(self._models)}", "state": "done"},
-            "model": {
-                "id": model_id,
-                "accuracy": model["model"]["accuracy"],
-            },
-            "modelRules": model,
-        }
-
-    def predict(
-        self,
-        model_id: str,
-        features: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        if not self.available:
-            raise AIQuestProviderUnavailable("AI Quest provider unavailable")
-        model = self._models[model_id]
-        label = predict_with_model(model, features)
-        return {
-            "label": label,
-            "score": model["model"]["accuracy"],
-            "mode": "cloud",
-            "modelId": model_id,
-        }
-
-    def export_model(self, model_id: str) -> str:
-        return export_model_rules(self._models[model_id])
-
-
 class AIQuestContractService:
     """Server-side API used by ScratchAI EV3 blocks."""
 
@@ -250,7 +187,7 @@ class AIQuestContractService:
         provider: Optional[MockAIQuestProvider] = None,
         clock: Any = None,
     ) -> None:
-        self.provider = provider or MockAIQuestProvider()
+        self.provider = provider or build_ai_quest_provider_from_env()
         self.clock = clock or _utc_timestamp
         self.datasets: Dict[str, Dict[str, Any]] = {}
         self.jobs: Dict[str, Dict[str, Any]] = {}
@@ -291,9 +228,13 @@ class AIQuestContractService:
             "rows": list(rows),
             "samples": samples,
         }
+        try:
+            provider_response = self.provider.upload_dataset(payload)
+        except AIQuestProviderOperationError as exc:
+            raise _provider_contract_error(exc) from exc
         normalized = normalize_provider_dataset_response(
             self.provider.name,
-            self.provider.upload_dataset(payload),
+            provider_response,
         )
         dataset = {
             **normalized,
@@ -337,6 +278,8 @@ class AIQuestContractService:
                 dataset["rows"],
                 accuracy_gate=_accuracy_gate(accuracy_gate),
             )
+        except AIQuestProviderOperationError as exc:
+            raise _provider_contract_error(exc) from exc
         except TrainerPipelineError as exc:
             raise AIQuestContractError(
                 exc.code,
@@ -348,10 +291,19 @@ class AIQuestContractService:
             provider_response,
         )
         model = provider_response.get("modelRules")
-        if model:
-            model_id = normalized["model_id"]
-            self.models[model_id] = model
-            self.cached_models[model_id] = model
+        model_id = normalized["model_id"]
+        if model_id:
+            if model:
+                self.models[model_id] = model
+                self.cached_models[model_id] = model
+            else:
+                self.models[model_id] = {
+                    "cloud_only": True,
+                    "model": {
+                        "id": model_id,
+                        "accuracy": normalized["metrics"]["accuracy"],
+                    },
+                }
             model_scope = dataset["scope"]
             self.active_models[(model_scope["type"], model_scope["id"])] = (
                 model_id
@@ -439,7 +391,15 @@ class AIQuestContractService:
         if model_id in self.models and getattr(
             self.provider, "available", True
         ):
-            report = self.provider.export_model(model_id)
+            try:
+                report = self.provider.export_model(model_id)
+            except AIQuestProviderUnavailable as exc:
+                if model_id in self.cached_models:
+                    report = export_model_rules(self.cached_models[model_id])
+                else:
+                    raise _provider_contract_error(exc) from exc
+            except AIQuestProviderOperationError as exc:
+                raise _provider_contract_error(exc) from exc
         else:
             report = export_model_rules(self.cached_models[model_id])
         return {
@@ -596,9 +556,32 @@ def _normalize_status(value: Any) -> str:
         return "succeeded"
     if normalized in {"failed", "error"}:
         return "failed"
+    if normalized in {"accepted", "created", "ok"}:
+        return "ready"
     if normalized in {"ready", "succeeded", "queued", "running"}:
         return normalized
     return "ready"
+
+
+def _provider_contract_error(
+    exc: AIQuestProviderOperationError,
+) -> AIQuestContractError:
+    code = (
+        "AIQUEST_PROVIDER_UNAVAILABLE"
+        if exc.retryable
+        else "AIQUEST_PROVIDER_INVALID_RESPONSE"
+    )
+    message = (
+        "AI Quest provider is unavailable"
+        if exc.retryable
+        else "AI Quest provider response is invalid"
+    )
+    return AIQuestContractError(
+        code,
+        message,
+        retryable=exc.retryable,
+        data=exc.contract_data(),
+    )
 
 
 def _accuracy_gate(value: Any) -> float:

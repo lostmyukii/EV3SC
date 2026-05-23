@@ -81,5 +81,6 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | Command | Expected result | Result |
 |---|---|---|
 | `.venv/bin/python -m pytest weisile-link/tests/test_ai_quest_contract.py weisile-link/tests/test_json_rpc_server_ai_quest.py -q` | exits 0 | passed; verifies server-side AI Quest upload sanitization, provider response normalization, cloud/cached/localFallback prediction modes, and JSON-RPC `aiquest.*` routing without EV3 transport commands |
-| `.venv/bin/python -m pytest weisile-link/tests -q` | exits 0 | passed; 105 WeisileLink tests cover existing Scratch Link compatibility, sensor routing, Trainer routes, and the new AI Quest contract path |
+| `.venv/bin/python -m pytest weisile-link/tests/test_ai_quest_providers.py -q` | exits 0 | passed; verifies server-side provider configuration, WeisileAI shell retry behavior, third-party response adaptation, cloud-only model references, and retryable provider error mapping without exposing provider tokens |
+| `.venv/bin/python -m pytest weisile-link/tests -q` | exits 0 | passed; 110 WeisileLink tests cover existing Scratch Link compatibility, sensor routing, Trainer routes, the AI Quest contract path, and provider abstraction |
 | `cd vsle-ev3-extension && npm test` | exits 0 | passed; 29 extension tests cover the complete EV3 block surface plus AI Quest upload/train/status/select/predict/export blocks and synchronous AI Quest reporters |
