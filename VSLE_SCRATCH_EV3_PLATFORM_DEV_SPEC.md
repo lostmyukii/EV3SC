@@ -2561,6 +2561,13 @@ material into:
 - **Files created/modified**: `docs/classroom/README.md`, `docs/classroom/TEACHER_GUIDE.md`, `docs/classroom/WORKBOOK_OBSTACLE_AVOIDANCE.md`, `docs/classroom/WORKBOOK_LINE_PATROL.md`, `docs/classroom/WORKBOOK_TOUCH_STOP_SAFETY.md`, `tests/test_classroom_docs.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 3 performance testing, including 50Hz sustained stream validation, 4-hour session simulation, drift bounds, dropped-update thresholds, and reporting.
 
+### [2026-05-23] 50Hz sustained performance testing
+- **Status**: ✅ Completed
+- **Commit**: `c4e35b6`
+- **What was done**: Added a source-backed Phase 3 performance harness for deterministic 4-hour 50Hz session simulation, dropped-update threshold checks, drift bounds, memory-growth gates, JSON/Markdown reporting, and classroom rehearsal documentation. Added regression tests for pass/fail gates and generated the checked-in 50Hz sustained report artifacts.
+- **Files created/modified**: `performance/__init__.py`, `performance/sustained_50hz.py`, `tests/test_performance_50hz.py`, `docs/performance/PERFORMANCE_50HZ.md`, `docs/performance/50hz_sustained_report.json`, `docs/performance/50hz_sustained_report.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 3 security review, including localhost-only defaults, pairing-token verification, command validation review, privacy/deletion checks, and documentation of any remaining deployment blockers.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
