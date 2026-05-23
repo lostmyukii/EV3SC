@@ -2708,6 +2708,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_rehearsal_evidence.template.json`, `docs/classroom/real_ev3_rehearsal_pending_report.json`, `docs/classroom/README.md`, `docs/scratchai/FINAL_ACCEPTANCE.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Connect real EV3 hardware and run `scripts/run_real_ev3_rehearsal.py --evidence-json docs/classroom/real_ev3_rehearsal_evidence.json --json-report docs/classroom/real_ev3_rehearsal_report.json --report docs/classroom/REAL_EV3_REHEARSAL.md --require-passed`, starting with a 1-brick smoke rehearsal and then the Section 13.7 30-transport / 10-real-brick classroom rehearsal.
 
+### [2026-05-24] Real EV3 one-brick smoke evidence capture
+- **Status**: ✅ Completed
+- **Commit**: `acfdd17`
+- **What was done**: Added a one-brick smoke capture mode to the real EV3 rehearsal runner. The script can connect to WeisileLink via Scratch Link compatible JSON-RPC, discover/connect the EV3 peripheral, subscribe to sensor notifications, optionally run a low-speed 0.25s motor test, issue emergency stop commands, and write smoke evidence/transcript JSON while requiring explicit `--confirm-real-ev3` before simulator ACKs can count as physical EV3 evidence.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/README.md`, `docs/classroom/real_ev3_rehearsal_evidence.template.json`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the one-brick smoke capture against a real EV3 brick using `--capture-smoke --confirm-real-ev3 --run-safe-motor-test`, attach the generated evidence/transcript files, then promote to the full Section 13.7 30-transport / 10-real-brick rehearsal with AI Quest collection/training/export evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
