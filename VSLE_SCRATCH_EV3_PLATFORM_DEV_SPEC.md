@@ -2547,6 +2547,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/trainer_pipeline.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/tests/test_trainer_pipeline.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/AI_QUEST_SAMPLE_PROJECTS.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Phase 3 Docker deployment packaging, including standalone service/container definitions and deployment validation inside EV3SC.
 
+### [2026-05-23] Docker deployment packaging
+- **Status**: ✅ Completed
+- **Commit**: `e641b46`
+- **What was done**: Added a standalone Docker deployment package with a non-root WeisileLink image, localhost-only Compose services for WeisileLink and the local preview, safe environment defaults, native Linux/macOS service templates, and deployment validation checks. Added a packaged `python -m weisile_link` entrypoint and root pytest configuration so deployment and WeisileLink tests can run together from the EV3SC root.
+- **Files created/modified**: `.dockerignore`, `deploy/Dockerfile.weisile-link`, `deploy/docker-compose.yml`, `deploy/env.example`, `deploy/README.md`, `deploy/weisile-link.service`, `deploy/weisile-link.plist`, `deploy/scripts/validate_deployment_assets.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/__main__.py`, `tests/test_deployment_packaging.py`, `pyproject.toml`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Phase 3 teacher guide + student workbooks, including classroom-ready lesson flow, AI Quest worksheets, troubleshooting, and verification docs.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
