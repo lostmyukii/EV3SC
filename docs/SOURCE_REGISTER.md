@@ -237,6 +237,18 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink runtime baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Existing `ScratchJsonRpcServer`, `ScratchServerConfig`, transport wiring, and Trainer WebSocket runtime used by the packaged `python -m weisile_link` entrypoint |
 | Local preview baseline | `/Users/yukii/Desktop/EV3SC/preview/weisile_preview_server.py` | Current localhost preview page and port `3001` behavior exposed by the Compose preview service |
 
+## Phase 3 Step 5 — Teacher Guide and Student Workbooks
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 3 `Teacher guide + student workbooks` task, Section 8.2 AI Quest workflow, Section 13.6/13.7 classroom gates, Section 14 deployment flow, and privacy/safety requirements |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Classroom reliability, Scratch visual-identity constraints, EV3SC-only documentation ownership, no committed secrets, and progress/GitHub workflow |
+| AI Quest sample manifests | `/Users/yukii/Desktop/EV3SC/ai-quest-samples/projects/*.json` | Workbook titles, goals, estimated minutes, hardware ports, labels, Trainer features, 70% accuracy gate, and export artifacts |
+| AI Quest sample documentation | `/Users/yukii/Desktop/EV3SC/docs/AI_QUEST_SAMPLE_PROJECTS.md`, `/Users/yukii/Desktop/EV3SC/ai-quest-samples/README.md` | Source-backed `record -> upload -> train -> export` classroom workflow, supported labels/features, privacy bounds, and sample package commands |
+| EV3 setup documentation | `/Users/yukii/Desktop/EV3SC/docs/EV3DEV_SETUP.md` | Teacher preflight and recovery guidance for EV3 setup, autostart, verification, and rollback |
+| Deployment documentation | `/Users/yukii/Desktop/EV3SC/deploy/README.md` | Teacher-computer startup, localhost-only deployment defaults, pairing token handling, rollback, and emergency stop guidance |
+| Trainer pipeline implementation | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | 70% accuracy gate, local-first exported `model_rules.json`, and no raw student data in exported model rules |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
