@@ -70,6 +70,7 @@ class SmokeReadinessConfig:
 
     root: Path = DEFAULT_ROOT
     ev3_host: str = "ev3dev.local"
+    ev3_candidate_hosts: Tuple[str, ...] = ()
     ev3_port: int = 8765
     weisile_link_host: str = "127.0.0.1"
     weisile_link_port: int = 20111
@@ -788,17 +789,23 @@ def render_smoke_handoff(
     *,
     root: Path,
     ev3_host: str = "ev3dev.local",
+    ev3_candidate_hosts: Sequence[str] = (),
     ev3_port: int = 8765,
     weisile_link_url: str = "ws://127.0.0.1:20111/scratch/bt",
 ) -> str:
     """Render the operator handoff for confirmed physical EV3 smoke capture."""
 
     root = root.resolve()
+    candidate_args = "".join(
+        f" \\\n  --ev3-candidate-host {host}"
+        for host in _ev3_candidate_hosts(ev3_host, ev3_candidate_hosts)[1:]
+    )
     readiness_command = (
         ".venv/bin/python scripts/run_real_ev3_rehearsal.py \\\n"
         "  --check-smoke-readiness \\\n"
         f"  --ev3-host {ev3_host} \\\n"
-        f"  --ev3-port {ev3_port} \\\n"
+        f"  --ev3-port {ev3_port}"
+        f"{candidate_args} \\\n"
         "  --weisile-link-host 127.0.0.1 \\\n"
         "  --weisile-link-port 20111 \\\n"
         "  --smoke-readiness-json "
@@ -882,6 +889,10 @@ def render_smoke_handoff(
         "non-zero until both the physical EV3 endpoint and WeisileLink endpoint",
         "are reachable:",
         "",
+        "If `ev3dev.local` does not resolve on the classroom network, append",
+        "`--ev3-candidate-host <real-ev3-ip>` after reading the EV3 IP from",
+        "`hostname -I` on the brick.",
+        "",
         "```bash",
         readiness_command,
         "```",
@@ -935,6 +946,20 @@ def _probe_tcp_endpoint(
         }
 
 
+def _ev3_candidate_hosts(primary_host: str, extra_hosts: Iterable[str]) -> List[str]:
+    """Return unique EV3 hosts in the order the operator provided them."""
+
+    hosts: List[str] = []
+    seen = set()
+    for host in (primary_host, *extra_hosts):
+        normalized = str(host).strip()
+        if not normalized or normalized in seen:
+            continue
+        hosts.append(normalized)
+        seen.add(normalized)
+    return hosts
+
+
 def build_smoke_readiness(
     config: SmokeReadinessConfig,
     *,
@@ -942,11 +967,26 @@ def build_smoke_readiness(
 ) -> Dict[str, Any]:
     """Probe endpoints without sending EV3 motor commands or confirmations."""
 
-    ev3_endpoint = _probe_tcp_endpoint(
-        host=config.ev3_host,
-        port=config.ev3_port,
-        timeout_seconds=config.timeout_seconds,
-        connector=connector,
+    ev3_candidates = (
+        _probe_tcp_endpoint(
+            host=host,
+            port=config.ev3_port,
+            timeout_seconds=config.timeout_seconds,
+            connector=connector,
+        )
+        for host in _ev3_candidate_hosts(
+            config.ev3_host,
+            config.ev3_candidate_hosts,
+        )
+    )
+    ev3_candidates = list(ev3_candidates)
+    ev3_endpoint = next(
+        (
+            candidate
+            for candidate in ev3_candidates
+            if candidate["reachable"] is True
+        ),
+        ev3_candidates[0],
     )
     weisilelink_endpoint = _probe_tcp_endpoint(
         host=config.weisile_link_host,
@@ -970,6 +1010,7 @@ def build_smoke_readiness(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "root": str(config.root.resolve()),
         "ev3_endpoint": ev3_endpoint,
+        "ev3_candidates": ev3_candidates,
         "weisilelink_endpoint": weisilelink_endpoint,
         "safe_to_run_confirmed_smoke": safe_to_run,
         "next_action": next_action,
@@ -980,6 +1021,7 @@ def render_smoke_readiness_report(readiness: Mapping[str, Any]) -> str:
     """Render Markdown for non-invasive physical EV3 smoke readiness."""
 
     ev3 = readiness["ev3_endpoint"]
+    ev3_candidates = readiness.get("ev3_candidates") or [ev3]
     link = readiness["weisilelink_endpoint"]
     safe_to_run = readiness["safe_to_run_confirmed_smoke"] is True
     lines = [
@@ -1004,18 +1046,24 @@ def render_smoke_readiness_report(readiness: Mapping[str, Any]) -> str:
         "",
         "| Endpoint | Reachable | Error |",
         "|---|---|---|",
-        (
-            f"| `{ev3['endpoint']}` | {str(ev3['reachable']).lower()} | "
-            f"{ev3.get('error') or ''} |"
-        ),
-        (
-            f"| `{link['endpoint']}` | {str(link['reachable']).lower()} | "
-            f"{link.get('error') or ''} |"
-        ),
-        "",
-        "## Next Action",
-        "",
     ]
+    for candidate in ev3_candidates:
+        lines.append(
+            f"| `{candidate['endpoint']}` | "
+            f"{str(candidate['reachable']).lower()} | "
+            f"{candidate.get('error') or ''} |"
+        )
+    lines.append(
+        f"| `{link['endpoint']}` | {str(link['reachable']).lower()} | "
+        f"{link.get('error') or ''} |"
+    )
+    lines.extend(
+        [
+            "",
+            "## Next Action",
+            "",
+        ]
+    )
     if safe_to_run:
         lines.append(
             "Physical endpoint readiness is present. The human operator still "
@@ -1139,6 +1187,15 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--classroom-or-lab", default="")
     parser.add_argument("--transport-mode", default="wifi")
     parser.add_argument("--ev3-host", default="ev3dev.local")
+    parser.add_argument(
+        "--ev3-candidate-host",
+        action="append",
+        default=[],
+        help=(
+            "Additional physical EV3 host/IP to probe if --ev3-host is not "
+            "reachable. May be passed more than once."
+        ),
+    )
     parser.add_argument("--ev3-port", type=int, default=8765)
     parser.add_argument("--weisile-link-host", default="127.0.0.1")
     parser.add_argument("--weisile-link-port", type=int, default=20111)
@@ -1198,6 +1255,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             render_smoke_handoff(
                 root=plan.root,
                 ev3_host=args.ev3_host,
+                ev3_candidate_hosts=tuple(args.ev3_candidate_host),
                 ev3_port=args.ev3_port,
                 weisile_link_url=args.weisile_link_url,
             ),
@@ -1208,6 +1266,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             SmokeReadinessConfig(
                 root=plan.root,
                 ev3_host=args.ev3_host,
+                ev3_candidate_hosts=tuple(args.ev3_candidate_host),
                 ev3_port=args.ev3_port,
                 weisile_link_host=args.weisile_link_host,
                 weisile_link_port=args.weisile_link_port,

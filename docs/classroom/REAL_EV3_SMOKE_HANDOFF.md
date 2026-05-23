@@ -49,6 +49,10 @@ Run the readiness gate before the confirmed smoke capture. It exits
 non-zero until both the physical EV3 endpoint and WeisileLink endpoint
 are reachable:
 
+If `ev3dev.local` does not resolve on the classroom network, append
+`--ev3-candidate-host <real-ev3-ip>` after reading the EV3 IP from
+`hostname -I` on the brick.
+
 ```bash
 .venv/bin/python scripts/run_real_ev3_rehearsal.py \
   --check-smoke-readiness \

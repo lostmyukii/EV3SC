@@ -1,5 +1,12 @@
 {
-  "created_at": "2026-05-23T17:04:16.452339+00:00",
+  "created_at": "2026-05-23T17:13:44.401468+00:00",
+  "ev3_candidates": [
+    {
+      "endpoint": "ev3dev.local:8765",
+      "error": "[Errno 8] nodename nor servname provided, or not known",
+      "reachable": false
+    }
+  ],
   "ev3_endpoint": {
     "endpoint": "ev3dev.local:8765",
     "error": "[Errno 8] nodename nor servname provided, or not known",

@@ -9,6 +9,7 @@ from scripts.run_real_ev3_rehearsal import (
     build_smoke_json_rpc_requests,
     evaluate_rehearsal_evidence,
     main,
+    parse_args,
     pending_evidence_template,
     render_rehearsal_report,
     render_smoke_readiness_report,
@@ -304,6 +305,51 @@ def test_smoke_readiness_allows_confirmed_run_only_when_both_ports_reachable():
     assert readiness["safe_to_run_confirmed_smoke"] is True
     assert readiness["ev3_endpoint"]["reachable"] is True
     assert readiness["weisilelink_endpoint"]["reachable"] is True
+
+
+def test_smoke_readiness_uses_reachable_ev3_candidate_host():
+    def connector(address, timeout=0):
+        host, port = address
+        if host == "192.168.1.77" and port == 8765:
+            return object()
+        if host == "127.0.0.1" and port == 20111:
+            return object()
+        raise OSError("name or service not known")
+
+    readiness = build_smoke_readiness(
+        SmokeReadinessConfig(
+            root=ROOT,
+            ev3_host="ev3dev.local",
+            ev3_candidate_hosts=("192.168.1.77", "192.168.1.77"),
+        ),
+        connector=connector,
+    )
+    markdown = render_smoke_readiness_report(readiness)
+
+    assert readiness["safe_to_run_confirmed_smoke"] is True
+    assert readiness["ev3_endpoint"]["endpoint"] == "192.168.1.77:8765"
+    assert [item["endpoint"] for item in readiness["ev3_candidates"]] == [
+        "ev3dev.local:8765",
+        "192.168.1.77:8765",
+    ]
+    assert "| `ev3dev.local:8765` | false | name or service not known |" in markdown
+    assert "| `192.168.1.77:8765` | true |  |" in markdown
+
+
+def test_smoke_readiness_cli_accepts_repeated_ev3_candidate_hosts():
+    args = parse_args(
+        [
+            "--check-smoke-readiness",
+            "--ev3-host",
+            "ev3dev.local",
+            "--ev3-candidate-host",
+            "192.168.1.77",
+            "--ev3-candidate-host",
+            "192.168.1.78",
+        ]
+    )
+
+    assert args.ev3_candidate_host == ["192.168.1.77", "192.168.1.78"]
 
 
 def test_require_smoke_ready_exits_nonzero_when_readiness_is_blocked():

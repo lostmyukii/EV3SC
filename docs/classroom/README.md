@@ -37,6 +37,10 @@ handoff before running the confirmed hardware command.
 
 Before using `--confirm-real-ev3`, run the non-invasive readiness check:
 
+If `ev3dev.local` does not resolve on the classroom network, read the EV3 IP
+from `hostname -I` on the brick and add
+`--ev3-candidate-host <real-ev3-ip>` to the readiness command.
+
 ```bash
 .venv/bin/python scripts/run_real_ev3_rehearsal.py \
   --check-smoke-readiness \
