@@ -2617,6 +2617,13 @@ material into:
 - **Files created/modified**: `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Install Scratch editor dependencies from the EV3SC-owned lockfile and run the first Scratch editor baseline checks.
 
+### [2026-05-23] ScratchAI microbit prepare fallback
+- **Status**: ✅ Completed
+- **Commit**: `9a2ce11`
+- **What was done**: Updated the EV3SC-owned Scratch GUI prepare script to reuse an existing local microbit hex file before falling back to the Scratch download URL. This keeps `npm ci` compatible with the locally ported ScratchAI source when Node fetch cannot reach `downloads.scratch.mit.edu` through the current network path.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/scripts/prepare.mjs`
+- **Next step**: Retry Scratch editor dependency installation and continue the editor baseline checks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
