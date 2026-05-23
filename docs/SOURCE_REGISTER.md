@@ -249,6 +249,16 @@ ports. This register records the sources used for the current implementation.
 | Deployment documentation | `/Users/yukii/Desktop/EV3SC/deploy/README.md` | Teacher-computer startup, localhost-only deployment defaults, pairing token handling, rollback, and emergency stop guidance |
 | Trainer pipeline implementation | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | 70% accuracy gate, local-first exported `model_rules.json`, and no raw student data in exported model rules |
 
+## Phase 3 Step 6 — Performance Testing
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 3 `Performance testing (50Hz sustained, 4h session)` task; Section 13.4 sustained performance test; Section 13.6 dropped-update, drift, and memory gates; Section 17.3 runtime alert thresholds |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC-only ownership, complete scoped implementation, SensorCache reporter rule, no Scratch visual-design changes, GitHub/progress workflow, and classroom reliability target |
+| EV3 server sensor loop | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | Source-backed monotonic `next_tick` 50Hz sensor broadcast model used by the performance harness drift calculations |
+| WeisileLink observability baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Existing `sensor_hz`, memory, transport, and collected-point health fields used to align report gates with runtime status |
+| WeisileLink Trainer router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Existing bounded collection buffer and `MAX_COLLECTED_POINTS` behavior covered by the performance documentation |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
