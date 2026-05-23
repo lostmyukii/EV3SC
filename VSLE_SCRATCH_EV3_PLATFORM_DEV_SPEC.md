@@ -2687,6 +2687,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Build the unified local preview stack for ScratchAI editor, middleware, asset worker, WeisileLink, EV3 simulation, and AI Quest cloud mock.
 
+### [2026-05-23] ScratchAI unified local preview stack
+- **Status**: ✅ Completed
+- **Commit**: `030521f`
+- **What was done**: Added an EV3SC-owned unified local preview stack that starts the ScratchAI editor, ScratchAI middleware, asset worker, preview gateway, VSLE-EV3 extension static hosting, WeisileLink EV3 simulation, Trainer WebSocket, and AI Quest mock provider together. Added a verification script that checks all HTTP/WebSocket endpoints, supports custom WeisileLink/Trainer ports, and bypasses developer machine HTTP proxies for localhost health checks; verified the running stack with 7/7 checks passing.
+- **Files created/modified**: `scripts/start_unified_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_unified_preview_stack.py`, `preview/weisile_preview_server.py`, `docs/scratchai/UNIFIED_PREVIEW_STACK.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the ScratchAI-centered final acceptance pass: verify extension-library `EV3` loading inside the unified stack, legacy `.sb3` compatibility, AI Quest mock/cloud/local fallback flows, and real EV3 hardware readiness evidence for classroom pilot.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
