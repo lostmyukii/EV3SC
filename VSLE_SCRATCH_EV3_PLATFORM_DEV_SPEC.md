@@ -2729,6 +2729,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/README.md`, `docs/SOURCE_REGISTER.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Connect a physical EV3 running `vsle_ev3_server.py`, start WeisileLink with `EV3_IP=<real-ev3-host> WEISILE_TRANSPORT=wifi`, then run the confirmed one-brick smoke command from `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md` using `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-24] Real EV3 smoke readiness probe
+- **Status**: ✅ Completed
+- **Commit**: `78eda95`
+- **What was done**: Added a non-invasive smoke readiness probe to the real EV3 rehearsal runner and recorded current endpoint evidence. The probe checks TCP reachability only, sends no EV3 commands, and currently reports `safe_to_run_confirmed_smoke=false` because `ev3dev.local:8765` is not resolvable while local WeisileLink on `127.0.0.1:20111` is reachable.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`, `docs/classroom/README.md`, `docs/SOURCE_REGISTER.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Connect a physical EV3 running `vsle_ev3_server.py`, rerun the smoke readiness probe until both EV3 and WeisileLink endpoints are reachable, then run the confirmed one-brick smoke command with `--confirm-real-ev3 --run-safe-motor-test`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
