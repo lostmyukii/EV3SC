@@ -5,6 +5,10 @@ from scripts.port_scratchai_platform import (
     EXCLUDED_FILE_NAMES,
     port_scratchai_platform,
 )
+from scripts.check_scratchai_standalone import (
+    StandaloneCheckError,
+    check_scratchai_standalone,
+)
 
 
 def test_port_excludes_generated_directories_and_files(tmp_path):
@@ -61,3 +65,82 @@ def test_port_refuses_to_overwrite_without_force(tmp_path):
         raise AssertionError("Expected FileExistsError")
 
     assert (dest / "existing.txt").read_text(encoding="utf-8") == "keep me\n"
+
+
+def _write_required_tree(root: Path) -> Path:
+    platform = root / "scratch-ai-platform"
+    for directory in [
+        "scratch-editor",
+        "ai-middleware",
+        "asset-worker",
+        "preview-server",
+        "scripts",
+    ]:
+        (platform / directory).mkdir(parents=True)
+    for file_name in [
+        "scratch-editor/package.json",
+        "ai-middleware/package.json",
+        "asset-worker/package.json",
+        "preview-server/package.json",
+    ]:
+        (platform / file_name).write_text(
+            '{"scripts":{}}\n',
+            encoding="utf-8",
+        )
+    return platform
+
+
+def test_standalone_check_accepts_required_tree(tmp_path):
+    platform = _write_required_tree(tmp_path)
+
+    result = check_scratchai_standalone(
+        root=tmp_path,
+        forbidden_source=Path("/Users/yukii/Desktop/scratch ai"),
+    )
+
+    assert result["platform"] == str(platform)
+    assert result["required_paths_checked"] >= 9
+
+
+def test_standalone_check_rejects_external_symlink(tmp_path):
+    platform = _write_required_tree(tmp_path)
+    outside = tmp_path.parent / "outside-source"
+    outside.mkdir(exist_ok=True)
+    (platform / "ai-middleware" / "external-link").symlink_to(outside)
+
+    try:
+        check_scratchai_standalone(
+            root=tmp_path,
+            forbidden_source=Path("/Users/yukii/Desktop/scratch ai"),
+        )
+    except StandaloneCheckError as error:
+        assert "escapes EV3SC" in str(error)
+    else:
+        raise AssertionError("Expected StandaloneCheckError")
+
+
+def test_standalone_check_rejects_package_script_external_dependency(
+    tmp_path,
+):
+    _write_required_tree(tmp_path)
+    package_json = (
+        tmp_path
+        / "scratch-ai-platform"
+        / "ai-middleware"
+        / "package.json"
+    )
+    package_json.write_text(
+        '{"scripts":{"start":"node '
+        '/Users/yukii/Desktop/scratch ai/server.js"}}\n',
+        encoding="utf-8",
+    )
+
+    try:
+        check_scratchai_standalone(
+            root=tmp_path,
+            forbidden_source=Path("/Users/yukii/Desktop/scratch ai"),
+        )
+    except StandaloneCheckError as error:
+        assert "forbidden source path" in str(error)
+    else:
+        raise AssertionError("Expected StandaloneCheckError")
