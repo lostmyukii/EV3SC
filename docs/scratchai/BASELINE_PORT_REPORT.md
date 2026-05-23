@@ -65,3 +65,13 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | `npm --workspace @scratch/scratch-vm run build` | exits 0 | passed; Scratch VM builds after adding the allowlisted Unsandboxed extension URL loader |
 | `npm --workspace @scratch/scratch-gui run build:dev` | exits 0 | passed; Scratch GUI development bundle builds with the EV3 entry routed to VSLE-EV3 |
 | Playwright smoke against `http://127.0.0.1:8601/` with `python3 -m http.server 8000 --bind 127.0.0.1` serving EV3SC | EV3 card click loads VSLE-EV3 blocks | passed; clicked extension library `EV3`, fetched `http://localhost:8000/vsle-ev3-extension/index.js` with HTTP 200, and found VSLE-EV3 block text including `停止所有EV3功能`, `EV3电池电压`, and `EV3已连接?` |
+
+## ScratchAI Official EV3 Compatibility
+
+| Command | Expected result | Result |
+|---|---|---|
+| `npm --workspace @scratch/scratch-vm exec -- tap test/unit/extension_vsle_ev3_compat.js` | exits 0 | passed; built-in `ev3` now loads the VSLE-backed compatibility extension, maps all 11 official opcodes, and verifies the old EV3 `.sb3` fixture registers `ev3_getDistance` through the compatibility runtime |
+| `npm --workspace @scratch/scratch-vm exec -- tap test/unit/extension_vsle_ev3_compat.js test/unit/extension_unsandboxed_loader.js` | exits 0 | passed; 25 checks cover legacy EV3 opcode mapping plus the Unsandboxed VSLE-EV3 URL loader |
+| `SCRATCH_AI_TEXT_TO_SPEECH_EXTENSION_ENABLED=1 npm --workspace @scratch/scratch-vm exec -- tap test/integration/load-extensions.js` | exits 0 | passed; 23 checks cover the full extension fixture loop, including the official EV3 `.sb3` compatibility path while honoring ScratchAI's default external-service policy |
+| `npm --workspace @scratch/scratch-vm run lint` | exits 0 | passed with existing warning-only JSDoc and format-message output; no blocking lint errors from the EV3 compatibility work |
+| `npm --workspace @scratch/scratch-vm run build` | exits 0 | passed with the existing optional `canvas` warning from the Scratch SVG/jsdom dependency path; the built-in compatibility extension does not pull the Unsandboxed VSLE bundle into the VM build |

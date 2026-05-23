@@ -39,7 +39,7 @@ const builtinExtensions = {
     text2speech: () => require('../extensions/scratch3_text2speech'),
     translate: () => require('../extensions/scratch3_translate'),
     videoSensing: () => require('../extensions/scratch3_video_sensing'),
-    ev3: () => require('../extensions/scratch3_ev3'),
+    ev3: () => require('../extensions/scratch3_vsle_ev3_compat'),
     makeymakey: () => require('../extensions/scratch3_makeymakey'),
     boost: () => require('../extensions/scratch3_boost'),
     gdxfor: () => require('../extensions/scratch3_gdx_for'),
@@ -300,7 +300,7 @@ class ExtensionManager {
             return Promise.resolve();
         }
 
-        const globalObject = typeof globalThis !== 'undefined' ? globalThis : window;
+        const globalObject = typeof globalThis === 'undefined' ? window : globalThis;
         const documentObject = globalObject.document;
         if (!documentObject || !documentObject.createElement) {
             return Promise.reject(new Error(

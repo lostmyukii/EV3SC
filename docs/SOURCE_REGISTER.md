@@ -283,6 +283,16 @@ ports. This register records the sources used for the current implementation.
 | Scratch VM extension manager baseline | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js` | Existing extension registration and primitive preparation path reused for the allowlisted main-thread Unsandboxed loader |
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Project-owned complete EV3 block surface loaded behind the ScratchAI `EV3` card |
 
+## ScratchAI Integration — Official EV3 Compatibility
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Requirement that older `.sb3` projects using official Scratch EV3 blocks automatically map to the complete VSLE-EV3 runtime |
+| Scratch VM official EV3 extension source | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | Source-backed official `ev3` extension id, 11 opcode names, port menu values, timing bounds, and MIDI note-to-frequency formula |
+| Scratch VM extension manager baseline | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js` | Built-in extension loading path for project deserialization of `ev3_*` opcodes |
+| Scratch VM SB3 EV3 fixture | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/test/fixtures/load-extensions/confirm-load/ev3-simple-project.sb3` | Existing official EV3 project fixture used to verify old project loading selects the VSLE-backed compatibility extension |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Project-owned VSLE JSON-RPC method names and cache-backed reporter contract mirrored by the VM-safe compatibility wrapper |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
