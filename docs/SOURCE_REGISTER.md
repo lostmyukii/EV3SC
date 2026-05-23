@@ -201,6 +201,17 @@ ports. This register records the sources used for the current implementation.
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Current `getInfo()` block metadata used to validate each sample command opcode and prevent drift from the runnable extension |
 | WeisileLink Trainer router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Current Trainer feature fields, CSV export semantics, and local buffer behavior mirrored by sample workflow plans |
 
+## Phase 3 Preview — Local Frontend/Backend Stack
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 4.4 `SensorCache`; Section 5.4 concurrent Scratch + Trainer routing; Section 7.2 Scratch notification and Trainer stream shapes; Section 8.2 AI Quest record/upload/export workflow; Section 10.1/10.2 Trainer endpoints; Section 11.2/11.3 modal and sensor panel surfaces |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC standalone ownership, no Scratch GUI visual changes, source-backed Scratch/EV3 behavior, complete scoped implementation, and GitHub/progress workflow |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Reused the project-owned Unsandboxed extension bundle, `SensorCache`, `WeisileLinkClient`, connection modal, sensor panel, and AI Quest data collection commands in the preview frontend |
+| WeisileLink JSON-RPC server baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Reused the real Scratch-compatible `/scratch/bt` JSON-RPC server, Trainer WebSocket endpoint, sensor routing, and upload/collection command path instead of a mock protocol |
+| AI Quest sample package | `/Users/yukii/Desktop/EV3SC/ai-quest-samples/projects/*.json` | Rendered the existing source-backed classroom sample workflows inside the preview page |
+| websockets 15 upgrade documentation | `https://websockets.readthedocs.io/en/15.0/howto/upgrade.html` | Confirmed the server connection object exposes the request path as `connection.request.path`, so `ScratchJsonRpcServer` now accepts path metadata from both legacy two-argument handlers and current connection objects |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

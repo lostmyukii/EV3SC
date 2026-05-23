@@ -182,10 +182,10 @@
                 return;
             }
             const now = this._clock();
-            this.data = deepMerge(this.data, payload);
-            if (payload.timestamp === undefined) {
-                this.data.timestamp = now;
-            }
+            this.data = deepMerge(
+                this.data,
+                normalizeSensorPayload(payload, now)
+            );
             this._trackUpdateRate(now);
         }
 
@@ -2084,6 +2084,26 @@
             }
         });
         return result;
+    };
+
+    const normalizeSensorPayload = (payload, now) => {
+        const normalized = {...payload};
+        if (normalized.timestamp === undefined) {
+            normalized.timestamp = now;
+            return normalized;
+        }
+
+        const timestamp = Number(normalized.timestamp);
+        if (!Number.isFinite(timestamp)) {
+            normalized.timestamp = now;
+            return normalized;
+        }
+
+        normalized.timestamp = timestamp > 1000000000 &&
+            timestamp < 1000000000000 ?
+                Math.round(timestamp * 1000) :
+                Math.round(timestamp);
+        return normalized;
     };
 
     const decodeBase64 = value => {

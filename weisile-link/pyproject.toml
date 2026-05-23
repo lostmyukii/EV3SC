@@ -3,6 +3,7 @@ name = "weisile-link"
 version = "0.1.0"
 description = "Scratch Link compatible bridge for VSLE EV3."
 requires-python = ">=3.9"
+dependencies = ["websockets>=10,<16"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

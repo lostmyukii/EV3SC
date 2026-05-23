@@ -1,0 +1,11 @@
+{
+  "name": "@vsle/preview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local preview shell for VSLE EV3 frontend and WeisileLink backend.",
+  "type": "commonjs",
+  "scripts": {
+    "check": "node --check app.js && node --check tests/test_preview_static.js",
+    "test": "node --test tests/*.js"
+  }
+}

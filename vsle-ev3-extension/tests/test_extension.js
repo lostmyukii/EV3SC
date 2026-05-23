@@ -115,6 +115,14 @@ test('SensorCache provides default EV3 state and merges partial updates', () => 
     assert.equal(sensorCache.get('system.buttons.center'), false);
 });
 
+test('SensorCache normalizes EV3 epoch-second timestamps to milliseconds', () => {
+    const sensorCache = new SensorCache({clock: () => 1716387600125});
+
+    sensorCache.update({timestamp: 1716387600.123});
+
+    assert.equal(sensorCache.get('timestamp'), 1716387600123);
+});
+
 test('motor command blocks normalize arguments before sending to WeisileLink', async () => {
     const {extension, sent} = makeExtension();
 

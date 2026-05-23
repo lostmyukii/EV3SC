@@ -66,9 +66,7 @@ class FakeTransport:
         if self.connect_result:
             self.manager.record_reconnected(TransportKind.WIFI)
         else:
-            self.manager.record_transport_failure(
-                TransportKind.WIFI, "connect refused"
-            )
+            self.manager.record_transport_failure(TransportKind.WIFI, "connect refused")
         return self.connect_result
 
     async def send_command(self, command):
@@ -108,6 +106,37 @@ def test_rejects_non_scratch_bt_websocket_path():
 
         assert websocket.closed == (1008, "unsupported Scratch Link path")
         assert server.scratch_client_count == 0
+
+    asyncio.run(scenario())
+
+
+def test_accepts_websockets_connection_object_request_path():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        websocket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "version-1",
+                        "method": "getVersion",
+                    }
+                )
+            ]
+        )
+        websocket.request = type(
+            "Request",
+            (),
+            {"path": SCRATCH_BT_PATH},
+        )()
+
+        await server.handle_client(websocket)
+
+        assert websocket.closed is None
+        assert websocket.sent[0]["id"] == "version-1"
+        assert websocket.sent[0]["result"]["protocol"] == (
+            SCRATCH_LINK_PROTOCOL_VERSION
+        )
 
     asyncio.run(scenario())
 
@@ -499,9 +528,7 @@ def test_upload_to_trainer_reports_unavailable_without_trainer_client():
                 "id": "upload-1",
                 "error": {
                     "code": "TRAINER_UNAVAILABLE",
-                    "message": (
-                        "WeisileAI Trainer subscription/upload unavailable"
-                    ),
+                    "message": ("WeisileAI Trainer subscription/upload unavailable"),
                     "data": {"retryable": True},
                 },
             }
@@ -596,9 +623,7 @@ def test_internal_trainer_rest_routes_use_common_envelope():
         cleared = json.loads((await server.handle_post("/api/data/clear")).body)
 
         assert sensors["ok"] is True
-        assert sensors["data"] == {
-            "S2": {"type": "ultrasonic", "distance_cm": 9.5}
-        }
+        assert sensors["data"] == {"S2": {"type": "ultrasonic", "distance_cm": 9.5}}
         assert motors["data"] == {"B": {"position": -180}}
         assert collected["data"]["count"] == 1
         assert collected["data"]["rows"][0]["label"] == "near"

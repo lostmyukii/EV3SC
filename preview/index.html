@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="vsle-extension-source" content="/vsle-ev3-extension/index.js">
+  <title>VSLE EV3 Preview</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">EV3SC local preview</p>
+          <h1>VSLE EV3 课堂预览</h1>
+        </div>
+        <div class="status-strip">
+          <span id="bridge-status" class="status-pill">Bridge: starting</span>
+          <span id="trainer-status" class="status-pill">Trainer: starting</span>
+        </div>
+      </header>
+
+      <section class="stage-band" aria-label="EV3 preview stage">
+        <div class="stage-surface">
+          <div class="ev3-face">
+            <img src="/vsle-ev3-extension/assets/ev3-small.svg" alt="EV3">
+            <div>
+              <strong id="brick-name">VSLE EV3 Preview</strong>
+              <span id="sensor-rate">waiting for sensor stream</span>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="connect-link" type="button">连接后端</button>
+            <button id="start-safe" type="button">采集 safe-zone</button>
+            <button id="stop-collect" type="button">停止采集</button>
+            <button id="upload-data" type="button">上传训练工场</button>
+            <button id="export-data" type="button">导出 CSV</button>
+          </div>
+          <pre id="event-log" aria-live="polite"></pre>
+        </div>
+        <aside data-vsle-sensor-panel-host></aside>
+      </section>
+
+      <section class="modal-band" data-vsle-connection-modal-host></section>
+
+      <section class="samples-band">
+        <div class="section-heading">
+          <p class="eyebrow">AI Quest samples</p>
+          <h2>数据采集样例</h2>
+        </div>
+        <div class="sample-grid" data-ai-quest-samples></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./app.js?preview=20260523"></script>
+</body>
+</html>

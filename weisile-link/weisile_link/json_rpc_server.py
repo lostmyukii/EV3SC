@@ -124,6 +124,7 @@ class ScratchJsonRpcServer:
 
     async def handle_client(self, websocket: Any, path: str = "") -> None:
         """Serve one Scratch Link WebSocket client."""
+        path = self._resolve_websocket_path(websocket, path)
         if path != self.path:
             await websocket.close(
                 code=1008,
@@ -138,6 +139,19 @@ class ScratchJsonRpcServer:
         finally:
             self.scratch_clients.discard(websocket)
             self._unregister_scratch_notifications(websocket)
+
+    def _resolve_websocket_path(self, websocket: Any, path: str = "") -> str:
+        """Return a WebSocket request path across websockets API versions."""
+        if path:
+            return path
+        request = getattr(websocket, "request", None)
+        request_path = getattr(request, "path", None)
+        if isinstance(request_path, str):
+            return request_path
+        websocket_path = getattr(websocket, "path", None)
+        if isinstance(websocket_path, str):
+            return websocket_path
+        return ""
 
     async def handle_json_rpc_message(self, websocket: Any, raw: str) -> None:
         """Handle one client JSON-RPC request or notification."""
@@ -197,9 +211,7 @@ class ScratchJsonRpcServer:
             self._unregister_scratch_notifications(websocket)
             return make_result(request_id, None)
         if method == "vsle.setTransport":
-            return await self._handle_set_transport(
-                websocket, request_id, params
-            )
+            return await self._handle_set_transport(websocket, request_id, params)
         if method == "send":
             command = self._command_from_send(request_id, params)
             if command.get("method") == "data.uploadToTrainer":
@@ -284,9 +296,7 @@ class ScratchJsonRpcServer:
                 ErrorCode.EV3_TRANSPORT_DISCONNECTED,
                 "Requested EV3 peripheral is not available",
                 {
-                    "peripheralId": self._session_id_from_params(
-                        websocket, params
-                    ),
+                    "peripheralId": self._session_id_from_params(websocket, params),
                     "retryable": True,
                 },
             )
@@ -396,9 +406,7 @@ class ScratchJsonRpcServer:
     def handle_get(self, path: str) -> HttpResponse:
         """Expose framework-neutral internal Trainer REST GET routes."""
         route, query = _split_path(path)
-        session_id = _first_query_value(
-            query, "brick_id"
-        ) or _first_query_value(
+        session_id = _first_query_value(query, "brick_id") or _first_query_value(
             query,
             "peripheralId",
         )
@@ -577,9 +585,9 @@ class ScratchJsonRpcServer:
         if existing is not None:
             previous_session_id, previous_consumer = existing
             try:
-                self.sessions.require_session(
-                    previous_session_id
-                ).router.unregister(previous_consumer)
+                self.sessions.require_session(previous_session_id).router.unregister(
+                    previous_consumer
+                )
             except KeyError:
                 pass
         consumer = WebSocketConsumer(websocket, "scratch")
@@ -592,9 +600,7 @@ class ScratchJsonRpcServer:
         if item is not None:
             session_id, consumer = item
             try:
-                self.sessions.require_session(session_id).router.unregister(
-                    consumer
-                )
+                self.sessions.require_session(session_id).router.unregister(consumer)
             except KeyError:
                 return
 
@@ -623,9 +629,7 @@ class ScratchJsonRpcServer:
         )
 
     def _session_for_websocket(self, websocket: Any) -> EV3Session:
-        return self.sessions.require_session(
-            self._client_sessions.get(websocket)
-        )
+        return self.sessions.require_session(self._client_sessions.get(websocket))
 
     def _session_id_from_params(
         self,
