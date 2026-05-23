@@ -2673,6 +2673,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/ai_quest_providers.py`, `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/tests/test_ai_quest_providers.py`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Add full AI Quest raw time-series governance, including consent/progress states, audit log records, dataset deletion, model deletion, and user-visible retry/error handling across JSON-RPC and REST routes.
 
+### [2026-05-23] ScratchAI EV3 AI Quest raw time-series governance
+- **Status**: ✅ Completed
+- **Commit**: `950d5ef`
+- **What was done**: Added AI Quest governance for raw EV3 time-series workflows, including consent failure status, upload status/progress records, teacher-reviewable audit metadata, provider/local dataset deletion, provider/local model deletion, and retryable provider error handling through both JSON-RPC and internal REST routes. Verified governance records exclude raw samples, student names, Scratch project JSON, local paths, and provider credentials.
+- **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/ai_quest_providers.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_ai_quest_providers.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Add model scopes and shared-model management for ScratchAI EV3 projects, including project/class/course model listing, publish/withdraw behavior, cached-model controls, prediction-mode reporting, and pure `.sb3` metadata stripping.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
