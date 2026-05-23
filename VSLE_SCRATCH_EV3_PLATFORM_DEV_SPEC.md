@@ -2736,6 +2736,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`, `docs/classroom/README.md`, `docs/SOURCE_REGISTER.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Connect a physical EV3 running `vsle_ev3_server.py`, rerun the smoke readiness probe until both EV3 and WeisileLink endpoints are reachable, then run the confirmed one-brick smoke command with `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-24] Real EV3 smoke readiness gate
+- **Status**: ✅ Completed
+- **Commit**: `37290d7`
+- **What was done**: Added `--require-smoke-ready` to the non-invasive readiness probe so automation exits with code 2 until both the physical EV3 endpoint and local WeisileLink endpoint are reachable. Regenerated the operator handoff and current readiness evidence; the gate still blocks confirmed smoke capture because `ev3dev.local:8765` is not resolvable while `127.0.0.1:20111` is reachable.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/real_ev3_smoke_readiness.json`, `docs/classroom/README.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Connect a physical EV3, rerun `scripts/run_real_ev3_rehearsal.py --check-smoke-readiness ... --require-smoke-ready` until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
