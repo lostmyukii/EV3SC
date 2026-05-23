@@ -14,6 +14,7 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
 | `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
 | `REAL_EV3_SMOKE_HANDOFF.md` | Physical EV3 operator | Run the real-brick preflight, start WeisileLink against real hardware, and capture the confirmed one-brick smoke evidence. |
+| `REAL_EV3_SMOKE_READINESS.md` | QA or pilot lead | Record the non-invasive endpoint readiness check before running `--confirm-real-ev3`. |
 | `real_ev3_rehearsal_evidence.template.json` | QA or pilot lead | Record real hardware, sensor, AI Quest, and multi-device evidence for the rehearsal runner. |
 
 ## Source Alignment
@@ -33,6 +34,19 @@ Start with a single-brick smoke capture. The `--confirm-real-ev3` flag is an
 operator assertion that the connected endpoint is physical EV3 hardware, not
 the local preview simulator. Use `REAL_EV3_SMOKE_HANDOFF.md` as the operator
 handoff before running the confirmed hardware command.
+
+Before using `--confirm-real-ev3`, run the non-invasive readiness check:
+
+```bash
+.venv/bin/python scripts/run_real_ev3_rehearsal.py \
+  --check-smoke-readiness \
+  --ev3-host ev3dev.local \
+  --ev3-port 8765 \
+  --weisile-link-host 127.0.0.1 \
+  --weisile-link-port 20111 \
+  --smoke-readiness-json docs/classroom/real_ev3_smoke_readiness.json \
+  --smoke-readiness-report docs/classroom/REAL_EV3_SMOKE_READINESS.md
+```
 
 ```bash
 .venv/bin/python scripts/run_real_ev3_rehearsal.py \

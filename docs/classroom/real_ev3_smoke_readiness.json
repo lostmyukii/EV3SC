@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-05-23T16:55:04.173240+00:00",
+  "ev3_endpoint": {
+    "endpoint": "ev3dev.local:8765",
+    "error": "[Errno 8] nodename nor servname provided, or not known",
+    "reachable": false
+  },
+  "next_action": "Do not run --confirm-real-ev3 yet; connect physical EV3 and start WeisileLink real transport first.",
+  "root": "/Users/yukii/Desktop/EV3SC",
+  "safe_to_run_confirmed_smoke": false,
+  "schema": "vsle.realEv3SmokeReadiness.v1",
+  "weisilelink_endpoint": {
+    "endpoint": "127.0.0.1:20111",
+    "error": "",
+    "reachable": true
+  }
+}

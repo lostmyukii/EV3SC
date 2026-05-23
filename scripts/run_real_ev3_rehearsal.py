@@ -7,11 +7,12 @@ import argparse
 import asyncio
 import base64
 import json
+import socket
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence, Tuple
 
 
 DEFAULT_ROOT = Path("/Users/yukii/Desktop/EV3SC")
@@ -61,6 +62,18 @@ class SmokeCaptureConfig:
     transport_mode: str = "wifi"
     run_safe_motor_test: bool = False
     confirm_real_ev3: bool = False
+
+
+@dataclass(frozen=True)
+class SmokeReadinessConfig:
+    """Non-invasive readiness check before confirmed physical EV3 smoke capture."""
+
+    root: Path = DEFAULT_ROOT
+    ev3_host: str = "ev3dev.local"
+    ev3_port: int = 8765
+    weisile_link_host: str = "127.0.0.1"
+    weisile_link_port: int = 20111
+    timeout_seconds: float = 2.0
 
 
 def _require_inside_root(path: Path, root: Path) -> Path:
@@ -877,6 +890,122 @@ def render_smoke_handoff(
     return "\n".join(lines)
 
 
+def _probe_tcp_endpoint(
+    *,
+    host: str,
+    port: int,
+    timeout_seconds: float,
+    connector: Callable[..., Any] = socket.create_connection,
+) -> Dict[str, Any]:
+    endpoint = f"{host}:{port}"
+    try:
+        connection = connector((host, port), timeout=timeout_seconds)
+        close = getattr(connection, "close", None)
+        if callable(close):
+            close()
+        return {"endpoint": endpoint, "reachable": True, "error": ""}
+    except OSError as error:
+        return {
+            "endpoint": endpoint,
+            "reachable": False,
+            "error": str(error),
+        }
+
+
+def build_smoke_readiness(
+    config: SmokeReadinessConfig,
+    *,
+    connector: Callable[..., Any] = socket.create_connection,
+) -> Dict[str, Any]:
+    """Probe endpoints without sending EV3 motor commands or confirmations."""
+
+    ev3_endpoint = _probe_tcp_endpoint(
+        host=config.ev3_host,
+        port=config.ev3_port,
+        timeout_seconds=config.timeout_seconds,
+        connector=connector,
+    )
+    weisilelink_endpoint = _probe_tcp_endpoint(
+        host=config.weisile_link_host,
+        port=config.weisile_link_port,
+        timeout_seconds=config.timeout_seconds,
+        connector=connector,
+    )
+    safe_to_run = (
+        ev3_endpoint["reachable"] is True
+        and weisilelink_endpoint["reachable"] is True
+    )
+    next_action = (
+        "Run confirmed one-brick smoke capture with --confirm-real-ev3 "
+        "and --run-safe-motor-test."
+        if safe_to_run
+        else "Do not run --confirm-real-ev3 yet; connect physical EV3 and "
+        "start WeisileLink real transport first."
+    )
+    return {
+        "schema": "vsle.realEv3SmokeReadiness.v1",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "root": str(config.root.resolve()),
+        "ev3_endpoint": ev3_endpoint,
+        "weisilelink_endpoint": weisilelink_endpoint,
+        "safe_to_run_confirmed_smoke": safe_to_run,
+        "next_action": next_action,
+    }
+
+
+def render_smoke_readiness_report(readiness: Mapping[str, Any]) -> str:
+    """Render Markdown for non-invasive physical EV3 smoke readiness."""
+
+    ev3 = readiness["ev3_endpoint"]
+    link = readiness["weisilelink_endpoint"]
+    safe_to_run = readiness["safe_to_run_confirmed_smoke"] is True
+    lines = [
+        "# Real EV3 Smoke Readiness",
+        "",
+        f"Date: {datetime.now(timezone.utc).date().isoformat()}",
+        "",
+        "This readiness check is non-invasive. It checks TCP reachability only;",
+        "it does not send motor commands and does not assert physical EV3",
+        "confirmation.",
+        "",
+        "## Summary",
+        "",
+        f"- Safe to run confirmed smoke: {str(safe_to_run).lower()}",
+        f"- EV3 endpoint: `{ev3['endpoint']}`",
+        f"- EV3 reachable: {str(ev3['reachable']).lower()}",
+        f"- WeisileLink endpoint: `{link['endpoint']}`",
+        f"- WeisileLink reachable: {str(link['reachable']).lower()}",
+        "",
+        "## Endpoint Details",
+        "",
+        "| Endpoint | Reachable | Error |",
+        "|---|---|---|",
+        (
+            f"| `{ev3['endpoint']}` | {str(ev3['reachable']).lower()} | "
+            f"{ev3.get('error') or ''} |"
+        ),
+        (
+            f"| `{link['endpoint']}` | {str(link['reachable']).lower()} | "
+            f"{link.get('error') or ''} |"
+        ),
+        "",
+        "## Next Action",
+        "",
+    ]
+    if safe_to_run:
+        lines.append(
+            "Physical endpoint readiness is present. The human operator still "
+            "must verify the endpoint is a real LEGO EV3 before using "
+            "`--confirm-real-ev3`."
+        )
+    else:
+        lines.append("Do not run `--confirm-real-ev3` yet.")
+    lines.append("")
+    lines.append(str(readiness["next_action"]))
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _write_json(path: Path, payload: Mapping[str, Any], root: Path) -> None:
     path = _require_inside_root(path, root)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -942,6 +1071,21 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         help="Write the physical EV3 smoke-capture operator handoff.",
     )
     parser.add_argument(
+        "--check-smoke-readiness",
+        action="store_true",
+        help="Probe EV3 and WeisileLink ports before confirmed smoke capture.",
+    )
+    parser.add_argument(
+        "--smoke-readiness-json",
+        type=Path,
+        help="Write non-invasive smoke readiness JSON evidence to this path.",
+    )
+    parser.add_argument(
+        "--smoke-readiness-report",
+        type=Path,
+        help="Write non-invasive smoke readiness Markdown report to this path.",
+    )
+    parser.add_argument(
         "--capture-smoke",
         action="store_true",
         help="Capture one real EV3 smoke transcript through WeisileLink.",
@@ -972,6 +1116,9 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--transport-mode", default="wifi")
     parser.add_argument("--ev3-host", default="ev3dev.local")
     parser.add_argument("--ev3-port", type=int, default=8765)
+    parser.add_argument("--weisile-link-host", default="127.0.0.1")
+    parser.add_argument("--weisile-link-port", type=int, default=20111)
+    parser.add_argument("--probe-timeout-seconds", type=float, default=2.0)
     parser.add_argument(
         "--run-safe-motor-test",
         action="store_true",
@@ -1024,6 +1171,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             plan.root,
         )
+    if args.check_smoke_readiness:
+        readiness = build_smoke_readiness(
+            SmokeReadinessConfig(
+                root=plan.root,
+                ev3_host=args.ev3_host,
+                ev3_port=args.ev3_port,
+                weisile_link_host=args.weisile_link_host,
+                weisile_link_port=args.weisile_link_port,
+                timeout_seconds=args.probe_timeout_seconds,
+            )
+        )
+        if args.smoke_readiness_json:
+            _write_json(args.smoke_readiness_json, readiness, plan.root)
+        if args.smoke_readiness_report:
+            _write_text(
+                args.smoke_readiness_report,
+                render_smoke_readiness_report(readiness),
+                plan.root,
+            )
+        if not args.smoke_readiness_json and not args.smoke_readiness_report:
+            print(json.dumps(readiness, indent=2, sort_keys=True))
 
     if args.capture_smoke:
         config = SmokeCaptureConfig(

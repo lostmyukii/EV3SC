@@ -2,12 +2,15 @@ from pathlib import Path
 
 from scripts.run_real_ev3_rehearsal import (
     SmokeCaptureConfig,
+    SmokeReadinessConfig,
     attach_smoke_capture_artifact_paths,
+    build_smoke_readiness,
     build_rehearsal_plan,
     build_smoke_json_rpc_requests,
     evaluate_rehearsal_evidence,
     pending_evidence_template,
     render_rehearsal_report,
+    render_smoke_readiness_report,
     render_smoke_handoff,
     smoke_capture_to_evidence,
 )
@@ -261,3 +264,39 @@ def test_smoke_handoff_records_physical_ev3_confirmation_commands():
     assert "--run-safe-motor-test" in markdown
     assert "--require-passed" in markdown
     assert "/Users/yukii/Desktop/scratch ai" not in markdown
+
+
+def test_smoke_readiness_blocks_confirmed_run_when_ev3_unreachable():
+    def connector(address, timeout=0):
+        host, port = address
+        if host == "127.0.0.1" and port == 20111:
+            return object()
+        raise OSError("name or service not known")
+
+    readiness = build_smoke_readiness(
+        SmokeReadinessConfig(root=ROOT),
+        connector=connector,
+    )
+    markdown = render_smoke_readiness_report(readiness)
+
+    assert readiness["safe_to_run_confirmed_smoke"] is False
+    assert readiness["ev3_endpoint"]["reachable"] is False
+    assert readiness["weisilelink_endpoint"]["reachable"] is True
+    assert "Do not run `--confirm-real-ev3` yet." in markdown
+    assert "ev3dev.local:8765" in markdown
+    assert "127.0.0.1:20111" in markdown
+    assert "/Users/yukii/Desktop/scratch ai" not in markdown
+
+
+def test_smoke_readiness_allows_confirmed_run_only_when_both_ports_reachable():
+    def connector(address, timeout=0):
+        return object()
+
+    readiness = build_smoke_readiness(
+        SmokeReadinessConfig(root=ROOT),
+        connector=connector,
+    )
+
+    assert readiness["safe_to_run_confirmed_smoke"] is True
+    assert readiness["ev3_endpoint"]["reachable"] is True
+    assert readiness["weisilelink_endpoint"]["reachable"] is True
