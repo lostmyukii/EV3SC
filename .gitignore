@@ -3,3 +3,12 @@
 .pytest_cache/
 __pycache__/
 *.py[cod]
+
+# ScratchAI port generated artifacts
+scratch-ai-platform/**/node_modules/
+scratch-ai-platform/**/build/
+scratch-ai-platform/**/dist/
+scratch-ai-platform/**/test-results/
+scratch-ai-platform/**/.git/
+scratch-ai-platform/**/.cache/
+scratch-ai-platform/**/artifacts/
