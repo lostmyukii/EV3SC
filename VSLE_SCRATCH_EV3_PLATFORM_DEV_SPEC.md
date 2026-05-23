@@ -2659,6 +2659,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_vsle_ev3_compat/index.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_vsle_ev3_compat.js`, `docs/scratchai/EV3_COMPATIBILITY_MAPPING.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Connect EV3 category AI Quest blocks to a server-side AI Quest API contract, including cloud-provider normalization, safe model references, and local/cache fallback behavior.
 
+### [2026-05-23] ScratchAI EV3 AI Quest API contract
+- **Status**: ✅ Completed
+- **Commit**: `7eed4db`
+- **What was done**: Added the EV3SC-owned AI Quest server-side contract used by ScratchAI EV3 blocks, including sanitized EV3 time-series upload, provider-response normalization, safe project/class/course model scopes, cloud/cached/localFallback prediction, and model export without raw datasets or credentials. Extended the VSLE-EV3 category with AI Quest upload, training, status, model selection, prediction, accuracy/mode reporter, Boolean label match, and export blocks.
+- **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/router/sensor_router.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Add the real provider abstraction layer, including a WeisileAI provider shell, a mock third-party adapter, provider configuration, retry/error mapping, and provider-specific normalization tests behind the AI Quest contract.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
