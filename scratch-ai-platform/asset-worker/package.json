@@ -1,0 +1,14 @@
+{
+  "name": "scratch-ai-asset-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mock asset worker for Scratch AI image and sound generation jobs.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

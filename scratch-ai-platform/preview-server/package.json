@@ -1,0 +1,14 @@
+{
+  "name": "scratch-ai-preview-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Static Scratch AI preview gateway with loopback middleware proxy.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

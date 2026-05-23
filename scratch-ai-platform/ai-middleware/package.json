@@ -1,0 +1,14 @@
+{
+  "name": "scratch-ai-middleware",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-side AI isolation layer for Scratch AI logic coaching.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

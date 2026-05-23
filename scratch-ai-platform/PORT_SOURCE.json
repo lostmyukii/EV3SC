@@ -1,0 +1,19 @@
+{
+  "copied_files": 3371,
+  "copied_symlinks": 0,
+  "destination": "/Users/yukii/Desktop/EV3SC/scratch-ai-platform",
+  "excluded_dir_names": [
+    ".cache",
+    ".git",
+    ".pytest_cache",
+    "artifacts",
+    "build",
+    "dist",
+    "node_modules",
+    "test-results"
+  ],
+  "excluded_file_names": [
+    ".DS_Store"
+  ],
+  "source": "/Users/yukii/Desktop/scratch ai/scratch-ai-platform"
+}
