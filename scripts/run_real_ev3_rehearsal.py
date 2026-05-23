@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import base64
 import json
 import sys
 from dataclasses import dataclass
@@ -45,6 +47,20 @@ class RehearsalPlan:
     expected_transport_instances: int
     gates: Tuple[RehearsalGate, ...]
     evidence_paths: Tuple[Path, ...]
+
+
+@dataclass(frozen=True)
+class SmokeCaptureConfig:
+    """Configuration for a one-brick real EV3 smoke evidence capture."""
+
+    root: Path = DEFAULT_ROOT
+    weisile_link_url: str = "ws://127.0.0.1:20111/scratch/bt"
+    capture_seconds: float = 10.0
+    operator: str = ""
+    classroom_or_lab: str = ""
+    transport_mode: str = "wifi"
+    run_safe_motor_test: bool = False
+    confirm_real_ev3: bool = False
 
 
 def _require_inside_root(path: Path, root: Path) -> Path:
@@ -205,6 +221,7 @@ def pending_evidence_template(plan: RehearsalPlan) -> Dict[str, Any]:
         "ev3_endpoint": "",
         "weisilelink_real_transport": False,
         "transport_mode": "",
+        "smoke_confirmed_real_ev3": False,
         "motor_command_verified": False,
         "emergency_stop_verified": False,
         "sensor_stream_hz": 0.0,
@@ -224,6 +241,270 @@ def pending_evidence_template(plan: RehearsalPlan) -> Dict[str, Any]:
         "expected_devices": plan.expected_devices,
         "expected_transport_instances": plan.expected_transport_instances,
     }
+
+
+def build_smoke_json_rpc_requests(
+    *,
+    peripheral_id: str = "vsle-ev3-wifi",
+    run_safe_motor_test: bool = False,
+) -> List[Dict[str, Any]]:
+    """Build the JSON-RPC 2.0 request sequence for a one-brick smoke capture."""
+
+    requests: List[Dict[str, Any]] = [
+        {
+            "jsonrpc": "2.0",
+            "id": "smoke-version",
+            "method": "getVersion",
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": "smoke-discover",
+            "method": "discover",
+            "params": {"filters": [{"namePrefix": "EV3"}]},
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": "smoke-connect",
+            "method": "connect",
+            "params": {"peripheralId": peripheral_id},
+        },
+        {
+            "jsonrpc": "2.0",
+            "id": "smoke-notifications",
+            "method": "startNotifications",
+        },
+    ]
+    if run_safe_motor_test:
+        requests.append(
+            {
+                "jsonrpc": "2.0",
+                "id": "smoke-motor",
+                "method": "motor.runTimed",
+                "params": {"port": "A", "speed": 10, "time": 0.25},
+            }
+        )
+    requests.extend(
+        [
+            {
+                "jsonrpc": "2.0",
+                "id": "smoke-stop-all",
+                "method": "motor.stopAll",
+                "params": {},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "smoke-sound-stop",
+                "method": "sound.stop",
+                "params": {},
+            },
+        ]
+    )
+    return requests
+
+
+def _decode_notification_payload(message: Mapping[str, Any]) -> Dict[str, Any]:
+    params = message.get("params")
+    if not isinstance(params, Mapping):
+        return {}
+    encoded = params.get("message")
+    if not isinstance(encoded, str) or not encoded:
+        return {}
+    try:
+        raw = base64.b64decode(encoded).decode("utf-8")
+        payload = json.loads(raw)
+    except Exception:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    return payload
+
+
+async def _recv_until_response(
+    websocket: Any,
+    request_id: str,
+    transcript: Dict[str, Any],
+    *,
+    timeout: float = 5.0,
+) -> Dict[str, Any]:
+    while True:
+        raw = await asyncio.wait_for(websocket.recv(), timeout=timeout)
+        message = json.loads(raw)
+        transcript["messages"].append(message)
+        if message.get("method") in {
+            "didDiscoverPeripheral",
+            "notifyDeviceDidReceiveMessage",
+            "didReceiveMessage",
+        }:
+            if message.get("method") == "didDiscoverPeripheral":
+                params = message.get("params") or {}
+                peripheral_id = params.get("peripheralId")
+                if peripheral_id:
+                    transcript["peripheral_id"] = peripheral_id
+            if message.get("method") == "notifyDeviceDidReceiveMessage":
+                transcript["sensor_payloads"].append(_decode_notification_payload(message))
+            continue
+        if message.get("id") == request_id:
+            return message
+
+
+async def capture_smoke_transcript(config: SmokeCaptureConfig) -> Dict[str, Any]:
+    """Capture one real EV3 smoke transcript through WeisileLink."""
+
+    started_at = datetime.now(timezone.utc).isoformat()
+    transcript: Dict[str, Any] = {
+        "ok": False,
+        "started_at": started_at,
+        "weisile_link_url": config.weisile_link_url,
+        "version_ok": False,
+        "discover_ok": False,
+        "connect_ok": False,
+        "motor_ack": False,
+        "emergency_stop_ack": False,
+        "sensor_update_count": 0,
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "peripheral_id": "vsle-ev3-wifi",
+        "messages": [],
+        "sensor_payloads": [],
+        "evidence_files": [],
+    }
+    try:
+        import websockets
+
+        async with websockets.connect(
+            config.weisile_link_url,
+            open_timeout=5,
+        ) as websocket:
+            first_requests = build_smoke_json_rpc_requests(
+                peripheral_id=transcript["peripheral_id"],
+                run_safe_motor_test=False,
+            )[:2]
+            for request in first_requests:
+                await websocket.send(json.dumps(request))
+                response = await _recv_until_response(
+                    websocket,
+                    str(request["id"]),
+                    transcript,
+                )
+                if request["method"] == "getVersion":
+                    result = response.get("result")
+                    transcript["version_ok"] = isinstance(result, dict) and (
+                        result.get("implementation") == "WeisileLink"
+                    )
+                if request["method"] == "discover":
+                    transcript["discover_ok"] = "error" not in response
+
+            requests = build_smoke_json_rpc_requests(
+                peripheral_id=str(transcript["peripheral_id"]),
+                run_safe_motor_test=config.run_safe_motor_test,
+            )[2:]
+            for request in requests:
+                await websocket.send(json.dumps(request))
+                response = await _recv_until_response(
+                    websocket,
+                    str(request["id"]),
+                    transcript,
+                )
+                ok = "error" not in response
+                method = request["method"]
+                if method == "connect":
+                    transcript["connect_ok"] = ok
+                elif method == "motor.runTimed":
+                    transcript["motor_ack"] = ok
+                elif method == "motor.stopAll":
+                    transcript["emergency_stop_ack"] = ok
+                elif method == "sound.stop":
+                    transcript["sound_stop_ack"] = ok
+
+            start = asyncio.get_running_loop().time()
+            deadline = start + max(0.1, config.capture_seconds)
+            while asyncio.get_running_loop().time() < deadline:
+                remaining = deadline - asyncio.get_running_loop().time()
+                try:
+                    raw = await asyncio.wait_for(
+                        websocket.recv(),
+                        timeout=min(remaining, 1.0),
+                    )
+                except asyncio.TimeoutError:
+                    continue
+                message = json.loads(raw)
+                transcript["messages"].append(message)
+                if message.get("method") == "notifyDeviceDidReceiveMessage":
+                    transcript["sensor_update_count"] += 1
+                    transcript["sensor_payloads"].append(
+                        _decode_notification_payload(message)
+                    )
+            transcript["elapsed_seconds"] = round(
+                asyncio.get_running_loop().time() - start,
+                3,
+            )
+            transcript["ok"] = (
+                transcript["version_ok"]
+                and transcript["discover_ok"]
+                and transcript["connect_ok"]
+                and transcript["emergency_stop_ack"]
+                and transcript["sensor_update_count"] > 0
+            )
+            if config.run_safe_motor_test:
+                transcript["ok"] = transcript["ok"] and transcript["motor_ack"]
+    except Exception as error:
+        transcript["errors"].append(str(error))
+    return transcript
+
+
+def smoke_capture_to_evidence(
+    plan: RehearsalPlan,
+    config: SmokeCaptureConfig,
+    transcript: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Convert a one-brick smoke transcript into rehearsal evidence JSON."""
+
+    evidence = pending_evidence_template(plan)
+    elapsed = _number_evidence(transcript, "elapsed_seconds")
+    sensor_updates = _int_evidence(transcript, "sensor_update_count")
+    sensor_hz = round(sensor_updates / elapsed, 3) if elapsed > 0 else 0.0
+    errors = [str(error) for error in transcript.get("errors", [])]
+    bridge_ok = transcript.get("version_ok") is True
+    connected = transcript.get("connect_ok") is True
+    confirmed_real = config.confirm_real_ev3 is True
+    motor_ack = transcript.get("motor_ack") is True
+    emergency_ack = transcript.get("emergency_stop_ack") is True
+    evidence.update(
+        {
+            "run_started_at": str(transcript.get("started_at") or ""),
+            "operator": config.operator,
+            "classroom_or_lab": config.classroom_or_lab,
+            "notes": (
+                "1-brick smoke capture. This does not replace the 45-minute "
+                "Section 13.7 classroom rehearsal. "
+                + ("Errors: " + "; ".join(errors) if errors else "No capture errors.")
+                + (
+                    " Real EV3 confirmation was provided."
+                    if confirmed_real
+                    else " Real EV3 confirmation was not provided."
+                )
+            ),
+            "ev3_endpoint_connected": connected and confirmed_real,
+            "ev3_endpoint": str(transcript.get("peripheral_id") or ""),
+            "weisilelink_real_transport": (
+                bridge_ok and connected and confirmed_real and not errors
+            ),
+            "transport_mode": config.transport_mode,
+            "smoke_confirmed_real_ev3": confirmed_real,
+            "motor_command_verified": motor_ack or (
+                not config.run_safe_motor_test and emergency_ack
+            ),
+            "emergency_stop_verified": emergency_ack,
+            "sensor_stream_hz": sensor_hz,
+            "sensor_stream_duration_minutes": round(elapsed / 60.0, 3),
+            "transport_instance_count": 1 if bridge_ok else 0,
+            "device_count": 1 if connected and confirmed_real else 0,
+            "disconnects_recorded": False,
+            "pilot_required_code_changes": not bool(transcript.get("ok")),
+            "evidence_files": list(transcript.get("evidence_files", [])),
+        }
+    )
+    return evidence
 
 
 def _bool_evidence(evidence: Mapping[str, Any], key: str) -> bool:
@@ -533,6 +814,48 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--report", type=Path)
     parser.add_argument("--write-template", type=Path)
     parser.add_argument(
+        "--capture-smoke",
+        action="store_true",
+        help="Capture one real EV3 smoke transcript through WeisileLink.",
+    )
+    parser.add_argument(
+        "--capture-smoke-evidence",
+        type=Path,
+        help="Write the captured smoke evidence JSON to this path.",
+    )
+    parser.add_argument(
+        "--capture-smoke-transcript",
+        type=Path,
+        help="Write the raw smoke transcript JSON to this path.",
+    )
+    parser.add_argument(
+        "--weisile-link-url",
+        default="ws://127.0.0.1:20111/scratch/bt",
+        help="Scratch Link compatible WeisileLink WebSocket URL.",
+    )
+    parser.add_argument(
+        "--capture-seconds",
+        type=float,
+        default=10.0,
+        help="Seconds to listen for EV3 sensor notifications during smoke capture.",
+    )
+    parser.add_argument("--operator", default="")
+    parser.add_argument("--classroom-or-lab", default="")
+    parser.add_argument("--transport-mode", default="wifi")
+    parser.add_argument(
+        "--run-safe-motor-test",
+        action="store_true",
+        help="Run a low-speed 0.25s motor A command before emergency stop.",
+    )
+    parser.add_argument(
+        "--confirm-real-ev3",
+        action="store_true",
+        help=(
+            "Operator confirms the connected endpoint is real EV3 hardware, "
+            "not the preview simulator."
+        ),
+    )
+    parser.add_argument(
         "--pending",
         action="store_true",
         help="Use the pending template when no evidence JSON is supplied.",
@@ -561,7 +884,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.write_template:
         _write_json(args.write_template, template, plan.root)
 
-    if args.evidence_json:
+    if args.capture_smoke:
+        config = SmokeCaptureConfig(
+            root=plan.root,
+            weisile_link_url=args.weisile_link_url,
+            capture_seconds=args.capture_seconds,
+            operator=args.operator,
+            classroom_or_lab=args.classroom_or_lab,
+            transport_mode=args.transport_mode,
+            run_safe_motor_test=args.run_safe_motor_test,
+            confirm_real_ev3=args.confirm_real_ev3,
+        )
+        transcript = asyncio.run(capture_smoke_transcript(config))
+        if args.capture_smoke_transcript:
+            _write_json(args.capture_smoke_transcript, transcript, plan.root)
+        evidence = smoke_capture_to_evidence(plan, config, transcript)
+        if args.capture_smoke_evidence:
+            _write_json(args.capture_smoke_evidence, evidence, plan.root)
+    elif args.evidence_json:
         evidence = _load_evidence(args.evidence_json, plan.root)
     elif args.pending or args.report or args.json_report:
         evidence = template

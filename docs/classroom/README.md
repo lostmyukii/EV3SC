@@ -28,6 +28,24 @@ gate, and export artifacts listed in the matching sample manifest.
 
 ## Real Hardware Rehearsal
 
+Start with a single-brick smoke capture. The `--confirm-real-ev3` flag is an
+operator assertion that the connected endpoint is physical EV3 hardware, not
+the local preview simulator.
+
+```bash
+.venv/bin/python scripts/run_real_ev3_rehearsal.py \
+  --capture-smoke \
+  --confirm-real-ev3 \
+  --run-safe-motor-test \
+  --capture-seconds 10 \
+  --capture-smoke-evidence docs/classroom/real_ev3_smoke_evidence.json \
+  --capture-smoke-transcript docs/classroom/evidence/real_ev3_smoke_transcript.json \
+  --json-report docs/classroom/real_ev3_smoke_report.json \
+  --report docs/classroom/REAL_EV3_REHEARSAL.md \
+  --expected-devices 1 \
+  --expected-transport-instances 1
+```
+
 Before any pilot class, run:
 
 ```bash

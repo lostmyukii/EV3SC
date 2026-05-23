@@ -357,7 +357,7 @@ ports. This register records the sources used for the current implementation.
 | Source | Local path / URL | Used for |
 |--------|------------------|----------|
 | VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 13.7 manual classroom acceptance requires a 30-device rehearsal, at least 10 real EV3 bricks when hardware is available, a 45-minute student workflow, disconnect/reconnect records, dropped-update evidence, memory-growth evidence, and no code changes during class |
-| Real EV3 rehearsal runner | `/Users/yukii/Desktop/EV3SC/scripts/run_real_ev3_rehearsal.py` | Builds the Section 13.7 gate plan, writes a real-hardware evidence template, evaluates evidence, and keeps classroom approval blocked until all required real EV3 gates pass |
+| Real EV3 rehearsal runner | `/Users/yukii/Desktop/EV3SC/scripts/run_real_ev3_rehearsal.py` | Builds the Section 13.7 gate plan, writes a real-hardware evidence template, captures one-brick smoke evidence through WeisileLink when explicitly confirmed as real EV3 hardware, evaluates evidence, and keeps classroom approval blocked until all required real EV3 gates pass |
 | Real EV3 rehearsal evidence report | `/Users/yukii/Desktop/EV3SC/docs/classroom/REAL_EV3_REHEARSAL.md`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_evidence.template.json`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_pending_report.json` | Records the current blocked hardware gate and the JSON fields QA must fill from real ScratchAI + EV3 + AI Quest rehearsal evidence |
 
 ## Rules
