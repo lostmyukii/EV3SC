@@ -33,6 +33,15 @@ Scope: ScratchAI source ownership and service package baseline inside EV3SC.
 | `cd scratch-ai-platform/scratch-editor/packages/scratch-gui && npm run build:dev` | exits 0 | passed; webpack compiled Scratch GUI dev build successfully |
 | `git status --short scratch-ai-platform \| rg "node_modules\|/build/\|/dist/\|test-results\|playground\|\\.tap" \|\| true` | no output | passed; generated dependency, build, documentation, and TAP artifacts remained ignored |
 
+## Scratch Editor Preview Startup
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python scripts/start_scratchai_preview.py --print-command` | exits 0 | passed; printed the EV3SC-owned `scratch-gui` webpack serve command, URL `http://127.0.0.1:8601/`, and ScratchAI feature flag environment |
+| `.venv/bin/python scripts/start_scratchai_preview.py --host 127.0.0.1 --port 8601` | webpack dev server compiles and listens on localhost | passed; webpack-dev-server reported `http://127.0.0.1:8601/` and `compiled successfully` |
+| `.venv/bin/python scripts/verify_scratchai_preview.py --url http://127.0.0.1:8601/ --timeout-seconds 30` | exits 0 while preview server is running | passed; HTTP 200 for `index.html`, HTTP 200 for `gui.js`, 34,384,505-byte ScratchAI-enabled GUI bundle |
+| Playwright Chromium smoke against `http://127.0.0.1:8601/` | Scratch GUI renders in browser | passed; title `Scratch 3.0 GUI`, Motion/Looks/Events visible, 3 canvas elements, 0 page errors |
+
 Notes:
 
 - `npm --workspace @scratch/scratch-vm test -- --grep ScratchAI` is not a reliable ScratchAI-only smoke command in this workspace: npm appended `ScratchAI` to the package `tap` script, causing the full VM test pattern to run. That full run reached 3250 pass / 22 fail, with failures in upstream missing/corrupted costume fallback tests that attempted network `fetch`; it is recorded as out of scope for the ScratchAI targeted editor baseline.
@@ -43,6 +52,8 @@ Notes:
 - EV3 extension replacement inside ScratchAI.
 - AI Quest cloud API contract.
 - Official EV3 opcode compatibility mapping.
-- Browser preview of the ScratchAI editor.
+
+The ScratchAI editor can now be locally previewed from EV3SC; replacing the
+extension library `EV3` tile remains the next integration phase.
 
 These are planned follow-up phases after the owned ScratchAI source tree is established.
