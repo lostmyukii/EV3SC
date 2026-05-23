@@ -2652,6 +2652,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/lib/libraries/extensions/index.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/containers/extension-library.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/webpack.config.js`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/test/unit/util/extensions-library.test.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/test/unit/containers/extension-library.test.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `deploy/env.example`, `deploy/README.md`, `docs/security/SECURITY_REVIEW.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement official Scratch EV3 project/block compatibility mapping so existing `.sb3` projects that reference Scratch's built-in EV3 opcodes automatically run through the complete VSLE-EV3 runtime in ScratchAI.
 
+### [2026-05-23] ScratchAI official EV3 compatibility mapping
+- **Status**: ✅ Completed
+- **Commit**: `5180ee7`
+- **What was done**: Added an EV3SC-owned Scratch VM compatibility extension for legacy official `ev3` projects, mapping all 11 official Scratch EV3 opcodes to VSLE JSON-RPC commands and synchronous `SensorCache` reporter reads. Replaced the VM built-in `ev3` loader with the compatibility runtime, verified old EV3 `.sb3` fixture loading, and documented the source-backed mapping plus ScratchAI external-service-policy test note.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_vsle_ev3_compat/index.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_vsle_ev3_compat.js`, `docs/scratchai/EV3_COMPATIBILITY_MAPPING.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Connect EV3 category AI Quest blocks to a server-side AI Quest API contract, including cloud-provider normalization, safe model references, and local/cache fallback behavior.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
