@@ -2603,6 +2603,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/**`
 - **Next step**: Add standalone ownership checks that fail if the copied ScratchAI tree depends on the original scratchai folder.
 
+### [2026-05-23] ScratchAI standalone ownership checks
+- **Status**: ✅ Completed
+- **Commit**: `41d0c20`
+- **What was done**: Added standalone verification for the EV3SC-owned ScratchAI copy, including required package checks, symlink escape detection, and package script checks that reject dependencies on `/Users/yukii/Desktop/scratch ai/`.
+- **Files created/modified**: `scripts/check_scratchai_standalone.py`, `tests/test_scratchai_port_scripts.py`
+- **Next step**: Run ScratchAI service package tests inside EV3SC and record baseline results.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
