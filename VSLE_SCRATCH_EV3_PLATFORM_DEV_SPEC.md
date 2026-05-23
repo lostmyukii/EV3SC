@@ -2582,6 +2582,13 @@ material into:
 - **Files created/modified**: `docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md`
 - **Next step**: User review of the written design, then implementation planning for porting ScratchAI into EV3SC and running baseline ScratchAI regression checks.
 
+### [2026-05-23] ScratchAI port baseline implementation plan
+- **Status**: ✅ Completed
+- **Commit**: `a56e933`
+- **What was done**: Added the first implementation plan after the ScratchAI VSLE-EV3 design, scoped to porting ScratchAI into EV3SC and proving a standalone baseline before replacing the EV3 extension entry. The plan decomposes port tooling, source copy, standalone checks, service tests, editor baseline checks, commit/push/log requirements, and verification commands.
+- **Files created/modified**: `docs/superpowers/plans/2026-05-23-scratchai-port-baseline.md`
+- **Next step**: Choose the execution mode for the plan: Subagent-Driven or Inline Execution.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
