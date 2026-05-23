@@ -2535,6 +2535,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/protocol/validation.py`, `weisile-link/tests/test_validation.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/SOURCE_REGISTER.md`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Phase 3 EV3 data → WeisileAI Trainer training pipeline E2E, including record/upload/train/export validation and tests.
 
+### [2026-05-23] EV3 data to WeisileAI Trainer E2E pipeline
+- **Status**: ✅ Completed
+- **Commit**: `3d46fc7`
+- **What was done**: Added a local WeisileAI Trainer decision-tree pipeline that trains from collected EV3 sensor rows, enforces the 70% classroom accuracy gate, stores one trained model per EV3 session, and exports `model_rules.json` without raw student data. Added Trainer REST routes for `POST /api/trainer/train` and `POST /api/trainer/export`, plus end-to-end record/upload/train/export tests.
+- **Files created/modified**: `weisile-link/weisile_link/trainer_pipeline.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/tests/test_trainer_pipeline.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/AI_QUEST_SAMPLE_PROJECTS.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Phase 3 Docker deployment packaging, including standalone service/container definitions and deployment validation inside EV3SC.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
