@@ -2645,6 +2645,13 @@ material into:
 - **Files created/modified**: `scripts/start_scratchai_preview.py`, `scripts/verify_scratchai_preview.py`, `tests/test_scratchai_preview_startup.py`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Replace the ScratchAI extension library `EV3` entry so clicking `EV3` loads the complete VSLE-EV3 implementation instead of Scratch's official EV3 extension.
 
+### [2026-05-23] ScratchAI EV3 extension entry replacement
+- **Status**: ✅ Completed
+- **Commit**: `691c6e9`
+- **What was done**: Replaced the EV3 extension-library entry in the EV3SC-owned ScratchAI editor so clicking `EV3` loads the complete VSLE-EV3 extension from an allowlisted Unsandboxed URL and selects the `vsleev3` category. Added the main-thread Unsandboxed loader path in Scratch VM, preserved Scratch visual metadata, aligned the EV3 block category name, and allowed the ScratchAI preview Origin through WeisileLink.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/lib/libraries/extensions/index.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/containers/extension-library.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/webpack.config.js`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/test/unit/util/extensions-library.test.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/test/unit/containers/extension-library.test.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `deploy/env.example`, `deploy/README.md`, `docs/security/SECURITY_REVIEW.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement official Scratch EV3 project/block compatibility mapping so existing `.sb3` projects that reference Scratch's built-in EV3 opcodes automatically run through the complete VSLE-EV3 runtime in ScratchAI.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
