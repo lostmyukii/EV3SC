@@ -26,7 +26,7 @@
     "build": "cross-env NODE_ENV=production npm run --workspaces build",
     "build-monorepo": "cross-env-shell ./scripts/build-monorepo.sh",
     "clean": "npm run --workspaces clean",
-    "prepare": "husky install",
+    "prepare": "node scripts/install-husky-if-git.mjs",
     "refresh-gh-workflow": "ts-node scripts/build-gha-workflows.ts",
     "start": "npm --workspace @scratch/scratch-gui start",
     "test": "npm test --workspaces",
