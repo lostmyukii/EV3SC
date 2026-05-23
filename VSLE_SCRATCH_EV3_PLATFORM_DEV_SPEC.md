@@ -2701,6 +2701,13 @@ material into:
 - **Files created/modified**: `scripts/verify_scratchai_final_acceptance.py`, `tests/test_scratchai_final_acceptance.py`, `docs/scratchai/FINAL_ACCEPTANCE.md`, `docs/scratchai/final_acceptance_report.json`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the real EV3 classroom rehearsal gate from Section 13.7: connect real EV3 hardware through the unified ScratchAI stack, record motor/sensor/AI Quest evidence, and capture multi-device pilot readiness results.
 
+### [2026-05-23] Real EV3 classroom rehearsal evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `b3efafd`
+- **What was done**: Added a repeatable Section 13.7 real EV3 classroom rehearsal evidence runner that builds the 30-device/10-real-brick gate plan, writes a hardware evidence template, evaluates attached evidence, and keeps classroom approval blocked when no real EV3 evidence exists. Generated the current blocked rehearsal report so the project cannot accidentally treat automated localhost acceptance as pilot approval.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_rehearsal_evidence.template.json`, `docs/classroom/real_ev3_rehearsal_pending_report.json`, `docs/classroom/README.md`, `docs/scratchai/FINAL_ACCEPTANCE.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Connect real EV3 hardware and run `scripts/run_real_ev3_rehearsal.py --evidence-json docs/classroom/real_ev3_rehearsal_evidence.json --json-report docs/classroom/real_ev3_rehearsal_report.json --report docs/classroom/REAL_EV3_REHEARSAL.md --require-passed`, starting with a 1-brick smoke rehearsal and then the Section 13.7 30-transport / 10-real-brick classroom rehearsal.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
