@@ -2715,6 +2715,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/README.md`, `docs/classroom/real_ev3_rehearsal_evidence.template.json`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the one-brick smoke capture against a real EV3 brick using `--capture-smoke --confirm-real-ev3 --run-safe-motor-test`, attach the generated evidence/transcript files, then promote to the full Section 13.7 30-transport / 10-real-brick rehearsal with AI Quest collection/training/export evidence.
 
+### [2026-05-24] Real EV3 smoke capture blocked attempt
+- **Status**: ✅ Completed
+- **Commit**: `4aac1cb`
+- **What was done**: Ran the one-brick smoke capture against the local WeisileLink-compatible endpoint without `--confirm-real-ev3`, recorded evidence/transcript/report artifacts, and verified the report stays `BLOCKED` because physical EV3 hardware was not confirmed. The evidence shows local JSON-RPC connect/stop/sensor notifications but keeps `ev3_endpoint_connected=false`, `weisilelink_real_transport=false`, and `classroomApproved=false`.
+- **Files created/modified**: `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_smoke_evidence.json`, `docs/classroom/real_ev3_smoke_report.json`, `docs/classroom/evidence/real_ev3_smoke_transcript.json`, `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Connect physical EV3 hardware, rerun `scripts/run_real_ev3_rehearsal.py --capture-smoke --confirm-real-ev3 --run-safe-motor-test ...`, attach the confirmed smoke evidence, then proceed to the full Section 13.7 30-transport / 10-real-brick classroom rehearsal with AI Quest collection/training/export evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
