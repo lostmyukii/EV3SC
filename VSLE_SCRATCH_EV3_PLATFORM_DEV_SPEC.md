@@ -2526,6 +2526,13 @@ material into:
 - **Files created/modified**: `preview/index.html`, `preview/styles.css`, `preview/app.js`, `preview/weisile_preview_server.py`, `preview/package.json`, `preview/tests/test_preview_static.js`, `preview/README.md`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 3 motor PID parameter blocks, source-backed by ev3dev2 motor PID attributes and end-to-end validation across VSLE extension, WeisileLink, and EV3 firmware.
 
+### [2026-05-23] Motor PID parameter blocks
+- **Status**: ✅ Completed
+- **Commit**: `707cd3f`
+- **What was done**: Added two Phase 3 motor PID blocks, `motorSetPID` and `getMotorPID`, expanding the current VSLE-EV3 extension surface to 64 blocks. The implementation validates and clamps PID parameters in WeisileLink and EV3 firmware, maps `speed`/`position` PID terms to ev3dev2 motor attributes, streams PID values through the motor cache, and keeps PID reporter reads synchronous.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`, `vsle-ev3-extension/README.md`, `weisile-link/weisile_link/protocol/validation.py`, `weisile-link/tests/test_validation.py`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/SOURCE_REGISTER.md`, `docs/TURBOWARP_PHASE1_INTEGRATION.md`, `AGENTS.md`, `CLAUDE.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Phase 3 EV3 data → WeisileAI Trainer training pipeline E2E, including record/upload/train/export validation and tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
