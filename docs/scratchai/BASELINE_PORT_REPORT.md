@@ -98,3 +98,10 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | Command | Expected result | Result |
 |---|---|---|
 | `.venv/bin/python scripts/verify_scratchai_final_acceptance.py --include-runtime-preview --json-report docs/scratchai/final_acceptance_report.json --markdown-report docs/scratchai/FINAL_ACCEPTANCE.md` | exits 0 | passed; 7/7 automated gates passed for unified preview plan/runtime, ScratchAI `EV3` extension-library entry, legacy official EV3 compatibility, VSLE-EV3 AI Quest blocks, AI Quest cloud/cached/localFallback contract/provider behavior, and deployment/hardware-readiness assets. The report correctly keeps classroom approval false until the real EV3 classroom rehearsal evidence is attached. |
+
+## Real EV3 Classroom Rehearsal Gate
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python -m pytest tests/test_real_ev3_rehearsal.py -q` | exits 0 | passed; verifies the Section 13.7 rehearsal plan, pending-evidence blocking behavior, complete-evidence pass behavior, and Markdown report output. |
+| `.venv/bin/python scripts/run_real_ev3_rehearsal.py --print-plan --write-template docs/classroom/real_ev3_rehearsal_evidence.template.json --json-report docs/classroom/real_ev3_rehearsal_pending_report.json --report docs/classroom/REAL_EV3_REHEARSAL.md --pending` | exits 0 | passed; writes the real EV3 evidence template plus a current BLOCKED report. This intentionally does not mark classroom approval true without real EV3 connection, motor, sensor, AI Quest, and multi-device rehearsal evidence. |

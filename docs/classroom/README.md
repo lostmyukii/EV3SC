@@ -12,6 +12,8 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `WORKBOOK_OBSTACLE_AVOIDANCE.md` | Students | Collect distance and touch data for obstacle classification. |
 | `WORKBOOK_LINE_PATROL.md` | Students | Collect reflected-light data for line and floor classification. |
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
+| `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
+| `real_ev3_rehearsal_evidence.template.json` | QA or pilot lead | Record real hardware, sensor, AI Quest, and multi-device evidence for the rehearsal runner. |
 
 ## Source Alignment
 
@@ -23,3 +25,18 @@ The workbooks are intentionally tied to these sample IDs:
 
 Each workbook keeps the same labels, sensors, motors, features, 70% accuracy
 gate, and export artifacts listed in the matching sample manifest.
+
+## Real Hardware Rehearsal
+
+Before any pilot class, run:
+
+```bash
+.venv/bin/python scripts/run_real_ev3_rehearsal.py \
+  --evidence-json docs/classroom/real_ev3_rehearsal_evidence.json \
+  --json-report docs/classroom/real_ev3_rehearsal_report.json \
+  --report docs/classroom/REAL_EV3_REHEARSAL.md \
+  --require-passed
+```
+
+Until real EV3 evidence is attached, the generated rehearsal report must remain
+blocked and must not be treated as classroom approval.

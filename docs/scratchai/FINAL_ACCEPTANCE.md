@@ -28,9 +28,10 @@ The platform is not classroom-approved until real EV3 hardware rehearsal evidenc
 
 | Gate | Status | Next action |
 |---|---|---|
-| real-ev3-classroom-rehearsal | PENDING | Run the unified stack with a real EV3 brick on ev3dev, record EV3 connection, motor, sensor, AI Quest collection, and multi-device rehearsal results. |
+| real-ev3-classroom-rehearsal | BLOCKED | Use `docs/classroom/real_ev3_rehearsal_evidence.template.json`, then run `scripts/run_real_ev3_rehearsal.py --evidence-json docs/classroom/real_ev3_rehearsal_evidence.json --json-report docs/classroom/real_ev3_rehearsal_report.json --report docs/classroom/REAL_EV3_REHEARSAL.md --require-passed`. Current report: `docs/classroom/REAL_EV3_REHEARSAL.md`. |
 
 ## Notes
 
 - Automated localhost tests do not replace Section 13.7 real EV3 classroom rehearsal.
 - A pilot release decision must attach hardware evidence for connection, motor, sensor, AI Quest collection, and multi-device rehearsal.
+- The current real EV3 rehearsal report is intentionally blocked because no real hardware evidence has been attached yet.

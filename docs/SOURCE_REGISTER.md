@@ -352,6 +352,14 @@ ports. This register records the sources used for the current implementation.
 | Final acceptance verifier | `/Users/yukii/Desktop/EV3SC/scripts/verify_scratchai_final_acceptance.py` | Aggregates the existing EV3SC-owned automated gates for unified preview runtime, extension-library routing, legacy EV3 compatibility, VSLE-EV3 block surface, AI Quest provider/fallback behavior, deployment packaging, EV3 autostart, security, and 50Hz performance |
 | Final acceptance report | `/Users/yukii/Desktop/EV3SC/docs/scratchai/FINAL_ACCEPTANCE.md`, `/Users/yukii/Desktop/EV3SC/docs/scratchai/final_acceptance_report.json` | Records automated acceptance evidence and explicitly keeps classroom approval blocked until real EV3 classroom rehearsal evidence is attached |
 
+## ScratchAI Integration — Real EV3 Classroom Rehearsal
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 13.7 manual classroom acceptance requires a 30-device rehearsal, at least 10 real EV3 bricks when hardware is available, a 45-minute student workflow, disconnect/reconnect records, dropped-update evidence, memory-growth evidence, and no code changes during class |
+| Real EV3 rehearsal runner | `/Users/yukii/Desktop/EV3SC/scripts/run_real_ev3_rehearsal.py` | Builds the Section 13.7 gate plan, writes a real-hardware evidence template, evaluates evidence, and keeps classroom approval blocked until all required real EV3 gates pass |
+| Real EV3 rehearsal evidence report | `/Users/yukii/Desktop/EV3SC/docs/classroom/REAL_EV3_REHEARSAL.md`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_evidence.template.json`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_pending_report.json` | Records the current blocked hardware gate and the JSON fields QA must fill from real ScratchAI + EV3 + AI Quest rehearsal evidence |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

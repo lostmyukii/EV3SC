@@ -1,0 +1,586 @@
+#!/usr/bin/env python3
+"""Build and evaluate the real EV3 classroom rehearsal evidence gate."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
+
+
+DEFAULT_ROOT = Path("/Users/yukii/Desktop/EV3SC")
+DEFAULT_EXPECTED_REAL_EV3 = 10
+DEFAULT_EXPECTED_TRANSPORTS = 30
+MIN_SENSOR_HZ = 45.0
+MIN_WORKFLOW_MINUTES = 45.0
+MAX_RECONNECT_SECONDS = 5.0
+MAX_DROPPED_UPDATE_PCT = 0.1
+MAX_MEMORY_GROWTH_MB = 50.0
+
+
+class RehearsalError(RuntimeError):
+    """Raised when rehearsal evidence is invalid or unsafe to record."""
+
+
+@dataclass(frozen=True)
+class RehearsalGate:
+    """One required real-hardware classroom rehearsal gate."""
+
+    id: str
+    label: str
+    requirement: str
+    evidence: str
+
+
+@dataclass(frozen=True)
+class RehearsalPlan:
+    """Section 13.7 real EV3 classroom rehearsal plan."""
+
+    root: Path
+    expected_devices: int
+    expected_transport_instances: int
+    gates: Tuple[RehearsalGate, ...]
+    evidence_paths: Tuple[Path, ...]
+
+
+def _require_inside_root(path: Path, root: Path) -> Path:
+    resolved = path.resolve()
+    root = root.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as error:
+        raise RehearsalError(f"Path escapes EV3SC root: {resolved}") from error
+    return resolved
+
+
+def build_rehearsal_plan(
+    *,
+    root: Path = DEFAULT_ROOT,
+    expected_devices: int = DEFAULT_EXPECTED_REAL_EV3,
+    expected_transport_instances: int = DEFAULT_EXPECTED_TRANSPORTS,
+) -> RehearsalPlan:
+    """Return the Section 13.7 real EV3 classroom rehearsal gate plan."""
+
+    root = root.resolve()
+    if not root.is_dir():
+        raise RehearsalError(f"EV3SC root does not exist: {root}")
+    if expected_devices < 1:
+        raise RehearsalError("expected_devices must be at least 1")
+    if expected_transport_instances < expected_devices:
+        raise RehearsalError(
+            "expected_transport_instances must be greater than or equal to "
+            "expected_devices"
+        )
+
+    evidence_dir = _require_inside_root(root / "docs/classroom/evidence", root)
+    evidence_paths = (
+        _require_inside_root(
+            root / "docs/classroom/real_ev3_rehearsal_evidence.template.json",
+            root,
+        ),
+        _require_inside_root(root / "docs/classroom/REAL_EV3_REHEARSAL.md", root),
+        evidence_dir,
+    )
+
+    gates = (
+        RehearsalGate(
+            id="scratchai-unified-stack",
+            label="ScratchAI unified stack",
+            requirement=(
+                "ScratchAI editor, EV3 extension-library entry, "
+                "WeisileLink, EV3 firmware, and AI Quest middleware run from "
+                "the EV3SC-owned source tree."
+            ),
+            evidence=(
+                "`scratchai_unified_stack=true` plus local stack health logs "
+                "from the rehearsal computer."
+            ),
+        ),
+        RehearsalGate(
+            id="real-ev3-endpoint",
+            label="Real EV3 endpoint connected",
+            requirement=(
+                "At least one real ev3dev EV3 brick connects through the "
+                "unified ScratchAI stack."
+            ),
+            evidence=(
+                "`ev3_endpoint_connected=true` with EV3 IP/host evidence and "
+                "WeisileLink connection logs."
+            ),
+        ),
+        RehearsalGate(
+            id="weisilelink-real-transport",
+            label="WeisileLink real transport",
+            requirement=(
+                "WeisileLink uses a real WiFi or Bluetooth EV3 transport, "
+                "not the local simulated preview transport."
+            ),
+            evidence=(
+                "`weisilelink_real_transport=true` with the transport mode "
+                "and bridge status output."
+            ),
+        ),
+        RehearsalGate(
+            id="motor-command-safety",
+            label="Motor command and safety",
+            requirement=(
+                "Scratch EV3 blocks drive motors at classroom-safe values and "
+                "the emergency stop path stops motors and sound."
+            ),
+            evidence=(
+                "`motor_command_verified=true` and "
+                "`emergency_stop_verified=true` with operator notes."
+            ),
+        ),
+        RehearsalGate(
+            id="sensor-stream-freshness",
+            label="Sensor stream freshness",
+            requirement=(
+                "The 45-minute student workflow streams sensor data close to "
+                "the 50Hz target without excessive drops or memory growth."
+            ),
+            evidence=(
+                f"`sensor_stream_hz>={MIN_SENSOR_HZ}`, "
+                f"`sensor_stream_duration_minutes>={MIN_WORKFLOW_MINUTES}`, "
+                f"`dropped_update_pct<={MAX_DROPPED_UPDATE_PCT}`, and "
+                f"`memory_growth_mb<{MAX_MEMORY_GROWTH_MB}`."
+            ),
+        ),
+        RehearsalGate(
+            id="aiquest-collection-training-export",
+            label="AI Quest collection, training, and export",
+            requirement=(
+                "The 45-minute student workflow collects labeled EV3 data, "
+                "uploads to Trainer, trains or selects a model, and exports "
+                "model rules."
+            ),
+            evidence=(
+                "`aiquest_collection_verified=true` and "
+                "`aiquest_training_export_verified=true` with export logs."
+            ),
+        ),
+        RehearsalGate(
+            id="multi-device-rehearsal",
+            label="30-device classroom rehearsal",
+            requirement=(
+                f"Start {expected_transport_instances} WeisileLink instances "
+                "or simulated EV3 transports on the classroom LAN, connect at "
+                f"least {expected_devices} real EV3 bricks if hardware is "
+                "available, record disconnects, reconnect time, teacher "
+                "recovery steps, and confirm the pilot required no code "
+                "changes during class."
+            ),
+            evidence=(
+                "`transport_instance_count`, `device_count`, disconnect, "
+                "reconnect, recovery-step, and no-code-change evidence."
+            ),
+        ),
+    )
+    return RehearsalPlan(
+        root=root,
+        expected_devices=expected_devices,
+        expected_transport_instances=expected_transport_instances,
+        gates=gates,
+        evidence_paths=evidence_paths,
+    )
+
+
+def pending_evidence_template(plan: RehearsalPlan) -> Dict[str, Any]:
+    """Return a JSON-ready evidence template that does not claim hardware pass."""
+
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "schema": "vsle.realEv3ClassroomRehearsal.v1",
+        "created_at": now,
+        "run_started_at": "",
+        "operator": "",
+        "classroom_or_lab": "",
+        "notes": "No real EV3 hardware evidence has been attached.",
+        "scratchai_unified_stack": False,
+        "ev3_endpoint_connected": False,
+        "ev3_endpoint": "",
+        "weisilelink_real_transport": False,
+        "transport_mode": "",
+        "motor_command_verified": False,
+        "emergency_stop_verified": False,
+        "sensor_stream_hz": 0.0,
+        "sensor_stream_duration_minutes": 0.0,
+        "aiquest_collection_verified": False,
+        "aiquest_training_export_verified": False,
+        "transport_instance_count": 0,
+        "device_count": 0,
+        "disconnects_recorded": False,
+        "disconnect_count": 0,
+        "reconnect_time_seconds_max": None,
+        "dropped_update_pct": None,
+        "memory_growth_mb": None,
+        "teacher_recovery_steps_recorded": False,
+        "pilot_required_code_changes": True,
+        "evidence_files": [],
+        "expected_devices": plan.expected_devices,
+        "expected_transport_instances": plan.expected_transport_instances,
+    }
+
+
+def _bool_evidence(evidence: Mapping[str, Any], key: str) -> bool:
+    return evidence.get(key) is True
+
+
+def _number_evidence(evidence: Mapping[str, Any], key: str) -> float:
+    value = evidence.get(key)
+    if value is None or value == "":
+        return 0.0
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _int_evidence(evidence: Mapping[str, Any], key: str) -> int:
+    return int(_number_evidence(evidence, key))
+
+
+def _result(
+    gate: RehearsalGate,
+    passed: bool,
+    detail: str,
+) -> Dict[str, Any]:
+    return {
+        "id": gate.id,
+        "label": gate.label,
+        "status": "PASS" if passed else "FAIL",
+        "passed": passed,
+        "requirement": gate.requirement,
+        "evidence": gate.evidence,
+        "detail": detail,
+    }
+
+
+def _gate_results(
+    plan: RehearsalPlan,
+    evidence: Mapping[str, Any],
+) -> List[Dict[str, Any]]:
+    by_id = {gate.id: gate for gate in plan.gates}
+    sensor_hz = _number_evidence(evidence, "sensor_stream_hz")
+    duration = _number_evidence(evidence, "sensor_stream_duration_minutes")
+    dropped = evidence.get("dropped_update_pct")
+    memory = evidence.get("memory_growth_mb")
+    reconnect = evidence.get("reconnect_time_seconds_max")
+    dropped_pct = _number_evidence(evidence, "dropped_update_pct")
+    memory_growth = _number_evidence(evidence, "memory_growth_mb")
+    reconnect_max = _number_evidence(evidence, "reconnect_time_seconds_max")
+    device_count = _int_evidence(evidence, "device_count")
+    transport_count = _int_evidence(evidence, "transport_instance_count")
+    pilot_code_changes = evidence.get("pilot_required_code_changes") is True
+
+    return [
+        _result(
+            by_id["scratchai-unified-stack"],
+            _bool_evidence(evidence, "scratchai_unified_stack"),
+            "Requires `scratchai_unified_stack=true` from the rehearsal run.",
+        ),
+        _result(
+            by_id["real-ev3-endpoint"],
+            _bool_evidence(evidence, "ev3_endpoint_connected"),
+            "Requires `ev3_endpoint_connected=true` from a real EV3 brick.",
+        ),
+        _result(
+            by_id["weisilelink-real-transport"],
+            _bool_evidence(evidence, "weisilelink_real_transport"),
+            "Requires `weisilelink_real_transport=true`, not simulation.",
+        ),
+        _result(
+            by_id["motor-command-safety"],
+            _bool_evidence(evidence, "motor_command_verified")
+            and _bool_evidence(evidence, "emergency_stop_verified")
+            and not pilot_code_changes,
+            (
+                "Requires motor command, emergency stop, and no in-class code "
+                "changes."
+            ),
+        ),
+        _result(
+            by_id["sensor-stream-freshness"],
+            sensor_hz >= MIN_SENSOR_HZ
+            and duration >= MIN_WORKFLOW_MINUTES
+            and dropped is not None
+            and dropped_pct <= MAX_DROPPED_UPDATE_PCT
+            and memory is not None
+            and memory_growth < MAX_MEMORY_GROWTH_MB,
+            (
+                f"Measured {sensor_hz:.2f}Hz for {duration:.1f} minutes, "
+                f"dropped {dropped_pct:.3f}%, memory +{memory_growth:.1f}MB."
+            ),
+        ),
+        _result(
+            by_id["aiquest-collection-training-export"],
+            _bool_evidence(evidence, "aiquest_collection_verified")
+            and _bool_evidence(evidence, "aiquest_training_export_verified"),
+            "Requires AI Quest collection plus training/export evidence.",
+        ),
+        _result(
+            by_id["multi-device-rehearsal"],
+            transport_count >= plan.expected_transport_instances
+            and device_count >= plan.expected_devices
+            and _bool_evidence(evidence, "disconnects_recorded")
+            and reconnect is not None
+            and reconnect_max <= MAX_RECONNECT_SECONDS
+            and _bool_evidence(evidence, "teacher_recovery_steps_recorded")
+            and not pilot_code_changes,
+            (
+                f"Observed {transport_count} transports and {device_count} "
+                f"real EV3 devices; max reconnect {reconnect_max:.1f}s."
+            ),
+        ),
+    ]
+
+
+def _validate_evidence_files(
+    root: Path,
+    evidence_files: Iterable[Any],
+) -> List[str]:
+    valid_files: List[str] = []
+    for value in evidence_files:
+        file_path = Path(str(value))
+        if file_path.is_absolute():
+            path = _require_inside_root(file_path, root)
+            valid_files.append(str(path.relative_to(root)))
+        else:
+            path = _require_inside_root(root / file_path, root)
+            valid_files.append(str(path.relative_to(root)))
+    return valid_files
+
+
+def evaluate_rehearsal_evidence(
+    plan: RehearsalPlan,
+    evidence: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Evaluate JSON rehearsal evidence against the Section 13.7 gate plan."""
+
+    evidence_files = _validate_evidence_files(
+        plan.root,
+        evidence.get("evidence_files", []),
+    )
+    results = _gate_results(plan, evidence)
+    passed = sum(1 for result in results if result["passed"])
+    failed = len(results) - passed
+    missing = [result["id"] for result in results if not result["passed"]]
+    approved = failed == 0
+    return {
+        "status": "PASSED" if approved else "BLOCKED",
+        "classroomApproved": approved,
+        "passed": passed,
+        "failed": failed,
+        "missingEvidence": missing,
+        "expectedDevices": plan.expected_devices,
+        "expectedTransportInstances": plan.expected_transport_instances,
+        "results": results,
+        "evidenceFiles": evidence_files,
+        "operator": str(evidence.get("operator") or ""),
+        "runStartedAt": str(evidence.get("run_started_at") or ""),
+        "notes": str(evidence.get("notes") or ""),
+    }
+
+
+def render_rehearsal_report(
+    plan: RehearsalPlan,
+    summary: Mapping[str, Any],
+) -> str:
+    """Render a Markdown classroom rehearsal report."""
+
+    lines = [
+        "# Real EV3 Classroom Rehearsal",
+        "",
+        f"Date: {datetime.now(timezone.utc).date().isoformat()}",
+        "",
+        "This report covers the Section 13.7 manual classroom acceptance gate.",
+        "Automated localhost testing does not replace the real EV3 classroom rehearsal.",
+        "",
+        "## Summary",
+        "",
+        f"- Status: {summary['status']}",
+        ("- Classroom approved: " f"{str(summary['classroomApproved']).lower()}"),
+        f"- Gates passed: {summary['passed']}",
+        f"- Gates failed: {summary['failed']}",
+        f"- Expected real EV3 bricks: {plan.expected_devices}",
+        (
+            "- Expected transport instances or simulated EV3 transports: "
+            f"{plan.expected_transport_instances}"
+        ),
+        "",
+        "## Gate Results",
+        "",
+        "| Gate | Status | Evidence detail |",
+        "|---|---|---|",
+    ]
+    for result in summary["results"]:
+        lines.append(f"| {result['id']} | {result['status']} | {result['detail']} |")
+    lines.extend(
+        [
+            "",
+            "## Required Evidence",
+            "",
+        ]
+    )
+    for gate in plan.gates:
+        lines.extend(
+            [
+                f"### {gate.label}",
+                "",
+                f"- Requirement: {gate.requirement}",
+                f"- Evidence: {gate.evidence}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Attached Evidence Files",
+            "",
+        ]
+    )
+    evidence_files = list(summary.get("evidenceFiles", []))
+    if evidence_files:
+        lines.extend(f"- `{file_path}`" for file_path in evidence_files)
+    else:
+        lines.append("- None attached yet.")
+    lines.extend(
+        [
+            "",
+            "## Operator Notes",
+            "",
+            summary.get("notes", "") or "No notes recorded.",
+            "",
+            "## Next Action",
+            "",
+        ]
+    )
+    if summary["classroomApproved"]:
+        lines.append(
+            "Attach this report to the pilot release record and keep raw "
+            "evidence under `docs/classroom/evidence/`."
+        )
+    else:
+        missing = ", ".join(summary["missingEvidence"])
+        lines.append(
+            "Classroom pilot remains blocked until these evidence gates pass: "
+            f"{missing}."
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _write_json(path: Path, payload: Mapping[str, Any], root: Path) -> None:
+    path = _require_inside_root(path, root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
+def _write_text(path: Path, text: str, root: Path) -> None:
+    path = _require_inside_root(path, root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
+
+
+def _load_evidence(path: Path, root: Path) -> Dict[str, Any]:
+    path = _require_inside_root(path, root)
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
+    if not isinstance(data, dict):
+        raise RehearsalError("Evidence JSON must contain an object")
+    return data
+
+
+def _plan_json(plan: RehearsalPlan) -> Dict[str, Any]:
+    return {
+        "expectedDevices": plan.expected_devices,
+        "expectedTransportInstances": plan.expected_transport_instances,
+        "gates": [
+            {
+                "id": gate.id,
+                "label": gate.label,
+                "requirement": gate.requirement,
+                "evidence": gate.evidence,
+            }
+            for gate in plan.gates
+        ],
+        "evidencePaths": [str(path) for path in plan.evidence_paths],
+    }
+
+
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Evaluate Section 13.7 real EV3 classroom rehearsal evidence."
+    )
+    parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument(
+        "--expected-devices",
+        type=int,
+        default=DEFAULT_EXPECTED_REAL_EV3,
+        help="Minimum real EV3 bricks required for the rehearsal gate.",
+    )
+    parser.add_argument(
+        "--expected-transport-instances",
+        type=int,
+        default=DEFAULT_EXPECTED_TRANSPORTS,
+        help="Minimum WeisileLink or simulated EV3 transports required.",
+    )
+    parser.add_argument("--evidence-json", type=Path)
+    parser.add_argument("--json-report", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--write-template", type=Path)
+    parser.add_argument(
+        "--pending",
+        action="store_true",
+        help="Use the pending template when no evidence JSON is supplied.",
+    )
+    parser.add_argument("--print-plan", action="store_true")
+    parser.add_argument(
+        "--require-passed",
+        action="store_true",
+        help="Exit non-zero unless all real EV3 rehearsal gates pass.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    plan = build_rehearsal_plan(
+        root=args.root,
+        expected_devices=args.expected_devices,
+        expected_transport_instances=args.expected_transport_instances,
+    )
+
+    if args.print_plan:
+        print(json.dumps(_plan_json(plan), indent=2, sort_keys=True))
+
+    template = pending_evidence_template(plan)
+    if args.write_template:
+        _write_json(args.write_template, template, plan.root)
+
+    if args.evidence_json:
+        evidence = _load_evidence(args.evidence_json, plan.root)
+    elif args.pending or args.report or args.json_report:
+        evidence = template
+    else:
+        return 0
+
+    summary = evaluate_rehearsal_evidence(plan, evidence)
+    if args.json_report:
+        _write_json(args.json_report, summary, plan.root)
+    if args.report:
+        _write_text(args.report, render_rehearsal_report(plan, summary), plan.root)
+
+    if not args.report and not args.json_report:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+
+    if args.require_passed and not summary["classroomApproved"]:
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

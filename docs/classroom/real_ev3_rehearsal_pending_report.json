@@ -1,0 +1,86 @@
+{
+  "classroomApproved": false,
+  "evidenceFiles": [],
+  "expectedDevices": 10,
+  "expectedTransportInstances": 30,
+  "failed": 7,
+  "missingEvidence": [
+    "scratchai-unified-stack",
+    "real-ev3-endpoint",
+    "weisilelink-real-transport",
+    "motor-command-safety",
+    "sensor-stream-freshness",
+    "aiquest-collection-training-export",
+    "multi-device-rehearsal"
+  ],
+  "notes": "No real EV3 hardware evidence has been attached.",
+  "operator": "",
+  "passed": 0,
+  "results": [
+    {
+      "detail": "Requires `scratchai_unified_stack=true` from the rehearsal run.",
+      "evidence": "`scratchai_unified_stack=true` plus local stack health logs from the rehearsal computer.",
+      "id": "scratchai-unified-stack",
+      "label": "ScratchAI unified stack",
+      "passed": false,
+      "requirement": "ScratchAI editor, EV3 extension-library entry, WeisileLink, EV3 firmware, and AI Quest middleware run from the EV3SC-owned source tree.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires `ev3_endpoint_connected=true` from a real EV3 brick.",
+      "evidence": "`ev3_endpoint_connected=true` with EV3 IP/host evidence and WeisileLink connection logs.",
+      "id": "real-ev3-endpoint",
+      "label": "Real EV3 endpoint connected",
+      "passed": false,
+      "requirement": "At least one real ev3dev EV3 brick connects through the unified ScratchAI stack.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires `weisilelink_real_transport=true`, not simulation.",
+      "evidence": "`weisilelink_real_transport=true` with the transport mode and bridge status output.",
+      "id": "weisilelink-real-transport",
+      "label": "WeisileLink real transport",
+      "passed": false,
+      "requirement": "WeisileLink uses a real WiFi or Bluetooth EV3 transport, not the local simulated preview transport.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires motor command, emergency stop, and no in-class code changes.",
+      "evidence": "`motor_command_verified=true` and `emergency_stop_verified=true` with operator notes.",
+      "id": "motor-command-safety",
+      "label": "Motor command and safety",
+      "passed": false,
+      "requirement": "Scratch EV3 blocks drive motors at classroom-safe values and the emergency stop path stops motors and sound.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Measured 0.00Hz for 0.0 minutes, dropped 0.000%, memory +0.0MB.",
+      "evidence": "`sensor_stream_hz>=45.0`, `sensor_stream_duration_minutes>=45.0`, `dropped_update_pct<=0.1`, and `memory_growth_mb<50.0`.",
+      "id": "sensor-stream-freshness",
+      "label": "Sensor stream freshness",
+      "passed": false,
+      "requirement": "The 45-minute student workflow streams sensor data close to the 50Hz target without excessive drops or memory growth.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires AI Quest collection plus training/export evidence.",
+      "evidence": "`aiquest_collection_verified=true` and `aiquest_training_export_verified=true` with export logs.",
+      "id": "aiquest-collection-training-export",
+      "label": "AI Quest collection, training, and export",
+      "passed": false,
+      "requirement": "The 45-minute student workflow collects labeled EV3 data, uploads to Trainer, trains or selects a model, and exports model rules.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Observed 0 transports and 0 real EV3 devices; max reconnect 0.0s.",
+      "evidence": "`transport_instance_count`, `device_count`, disconnect, reconnect, recovery-step, and no-code-change evidence.",
+      "id": "multi-device-rehearsal",
+      "label": "30-device classroom rehearsal",
+      "passed": false,
+      "requirement": "Start 30 WeisileLink instances or simulated EV3 transports on the classroom LAN, connect at least 10 real EV3 bricks if hardware is available, record disconnects, reconnect time, teacher recovery steps, and confirm the pilot required no code changes during class.",
+      "status": "FAIL"
+    }
+  ],
+  "runStartedAt": "",
+  "status": "BLOCKED"
+}
