@@ -2568,6 +2568,13 @@ material into:
 - **Files created/modified**: `performance/__init__.py`, `performance/sustained_50hz.py`, `tests/test_performance_50hz.py`, `docs/performance/PERFORMANCE_50HZ.md`, `docs/performance/50hz_sustained_report.json`, `docs/performance/50hz_sustained_report.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 3 security review, including localhost-only defaults, pairing-token verification, command validation review, privacy/deletion checks, and documentation of any remaining deployment blockers.
 
+### [2026-05-23] Phase 3 security review
+- **Status**: ✅ Completed
+- **Commit**: `e8efbf3`
+- **What was done**: Added browser Origin allowlist enforcement for the Scratch-compatible WeisileLink WebSocket server, configurable through `WEISILE_ALLOWED_ORIGINS`, while preserving localhost defaults and native client compatibility. Added a Phase 3 security review report covering Section 13.6 and Section 15 gates, plus tests for localhost binding, pairing-token behavior, command validation, privacy/delete controls, bounded buffers, and token-safe logs.
+- **Files created/modified**: `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/tests/test_json_rpc_server.py`, `tests/test_security_review.py`, `docs/security/SECURITY_REVIEW.md`, `deploy/env.example`, `deploy/README.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the final release readiness and classroom hardware acceptance pass, including Section 14.6 release checklist review, Section 13.7 30-device rehearsal planning, and any real-EV3 hardware evidence the pilot requires.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
