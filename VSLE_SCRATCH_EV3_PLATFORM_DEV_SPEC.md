@@ -2589,6 +2589,13 @@ material into:
 - **Files created/modified**: `docs/superpowers/plans/2026-05-23-scratchai-port-baseline.md`
 - **Next step**: Choose the execution mode for the plan: Subagent-Driven or Inline Execution.
 
+### [2026-05-23] ScratchAI port tooling
+- **Status**: ✅ Completed
+- **Commit**: `25cf27b`
+- **What was done**: Added deterministic ScratchAI port tooling that copies source from the authorized local scratchai reference into EV3SC while excluding generated dependency and build artifacts. Added pytest coverage for exclusion and overwrite behavior.
+- **Files created/modified**: `.gitignore`, `scripts/port_scratchai_platform.py`, `tests/test_scratchai_port_scripts.py`
+- **Next step**: Use the port tool to create the EV3SC-owned `scratch-ai-platform/` source tree.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
