@@ -9,10 +9,10 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 
 - Status: BLOCKED
 - Classroom approved: false
-- Gates passed: 0
-- Gates failed: 7
-- Expected real EV3 bricks: 10
-- Expected transport instances or simulated EV3 transports: 30
+- Gates passed: 1
+- Gates failed: 6
+- Expected real EV3 bricks: 1
+- Expected transport instances or simulated EV3 transports: 1
 
 ## Gate Results
 
@@ -21,10 +21,10 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 | scratchai-unified-stack | FAIL | Requires `scratchai_unified_stack=true` from the rehearsal run. |
 | real-ev3-endpoint | FAIL | Requires `ev3_endpoint_connected=true` from a real EV3 brick. |
 | weisilelink-real-transport | FAIL | Requires `weisilelink_real_transport=true`, not simulation. |
-| motor-command-safety | FAIL | Requires motor command, emergency stop, and no in-class code changes. |
-| sensor-stream-freshness | FAIL | Measured 0.00Hz for 0.0 minutes, dropped 0.000%, memory +0.0MB. |
+| motor-command-safety | PASS | Requires motor command, emergency stop, and no in-class code changes. |
+| sensor-stream-freshness | FAIL | Measured 9.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB. |
 | aiquest-collection-training-export | FAIL | Requires AI Quest collection plus training/export evidence. |
-| multi-device-rehearsal | FAIL | Observed 0 transports and 0 real EV3 devices; max reconnect 0.0s. |
+| multi-device-rehearsal | FAIL | Observed 1 transports and 0 real EV3 devices; max reconnect 0.0s. |
 
 ## Required Evidence
 
@@ -60,17 +60,18 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 
 ### 30-device classroom rehearsal
 
-- Requirement: Start 30 WeisileLink instances or simulated EV3 transports on the classroom LAN, connect at least 10 real EV3 bricks if hardware is available, record disconnects, reconnect time, teacher recovery steps, and confirm the pilot required no code changes during class.
+- Requirement: Start 1 WeisileLink instances or simulated EV3 transports on the classroom LAN, connect at least 1 real EV3 bricks if hardware is available, record disconnects, reconnect time, teacher recovery steps, and confirm the pilot required no code changes during class.
 - Evidence: `transport_instance_count`, `device_count`, disconnect, reconnect, recovery-step, and no-code-change evidence.
 
 ## Attached Evidence Files
 
-- None attached yet.
+- `docs/classroom/real_ev3_smoke_evidence.json`
+- `docs/classroom/evidence/real_ev3_smoke_transcript.json`
 
 ## Operator Notes
 
-No real EV3 hardware evidence has been attached.
+1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was not provided.
 
 ## Next Action
 
-Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, real-ev3-endpoint, weisilelink-real-transport, motor-command-safety, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal.
+Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, real-ev3-endpoint, weisilelink-real-transport, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal.

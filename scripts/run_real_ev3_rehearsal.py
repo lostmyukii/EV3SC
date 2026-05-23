@@ -507,6 +507,23 @@ def smoke_capture_to_evidence(
     return evidence
 
 
+def attach_smoke_capture_artifact_paths(
+    root: Path,
+    transcript: Dict[str, Any],
+    *,
+    evidence_path: Path | None = None,
+    transcript_path: Path | None = None,
+) -> None:
+    """Record smoke capture artifacts using EV3SC-root-relative paths."""
+
+    paths: List[str] = []
+    for path in (evidence_path, transcript_path):
+        if path is None:
+            continue
+        paths.append(str(_require_inside_root(path, root).relative_to(root)))
+    transcript["evidence_files"] = paths
+
+
 def _bool_evidence(evidence: Mapping[str, Any], key: str) -> bool:
     return evidence.get(key) is True
 
@@ -896,6 +913,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             confirm_real_ev3=args.confirm_real_ev3,
         )
         transcript = asyncio.run(capture_smoke_transcript(config))
+        attach_smoke_capture_artifact_paths(
+            plan.root,
+            transcript,
+            evidence_path=args.capture_smoke_evidence,
+            transcript_path=args.capture_smoke_transcript,
+        )
         if args.capture_smoke_transcript:
             _write_json(args.capture_smoke_transcript, transcript, plan.root)
         evidence = smoke_capture_to_evidence(plan, config, transcript)

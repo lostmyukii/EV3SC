@@ -2,6 +2,7 @@ from pathlib import Path
 
 from scripts.run_real_ev3_rehearsal import (
     SmokeCaptureConfig,
+    attach_smoke_capture_artifact_paths,
     build_rehearsal_plan,
     build_smoke_json_rpc_requests,
     evaluate_rehearsal_evidence,
@@ -222,3 +223,19 @@ def test_smoke_capture_requires_explicit_real_ev3_confirmation():
     assert evidence["ev3_endpoint_connected"] is False
     assert evidence["weisilelink_real_transport"] is False
     assert "Real EV3 confirmation was not provided" in evidence["notes"]
+
+
+def test_smoke_capture_artifact_paths_are_recorded_relative_to_root():
+    transcript = {"evidence_files": []}
+
+    attach_smoke_capture_artifact_paths(
+        ROOT,
+        transcript,
+        evidence_path=ROOT / "docs/classroom/real_ev3_smoke_evidence.json",
+        transcript_path=ROOT / "docs/classroom/evidence/real_ev3_smoke_transcript.json",
+    )
+
+    assert transcript["evidence_files"] == [
+        "docs/classroom/real_ev3_smoke_evidence.json",
+        "docs/classroom/evidence/real_ev3_smoke_transcript.json",
+    ]
