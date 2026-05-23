@@ -2554,6 +2554,13 @@ material into:
 - **Files created/modified**: `.dockerignore`, `deploy/Dockerfile.weisile-link`, `deploy/docker-compose.yml`, `deploy/env.example`, `deploy/README.md`, `deploy/weisile-link.service`, `deploy/weisile-link.plist`, `deploy/scripts/validate_deployment_assets.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/__main__.py`, `tests/test_deployment_packaging.py`, `pyproject.toml`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Phase 3 teacher guide + student workbooks, including classroom-ready lesson flow, AI Quest worksheets, troubleshooting, and verification docs.
 
+### [2026-05-23] Teacher guide and student workbooks
+- **Status**: ✅ Completed
+- **Commit**: `17b3b87`
+- **What was done**: Added classroom-ready teacher guidance and three student workbooks aligned to the AI Quest sample manifests for obstacle avoidance, line patrol, and touch-stop safety. The materials cover the 45-minute lesson flow, teacher preflight, Scratch visual identity constraints, safety, privacy, troubleshooting, assessment, prediction testing, exports, and cleanup.
+- **Files created/modified**: `docs/classroom/README.md`, `docs/classroom/TEACHER_GUIDE.md`, `docs/classroom/WORKBOOK_OBSTACLE_AVOIDANCE.md`, `docs/classroom/WORKBOOK_LINE_PATROL.md`, `docs/classroom/WORKBOOK_TOUCH_STOP_SAFETY.md`, `tests/test_classroom_docs.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 3 performance testing, including 50Hz sustained stream validation, 4-hour session simulation, drift bounds, dropped-update thresholds, and reporting.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
