@@ -2694,6 +2694,13 @@ material into:
 - **Files created/modified**: `scripts/start_unified_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_unified_preview_stack.py`, `preview/weisile_preview_server.py`, `docs/scratchai/UNIFIED_PREVIEW_STACK.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the ScratchAI-centered final acceptance pass: verify extension-library `EV3` loading inside the unified stack, legacy `.sb3` compatibility, AI Quest mock/cloud/local fallback flows, and real EV3 hardware readiness evidence for classroom pilot.
 
+### [2026-05-23] ScratchAI final automated acceptance gates
+- **Status**: ✅ Completed
+- **Commit**: `2bcc4c1`
+- **What was done**: Added a final ScratchAI-centered automated acceptance verifier that aggregates the unified preview plan/runtime checks, ScratchAI `EV3` extension-library routing, legacy official EV3 compatibility, complete VSLE-EV3 AI Quest block surface, AI Quest cloud/cached/localFallback provider behavior, and deployment/hardware-readiness asset tests. Generated JSON and Markdown acceptance reports showing 7/7 automated gates passed while keeping classroom approval blocked until real EV3 classroom rehearsal evidence is attached.
+- **Files created/modified**: `scripts/verify_scratchai_final_acceptance.py`, `tests/test_scratchai_final_acceptance.py`, `docs/scratchai/FINAL_ACCEPTANCE.md`, `docs/scratchai/final_acceptance_report.json`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the real EV3 classroom rehearsal gate from Section 13.7: connect real EV3 hardware through the unified ScratchAI stack, record motor/sensor/AI Quest evidence, and capture multi-device pilot readiness results.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
