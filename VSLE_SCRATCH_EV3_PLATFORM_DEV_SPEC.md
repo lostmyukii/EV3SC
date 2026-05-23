@@ -2680,6 +2680,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/ai_quest_providers.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_ai_quest_providers.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Add model scopes and shared-model management for ScratchAI EV3 projects, including project/class/course model listing, publish/withdraw behavior, cached-model controls, prediction-mode reporting, and pure `.sb3` metadata stripping.
 
+### [2026-05-23] ScratchAI EV3 AI Quest model scope and sharing
+- **Status**: ✅ Completed
+- **Commit**: `2290ece`
+- **What was done**: Added shared AI Quest model management for ScratchAI EV3 projects, including project/class/course model catalogs, publish/list/withdraw behavior, cached-model selection and clearing, prediction-mode reporting, and pure `.sb3` AI Quest metadata stripping. Extended JSON-RPC, REST, and EV3 category blocks so Scratch projects can manage shared and cached models without exposing raw rules, rows, provider credentials, or cloud-only metadata.
+- **Files created/modified**: `weisile-link/weisile_link/ai_quest_contract.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_ai_quest_contract.py`, `weisile-link/tests/test_json_rpc_server_ai_quest.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `docs/scratchai/AI_QUEST_API_CONTRACT.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Build the unified local preview stack for ScratchAI editor, middleware, asset worker, WeisileLink, EV3 simulation, and AI Quest cloud mock.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
