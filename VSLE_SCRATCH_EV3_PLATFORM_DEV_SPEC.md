@@ -2750,6 +2750,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`
 - **Next step**: Connect a physical EV3, rerun the readiness gate until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-24] Real EV3 readiness candidate hosts
+- **Status**: ✅ Completed
+- **Commit**: `6c94e15`
+- **What was done**: Added ordered EV3 host/IP candidates to the non-invasive smoke readiness gate so classroom operators can probe `ev3dev.local` plus a real EV3 IP from `hostname -I` before running confirmed smoke. Regenerated the handoff and current readiness evidence; the gate still blocks confirmed smoke capture because `ev3dev.local:8765` is not reachable while local WeisileLink on `127.0.0.1:20111` is reachable.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`, `docs/classroom/README.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Connect a physical EV3, rerun the readiness gate with `--ev3-candidate-host <real-ev3-ip>` if mDNS does not resolve, wait for exit 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
