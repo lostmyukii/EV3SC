@@ -993,6 +993,7 @@ def render_smoke_readiness_report(readiness: Mapping[str, Any]) -> str:
         "",
         "## Summary",
         "",
+        f"- Run timestamp: `{readiness['created_at']}`",
         f"- Safe to run confirmed smoke: {str(safe_to_run).lower()}",
         f"- EV3 endpoint: `{ev3['endpoint']}`",
         f"- EV3 reachable: {str(ev3['reachable']).lower()}",

@@ -285,6 +285,7 @@ def test_smoke_readiness_blocks_confirmed_run_when_ev3_unreachable():
     assert readiness["safe_to_run_confirmed_smoke"] is False
     assert readiness["ev3_endpoint"]["reachable"] is False
     assert readiness["weisilelink_endpoint"]["reachable"] is True
+    assert readiness["created_at"] in markdown
     assert "Do not run `--confirm-real-ev3` yet." in markdown
     assert "ev3dev.local:8765" in markdown
     assert "127.0.0.1:20111" in markdown

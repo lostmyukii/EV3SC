@@ -8,6 +8,7 @@ confirmation.
 
 ## Summary
 
+- Run timestamp: `2026-05-23T17:04:16.452339+00:00`
 - Safe to run confirmed smoke: false
 - EV3 endpoint: `ev3dev.local:8765`
 - EV3 reachable: false
