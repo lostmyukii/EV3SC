@@ -13,8 +13,8 @@ from datetime import datetime, timezone
 import json
 import os
 import time
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Set
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, Optional, Set, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from weisile_link.observability.health import (
@@ -60,6 +60,28 @@ WEISILE_LINK_PORT = int(os.getenv("WEISILE_LINK_PORT", "20111"))
 TRAINER_WS_PORT = int(os.getenv("TRAINER_WS_PORT", "8766"))
 DEFAULT_PERIPHERAL_ID = "vsle-ev3-wifi"
 DEFAULT_PERIPHERAL_NAME = "VSLE EV3 WiFi"
+DEFAULT_ALLOWED_ORIGINS = (
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "https://localhost:8000",
+    "https://127.0.0.1:8000",
+    "https://localhost:3001",
+    "https://127.0.0.1:3001",
+)
+
+
+def allowed_origins_from_env() -> Tuple[str, ...]:
+    """Return browser Origin allowlist from env or safe local defaults."""
+    raw = os.getenv("WEISILE_ALLOWED_ORIGINS", "")
+    if not raw.strip():
+        return DEFAULT_ALLOWED_ORIGINS
+    return tuple(
+        origin.strip().rstrip("/")
+        for origin in raw.split(",")
+        if origin.strip()
+    )
 
 
 @dataclass(frozen=True)
@@ -73,6 +95,9 @@ class ScratchServerConfig:
     path: str = SCRATCH_BT_PATH
     peripheral_id: str = DEFAULT_PERIPHERAL_ID
     peripheral_name: str = DEFAULT_PERIPHERAL_NAME
+    allowed_origins: Tuple[str, ...] = field(
+        default_factory=allowed_origins_from_env
+    )
 
 
 class ScratchJsonRpcServer:
@@ -137,6 +162,9 @@ class ScratchJsonRpcServer:
                 reason="unsupported Scratch Link path",
             )
             return
+        if not self._origin_allowed(websocket):
+            await websocket.close(code=1008, reason="origin not allowed")
+            return
 
         self.scratch_clients.add(websocket)
         try:
@@ -157,6 +185,25 @@ class ScratchJsonRpcServer:
         websocket_path = getattr(websocket, "path", None)
         if isinstance(websocket_path, str):
             return websocket_path
+        return ""
+
+    def _origin_allowed(self, websocket: Any) -> bool:
+        """Reject browser WebSocket clients outside the configured allowlist."""
+        origin = self._resolve_websocket_origin(websocket)
+        if not origin:
+            return True
+        allowed = {item.rstrip("/") for item in self.config.allowed_origins}
+        return "*" in allowed or origin.rstrip("/") in allowed
+
+    def _resolve_websocket_origin(self, websocket: Any) -> str:
+        request = getattr(websocket, "request", None)
+        headers = getattr(request, "headers", None)
+        if headers is None:
+            headers = getattr(websocket, "request_headers", None)
+        if headers is None:
+            return ""
+        if hasattr(headers, "get"):
+            return headers.get("Origin") or headers.get("origin") or ""
         return ""
 
     async def handle_json_rpc_message(self, websocket: Any, raw: str) -> None:

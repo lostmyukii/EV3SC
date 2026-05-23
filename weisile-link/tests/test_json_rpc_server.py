@@ -143,6 +143,69 @@ def test_accepts_websockets_connection_object_request_path():
     asyncio.run(scenario())
 
 
+def test_rejects_untrusted_browser_origin_before_accepting_client():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        websocket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "cmd-evil",
+                        "method": "motor.stopAll",
+                    }
+                )
+            ]
+        )
+        websocket.request = type(
+            "Request",
+            (),
+            {
+                "path": SCRATCH_BT_PATH,
+                "headers": {"Origin": "https://evil.example"},
+            },
+        )()
+
+        await server.handle_client(websocket)
+
+        assert websocket.closed == (1008, "origin not allowed")
+        assert websocket.sent == []
+        assert server.scratch_client_count == 0
+
+    asyncio.run(scenario())
+
+
+def test_accepts_allowed_local_browser_origin():
+    async def scenario():
+        server = ScratchJsonRpcServer(FakeTransport())
+        websocket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "version-local",
+                        "method": "getVersion",
+                    }
+                )
+            ]
+        )
+        websocket.request = type(
+            "Request",
+            (),
+            {
+                "path": SCRATCH_BT_PATH,
+                "headers": {"Origin": "http://localhost:3001"},
+            },
+        )()
+
+        await server.handle_client(websocket)
+
+        assert websocket.closed is None
+        assert websocket.sent[0]["id"] == "version-local"
+
+    asyncio.run(scenario())
+
+
 def test_get_version_returns_scratch_link_protocol_envelope():
     async def scenario():
         server = ScratchJsonRpcServer(FakeTransport())

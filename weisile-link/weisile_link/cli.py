@@ -13,11 +13,13 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
 from weisile_link.json_rpc_server import (
+    DEFAULT_ALLOWED_ORIGINS,
     ScratchJsonRpcServer,
     ScratchServerConfig,
+    allowed_origins_from_env,
 )
 from weisile_link.runtime.degradation import DegradationManager
 from weisile_link.transport.bluetooth_transport import BluetoothTransport
@@ -38,6 +40,7 @@ class WeisileLinkRuntimeConfig:
     transport: str = "auto"
     max_collected_points: int = 10_000
     log_level: str = "INFO"
+    allowed_origins: Tuple[str, ...] = DEFAULT_ALLOWED_ORIGINS
 
     @classmethod
     def from_env(cls) -> "WeisileLinkRuntimeConfig":
@@ -55,6 +58,7 @@ class WeisileLinkRuntimeConfig:
                 cls.max_collected_points,
             ),
             log_level=os.getenv("LOG_LEVEL", cls.log_level).upper(),
+            allowed_origins=allowed_origins_from_env(),
         )
 
 
@@ -98,6 +102,7 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
             port=config.port,
             trainer_host=config.host,
             trainer_port=config.trainer_port,
+            allowed_origins=config.allowed_origins,
         ),
     )
 

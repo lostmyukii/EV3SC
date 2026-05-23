@@ -259,6 +259,19 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink observability baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/health.py` | Existing `sensor_hz`, memory, transport, and collected-point health fields used to align report gates with runtime status |
 | WeisileLink Trainer router baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Existing bounded collection buffer and `MAX_COLLECTED_POINTS` behavior covered by the performance documentation |
 
+## Phase 3 Step 7 — Security Review
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 3 `Security review` task; Section 13.6 critical gates; Section 14.4 deployment defaults; Section 15 threat model, transport security, privacy, and physical safety controls |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC-only ownership, no committed secrets, complete scoped implementation, no Scratch visual-design changes, and GitHub/progress workflow |
+| WeisileLink JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Scratch-compatible path handling, Origin allowlist enforcement, localhost default config, REST clear/export/train routes, and source-backed JSON-RPC command dispatch |
+| WeisileLink command validation | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/validation.py` | COMMAND_VALIDATORS allowlist, label limit, motor speed/time clamps, asset filename validation, and PID bounds |
+| EV3 firmware server | `/Users/yukii/Desktop/EV3SC/ev3-firmware/vsle_ev3_server.py` | EV3 `auth.pair` handshake, repeated command validation, bounded data collection, motor stop safety, and data.clear handling |
+| Trainer pipeline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | Local-first training, no raw rows in exported `model_rules.json`, privacy metadata, and `/api/data/clear` guidance |
+| Deployment package | `/Users/yukii/Desktop/EV3SC/deploy/env.example`, `/Users/yukii/Desktop/EV3SC/deploy/docker-compose.yml`, `/Users/yukii/Desktop/EV3SC/deploy/README.md` | Localhost-only published ports, safe checked-in env defaults, omitted pairing token, and teacher-facing Origin/pairing guidance |
+| WeisileLink structured logging | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/observability/logging.py` | Token redaction and label truncation evidence for Section 17.1 privacy-safe logs |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

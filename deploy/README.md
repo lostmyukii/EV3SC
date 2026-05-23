@@ -60,6 +60,13 @@ Default host ports are bound to `127.0.0.1`:
 - `8766`: WeisileAI Trainer subscription endpoint
 - `3001`: local preview page
 
+Browser WebSocket clients are also checked against `WEISILE_ALLOWED_ORIGINS`.
+Keep the checked default for local preview and extension hosts:
+
+```text
+http://localhost:3001,http://127.0.0.1:3001,http://localhost:8000,http://127.0.0.1:8000
+```
+
 The container binds `WEISILE_LINK_HOST=0.0.0.0` internally so Docker can publish
 ports, but Compose publishes those ports to localhost only. LAN exposure remains
 an explicit teacher action.
