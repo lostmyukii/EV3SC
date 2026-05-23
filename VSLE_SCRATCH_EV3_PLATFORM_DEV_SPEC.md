@@ -2624,6 +2624,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/scripts/prepare.mjs`
 - **Next step**: Retry Scratch editor dependency installation and continue the editor baseline checks.
 
+### [2026-05-23] ScratchAI nested husky install guard
+- **Status**: ✅ Completed
+- **Commit**: `52b69f5`
+- **What was done**: Added a Scratch editor prepare guard so husky hook installation only runs when the ported `scratch-editor/` directory is itself a git checkout. This lets `npm ci` run inside EV3SC's nested ScratchAI source tree without failing on a missing `scratch-editor/.git` directory.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/package.json`, `scratch-ai-platform/scratch-editor/scripts/install-husky-if-git.mjs`
+- **Next step**: Retry Scratch editor dependency installation and continue the editor baseline checks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
