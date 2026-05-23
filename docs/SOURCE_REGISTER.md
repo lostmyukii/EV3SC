@@ -343,6 +343,15 @@ ports. This register records the sources used for the current implementation.
 | VSLE-EV3 extension bundle | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Unsandboxed extension bundle served locally for the ScratchAI `EV3` extension-library entry |
 | Python standard library documentation | `https://docs.python.org/3/library/urllib.request.html` | Proxy-free local HTTP health checks for `scripts/verify_unified_preview.py`, keeping localhost verification independent from developer machine proxy settings |
 
+## ScratchAI Integration — Final Automated Acceptance
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Required final product behavior: ScratchAI `EV3` tile loads complete VSLE-EV3, official EV3 `.sb3` projects remain compatible, AI Quest supports cloud/cached/localFallback prediction, and raw EV3 data governance remains in the server-side API |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 13 testing requirements, Section 13.7 manual classroom acceptance, Section 14.6 release checklist, and the Development Progress Log next step for ScratchAI-centered final acceptance |
+| Final acceptance verifier | `/Users/yukii/Desktop/EV3SC/scripts/verify_scratchai_final_acceptance.py` | Aggregates the existing EV3SC-owned automated gates for unified preview runtime, extension-library routing, legacy EV3 compatibility, VSLE-EV3 block surface, AI Quest provider/fallback behavior, deployment packaging, EV3 autostart, security, and 50Hz performance |
+| Final acceptance report | `/Users/yukii/Desktop/EV3SC/docs/scratchai/FINAL_ACCEPTANCE.md`, `/Users/yukii/Desktop/EV3SC/docs/scratchai/final_acceptance_report.json` | Records automated acceptance evidence and explicitly keeps classroom approval blocked until real EV3 classroom rehearsal evidence is attached |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

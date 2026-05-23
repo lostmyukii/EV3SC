@@ -92,3 +92,9 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | `.venv/bin/python scripts/start_unified_preview.py --print-plan` | exits 0 | passed; resolves a six-service local preview stack for ScratchAI editor, middleware, asset worker, preview gateway, VSLE-EV3 extension hosting, WeisileLink EV3 simulation, Trainer WebSocket, and `AI_QUEST_PROVIDER=mock` without referencing `/Users/yukii/Desktop/scratch ai/` |
 | `.venv/bin/python -m pytest tests/test_unified_preview_stack.py -q` | exits 0 | passed; verifies prerequisite detection, local-only service command generation, port/env wiring, health-check manifest generation, and JSON-ready verification summaries |
 | `.venv/bin/python scripts/verify_unified_preview.py --weisile-link-port 20211 --trainer-port 18766 --timeout-seconds 180` while `scripts/start_unified_preview.py` runs on the same custom ports | exits 0 | passed; 7/7 checks reported OK for asset worker, middleware health/status, preview gateway status, ScratchAI editor HTML, WeisileLink JSON-RPC `getVersion`, and Trainer WebSocket connectivity |
+
+## ScratchAI Final Automated Acceptance
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python scripts/verify_scratchai_final_acceptance.py --include-runtime-preview --json-report docs/scratchai/final_acceptance_report.json --markdown-report docs/scratchai/FINAL_ACCEPTANCE.md` | exits 0 | passed; 7/7 automated gates passed for unified preview plan/runtime, ScratchAI `EV3` extension-library entry, legacy official EV3 compatibility, VSLE-EV3 AI Quest blocks, AI Quest cloud/cached/localFallback contract/provider behavior, and deployment/hardware-readiness assets. The report correctly keeps classroom approval false until the real EV3 classroom rehearsal evidence is attached. |
