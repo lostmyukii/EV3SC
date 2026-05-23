@@ -2508,6 +2508,13 @@ material into:
 - **Files created/modified**: `ai-quest-samples/index.js`, `ai-quest-samples/package.json`, `ai-quest-samples/projects/*.json`, `ai-quest-samples/scripts/export_project_json.js`, `ai-quest-samples/tests/test_samples.js`, `ai-quest-samples/README.md`, `docs/AI_QUEST_SAMPLE_PROJECTS.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement Phase 3 motor PID parameter blocks, source-backed by ev3dev2 motor PID attributes and end-to-end validation across VSLE extension, WeisileLink, and EV3 firmware.
 
+### [2026-05-23] Local frontend/backend preview stack
+- **Status**: ✅ Completed
+- **Commit**: `485ef4d`
+- **What was done**: Added a development-only preview page that mounts the existing VSLE-EV3 extension bundle, connection modal, sensor panel, and AI Quest sample cards against a simulated EV3 transport. The preview backend reuses the real WeisileLink Scratch JSON-RPC server and Trainer WebSocket endpoint, and the integration now handles current `websockets` request-path behavior plus EV3 epoch-second timestamps in `SensorCache`.
+- **Files created/modified**: `preview/index.html`, `preview/styles.css`, `preview/app.js`, `preview/weisile_preview_server.py`, `preview/package.json`, `preview/tests/test_preview_static.js`, `preview/README.md`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `weisile-link/pyproject.toml`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/tests/test_json_rpc_server.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement Phase 3 motor PID parameter blocks, source-backed by ev3dev2 motor PID attributes and end-to-end validation across VSLE extension, WeisileLink, and EV3 firmware.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
