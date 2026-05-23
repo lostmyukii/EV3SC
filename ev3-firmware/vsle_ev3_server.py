@@ -36,6 +36,10 @@ MAX_LABEL_LENGTH = 64
 SOUND_EXTENSIONS = {".wav"}
 IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
 STATUS_LIGHT_COLORS = {"green", "orange", "red", "amber", "yellow"}
+MOTOR_PID_MODES = {"speed", "position"}
+MOTOR_PID_TERMS = {"kp", "ki", "kd"}
+MOTOR_PID_VALUE_MAX = 10000
+MOTOR_PID_ATTR_SUFFIX = {"kp": "p", "ki": "i", "kd": "d"}
 
 
 class EV3CommandError(Exception):
@@ -217,6 +221,31 @@ def _milliseconds(
     return _clamp(_number(params, field, default), 20, 60000)
 
 
+def _motor_pid(params: Dict[str, Any]) -> Dict[str, Any]:
+    mode = str(params.get("mode", "")).lower()
+    term = str(params.get("term", "")).lower()
+    if mode not in MOTOR_PID_MODES:
+        raise EV3CommandError(
+            "EV3_INVALID_COMMAND",
+            "PID mode is not allowed",
+            False,
+            {"field": "mode"},
+        )
+    if term not in MOTOR_PID_TERMS:
+        raise EV3CommandError(
+            "EV3_INVALID_COMMAND",
+            "PID term is not allowed",
+            False,
+            {"field": "term"},
+        )
+    return {
+        "port": _motor_port(params),
+        "mode": mode,
+        "term": term,
+        "value": _clamp(_number(params, "value"), 0, MOTOR_PID_VALUE_MAX),
+    }
+
+
 def _asset_name(params: Dict[str, Any], field: str, extensions: Set[str]) -> str:
     value = str(params.get(field, "")).strip()
     lower_value = value.lower()
@@ -266,6 +295,8 @@ def validate_command(message: Dict[str, Any]) -> ValidatedCommand:
         normalized = {"port": _motor_port(params)}
     elif method == "motor.stopAll":
         normalized = {}
+    elif method == "motor.setPID":
+        normalized = _motor_pid(params)
     elif method == "motor.syncRun":
         normalized = {
             "port_l": _motor_port(params, "port_l"),
@@ -492,6 +523,27 @@ class EV3DevHardware:
     def motor_reset_position(self, port: str) -> None:
         self._motor(port).reset()
 
+    def motor_set_pid(
+        self,
+        port: str,
+        mode: str,
+        term: str,
+        value: float,
+    ) -> None:
+        motor = self._motor(port)
+        attr = self._motor_pid_attr(mode, term)
+        if not hasattr(motor, attr):
+            raise EV3CommandError(
+                "EV3_HARDWARE_ERROR",
+                "Motor PID attribute is not supported",
+                True,
+                {"port": port, "mode": mode, "term": term},
+            )
+        setattr(motor, attr, value)
+
+    def _motor_pid_attr(self, mode: str, term: str) -> str:
+        return f"{mode}_{MOTOR_PID_ATTR_SUFFIX[term]}"
+
     def sync_run(self, port_l: str, port_r: str, speed: int, seconds: float) -> None:
         self.motor_run_timed(port_l, speed, seconds)
         self.motor_run_timed(port_r, speed, seconds)
@@ -694,10 +746,24 @@ class EV3DevHardware:
                     "position": motor.position,
                     "speed": motor.speed,
                     "running": motor.is_running,
+                    "pid": self._read_motor_pid(motor),
                 }
             except Exception as exc:
                 data[port] = {"error": str(exc)}
         return data
+
+    def _read_motor_pid(self, motor: Any) -> Dict[str, Any]:
+        return {
+            mode: {
+                term: getattr(
+                    motor,
+                    self._motor_pid_attr(mode, term),
+                    0,
+                )
+                for term in sorted(MOTOR_PID_TERMS)
+            }
+            for mode in sorted(MOTOR_PID_MODES)
+        }
 
     def _read_system(self) -> Dict[str, Any]:
         return {
@@ -851,6 +917,13 @@ class VSLEEV3Server:
             )
         elif method == "motor.resetPosition":
             self.hardware.motor_reset_position(params["port"])
+        elif method == "motor.setPID":
+            self.hardware.motor_set_pid(
+                params["port"],
+                params["mode"],
+                params["term"],
+                params["value"],
+            )
         elif method in {"sound.playTone", "sound.playToneWait"}:
             self.hardware.sound_play_tone(
                 params["freq"],

@@ -6,6 +6,8 @@ const {
     DATA_BLOCK_OPCODES,
     DISPLAY_BLOCK_OPCODES,
     MOTOR_BLOCK_OPCODES,
+    MOTOR_PID_MODES,
+    MOTOR_PID_TERMS,
     SENSOR_BLOCK_OPCODES,
     SOUND_BLOCK_OPCODES,
     SYSTEM_BLOCK_OPCODES,
@@ -70,13 +72,13 @@ test('register requires unsandboxed TurboWarp extension context', () => {
     );
 });
 
-test('getInfo exposes all 62 EV3 blocks in LEGO red', () => {
+test('getInfo exposes all 64 EV3 blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
     assert.equal(info.name, 'VSLE EV3');
     assert.equal(info.color1, LEGO_RED);
-    assert.equal(info.blocks.length, 62);
+    assert.equal(info.blocks.length, 64);
     assert.deepEqual(
         info.blocks.map(block => block.opcode),
         [
@@ -96,6 +98,8 @@ test('getInfo exposes all 62 EV3 blocks in LEGO red', () => {
     assert.ok(info.menus.soundFiles.items.includes('ready.wav'));
     assert.ok(info.menus.displayImages.items.includes('smile.png'));
     assert.ok(info.menus.statusLightColors.items.includes('green'));
+    assert.deepEqual(info.menus.motorPidModes.items, MOTOR_PID_MODES);
+    assert.deepEqual(info.menus.motorPidTerms.items, MOTOR_PID_TERMS);
 });
 
 test('SensorCache provides default EV3 state and merges partial updates', () => {
@@ -136,6 +140,12 @@ test('motor command blocks normalize arguments before sending to WeisileLink', a
     await extension.motorSyncRun({PORT_L: 'a', PORT_R: 'b', SPEED: 101, TIME: 61});
     await extension.motorSyncTurn({PORT_L: 'c', PORT_R: 'd', SPEED: 40, TURN: -140});
     await extension.motorResetPosition({PORT: 'C'});
+    await extension.motorSetPID({
+        PORT: 'd',
+        MODE: 'SPEED',
+        TERM: 'KP',
+        VALUE: 12345
+    });
 
     assert.deepEqual(sent, [
         {method: 'motor.runForever', params: {port: 'A', speed: 100}},
@@ -147,7 +157,11 @@ test('motor command blocks normalize arguments before sending to WeisileLink', a
         {method: 'motor.runForever', params: {port: 'B', speed: 33}},
         {method: 'motor.syncRun', params: {port_l: 'A', port_r: 'B', speed: 100, time: 60}},
         {method: 'motor.syncTurn', params: {port_l: 'C', port_r: 'D', speed: 40, turn: -100}},
-        {method: 'motor.resetPosition', params: {port: 'C'}}
+        {method: 'motor.resetPosition', params: {port: 'C'}},
+        {
+            method: 'motor.setPID',
+            params: {port: 'D', mode: 'speed', term: 'kp', value: 10000}
+        }
     ]);
 });
 
@@ -164,21 +178,41 @@ test('motor reporter and boolean blocks synchronously read sensor cache', () => 
     sensorCache.update({
         motors: {
             A: {position: 360, speed: 42, running: true},
-            B: {position: -90, speed: 0, running: false}
+            B: {position: -90, speed: 0, running: false},
+            C: {
+                pid: {
+                    speed: {kp: 11.3, ki: 0.05, kd: 3.2},
+                    position: {kp: 9, ki: 0, kd: 1}
+                }
+            }
         }
     });
 
     const position = extension.getMotorPosition({PORT: 'a'});
     const speed = extension.getMotorSpeed({PORT: 'A'});
+    const speedKp = extension.getMotorPID({
+        PORT: 'c',
+        MODE: 'speed',
+        TERM: 'kp'
+    });
+    const positionKd = extension.getMotorPID({
+        PORT: 'C',
+        MODE: 'POSITION',
+        TERM: 'KD'
+    });
     const runningA = extension.isMotorRunning({PORT: 'A'});
     const runningB = extension.isMotorRunning({PORT: 'B'});
 
     assert.equal(position, 360);
     assert.equal(speed, 42);
+    assert.equal(speedKp, 11.3);
+    assert.equal(positionKd, 1);
     assert.equal(runningA, true);
     assert.equal(runningB, false);
     assert.equal(position instanceof Promise, false);
     assert.equal(speed instanceof Promise, false);
+    assert.equal(speedKp instanceof Promise, false);
+    assert.equal(positionKd instanceof Promise, false);
     assert.equal(runningA instanceof Promise, false);
 });
 

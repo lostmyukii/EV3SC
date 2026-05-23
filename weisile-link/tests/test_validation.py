@@ -52,6 +52,47 @@ def test_motor_run_timed_returns_normalized_params():
     assert command.params == {"port": "A", "speed": 100, "time": 60}
 
 
+def test_motor_set_pid_normalizes_mode_term_value_and_port():
+    command = validate_ev3_command(
+        "motor.setPID",
+        {"port": "b", "mode": "SPEED", "term": "KP", "value": 12345},
+    )
+
+    assert command.method == "motor.setPID"
+    assert command.params == {
+        "port": "B",
+        "mode": "speed",
+        "term": "kp",
+        "value": 10000,
+    }
+
+
+def test_motor_set_pid_rejects_unknown_mode_and_term():
+    with pytest.raises(ValidationError) as mode_exc:
+        validate_ev3_command(
+            "motor.setPID",
+            {"port": "A", "mode": "torque", "term": "kp", "value": 1},
+        )
+    with pytest.raises(ValidationError) as term_exc:
+        validate_ev3_command(
+            "motor.setPID",
+            {"port": "A", "mode": "speed", "term": "kg", "value": 1},
+        )
+
+    assert mode_exc.value.code == ErrorCode.EV3_INVALID_COMMAND
+    assert mode_exc.value.data == {
+        "method": "motor.setPID",
+        "field": "mode",
+        "retryable": False,
+    }
+    assert term_exc.value.code == ErrorCode.EV3_INVALID_COMMAND
+    assert term_exc.value.data == {
+        "method": "motor.setPID",
+        "field": "term",
+        "retryable": False,
+    }
+
+
 def test_play_tone_clamps_frequency_duration_and_volume():
     command = validate_ev3_command(
         "sound.playTone",

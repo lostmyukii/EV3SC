@@ -211,6 +211,9 @@ ports. This register records the sources used for the current implementation.
 | WeisileLink JSON-RPC server baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Reused the real Scratch-compatible `/scratch/bt` JSON-RPC server, Trainer WebSocket endpoint, sensor routing, and upload/collection command path instead of a mock protocol |
 | AI Quest sample package | `/Users/yukii/Desktop/EV3SC/ai-quest-samples/projects/*.json` | Rendered the existing source-backed classroom sample workflows inside the preview page |
 | websockets 15 upgrade documentation | `https://websockets.readthedocs.io/en/15.0/howto/upgrade.html` | Confirmed the server connection object exposes the request path as `connection.request.path`, so `ScratchJsonRpcServer` now accepts path metadata from both legacy two-argument handlers and current connection objects |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 3 `Motor PID parameter blocks` task and EV3 capability matrix row for motor PID parameters |
+| python-ev3dev2 motor docs | `https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/latest/motors.html` | Source-backed `Motor.position_p`, `position_i`, `position_d`, `speed_p`, `speed_i`, and `speed_d` attributes used for the PID set/read implementation |
+| ev3dev LEGO Linux motor driver docs | `https://docs.ev3dev.org/projects/lego-linux-drivers/en/ev3dev-jessie/motors.html` | Kernel driver-backed `hold_pid/Kp`, `hold_pid/Ki`, `hold_pid/Kd`, `speed_pid/Kp`, `speed_pid/Ki`, and `speed_pid/Kd` read/write semantics mapped through ev3dev2 properties |
 
 ## Rules
 

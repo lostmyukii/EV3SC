@@ -20,6 +20,9 @@ MAX_LABEL_LENGTH = 64
 SOUND_EXTENSIONS = {".wav"}
 IMAGE_EXTENSIONS = {".png", ".bmp", ".jpg", ".jpeg"}
 STATUS_LIGHT_COLORS = {"green", "orange", "red", "amber", "yellow"}
+MOTOR_PID_MODES = {"speed", "position"}
+MOTOR_PID_TERMS = {"kp", "ki", "kd"}
+MOTOR_PID_VALUE_MAX = 10000
 
 
 @dataclass(frozen=True)
@@ -210,6 +213,25 @@ def _sync_turn(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _motor_pid(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    mode = str(params.get("mode", "")).lower()
+    term = str(params.get("term", "")).lower()
+    if mode not in MOTOR_PID_MODES:
+        raise _invalid_command(method, "PID mode is not allowed", field="mode")
+    if term not in MOTOR_PID_TERMS:
+        raise _invalid_command(method, "PID term is not allowed", field="term")
+    return {
+        "port": _motor_port(method, params),
+        "mode": mode,
+        "term": term,
+        "value": _clamp(
+            _number(method, params, "value"),
+            0,
+            MOTOR_PID_VALUE_MAX,
+        ),
+    }
+
+
 def _tone(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "freq": _frequency(method, params),
@@ -307,6 +329,7 @@ COMMAND_VALIDATORS: Dict[str, CommandValidator] = {
     "motor.syncRun": _sync_run,
     "motor.syncTurn": _sync_turn,
     "motor.resetPosition": _single_motor,
+    "motor.setPID": _motor_pid,
     "sound.playTone": _tone,
     "sound.playToneWait": _tone,
     "sound.playFile": _sound_file,

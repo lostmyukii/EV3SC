@@ -50,6 +50,9 @@ class FakeHardware:
     def motor_reset_position(self, port):
         self.actions.append(("motor_reset_position", port))
 
+    def motor_set_pid(self, port, mode, term, value):
+        self.actions.append(("motor_set_pid", port, mode, term, value))
+
     def sync_run(self, port_l, port_r, speed, seconds):
         self.actions.append(("sync_run", port_l, port_r, speed, seconds))
 
@@ -254,6 +257,28 @@ def test_motor_run_timed_validates_and_clamps_before_dispatch():
     assert hardware.actions == [("motor_run_timed", "A", 100, 60)]
 
 
+def test_motor_set_pid_validates_clamps_and_dispatches_to_hardware():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    response = server.handle_command(
+        {
+            "id": "pid-1",
+            "method": "motor.setPID",
+            "params": {
+                "port": "c",
+                "mode": "POSITION",
+                "term": "KD",
+                "value": 12345,
+            },
+        }
+    )
+
+    assert response == {"type": "ack", "id": "pid-1", "ok": True}
+    assert hardware.actions == [("motor_set_pid", "C", "position", "kd", 10000)]
+
+
 def test_sound_display_and_gyro_commands_dispatch_to_hardware():
     module = load_server_module()
     hardware = FakeHardware()
@@ -400,6 +425,36 @@ def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
             "collecting": False,
             "collect_label": "",
         },
+    }
+
+
+def test_ev3dev_motor_snapshot_includes_speed_and_position_pid_values():
+    module = load_server_module()
+
+    class FakeMotor:
+        position = 90
+        speed = 42
+        is_running = False
+        speed_p = 11.3
+        speed_i = 0.05
+        speed_d = 3.2
+        position_p = 9
+        position_i = 0
+        position_d = 1
+
+    hardware = object.__new__(module.EV3DevHardware)
+    hardware.motors = {"A": FakeMotor()}
+
+    assert hardware._read_motors() == {
+        "A": {
+            "position": 90,
+            "speed": 42,
+            "running": False,
+            "pid": {
+                "speed": {"kp": 11.3, "ki": 0.05, "kd": 3.2},
+                "position": {"kp": 9, "ki": 0, "kd": 1},
+            },
+        }
     }
 
 

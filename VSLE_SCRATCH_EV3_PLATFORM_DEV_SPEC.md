@@ -52,7 +52,7 @@ The official Scratch Link + EV3 integration has five fundamental limitations con
 
 | Limitation | Impact | Our Solution |
 |-----------|--------|--------------|
-| Only 11 EV3 blocks (sensor coverage <40%) | Severely restricts curriculum | 62 blocks covering all EV3 capabilities |
+| Only 11 EV3 blocks (sensor coverage <40%) | Severely restricts curriculum | 64 blocks covering all EV3 capabilities |
 | Scratch Link requires native OS installation | Deployment friction in classrooms | WeisileLink: pure Python, zero-install server |
 | No continuous sensor data streaming (Mailbox is unidirectional) | Cannot support AI data collection | 50Hz WebSocket push pipeline |
 | Bluetooth Classic only, no multi-device | 1 EV3 per computer maximum | WiFi transport: 30+ EV3 simultaneous |
@@ -67,7 +67,7 @@ The official Scratch Link + EV3 integration has five fundamental limitations con
 │  + WeisileAI Trainer panel (side panel, Scratch-native look)      │
 ├──────────────────────────────────────────────────────────────────┤
 │  LAYER 2: VSLE-EV3 EXTENSION (JavaScript, TurboWarp)             │
-│  62 blocks · Full sensor coverage · 50Hz realtime cache           │
+│  64 blocks · Full sensor coverage · 50Hz realtime cache           │
 │  AI Quest data collection blocks · WeisileLink WebSocket client   │
 ├──────────────────────────────────────────────────────────────────┤
 │  LAYER 3: WeisileLink BRIDGE SERVICE (Python asyncio)             │
@@ -121,7 +121,7 @@ The official Scratch Link + EV3 integration has five fundamental limitations con
 │  │  ┌────────────────────────────┐  │  │  Real-time sensor      │   │
 │  │  │ VSLE-EV3 Extension (JS)    │  │  │  charts + data labels  │   │
 │  │  │ Unsandboxed, zero-latency  │  │  │  + training pipeline   │   │
-│  │  │ 62 EV3 blocks              │◄─┼──┼─►                      │   │
+│  │  │ 64 EV3 blocks              │◄─┼──┼─►                      │   │
 │  │  │ Sensor cache @50Hz         │  │  │  ws://localhost:8766   │   │
 │  │  └────────────┬───────────────┘  │  └───────────────────────┘   │
 │  └───────────────┼──────────────────┘                               │
@@ -336,21 +336,21 @@ The extension registers **6 block categories**:
 
 | Category | Color | Block Count | Description |
 |---------|-------|-------------|-------------|
-| 🔴 电机控制 | #E6001F | 14 blocks | All motor movement, position, sync |
+| 🔴 电机控制 | #E6001F | 16 blocks | All motor movement, position, sync, PID |
 | 🟠 传感器读取 | #FF6680 | 20 blocks | All sensors, all modes, all ports |
 | 🟡 声音输出 | #FFAB19 | 6 blocks | Tone, play file, volume |
 | 🟢 显示屏 | #4CBF56 | 8 blocks | LCD text, image, clear |
 | 🔵 系统控制 | #4C97FF | 6 blocks | LED, buttons, battery, stop |
 | 🟣 数据采集 | #855CD6 | 8 blocks | AI Quest collection pipeline |
 
-**Total: 62 blocks** (vs 11 in original scratch3_ev3)
+**Total: 64 blocks** (vs 11 in original scratch3_ev3)
 
 ### 4.3 Complete Block Specification
 
 #### Category 1: 电机控制 (Motor Control)
 
 ```javascript
-// 14 blocks — covers FULL ev3dev tacho-motor capability
+// 16 blocks — covers FULL ev3dev tacho-motor capability
 
 { opcode: 'motorRunForever',
   text: '电机 [PORT] 以 [SPEED] % 速度持续运行',
@@ -396,12 +396,20 @@ The extension registers **6 block categories**:
   text: '重置电机 [PORT] 位置计数',                  // NEW
   blockType: 'command'
 },
+{ opcode: 'motorSetPID',
+  text: '设置电机 [PORT] [MODE] PID [TERM] 为 [VALUE]', // NEW Phase 3
+  blockType: 'command'
+},
 { opcode: 'getMotorPosition',
   text: '电机 [PORT] 当前位置 (度)',                  // NEW
   blockType: 'reporter'
 },
 { opcode: 'getMotorSpeed',
   text: '电机 [PORT] 当前速度 (%)',                   // NEW
+  blockType: 'reporter'
+},
+{ opcode: 'getMotorPID',
+  text: '电机 [PORT] [MODE] PID [TERM]',              // NEW Phase 3
   blockType: 'reporter'
 },
 { opcode: 'waitMotorStopped',
@@ -1599,7 +1607,7 @@ This matrix documents every hardware capability exposed through VSLE blocks:
 | Motor sync turn | MoveSteering | `on()` | ✅ motorSyncTurn | |
 | Motor position read | LargeMotor | `motor.position` | ✅ getMotorPosition | |
 | Motor speed read | LargeMotor | `motor.speed` | ✅ getMotorSpeed | |
-| Motor PID params | LargeMotor | `kp`, `ki`, `kd` | 🔜 Phase 2 | |
+| Motor PID params | LargeMotor | `speed_p`, `speed_i`, `speed_d`; `position_p`, `position_i`, `position_d` | ✅ motorSetPID / getMotorPID | 2 |
 | Play tone | Sound | `play_tone()` | ✅ playTone | 6 |
 | Play file | Sound | `play_file()` | ✅ playSoundFile | |
 | Set volume | Sound | `set_volume()` | ✅ setVolume | |
@@ -1614,7 +1622,7 @@ This matrix documents every hardware capability exposed through VSLE blocks:
 | Data collection | (custom) | buffer + WebSocket | ✅ startDataCollection | 8 |
 | Data upload | (custom) | HTTP POST to Trainer | ✅ uploadToTrainer | |
 
-**Total: 62 blocks covering 100% of EV3 educational hardware capabilities.**
+**Total: 64 blocks covering 100% of EV3 educational hardware capabilities.**
 
 ---
 
@@ -1699,6 +1707,8 @@ Every command received by WeisileLink and `vsle_ev3_server.py` MUST validate:
 | `time` / `duration` | Clamp to `0..60` seconds for classroom safety |
 | `freq` | Clamp to `20..20000` Hz |
 | `volume` | Clamp to `0..100` |
+| PID `mode` / `term` | Mode must be `speed` or `position`; term must be `kp`, `ki`, or `kd` |
+| PID `value` | Clamp to `0..10000` as a VSLE classroom safety bound |
 | `label` | UTF-8 string, max 64 characters |
 | display coordinates | Clamp to EV3 LCD bounds `0..177` x `0..127` |
 
@@ -1949,10 +1959,11 @@ test_bluetooth_reconnect:
 
 ### 13.5 JavaScript Extension Tests
 
-The 62 Scratch blocks require dedicated JavaScript tests before Phase 2 exit:
+The core 62 Scratch blocks require dedicated JavaScript tests before Phase 2
+exit. Phase 3 motor PID blocks extend the current tested surface to 64 blocks:
 
 ```
-test_getInfo_contains_all_62_blocks:
+test_getInfo_contains_all_current_blocks:
   getInfo() exposes every block listed in Section 4.3
 
 test_reporter_blocks_are_sync:
@@ -2315,7 +2326,7 @@ material into:
 
 | Finding (from scratch_ev3_feasibility_report.docx) | Implementation Decision |
 |-----------------------------------------------------|------------------------|
-| Official EV3 extension has only 11 blocks, <40% sensor coverage | → 62 blocks, 100% coverage |
+| Official EV3 extension has only 11 blocks, <40% sensor coverage | → 64 blocks, 100% coverage |
 | Scratch Link Mailbox is unidirectional; cannot push sensor data | → ev3dev server pushes at 50Hz |
 | pyscrlink dropped EV3 BT Classic support | → Python `socket` stdlib RFCOMM, no pybluez |
 | WiFi latency 5-20ms vs BT 10-100ms | → WiFi recommended; BT as fallback |

@@ -36,9 +36,10 @@ npm run serve:3001
 ## Scope
 
 This extension currently implements the source-backed Unsandboxed skeleton
-and the full 62-block VSLE EV3 surface:
+and the full 64-block VSLE EV3 surface:
 
-- 14 motor blocks from `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`.
+- 16 motor blocks from `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, including
+  Phase 3 speed/position PID tuning blocks.
 - 20 sensor/system reporter blocks for color, ultrasonic, gyro, touch,
   infrared, EV3 brick buttons, and battery level.
 - 6 sound blocks for tone, tone-and-wait, file playback, volume, beep, and stop.

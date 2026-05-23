@@ -19,6 +19,9 @@
     const STATUS_LIGHT_COLORS = ['green', 'orange', 'red', 'amber', 'yellow'];
     const SOUND_FILES = ['ready.wav', 'success.wav', 'error.wav'];
     const DISPLAY_IMAGES = ['smile.png', 'heart.png', 'arrow.png'];
+    const MOTOR_PID_MODES = ['speed', 'position'];
+    const MOTOR_PID_TERMS = ['kp', 'ki', 'kd'];
+    const MOTOR_PID_VALUE_MAX = 10000;
     const LCD_X_MAX = 177;
     const LCD_Y_MAX = 127;
     const WAIT_POLL_MS = 20;
@@ -64,8 +67,10 @@
         'motorSyncRun',
         'motorSyncTurn',
         'motorResetPosition',
+        'motorSetPID',
         'getMotorPosition',
         'getMotorSpeed',
+        'getMotorPID',
         'waitMotorStopped',
         'isMotorRunning'
     ];
@@ -133,6 +138,13 @@
         'startAutoCollect'
     ];
 
+    function defaultMotorPid () {
+        return {
+            speed: {kp: 0, ki: 0, kd: 0},
+            position: {kp: 0, ki: 0, kd: 0}
+        };
+    }
+
     const DEFAULT_SENSOR_DATA = {
         sensors: {
             S1: {
@@ -146,10 +158,30 @@
             S4: {pressed: false}
         },
         motors: {
-            A: {position: 0, speed: 0, running: false},
-            B: {position: 0, speed: 0, running: false},
-            C: {position: 0, speed: 0, running: false},
-            D: {position: 0, speed: 0, running: false}
+            A: {
+                position: 0,
+                speed: 0,
+                running: false,
+                pid: defaultMotorPid()
+            },
+            B: {
+                position: 0,
+                speed: 0,
+                running: false,
+                pid: defaultMotorPid()
+            },
+            C: {
+                position: 0,
+                speed: 0,
+                running: false,
+                pid: defaultMotorPid()
+            },
+            D: {
+                position: 0,
+                speed: 0,
+                running: false,
+                pid: defaultMotorPid()
+            }
         },
         system: {
             battery_pct: 100,
@@ -796,6 +828,14 @@
                     statusLightColors: {
                         acceptReporters: true,
                         items: STATUS_LIGHT_COLORS
+                    },
+                    motorPidModes: {
+                        acceptReporters: true,
+                        items: MOTOR_PID_MODES
+                    },
+                    motorPidTerms: {
+                        acceptReporters: true,
+                        items: MOTOR_PID_TERMS
                     }
                 }
             };
@@ -873,6 +913,20 @@
             });
         }
 
+        async motorSetPID (args) {
+            const mode = this._pidMode(args.MODE);
+            const term = this._pidTerm(args.TERM);
+            if (!mode || !term) {
+                return;
+            }
+            return this._sendMotorCommand('motor.setPID', {
+                port: this._motorPort(args.PORT),
+                mode,
+                term,
+                value: this._pidValue(args.VALUE)
+            });
+        }
+
         getMotorPosition (args) {
             const port = this._motorPort(args.PORT);
             return this.sensorCache.get(`motors.${port}.position`) || 0;
@@ -881,6 +935,13 @@
         getMotorSpeed (args) {
             const port = this._motorPort(args.PORT);
             return this.sensorCache.get(`motors.${port}.speed`) || 0;
+        }
+
+        getMotorPID (args) {
+            const port = this._motorPort(args.PORT);
+            const mode = this._pidMode(args.MODE) || 'speed';
+            const term = this._pidTerm(args.TERM) || 'kp';
+            return this._cacheNumber(`motors.${port}.pid.${mode}.${term}`);
         }
 
         async waitMotorStopped (args) {
@@ -1355,6 +1416,20 @@
             return clamp(this._number(value), 20, 60000);
         }
 
+        _pidValue (value) {
+            return clamp(this._number(value), 0, MOTOR_PID_VALUE_MAX);
+        }
+
+        _pidMode (value) {
+            const mode = this.Cast.toString(value).toLowerCase();
+            return MOTOR_PID_MODES.includes(mode) ? mode : null;
+        }
+
+        _pidTerm (value) {
+            const term = this.Cast.toString(value).toLowerCase();
+            return MOTOR_PID_TERMS.includes(term) ? term : null;
+        }
+
         _waitMilliseconds (value) {
             return clamp(this._number(value), 0, 60000);
         }
@@ -1494,6 +1569,25 @@
                     arguments: {PORT: motorPortArg(string)}
                 },
                 {
+                    opcode: 'motorSetPID',
+                    blockType: command,
+                    text: '设置电机 [PORT] [MODE] PID [TERM] 为 [VALUE]',
+                    arguments: {
+                        PORT: motorPortArg(string),
+                        MODE: {
+                            type: string,
+                            menu: 'motorPidModes',
+                            defaultValue: 'speed'
+                        },
+                        TERM: {
+                            type: string,
+                            menu: 'motorPidTerms',
+                            defaultValue: 'kp'
+                        },
+                        VALUE: numberArg(number, 1)
+                    }
+                },
+                {
                     opcode: 'getMotorPosition',
                     blockType: reporter,
                     text: '电机 [PORT] 当前位置 (度)',
@@ -1504,6 +1598,24 @@
                     blockType: reporter,
                     text: '电机 [PORT] 当前速度 (%)',
                     arguments: {PORT: motorPortArg(string)}
+                },
+                {
+                    opcode: 'getMotorPID',
+                    blockType: reporter,
+                    text: '电机 [PORT] [MODE] PID [TERM]',
+                    arguments: {
+                        PORT: motorPortArg(string),
+                        MODE: {
+                            type: string,
+                            menu: 'motorPidModes',
+                            defaultValue: 'speed'
+                        },
+                        TERM: {
+                            type: string,
+                            menu: 'motorPidTerms',
+                            defaultValue: 'kp'
+                        }
+                    }
                 },
                 {
                     opcode: 'waitMotorStopped',
@@ -2131,6 +2243,8 @@
         DATA_BLOCK_OPCODES,
         DISPLAY_BLOCK_OPCODES,
         MOTOR_BLOCK_OPCODES,
+        MOTOR_PID_MODES,
+        MOTOR_PID_TERMS,
         SENSOR_BLOCK_OPCODES,
         SOUND_BLOCK_OPCODES,
         SYSTEM_BLOCK_OPCODES,

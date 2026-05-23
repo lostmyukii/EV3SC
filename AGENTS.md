@@ -368,6 +368,7 @@ Commands sent from Extension to WeisileLink (and forwarded to EV3):
 { method: 'motor.syncRun',      params: { port_l, port_r, speed, time } }
 { method: 'motor.syncTurn',     params: { port_l, port_r, speed, turn } }
 { method: 'motor.resetPosition',params: { port } }
+{ method: 'motor.setPID',       params: { port, mode, term, value } }
 
 // Sound commands
 { method: 'sound.playTone',     params: { freq, duration, volume } }
