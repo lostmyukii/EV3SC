@@ -131,7 +131,70 @@ test('AI Quest blocks call the server-side contract and expose sync reporters', 
                 return {
                     model_id: 'model-shared',
                     scope: {type: 'classSession', id: 'class-a'},
-                    status: 'selected'
+                    status: 'selected',
+                    prediction_mode: 'cloud',
+                    cached: true
+                };
+            }
+            if (command.method === 'aiquest.publishModel') {
+                return {
+                    model_id: 'model-shared',
+                    scope: {type: 'classSession', id: 'class-a'},
+                    status: 'published',
+                    shared: true,
+                    cached: true
+                };
+            }
+            if (command.method === 'aiquest.listModels') {
+                return {
+                    scope: {type: 'classSession', id: 'class-a'},
+                    models: [
+                        {
+                            model_id: 'model-shared',
+                            scope: {type: 'classSession', id: 'class-a'},
+                            status: 'published'
+                        }
+                    ]
+                };
+            }
+            if (command.method === 'aiquest.cacheModel') {
+                return {
+                    model_id: 'model-shared',
+                    status: 'cached',
+                    cached_model_retained: true
+                };
+            }
+            if (command.method === 'aiquest.useCachedModel') {
+                return {
+                    model_id: 'model-shared',
+                    scope: {type: 'classSession', id: 'class-a'},
+                    status: 'selected',
+                    prediction_mode: 'cached',
+                    cached: true
+                };
+            }
+            if (command.method === 'aiquest.getPredictionMode') {
+                return {
+                    model_id: 'model-shared',
+                    scope: {type: 'classSession', id: 'class-a'},
+                    mode: 'cached',
+                    cached: true
+                };
+            }
+            if (command.method === 'aiquest.withdrawModel') {
+                return {
+                    model_id: 'model-shared',
+                    scope: {type: 'classSession', id: 'class-a'},
+                    status: 'withdrawn',
+                    shared: false
+                };
+            }
+            if (command.method === 'aiquest.clearModelCache') {
+                return {
+                    model_id: 'model-shared',
+                    status: 'cleared',
+                    cleared_count: 1,
+                    cached_model_retained: false
                 };
             }
             if (command.method === 'aiquest.predictCurrent') {
@@ -161,6 +224,31 @@ test('AI Quest blocks call the server-side contract and expose sync reporters', 
         SCOPE: 'classSession',
         SCOPE_ID: 'class-a'
     });
+    await extension.publishAIQuestModel({
+        MODEL_ID: 'model-shared',
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.refreshAIQuestModelList({
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.cacheAIQuestModel({MODEL_ID: 'model-shared'});
+    await extension.useCachedAIQuestModel({
+        MODEL_ID: 'model-shared',
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.refreshAIQuestPredictionMode({
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.withdrawAIQuestModel({
+        MODEL_ID: 'model-shared',
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.clearAIQuestModelCache({MODEL_ID: 'model-shared'});
     await extension.updateAIQuestPrediction();
     await extension.exportAIQuestModel();
 
@@ -169,6 +257,13 @@ test('AI Quest blocks call the server-side contract and expose sync reporters', 
         'aiquest.startTraining',
         'aiquest.getTrainingStatus',
         'aiquest.selectModel',
+        'aiquest.publishModel',
+        'aiquest.listModels',
+        'aiquest.cacheModel',
+        'aiquest.useCachedModel',
+        'aiquest.getPredictionMode',
+        'aiquest.withdrawModel',
+        'aiquest.clearModelCache',
         'aiquest.predictCurrent',
         'aiquest.exportModel'
     ]);
@@ -177,8 +272,12 @@ test('AI Quest blocks call the server-side contract and expose sync reporters', 
     assert.equal(extension.isAIQuestPrediction({LABEL: 'obstacle'}), true);
     assert.equal(extension.getAIQuestModelAccuracy(), 87.5);
     assert.equal(extension.getAIQuestPredictionMode(), 'cloud');
+    assert.equal(extension.getAIQuestAvailableModelCount(), 1);
+    assert.equal(extension.isAIQuestModelCached(), false);
     assert.equal(extension.getAIQuestPrediction() instanceof Promise, false);
     assert.equal(extension.isAIQuestPrediction({LABEL: 'obstacle'}) instanceof Promise, false);
+    assert.equal(extension.getAIQuestAvailableModelCount() instanceof Promise, false);
+    assert.equal(extension.isAIQuestModelCached() instanceof Promise, false);
 });
 
 test('SensorCache provides default EV3 state and merges partial updates', () => {

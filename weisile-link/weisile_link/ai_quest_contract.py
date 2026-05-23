@@ -28,6 +28,20 @@ MODEL_SCOPES = {"project", "classSession", "courseTask"}
 PREDICTION_MODES = {"cloud", "cached", "localFallback"}
 LOCAL_FALLBACK_MODEL_ID = "local-distance-rule"
 DEFAULT_PROJECT_SCOPE_ID = "scratch-project"
+AI_QUEST_PROJECT_METADATA_KEYS = {
+    "aiQuest",
+    "aiquest",
+    "ai_quest",
+    "aiQuestAuditLog",
+    "aiQuestCache",
+    "aiQuestDatasets",
+    "aiQuestModelRefs",
+    "aiQuestProviderResponses",
+    "aiQuestRawDatasets",
+    "providerCredentials",
+    "providerToken",
+    "provider_token",
+}
 
 ALLOWED_SENSOR_FIELDS = {
     "type",
@@ -194,6 +208,10 @@ class AIQuestContractService:
         self.models: Dict[str, Dict[str, Any]] = {}
         self.cached_models: Dict[str, Dict[str, Any]] = {}
         self.active_models: Dict[Tuple[str, str], str] = {}
+        self.model_catalog: Dict[Tuple[str, str], Dict[str, Dict[str, Any]]] = (
+            {}
+        )
+        self.model_metadata: Dict[str, Dict[str, Any]] = {}
         self.upload_statuses: Dict[str, Dict[str, Any]] = {}
         self.latest_upload_status: Optional[Dict[str, Any]] = None
         self.audit_log: List[Dict[str, Any]] = []
@@ -370,6 +388,16 @@ class AIQuestContractService:
             self.active_models[(model_scope["type"], model_scope["id"])] = (
                 model_id
             )
+            self.model_metadata[model_id] = {
+                "metrics": dict(normalized["metrics"]),
+                "provider": self.provider.name,
+                "origin_scope": dict(model_scope),
+            }
+            self._catalog_model(
+                model_id,
+                Scope(type=model_scope["type"], id=model_scope["id"]),
+                status="trained",
+            )
         self.jobs[normalized["job_id"]] = {
             **normalized,
             "dataset_id": dataset_id,
@@ -482,6 +510,15 @@ class AIQuestContractService:
             for key, value in self.active_models.items()
             if value != safe_model_id
         }
+        self.model_metadata.pop(safe_model_id, None)
+        self.model_catalog = {
+            scope_key: {
+                model_key: record
+                for model_key, record in records.items()
+                if model_key != safe_model_id
+            }
+            for scope_key, records in self.model_catalog.items()
+        }
         result = {
             "model_id": safe_model_id,
             "status": "deleted",
@@ -519,6 +556,169 @@ class AIQuestContractService:
             "model_id": model_id,
             "scope": model_scope.payload(),
             "status": "selected",
+            "cached": model_id in self.cached_models,
+            "prediction_mode": self._prediction_mode_for(model_id),
+        }
+
+    def publish_model(
+        self,
+        model_id: str,
+        *,
+        scope: str = "classSession",
+        scope_id: str = DEFAULT_PROJECT_SCOPE_ID,
+    ) -> Dict[str, Any]:
+        """Publish a safe model reference to a class or course scope."""
+        safe_model_id = self._require_model_id(model_id)
+        model_scope = _scope(scope, scope_id)
+        if safe_model_id in self.models:
+            self._cache_model_if_possible(safe_model_id)
+        record = self._catalog_model(
+            safe_model_id,
+            model_scope,
+            status="published",
+        )
+        self._record_audit(
+            "model.publish.complete",
+            provider=self.provider.name,
+            model_id=safe_model_id,
+            scope=model_scope.payload(),
+            status="published",
+            retryable=False,
+            message="AI Quest model published",
+        )
+        return record
+
+    def withdraw_model(
+        self,
+        model_id: str,
+        *,
+        scope: str = "classSession",
+        scope_id: str = DEFAULT_PROJECT_SCOPE_ID,
+    ) -> Dict[str, Any]:
+        """Withdraw a shared model reference from one scope."""
+        safe_model_id = self._require_model_id(model_id)
+        model_scope = _scope(scope, scope_id)
+        scope_key = (model_scope.type, model_scope.id)
+        if scope_key in self.model_catalog:
+            self.model_catalog[scope_key].pop(safe_model_id, None)
+        if self.active_models.get(scope_key) == safe_model_id:
+            self.active_models.pop(scope_key, None)
+        result = {
+            "model_id": safe_model_id,
+            "scope": model_scope.payload(),
+            "status": "withdrawn",
+            "shared": False,
+        }
+        self._record_audit(
+            "model.withdraw.complete",
+            provider=self.provider.name,
+            model_id=safe_model_id,
+            scope=model_scope.payload(),
+            status="withdrawn",
+            retryable=False,
+            message="AI Quest model withdrawn",
+        )
+        return result
+
+    def list_models(
+        self,
+        *,
+        scope: str = "project",
+        scope_id: str = DEFAULT_PROJECT_SCOPE_ID,
+    ) -> Dict[str, Any]:
+        """List safe model references for one project/class/course scope."""
+        model_scope = _scope(scope, scope_id)
+        records = self.model_catalog.get((model_scope.type, model_scope.id), {})
+        return {
+            "scope": model_scope.payload(),
+            "models": [
+                self._model_record(
+                    model_id,
+                    model_scope,
+                    status=str(record.get("status") or "published"),
+                )
+                for model_id, record in records.items()
+                if model_id in self.models or model_id in self.cached_models
+            ],
+        }
+
+    def cache_model(self, model_id: str) -> Dict[str, Any]:
+        """Cache local model rules for offline prediction when available."""
+        safe_model_id = self._require_model_id(model_id)
+        cached = self._cache_model_if_possible(safe_model_id)
+        if not cached:
+            raise AIQuestContractError(
+                "AIQUEST_MODEL_NOT_CACHEABLE",
+                "Selected AI Quest model has no local rules to cache",
+            )
+        return {
+            "model_id": safe_model_id,
+            "status": "cached",
+            "cached_model_retained": True,
+        }
+
+    def use_cached_model(
+        self,
+        model_id: str,
+        *,
+        scope: str = "project",
+        scope_id: str = DEFAULT_PROJECT_SCOPE_ID,
+    ) -> Dict[str, Any]:
+        """Select a locally cached model for one Scratch scope."""
+        safe_model_id = str(model_id or "")
+        if safe_model_id not in self.cached_models:
+            raise AIQuestContractError(
+                "AIQUEST_MODEL_NOT_FOUND",
+                "Cached AI Quest model is not available",
+            )
+        model_scope = _scope(scope, scope_id)
+        self.active_models[(model_scope.type, model_scope.id)] = safe_model_id
+        return {
+            "model_id": safe_model_id,
+            "scope": model_scope.payload(),
+            "status": "selected",
+            "cached": True,
+            "prediction_mode": self._prediction_mode_for(safe_model_id),
+        }
+
+    def clear_model_cache(self, model_id: str = "") -> Dict[str, Any]:
+        """Clear one cached model or the full local model cache."""
+        safe_model_id = str(model_id or "")
+        if safe_model_id:
+            existed = safe_model_id in self.cached_models
+            self.cached_models.pop(safe_model_id, None)
+            return {
+                "model_id": safe_model_id,
+                "status": "cleared",
+                "cleared_count": 1 if existed else 0,
+                "cached_model_retained": False,
+            }
+        cleared_count = len(self.cached_models)
+        self.cached_models.clear()
+        return {
+            "model_id": "",
+            "status": "cleared",
+            "cleared_count": cleared_count,
+            "cached_model_retained": False,
+        }
+
+    def get_prediction_mode(
+        self,
+        *,
+        scope: str = "project",
+        scope_id: str = DEFAULT_PROJECT_SCOPE_ID,
+    ) -> Dict[str, Any]:
+        """Report which prediction path is active for Scratch scripts."""
+        model_scope = _scope(scope, scope_id)
+        model_id = (
+            self.active_models.get((model_scope.type, model_scope.id))
+            or self._latest_model_id()
+        )
+        return {
+            "scope": model_scope.payload(),
+            "model_id": model_id,
+            "mode": self._prediction_mode_for(model_id),
+            "cached": bool(model_id and model_id in self.cached_models),
         }
 
     def predict(
@@ -586,6 +786,80 @@ class AIQuestContractService:
         if not self.active_models:
             return ""
         return next(reversed(self.active_models.values()))
+
+    def _require_model_id(self, model_id: str) -> str:
+        safe_model_id = str(model_id or "")
+        if (
+            safe_model_id not in self.models
+            and safe_model_id not in self.cached_models
+        ):
+            raise AIQuestContractError(
+                "AIQUEST_MODEL_NOT_FOUND",
+                "AI Quest model is not available",
+            )
+        return safe_model_id
+
+    def _cache_model_if_possible(self, model_id: str) -> bool:
+        model = self.models.get(model_id)
+        if not model or model.get("cloud_only") is True:
+            return model_id in self.cached_models
+        self.cached_models[model_id] = model
+        return True
+
+    def _prediction_mode_for(self, model_id: str) -> str:
+        if (
+            model_id
+            and model_id in self.models
+            and getattr(
+                self.provider,
+                "available",
+                True,
+            )
+        ):
+            return "cloud"
+        if model_id and model_id in self.cached_models:
+            return "cached"
+        return "localFallback"
+
+    def _catalog_model(
+        self,
+        model_id: str,
+        scope: Scope,
+        *,
+        status: str,
+    ) -> Dict[str, Any]:
+        record = self._model_record(model_id, scope, status=status)
+        self.model_catalog.setdefault((scope.type, scope.id), {})[
+            model_id
+        ] = record
+        return record
+
+    def _model_record(
+        self,
+        model_id: str,
+        scope: Scope,
+        *,
+        status: str,
+    ) -> Dict[str, Any]:
+        metadata = self.model_metadata.get(model_id, {})
+        metrics = metadata.get("metrics") or {
+            "accuracy": _model_accuracy(
+                self.models.get(model_id) or self.cached_models.get(model_id)
+            )
+        }
+        scope_payload = scope.payload()
+        return {
+            "model_id": model_id,
+            "scope": scope_payload,
+            "status": status,
+            "shared": scope.type != "project",
+            "cached": model_id in self.cached_models,
+            "metrics": dict(metrics),
+            "safe_reference": {
+                "model_id": model_id,
+                "scope": scope_payload,
+            },
+        }
 
     def _record_audit(
         self,
@@ -682,6 +956,34 @@ def features_from_trainer_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         "touch_pressed": 1 if payload.get("touch_pressed") else 0,
         "motor_a_pos": _safe_float(payload.get("motor_a_pos", 0)),
     }
+
+
+def strip_ai_quest_metadata_for_sb3(
+    project_json: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Return Scratch project JSON without AI Quest private metadata."""
+    cleaned = _strip_ai_quest_metadata(project_json)
+    return cleaned if isinstance(cleaned, dict) else {}
+
+
+def _strip_ai_quest_metadata(value: Any) -> Any:
+    if isinstance(value, dict):
+        result: Dict[str, Any] = {}
+        for key, item in value.items():
+            if _is_ai_quest_metadata_key(str(key)):
+                continue
+            result[str(key)] = _strip_ai_quest_metadata(item)
+        return result
+    if isinstance(value, list):
+        return [_strip_ai_quest_metadata(item) for item in value]
+    return value
+
+
+def _is_ai_quest_metadata_key(key: str) -> bool:
+    if key in AI_QUEST_PROJECT_METADATA_KEYS:
+        return True
+    normalized = key.replace("-", "_").lower()
+    return normalized.startswith("aiquest") or normalized.startswith("ai_quest")
 
 
 def _time_series_samples(
@@ -848,6 +1150,12 @@ def _provider_audit_id(response: Dict[str, Any]) -> str:
         or (audit.get("id") if isinstance(audit, dict) else "")
         or ""
     )
+
+
+def _model_accuracy(model: Optional[Dict[str, Any]]) -> float:
+    if not isinstance(model, dict):
+        return 0.0
+    return _safe_float(model.get("model", {}).get("accuracy", 0))
 
 
 def _accuracy_gate(value: Any) -> float:

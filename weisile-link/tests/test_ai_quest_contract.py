@@ -9,6 +9,7 @@ from weisile_link.ai_quest_contract import (
     normalize_provider_dataset_response,
     normalize_provider_prediction_response,
     normalize_provider_training_response,
+    strip_ai_quest_metadata_for_sb3,
 )
 from weisile_link.ai_quest_providers import AIQuestProviderUnavailable
 
@@ -394,3 +395,217 @@ def test_delete_dataset_and_model_remove_local_references_and_write_audit():
         "dataset.delete.complete",
         "model.delete.complete",
     ]
+
+
+def test_publish_list_withdraw_and_select_shared_models_by_scope():
+    provider = MockAIQuestProvider()
+    service = AIQuestContractService(
+        provider=provider,
+        clock=lambda: "2026-05-23T10:03:00Z",
+    )
+    uploaded = service.upload_time_series(
+        rows=collected_rows(),
+        raw_rows=[],
+        brick_id="class-brick-1",
+        scope="project",
+        scope_id="student-project-7",
+        consent=True,
+    )
+    trained = service.start_training(uploaded["dataset_id"])
+
+    published = service.publish_model(
+        trained["model_id"],
+        scope="classSession",
+        scope_id="class-7a",
+    )
+    listed = service.list_models(
+        scope="classSession",
+        scope_id="class-7a",
+    )
+    selected = service.select_model(
+        trained["model_id"],
+        scope="classSession",
+        scope_id="class-7a",
+    )
+    prediction = service.predict(
+        {"ultrasonic_cm": 9.0, "touch_pressed": 1},
+        scope="classSession",
+        scope_id="class-7a",
+    )
+    withdrawn = service.withdraw_model(
+        trained["model_id"],
+        scope="classSession",
+        scope_id="class-7a",
+    )
+    listed_after_withdraw = service.list_models(
+        scope="classSession",
+        scope_id="class-7a",
+    )
+
+    assert published == {
+        "model_id": trained["model_id"],
+        "scope": {"type": "classSession", "id": "class-7a"},
+        "status": "published",
+        "shared": True,
+        "cached": True,
+        "metrics": trained["metrics"],
+        "safe_reference": {
+            "model_id": trained["model_id"],
+            "scope": {"type": "classSession", "id": "class-7a"},
+        },
+    }
+    assert listed == {
+        "scope": {"type": "classSession", "id": "class-7a"},
+        "models": [published],
+    }
+    assert "rule" not in json.dumps(listed)
+    assert "rows" not in json.dumps(listed)
+    assert selected == {
+        "model_id": trained["model_id"],
+        "scope": {"type": "classSession", "id": "class-7a"},
+        "status": "selected",
+        "cached": True,
+        "prediction_mode": "cloud",
+    }
+    assert prediction["mode"] == "cloud"
+    assert withdrawn == {
+        "model_id": trained["model_id"],
+        "scope": {"type": "classSession", "id": "class-7a"},
+        "status": "withdrawn",
+        "shared": False,
+    }
+    assert listed_after_withdraw == {
+        "scope": {"type": "classSession", "id": "class-7a"},
+        "models": [],
+    }
+    assert ("classSession", "class-7a") not in service.active_models
+    assert [entry["event"] for entry in service.get_audit_log()[-2:]] == [
+        "model.publish.complete",
+        "model.withdraw.complete",
+    ]
+
+
+def test_cached_model_controls_and_prediction_mode_reporting():
+    provider = MockAIQuestProvider()
+    service = AIQuestContractService(provider=provider)
+    uploaded = service.upload_time_series(
+        rows=collected_rows(),
+        raw_rows=[],
+        brick_id="class-brick-1",
+        scope="project",
+        scope_id="scratch-project-1",
+        consent=True,
+    )
+    trained = service.start_training(uploaded["dataset_id"])
+    model_id = trained["model_id"]
+
+    cached = service.cache_model(model_id)
+    provider.available = False
+    selected_cached = service.use_cached_model(
+        model_id,
+        scope="project",
+        scope_id="scratch-project-1",
+    )
+    cached_mode = service.get_prediction_mode(
+        scope="project",
+        scope_id="scratch-project-1",
+    )
+    cached_prediction = service.predict(
+        {"ultrasonic_cm": 9.0, "touch_pressed": 1},
+        scope="project",
+        scope_id="scratch-project-1",
+    )
+    cleared = service.clear_model_cache(model_id)
+    fallback_mode = service.get_prediction_mode(
+        scope="project",
+        scope_id="scratch-project-1",
+    )
+    fallback_prediction = service.predict(
+        {"ultrasonic_cm": 9.0, "touch_pressed": 1},
+        scope="project",
+        scope_id="scratch-project-1",
+    )
+
+    assert cached == {
+        "model_id": model_id,
+        "status": "cached",
+        "cached_model_retained": True,
+    }
+    assert selected_cached == {
+        "model_id": model_id,
+        "scope": {"type": "project", "id": "scratch-project-1"},
+        "status": "selected",
+        "cached": True,
+        "prediction_mode": "cached",
+    }
+    assert cached_mode == {
+        "scope": {"type": "project", "id": "scratch-project-1"},
+        "model_id": model_id,
+        "mode": "cached",
+        "cached": True,
+    }
+    assert cached_prediction["mode"] == "cached"
+    assert cleared == {
+        "model_id": model_id,
+        "status": "cleared",
+        "cleared_count": 1,
+        "cached_model_retained": False,
+    }
+    assert fallback_mode == {
+        "scope": {"type": "project", "id": "scratch-project-1"},
+        "model_id": model_id,
+        "mode": "localFallback",
+        "cached": False,
+    }
+    assert fallback_prediction["mode"] == "localFallback"
+
+
+def test_strip_ai_quest_metadata_for_pure_sb3_export():
+    project_json = {
+        "targets": [
+            {
+                "name": "Sprite1",
+                "blocks": {
+                    "normal": {
+                        "opcode": "motion_movesteps",
+                        "next": None,
+                    },
+                },
+                "aiQuestModelRefs": [
+                    {"model_id": "model-1", "scope": "class-7a"}
+                ],
+            }
+        ],
+        "extensions": ["pen", "vsleev3"],
+        "meta": {
+            "semver": "3.0.0",
+            "aiQuest": {
+                "activeModel": "model-1",
+                "providerToken": "secret",
+            },
+        },
+        "aiQuestRawDatasets": [{"student_name": "Ada"}],
+        "providerCredentials": {"token": "secret-token"},
+    }
+
+    pure = strip_ai_quest_metadata_for_sb3(project_json)
+
+    assert pure == {
+        "targets": [
+            {
+                "name": "Sprite1",
+                "blocks": {
+                    "normal": {
+                        "opcode": "motion_movesteps",
+                        "next": None,
+                    },
+                },
+            }
+        ],
+        "extensions": ["pen", "vsleev3"],
+        "meta": {"semver": "3.0.0"},
+    }
+    encoded = json.dumps(pure)
+    assert "model-1" not in encoded
+    assert "secret" not in encoded
+    assert "Ada" not in encoded

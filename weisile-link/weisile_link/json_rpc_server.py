@@ -512,6 +512,24 @@ class ScratchJsonRpcServer:
             return self._rest_ok(
                 {"entries": self.ai_quest.get_audit_log(_safe_int(limit, 50))}
             )
+        if route == "/api/aiquest/models":
+            return self._rest_ok(
+                self.ai_quest.list_models(
+                    scope=_first_query_value(query, "scope") or "project",
+                    scope_id=_first_query_value(query, "scope_id")
+                    or _first_query_value(query, "scopeId")
+                    or "scratch-project",
+                )
+            )
+        if route == "/api/aiquest/prediction-mode":
+            return self._rest_ok(
+                self.ai_quest.get_prediction_mode(
+                    scope=_first_query_value(query, "scope") or "project",
+                    scope_id=_first_query_value(query, "scope_id")
+                    or _first_query_value(query, "scopeId")
+                    or "scratch-project",
+                )
+            )
 
         endpoint = StatusEndpoint(
             self.manager,
@@ -713,6 +731,106 @@ class ScratchJsonRpcServer:
             result = self._handle_ai_quest_command(
                 payload.get("id"),
                 "aiquest.deleteModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/publish-model":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest model publish JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.publishModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/withdraw-model":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest model withdrawal JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.withdrawModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/cache-model":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest model cache JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.cacheModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/use-cached-model":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest cached-model JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.useCachedModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/clear-model-cache":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest cache clear JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.clearModelCache",
                 payload,
                 payload.get("brick_id")
                 or payload.get("peripheralId")
@@ -992,6 +1110,103 @@ class ScratchJsonRpcServer:
                             or params.get("modelId")
                             or ""
                         ),
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.publishModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.publish_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        ),
+                        scope=str(params.get("scope", "classSession")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.withdrawModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.withdraw_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        ),
+                        scope=str(params.get("scope", "classSession")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.listModels":
+                return make_result(
+                    request_id,
+                    self.ai_quest.list_models(
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.cacheModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.cache_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        )
+                    ),
+                )
+            if method == "aiquest.useCachedModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.use_cached_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        ),
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.clearModelCache":
+                return make_result(
+                    request_id,
+                    self.ai_quest.clear_model_cache(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        )
+                    ),
+                )
+            if method == "aiquest.getPredictionMode":
+                return make_result(
+                    request_id,
+                    self.ai_quest.get_prediction_mode(
                         scope=str(params.get("scope", "project")),
                         scope_id=str(
                             params.get("scope_id")

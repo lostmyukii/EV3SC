@@ -144,9 +144,18 @@
         'startAIQuestTraining',
         'refreshAIQuestTrainingStatus',
         'selectAIQuestModel',
+        'publishAIQuestModel',
+        'withdrawAIQuestModel',
+        'refreshAIQuestModelList',
+        'cacheAIQuestModel',
+        'useCachedAIQuestModel',
+        'clearAIQuestModelCache',
+        'refreshAIQuestPredictionMode',
         'updateAIQuestPrediction',
         'getAIQuestPrediction',
         'isAIQuestPrediction',
+        'getAIQuestAvailableModelCount',
+        'isAIQuestModelCached',
         'getAIQuestModelAccuracy',
         'getAIQuestTrainingStatus',
         'getAIQuestPredictionMode',
@@ -798,7 +807,9 @@
                 trainingStatus: 'notStarted',
                 prediction: '',
                 predictionMode: 'localFallback',
-                modelAccuracy: 0
+                modelAccuracy: 0,
+                models: [],
+                modelCached: false
             };
         }
 
@@ -1335,6 +1346,94 @@
             return this._mergeAIQuestState(result);
         }
 
+        async publishAIQuestModel (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.publishModel',
+                {
+                    model_id: this.Cast.toString(
+                        args.MODEL_ID || this.aiQuest.modelId
+                    ),
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async withdrawAIQuestModel (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.withdrawModel',
+                {
+                    model_id: this.Cast.toString(
+                        args.MODEL_ID || this.aiQuest.modelId
+                    ),
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async refreshAIQuestModelList (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.listModels',
+                {
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async cacheAIQuestModel (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.cacheModel',
+                {
+                    model_id: this.Cast.toString(
+                        args.MODEL_ID || this.aiQuest.modelId
+                    )
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async useCachedAIQuestModel (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.useCachedModel',
+                {
+                    model_id: this.Cast.toString(
+                        args.MODEL_ID || this.aiQuest.modelId
+                    ),
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async clearAIQuestModelCache (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.clearModelCache',
+                {
+                    model_id: this.Cast.toString(
+                        args.MODEL_ID || this.aiQuest.modelId
+                    )
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async refreshAIQuestPredictionMode (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.getPredictionMode',
+                {
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
         async updateAIQuestPrediction () {
             const result = await this._sendAIQuestCommand(
                 'aiquest.predictCurrent',
@@ -1349,6 +1448,16 @@
 
         isAIQuestPrediction (args) {
             return this.getAIQuestPrediction() === this.Cast.toString(args.LABEL);
+        }
+
+        getAIQuestAvailableModelCount () {
+            return Array.isArray(this.aiQuest.models) ?
+                this.aiQuest.models.length :
+                0;
+        }
+
+        isAIQuestModelCached () {
+            return this.aiQuest.modelCached === true;
         }
 
         getAIQuestModelAccuracy () {
@@ -1469,8 +1578,18 @@
             this.aiQuest.modelId = result.model_id ||
                 result.modelId ||
                 this.aiQuest.modelId;
-            if (result.status && result.status !== 'selected') {
+            if (['notStarted', 'queued', 'running', 'succeeded', 'failed']
+                .includes(result.status)) {
                 this.aiQuest.trainingStatus = result.status;
+            }
+            if (Array.isArray(result.models)) {
+                this.aiQuest.models = result.models.slice();
+            }
+            if (result.cached !== undefined) {
+                this.aiQuest.modelCached = result.cached === true;
+            }
+            if (result.cached_model_retained !== undefined) {
+                this.aiQuest.modelCached = result.cached_model_retained === true;
             }
             if (result.metrics && result.metrics.accuracy !== undefined) {
                 this.aiQuest.modelAccuracy = this._safeNumber(
@@ -1489,6 +1608,11 @@
             }
             if (result.mode !== undefined) {
                 this.aiQuest.predictionMode = this.Cast.toString(result.mode);
+            }
+            if (result.prediction_mode !== undefined) {
+                this.aiQuest.predictionMode = this.Cast.toString(
+                    result.prediction_mode
+                );
             }
             return result;
         }
@@ -2204,6 +2328,66 @@
                     }
                 },
                 {
+                    opcode: 'publishAIQuestModel',
+                    blockType: command,
+                    text: '发布AI Quest模型[MODEL_ID] 到范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        MODEL_ID: stringArg(string, 'model-1'),
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'classSession'),
+                        SCOPE_ID: stringArg(string, 'class-session')
+                    }
+                },
+                {
+                    opcode: 'withdrawAIQuestModel',
+                    blockType: command,
+                    text: '撤回AI Quest模型[MODEL_ID] 从范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        MODEL_ID: stringArg(string, 'model-1'),
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'classSession'),
+                        SCOPE_ID: stringArg(string, 'class-session')
+                    }
+                },
+                {
+                    opcode: 'refreshAIQuestModelList',
+                    blockType: command,
+                    text: '刷新AI Quest模型列表 范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'project'),
+                        SCOPE_ID: stringArg(string, 'scratch-project')
+                    }
+                },
+                {
+                    opcode: 'cacheAIQuestModel',
+                    blockType: command,
+                    text: '缓存AI Quest模型[MODEL_ID]到本地',
+                    arguments: {MODEL_ID: stringArg(string, 'model-1')}
+                },
+                {
+                    opcode: 'useCachedAIQuestModel',
+                    blockType: command,
+                    text: '使用本地缓存AI Quest模型[MODEL_ID] 范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        MODEL_ID: stringArg(string, 'model-1'),
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'project'),
+                        SCOPE_ID: stringArg(string, 'scratch-project')
+                    }
+                },
+                {
+                    opcode: 'clearAIQuestModelCache',
+                    blockType: command,
+                    text: '清除本地AI Quest模型缓存[MODEL_ID]',
+                    arguments: {MODEL_ID: stringArg(string, 'model-1')}
+                },
+                {
+                    opcode: 'refreshAIQuestPredictionMode',
+                    blockType: command,
+                    text: '刷新AI Quest预测模式 范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'project'),
+                        SCOPE_ID: stringArg(string, 'scratch-project')
+                    }
+                },
+                {
                     opcode: 'updateAIQuestPrediction',
                     blockType: command,
                     text: '用当前传感器更新AI Quest预测'
@@ -2218,6 +2402,16 @@
                     blockType: bool,
                     text: '当前AI Quest预测是[LABEL]?',
                     arguments: {LABEL: stringArg(string, 'obstacle')}
+                },
+                {
+                    opcode: 'getAIQuestAvailableModelCount',
+                    blockType: reporter,
+                    text: '可用AI Quest模型数量'
+                },
+                {
+                    opcode: 'isAIQuestModelCached',
+                    blockType: bool,
+                    text: '当前AI Quest模型已缓存?'
                 },
                 {
                     opcode: 'getAIQuestModelAccuracy',

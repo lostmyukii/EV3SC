@@ -16,6 +16,13 @@ prediction.
 | `refreshAIQuestTrainingStatus` | `aiquest.getTrainingStatus` | Returns the latest normalized job status |
 | `getAIQuestUploadStatus` | `aiquest.getUploadStatus` | Returns upload progress/status for the latest or selected dataset |
 | `selectAIQuestModel` | `aiquest.selectModel` | Stores a safe model reference for `project`, `classSession`, or `courseTask` scope |
+| `publishAIQuestModel` | `aiquest.publishModel` | Publishes a safe model reference to a class session or course task |
+| `withdrawAIQuestModel` | `aiquest.withdrawModel` | Withdraws a shared model reference from one class/course scope |
+| `refreshAIQuestModelList` | `aiquest.listModels` | Lists safe project/class/course model references without raw rules or rows |
+| `cacheAIQuestModel` | `aiquest.cacheModel` | Retains local model rules when the selected model is cacheable |
+| `useCachedAIQuestModel` | `aiquest.useCachedModel` | Selects a cached model for cloud-unavailable or offline prediction |
+| `clearAIQuestModelCache` | `aiquest.clearModelCache` | Clears one cached model or the local model cache |
+| `refreshAIQuestPredictionMode` | `aiquest.getPredictionMode` | Reports whether the active scope will use `cloud`, `cached`, or `localFallback` |
 | `updateAIQuestPrediction` | `aiquest.predictCurrent` | Predicts from the latest EV3 sensor frame using `cloud`, `cached`, or `localFallback` mode |
 | `exportAIQuestModel` | `aiquest.exportModel` | Exports model rules/report without raw datasets or provider credentials |
 | `deleteAIQuestDataset` | `aiquest.deleteDataset` | Deletes provider/local dataset state and records an audit event |
@@ -27,6 +34,8 @@ synchronously:
 
 - `getAIQuestPrediction`
 - `isAIQuestPrediction`
+- `getAIQuestAvailableModelCount`
+- `isAIQuestModelCached`
 - `getAIQuestModelAccuracy`
 - `getAIQuestTrainingStatus`
 - `getAIQuestPredictionMode`
@@ -86,14 +95,40 @@ Training providers may return only a safe cloud `model_id` without local model
 rules. That cloud-only model reference can still be selected for cloud
 prediction. Cached prediction is used only when local model rules are present.
 
+## Model Scope And Sharing
+
+Model references are stored in a safe catalog keyed by scope:
+
+- `project`: one Scratch project or student work
+- `classSession`: a teacher-managed class session
+- `courseTask`: a curriculum task shared across projects
+
+Publishing copies only safe metadata into the target scope:
+
+- `model_id`
+- `scope.type` and `scope.id`
+- status, shared flag, cached flag, and accuracy metrics
+- `safe_reference` containing only the model id and scope
+
+The model catalog never includes raw training rows, provider credentials, or
+model-rule internals. Withdraw removes the shared reference and any active
+selection for that scope without deleting the underlying model.
+
 ## Governance Routes And States
 
 AI Quest governance is available through JSON-RPC and internal REST routes:
 
 - `GET /api/aiquest/upload-status`
 - `GET /api/aiquest/audit`
+- `GET /api/aiquest/models`
+- `GET /api/aiquest/prediction-mode`
 - `POST /api/aiquest/delete-dataset`
 - `POST /api/aiquest/delete-model`
+- `POST /api/aiquest/publish-model`
+- `POST /api/aiquest/withdraw-model`
+- `POST /api/aiquest/cache-model`
+- `POST /api/aiquest/use-cached-model`
+- `POST /api/aiquest/clear-model-cache`
 
 Upload status is intentionally small and student-visible:
 
@@ -129,3 +164,12 @@ names, provider credentials, or local file paths.
    distance/touch rule keeps Scratch scripts running.
 
 EV3 motor and sensor control remains independent of AI Quest availability.
+
+## Scratch Project Export Boundary
+
+`strip_ai_quest_metadata_for_sb3` removes AI Quest-only metadata before a pure
+Scratch export while preserving regular Scratch project fields, blocks, and
+extension ids. It strips keys such as `aiQuest`, `aiQuestModelRefs`,
+`aiQuestRawDatasets`, provider credentials, provider tokens, audit caches, and
+other `aiquest` metadata containers so exported `.sb3` JSON does not retain
+cloud references, raw datasets, or secrets.

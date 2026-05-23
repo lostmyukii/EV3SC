@@ -322,6 +322,16 @@ ports. This register records the sources used for the current implementation.
 | AI Quest provider abstraction | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/ai_quest_providers.py` | Provider delete methods, retryable provider failure metadata, and credential redaction reused by contract-level governance |
 | Scratch-compatible JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | JSON-RPC 2.0 and REST envelope mapping for upload status, audit, dataset deletion, model deletion, and retryable cloud errors |
 
+## ScratchAI Integration — AI Quest Model Scope And Sharing
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Sections 8-12 define model publish/list/select/delete, project/class/course scopes, cached/local prediction, and pure `.sb3` AI Quest metadata stripping |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | AI Quest workflow and privacy requirements for safe model references, local cached models, and export/delete boundaries |
+| AI Quest contract baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/ai_quest_contract.py` | Existing normalized dataset/training/prediction state extended with safe model catalog, publish/withdraw behavior, cache controls, prediction-mode reporting, and `.sb3` metadata stripping |
+| Scratch-compatible JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | JSON-RPC 2.0 and REST route mapping for shared model operations and prediction-mode queries |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing EV3 category AI Quest block surface extended with publish/list/cache/use-cache/clear-cache controls and synchronous model availability reporters |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

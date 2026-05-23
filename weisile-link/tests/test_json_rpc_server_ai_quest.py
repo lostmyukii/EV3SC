@@ -236,6 +236,179 @@ def test_ai_quest_json_rpc_delete_status_and_audit_routes():
     asyncio.run(scenario())
 
 
+def test_ai_quest_json_rpc_shared_model_and_cache_routes():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        websocket = FakeWebSocket()
+        await collect_ai_quest_rows(server)
+
+        for request in (
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-upload",
+                "method": "aiquest.uploadDataset",
+                "params": {
+                    "consent": True,
+                    "scope": "project",
+                    "scope_id": "student-project-7",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-train",
+                "method": "aiquest.startTraining",
+            },
+        ):
+            await server.handle_json_rpc_message(websocket, json.dumps(request))
+
+        model_id = websocket.sent[1]["result"]["model_id"]
+
+        for request in (
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-publish",
+                "method": "aiquest.publishModel",
+                "params": {
+                    "model_id": model_id,
+                    "scope": "classSession",
+                    "scope_id": "class-7a",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-list",
+                "method": "aiquest.listModels",
+                "params": {
+                    "scope": "classSession",
+                    "scope_id": "class-7a",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-cache",
+                "method": "aiquest.cacheModel",
+                "params": {"model_id": model_id},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-use-cache",
+                "method": "aiquest.useCachedModel",
+                "params": {
+                    "model_id": model_id,
+                    "scope": "classSession",
+                    "scope_id": "class-7a",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-mode",
+                "method": "aiquest.getPredictionMode",
+                "params": {
+                    "scope": "classSession",
+                    "scope_id": "class-7a",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-withdraw",
+                "method": "aiquest.withdrawModel",
+                "params": {
+                    "model_id": model_id,
+                    "scope": "classSession",
+                    "scope_id": "class-7a",
+                },
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-clear-cache",
+                "method": "aiquest.clearModelCache",
+                "params": {"model_id": model_id},
+            },
+        ):
+            await server.handle_json_rpc_message(websocket, json.dumps(request))
+
+        published = websocket.sent[2]["result"]
+        listed = websocket.sent[3]["result"]
+        cached = websocket.sent[4]["result"]
+        selected_cached = websocket.sent[5]["result"]
+        mode = websocket.sent[6]["result"]
+        withdrawn = websocket.sent[7]["result"]
+        cleared = websocket.sent[8]["result"]
+
+        assert published["status"] == "published"
+        assert published["scope"] == {
+            "type": "classSession",
+            "id": "class-7a",
+        }
+        assert listed["models"] == [published]
+        assert "rule" not in json.dumps(listed)
+        assert cached["status"] == "cached"
+        assert selected_cached["prediction_mode"] == "cloud"
+        assert mode["mode"] == "cloud"
+        assert withdrawn["status"] == "withdrawn"
+        assert cleared["status"] == "cleared"
+        assert transport.commands == []
+
+    asyncio.run(scenario())
+
+
+def test_ai_quest_rest_shared_model_routes():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        await collect_ai_quest_rows(server)
+
+        upload = await server.handle_post(
+            "/api/aiquest/upload",
+            json.dumps({"consent": True, "scope_id": "project-rest"}),
+        )
+        assert upload.status == 200
+        train = await server.handle_post("/api/aiquest/train", "{}")
+        model_id = json.loads(train.body)["data"]["model_id"]
+
+        publish = await server.handle_post(
+            "/api/aiquest/publish-model",
+            json.dumps(
+                {
+                    "model_id": model_id,
+                    "scope": "courseTask",
+                    "scope_id": "mission-3",
+                }
+            ),
+        )
+        models = server.handle_get(
+            "/api/aiquest/models?scope=courseTask&scope_id=mission-3"
+        )
+        mode = server.handle_get(
+            "/api/aiquest/prediction-mode"
+            "?scope=courseTask&scope_id=mission-3"
+        )
+        withdraw = await server.handle_post(
+            "/api/aiquest/withdraw-model",
+            json.dumps(
+                {
+                    "model_id": model_id,
+                    "scope": "courseTask",
+                    "scope_id": "mission-3",
+                }
+            ),
+        )
+
+        assert json.loads(publish.body)["data"]["status"] == "published"
+        assert json.loads(models.body)["data"]["models"][0]["model_id"] == (
+            model_id
+        )
+        assert json.loads(mode.body)["data"]["mode"] == "cloud"
+        assert json.loads(withdraw.body)["data"]["status"] == "withdrawn"
+
+    asyncio.run(scenario())
+
+
 def test_ai_quest_rest_routes_surface_retryable_errors_and_audit():
     class FailingUploadProvider:
         name = "failing-cloud"
