@@ -65,11 +65,13 @@ class SensorStreamBuffer:
         self.manager = manager
         self.dropped_points = 0
         self._rows: List[Dict[str, Any]] = []
+        self._raw_rows: List[Dict[str, Any]] = []
 
     def record_stream(
         self,
         _system: Dict[str, Any],
         stream: Dict[str, Any],
+        raw_sensor_data: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Record one Trainer stream payload when collection is active."""
         if not stream.get("collecting"):
@@ -79,11 +81,17 @@ class SensorStreamBuffer:
             self._sync_manager_count()
             return False
 
-        self._rows.append(
+        row = {
+            "features": self._extract_features(stream),
+            "label": _safe_label(stream.get("label", "")),
+            "timestamp": int(stream.get("t", 0)),
+        }
+        self._rows.append(row)
+        self._raw_rows.append(
             {
-                "features": self._extract_features(stream),
-                "label": _safe_label(stream.get("label", "")),
-                "timestamp": int(stream.get("t", 0)),
+                "timestamp": row["timestamp"],
+                "label": row["label"],
+                "sensor_frame": dict(raw_sensor_data or {}),
             }
         )
         self._sync_manager_count()
@@ -100,10 +108,22 @@ class SensorStreamBuffer:
             for row in self._rows
         ]
 
+    def raw_rows(self) -> List[Dict[str, Any]]:
+        """Return collected raw EV3 frames for AI Quest upload."""
+        return [
+            {
+                "timestamp": row["timestamp"],
+                "label": row["label"],
+                "sensor_frame": dict(row["sensor_frame"]),
+            }
+            for row in self._raw_rows
+        ]
+
     def clear(self) -> int:
         """Clear the local buffer and return the number of removed rows."""
         cleared = len(self._rows)
         self._rows.clear()
+        self._raw_rows.clear()
         self._sync_manager_count()
         return cleared
 
@@ -187,6 +207,7 @@ class SensorDataRouter:
         self.buffer.record_stream(
             dict(sensor_data.get("system", {})),
             trainer_payload,
+            sensor_data,
         )
 
         tasks = []

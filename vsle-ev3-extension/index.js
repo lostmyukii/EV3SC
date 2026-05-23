@@ -21,6 +21,7 @@
     const DISPLAY_IMAGES = ['smile.png', 'heart.png', 'arrow.png'];
     const MOTOR_PID_MODES = ['speed', 'position'];
     const MOTOR_PID_TERMS = ['kp', 'ki', 'kd'];
+    const AI_QUEST_SCOPES = ['project', 'classSession', 'courseTask'];
     const MOTOR_PID_VALUE_MAX = 10000;
     const LCD_X_MAX = 177;
     const LCD_Y_MAX = 127;
@@ -136,6 +137,20 @@
         'getDataCount',
         'exportDataCSV',
         'startAutoCollect'
+    ];
+
+    const AIQUEST_BLOCK_OPCODES = [
+        'uploadAIQuestDataset',
+        'startAIQuestTraining',
+        'refreshAIQuestTrainingStatus',
+        'selectAIQuestModel',
+        'updateAIQuestPrediction',
+        'getAIQuestPrediction',
+        'isAIQuestPrediction',
+        'getAIQuestModelAccuracy',
+        'getAIQuestTrainingStatus',
+        'getAIQuestPredictionMode',
+        'exportAIQuestModel'
     ];
 
     function defaultMotorPid () {
@@ -776,6 +791,15 @@
             this.link = options.link || new WeisileLinkClient({
                 sensorCache: this.sensorCache
             });
+            this.aiQuest = {
+                datasetId: '',
+                jobId: '',
+                modelId: '',
+                trainingStatus: 'notStarted',
+                prediction: '',
+                predictionMode: 'localFallback',
+                modelAccuracy: 0
+            };
         }
 
         getInfo () {
@@ -791,7 +815,8 @@
                     .concat(this._soundBlocks())
                     .concat(this._displayBlocks())
                     .concat(this._systemBlocks())
-                    .concat(this._dataBlocks()),
+                    .concat(this._dataBlocks())
+                    .concat(this._aiQuestBlocks()),
                 menus: {
                     motorPorts: {
                         acceptReporters: true,
@@ -836,6 +861,10 @@
                     motorPidTerms: {
                         acceptReporters: true,
                         items: MOTOR_PID_TERMS
+                    },
+                    aiQuestScopes: {
+                        acceptReporters: true,
+                        items: AI_QUEST_SCOPES
                     }
                 }
             };
@@ -1263,6 +1292,85 @@
             });
         }
 
+        async uploadAIQuestDataset (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.uploadDataset',
+                {
+                    consent: true,
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async startAIQuestTraining (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.startTraining',
+                {
+                    dataset_id: this.aiQuest.datasetId,
+                    accuracy_gate: clamp(this._number(args.ACCURACY, 70), 0, 100) / 100
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async refreshAIQuestTrainingStatus () {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.getTrainingStatus',
+                {job_id: this.aiQuest.jobId}
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async selectAIQuestModel (args) {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.selectModel',
+                {
+                    model_id: this.Cast.toString(args.MODEL_ID || ''),
+                    scope: this._aiQuestScope(args.SCOPE),
+                    scope_id: this._safeScopeId(args.SCOPE_ID)
+                }
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        async updateAIQuestPrediction () {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.predictCurrent',
+                {}
+            );
+            return this._mergeAIQuestState(result);
+        }
+
+        getAIQuestPrediction () {
+            return this.aiQuest.prediction || '';
+        }
+
+        isAIQuestPrediction (args) {
+            return this.getAIQuestPrediction() === this.Cast.toString(args.LABEL);
+        }
+
+        getAIQuestModelAccuracy () {
+            return Math.round(this.aiQuest.modelAccuracy * 1000) / 10;
+        }
+
+        getAIQuestTrainingStatus () {
+            return this.aiQuest.trainingStatus || 'notStarted';
+        }
+
+        getAIQuestPredictionMode () {
+            return this.aiQuest.predictionMode || 'localFallback';
+        }
+
+        async exportAIQuestModel () {
+            const result = await this._sendAIQuestCommand(
+                'aiquest.exportModel',
+                {model_id: this.aiQuest.modelId}
+            );
+            return this._mergeAIQuestState(result);
+        }
+
         async setTransport (args) {
             const transport = normalizeTransport(args.TRANSPORT || args.transport);
             const params = {transport};
@@ -1342,6 +1450,47 @@
 
         async _sendDataCommand (method, params) {
             return this._sendMotorCommand(method, params);
+        }
+
+        async _sendAIQuestCommand (method, params) {
+            return this._sendMotorCommand(method, params);
+        }
+
+        _mergeAIQuestState (result) {
+            if (!result || typeof result !== 'object') {
+                return result;
+            }
+            this.aiQuest.datasetId = result.dataset_id ||
+                result.datasetId ||
+                this.aiQuest.datasetId;
+            this.aiQuest.jobId = result.job_id ||
+                result.jobId ||
+                this.aiQuest.jobId;
+            this.aiQuest.modelId = result.model_id ||
+                result.modelId ||
+                this.aiQuest.modelId;
+            if (result.status && result.status !== 'selected') {
+                this.aiQuest.trainingStatus = result.status;
+            }
+            if (result.metrics && result.metrics.accuracy !== undefined) {
+                this.aiQuest.modelAccuracy = this._safeNumber(
+                    result.metrics.accuracy,
+                    this.aiQuest.modelAccuracy
+                );
+            }
+            if (result.accuracy !== undefined) {
+                this.aiQuest.modelAccuracy = this._safeNumber(
+                    result.accuracy,
+                    this.aiQuest.modelAccuracy
+                );
+            }
+            if (result.label !== undefined) {
+                this.aiQuest.prediction = this.Cast.toString(result.label);
+            }
+            if (result.mode !== undefined) {
+                this.aiQuest.predictionMode = this.Cast.toString(result.mode);
+            }
+            return result;
         }
 
         _motorPort (value) {
@@ -1437,6 +1586,16 @@
         _label (value) {
             const label = this.Cast.toString(value);
             return label.length <= 64 ? label : null;
+        }
+
+        _aiQuestScope (value) {
+            const scope = this.Cast.toString(value || 'project');
+            return AI_QUEST_SCOPES.includes(scope) ? scope : 'project';
+        }
+
+        _safeScopeId (value) {
+            const scopeId = this.Cast.toString(value || 'scratch-project');
+            return scopeId.slice(0, 96);
         }
 
         _assetName (value, extensions) {
@@ -2006,6 +2165,82 @@
                 }
             ];
         }
+
+        _aiQuestBlocks () {
+            const command = this.BlockType.COMMAND;
+            const reporter = this.BlockType.REPORTER;
+            const bool = this.BlockType.BOOLEAN;
+            const string = this.ArgumentType.STRING;
+            const number = this.ArgumentType.NUMBER;
+            return [
+                {
+                    opcode: 'uploadAIQuestDataset',
+                    blockType: command,
+                    text: '上传完整EV3数据到AI Quest 范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'project'),
+                        SCOPE_ID: stringArg(string, 'scratch-project')
+                    }
+                },
+                {
+                    opcode: 'startAIQuestTraining',
+                    blockType: command,
+                    text: '开始AI Quest训练 准确率门槛[ACCURACY]%',
+                    arguments: {ACCURACY: numberArg(number, 70)}
+                },
+                {
+                    opcode: 'refreshAIQuestTrainingStatus',
+                    blockType: command,
+                    text: '刷新AI Quest训练状态'
+                },
+                {
+                    opcode: 'selectAIQuestModel',
+                    blockType: command,
+                    text: '选择AI Quest模型[MODEL_ID] 范围[SCOPE] ID[SCOPE_ID]',
+                    arguments: {
+                        MODEL_ID: stringArg(string, 'model-1'),
+                        SCOPE: menuArg(string, 'aiQuestScopes', 'project'),
+                        SCOPE_ID: stringArg(string, 'scratch-project')
+                    }
+                },
+                {
+                    opcode: 'updateAIQuestPrediction',
+                    blockType: command,
+                    text: '用当前传感器更新AI Quest预测'
+                },
+                {
+                    opcode: 'getAIQuestPrediction',
+                    blockType: reporter,
+                    text: '当前AI Quest预测结果'
+                },
+                {
+                    opcode: 'isAIQuestPrediction',
+                    blockType: bool,
+                    text: '当前AI Quest预测是[LABEL]?',
+                    arguments: {LABEL: stringArg(string, 'obstacle')}
+                },
+                {
+                    opcode: 'getAIQuestModelAccuracy',
+                    blockType: reporter,
+                    text: '当前AI Quest模型准确率(%)'
+                },
+                {
+                    opcode: 'getAIQuestTrainingStatus',
+                    blockType: reporter,
+                    text: 'AI Quest训练状态'
+                },
+                {
+                    opcode: 'getAIQuestPredictionMode',
+                    blockType: reporter,
+                    text: 'AI Quest预测模式'
+                },
+                {
+                    opcode: 'exportAIQuestModel',
+                    blockType: command,
+                    text: '导出AI Quest模型报告'
+                }
+            ];
+        }
     }
 
     const register = scratchApi => {
@@ -2230,6 +2465,8 @@
     }
 
     return {
+        AIQUEST_BLOCK_OPCODES,
+        AI_QUEST_SCOPES,
         LEGO_RED,
         CONNECTION_MODAL_BUTTON_PURPLE,
         CONNECTION_MODAL_CSS,

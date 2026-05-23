@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const extensionPath = path.join(__dirname, '..', 'index.js');
 const packageJson = require('../package.json');
+const {AIQUEST_BLOCK_OPCODES} = require('../index.js');
 
 let lastSocket = null;
 
@@ -124,7 +125,7 @@ test('TurboWarp-style URL load registers unsandboxed EV3 blocks without DOM writ
     const info = extension.getInfo();
 
     assert.equal(info.id, 'vsleev3');
-    assert.equal(info.blocks.length, 64);
+    assert.equal(info.blocks.length, 64 + AIQUEST_BLOCK_OPCODES.length);
     assert.equal(info.showStatusButton, true);
     assert.equal(info.color1, '#E6001F');
 });

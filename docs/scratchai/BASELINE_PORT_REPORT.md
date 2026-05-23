@@ -75,3 +75,11 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | `SCRATCH_AI_TEXT_TO_SPEECH_EXTENSION_ENABLED=1 npm --workspace @scratch/scratch-vm exec -- tap test/integration/load-extensions.js` | exits 0 | passed; 23 checks cover the full extension fixture loop, including the official EV3 `.sb3` compatibility path while honoring ScratchAI's default external-service policy |
 | `npm --workspace @scratch/scratch-vm run lint` | exits 0 | passed with existing warning-only JSDoc and format-message output; no blocking lint errors from the EV3 compatibility work |
 | `npm --workspace @scratch/scratch-vm run build` | exits 0 | passed with the existing optional `canvas` warning from the Scratch SVG/jsdom dependency path; the built-in compatibility extension does not pull the Unsandboxed VSLE bundle into the VM build |
+
+## ScratchAI EV3 AI Quest API Contract
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python -m pytest weisile-link/tests/test_ai_quest_contract.py weisile-link/tests/test_json_rpc_server_ai_quest.py -q` | exits 0 | passed; verifies server-side AI Quest upload sanitization, provider response normalization, cloud/cached/localFallback prediction modes, and JSON-RPC `aiquest.*` routing without EV3 transport commands |
+| `.venv/bin/python -m pytest weisile-link/tests -q` | exits 0 | passed; 105 WeisileLink tests cover existing Scratch Link compatibility, sensor routing, Trainer routes, and the new AI Quest contract path |
+| `cd vsle-ev3-extension && npm test` | exits 0 | passed; 29 extension tests cover the complete EV3 block surface plus AI Quest upload/train/status/select/predict/export blocks and synchronous AI Quest reporters |

@@ -293,6 +293,16 @@ ports. This register records the sources used for the current implementation.
 | Scratch VM SB3 EV3 fixture | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/test/fixtures/load-extensions/confirm-load/ev3-simple-project.sb3` | Existing official EV3 project fixture used to verify old project loading selects the VSLE-backed compatibility extension |
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Project-owned VSLE JSON-RPC method names and cache-backed reporter contract mirrored by the VM-safe compatibility wrapper |
 
+## ScratchAI Integration — AI Quest API Contract
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Sections 8-11 define the AI Quest API contract, upload data boundary, model scopes, and cloud/cached/local fallback prediction modes |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 8.2 AI Quest workflow and Section 15 privacy constraints for local-first data handling and provider isolation |
+| Local Trainer pipeline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | Source-backed local decision tree training, accuracy gate, and model-rule export behavior reused by the AI Quest mock provider |
+| Sensor router buffer | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/router/sensor_router.py` | Existing bounded EV3 training buffer extended with raw EV3 time-series frames for contract-level upload sanitization |
+| VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing EV3 data collection blocks extended with AI Quest contract commands and synchronous prediction/status reporters |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

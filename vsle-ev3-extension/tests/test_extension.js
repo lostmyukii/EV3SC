@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const {
+    AIQUEST_BLOCK_OPCODES,
     LEGO_RED,
     DATA_BLOCK_OPCODES,
     DISPLAY_BLOCK_OPCODES,
@@ -72,13 +73,13 @@ test('register requires unsandboxed TurboWarp extension context', () => {
     );
 });
 
-test('getInfo exposes all 64 EV3 blocks in LEGO red', () => {
+test('getInfo exposes complete EV3 and AI Quest blocks in LEGO red', () => {
     const {extension} = makeExtension();
     const info = extension.getInfo();
 
     assert.equal(info.name, 'EV3');
     assert.equal(info.color1, LEGO_RED);
-    assert.equal(info.blocks.length, 64);
+    assert.equal(info.blocks.length, 64 + AIQUEST_BLOCK_OPCODES.length);
     assert.deepEqual(
         info.blocks.map(block => block.opcode),
         [
@@ -87,7 +88,8 @@ test('getInfo exposes all 64 EV3 blocks in LEGO red', () => {
             ...SOUND_BLOCK_OPCODES,
             ...DISPLAY_BLOCK_OPCODES,
             ...SYSTEM_BLOCK_OPCODES,
-            ...DATA_BLOCK_OPCODES
+            ...DATA_BLOCK_OPCODES,
+            ...AIQUEST_BLOCK_OPCODES
         ]
     );
     assert.equal(info.menus.motorPorts.items.length, 4);
@@ -100,6 +102,83 @@ test('getInfo exposes all 64 EV3 blocks in LEGO red', () => {
     assert.ok(info.menus.statusLightColors.items.includes('green'));
     assert.deepEqual(info.menus.motorPidModes.items, MOTOR_PID_MODES);
     assert.deepEqual(info.menus.motorPidTerms.items, MOTOR_PID_TERMS);
+});
+
+test('AI Quest blocks call the server-side contract and expose sync reporters', async () => {
+    const sent = [];
+    const link = {
+        sendCommand: async command => {
+            sent.push(command);
+            if (command.method === 'aiquest.uploadDataset') {
+                return {
+                    dataset_id: 'mock-dataset-1',
+                    uploaded_samples: 4,
+                    scope: {type: 'project', id: 'project-1'}
+                };
+            }
+            if (command.method === 'aiquest.startTraining') {
+                return {
+                    job_id: 'mock-job-1',
+                    status: 'succeeded',
+                    model_id: 'mock-model-1',
+                    metrics: {accuracy: 0.875}
+                };
+            }
+            if (command.method === 'aiquest.getTrainingStatus') {
+                return {status: 'succeeded', metrics: {accuracy: 0.875}};
+            }
+            if (command.method === 'aiquest.selectModel') {
+                return {
+                    model_id: 'model-shared',
+                    scope: {type: 'classSession', id: 'class-a'},
+                    status: 'selected'
+                };
+            }
+            if (command.method === 'aiquest.predictCurrent') {
+                return {
+                    label: 'obstacle',
+                    confidence: 0.91,
+                    mode: 'cloud',
+                    model_id: 'mock-model-1'
+                };
+            }
+            if (command.method === 'aiquest.exportModel') {
+                return {filename: 'ai_quest_model_report.json'};
+            }
+            return {ok: true};
+        }
+    };
+    const extension = new VSLEEV3Extension({link, sensorCache: new SensorCache()});
+
+    await extension.uploadAIQuestDataset({
+        SCOPE: 'project',
+        SCOPE_ID: 'project-1'
+    });
+    await extension.startAIQuestTraining({ACCURACY: 70});
+    await extension.refreshAIQuestTrainingStatus();
+    await extension.selectAIQuestModel({
+        MODEL_ID: 'model-shared',
+        SCOPE: 'classSession',
+        SCOPE_ID: 'class-a'
+    });
+    await extension.updateAIQuestPrediction();
+    await extension.exportAIQuestModel();
+
+    assert.deepEqual(sent.map(command => command.method), [
+        'aiquest.uploadDataset',
+        'aiquest.startTraining',
+        'aiquest.getTrainingStatus',
+        'aiquest.selectModel',
+        'aiquest.predictCurrent',
+        'aiquest.exportModel'
+    ]);
+    assert.equal(extension.getAIQuestTrainingStatus(), 'succeeded');
+    assert.equal(extension.getAIQuestPrediction(), 'obstacle');
+    assert.equal(extension.isAIQuestPrediction({LABEL: 'obstacle'}), true);
+    assert.equal(extension.getAIQuestModelAccuracy(), 87.5);
+    assert.equal(extension.getAIQuestPredictionMode(), 'cloud');
+    assert.equal(extension.getAIQuestPrediction() instanceof Promise, false);
+    assert.equal(extension.isAIQuestPrediction({LABEL: 'obstacle'}) instanceof Promise, false);
 });
 
 test('SensorCache provides default EV3 state and merges partial updates', () => {

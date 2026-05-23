@@ -17,6 +17,11 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional, Set, Tuple
 from urllib.parse import parse_qs, urlparse
 
+from weisile_link.ai_quest_contract import (
+    AIQuestContractError,
+    AIQuestContractService,
+    features_from_trainer_payload,
+)
 from weisile_link.observability.health import (
     HttpResponse,
     RuntimeCounters,
@@ -115,6 +120,7 @@ class ScratchJsonRpcServer:
         config: ScratchServerConfig = ScratchServerConfig(),
         clock_ms: Callable[[], float] = lambda: time.monotonic() * 1000,
         session_manager: Optional[EV3SessionManager] = None,
+        ai_quest: Optional[AIQuestContractService] = None,
     ) -> None:
         self.transport = transport
         self.manager = manager or getattr(
@@ -146,6 +152,7 @@ class ScratchJsonRpcServer:
         self._last_sensor_at_ms: Optional[float] = None
         self._sensor_count = 0
         self._started_at_ms = self.clock_ms()
+        self.ai_quest = ai_quest or AIQuestContractService()
 
     @property
     def scratch_client_count(self) -> int:
@@ -273,6 +280,13 @@ class ScratchJsonRpcServer:
             )
         if method == "send":
             command = self._command_from_send(request_id, params)
+            if str(command.get("method", "")).startswith("aiquest."):
+                return self._handle_ai_quest_command(
+                    request_id,
+                    str(command.get("method", "")),
+                    command.get("params", {}),
+                    self._session_id_from_command(websocket, command, params),
+                )
             if command.get("method") == "data.uploadToTrainer":
                 return self._handle_upload_to_trainer(
                     request_id,
@@ -286,6 +300,13 @@ class ScratchJsonRpcServer:
         if method == "data.uploadToTrainer":
             return self._handle_upload_to_trainer(
                 request_id,
+                self._session_id_from_params(websocket, params),
+            )
+        if method.startswith("aiquest."):
+            return self._handle_ai_quest_command(
+                request_id,
+                method,
+                params,
                 self._session_id_from_params(websocket, params),
             )
         if method in COMMAND_VALIDATORS:
@@ -569,6 +590,86 @@ class ScratchJsonRpcServer:
                     data=data,
                 )
             return self._rest_ok(response["result"])
+        if route == "/api/aiquest/upload":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest upload JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.uploadDataset",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/train":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest training JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.startTraining",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/predict":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest prediction JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.predictCurrent",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/export":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest export JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.exportModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
         if route == "/api/trainer/train":
             try:
                 payload = json.loads(body or "{}")
@@ -768,6 +869,115 @@ class ScratchJsonRpcServer:
             },
         )
 
+    def _handle_ai_quest_command(
+        self,
+        request_id: JsonRpcId,
+        method: str,
+        params: Dict[str, Any],
+        session_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        try:
+            session = self.sessions.require_session(session_id)
+        except KeyError:
+            return make_error(
+                request_id,
+                ErrorCode.EV3_TRANSPORT_DISCONNECTED,
+                "Requested EV3 peripheral is not available",
+                {"peripheralId": session_id, "retryable": True},
+            )
+        try:
+            if method == "aiquest.uploadDataset":
+                return make_result(
+                    request_id,
+                    self.ai_quest.upload_time_series(
+                        rows=session.router.buffer.rows(),
+                        raw_rows=session.router.buffer.raw_rows(),
+                        brick_id=session.brick_id,
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                        consent=params.get("consent") is True,
+                        metadata=params.get("metadata", {}),
+                    ),
+                )
+            if method == "aiquest.startTraining":
+                return make_result(
+                    request_id,
+                    self.ai_quest.start_training(
+                        str(
+                            params.get("dataset_id")
+                            or params.get("datasetId")
+                            or ""
+                        ),
+                        accuracy_gate=params.get("accuracy_gate", 0.7),
+                    ),
+                )
+            if method == "aiquest.getTrainingStatus":
+                return make_result(
+                    request_id,
+                    self.ai_quest.get_training_status(
+                        str(params.get("job_id") or params.get("jobId") or "")
+                    ),
+                )
+            if method == "aiquest.selectModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.select_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        ),
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.predictCurrent":
+                features = features_from_trainer_payload(
+                    session.router.latest_trainer_payload
+                )
+                return make_result(
+                    request_id,
+                    self.ai_quest.predict(
+                        features,
+                        scope=str(params.get("scope", "project")),
+                        scope_id=str(
+                            params.get("scope_id")
+                            or params.get("scopeId")
+                            or "scratch-project"
+                        ),
+                    ),
+                )
+            if method == "aiquest.exportModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.export_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        )
+                    ),
+                )
+        except AIQuestContractError as exc:
+            data = dict(exc.data)
+            data["retryable"] = exc.retryable
+            return make_error(request_id, exc.code, exc.message, data)
+
+        return make_error(
+            request_id,
+            ErrorCode.EV3_INVALID_COMMAND,
+            "AI Quest method is not supported",
+            {"method": method, "retryable": False},
+        )
+
     def _session_for_websocket(self, websocket: Any) -> EV3Session:
         return self.sessions.require_session(
             self._client_sessions.get(websocket)
@@ -890,6 +1100,19 @@ class ScratchJsonRpcServer:
             exc.message,
             retryable=False,
             data=exc.data,
+        )
+
+    def _rest_from_json_rpc(self, response: Dict[str, Any]) -> HttpResponse:
+        if "error" not in response:
+            return self._rest_ok(response.get("result", {}))
+        error = response["error"]
+        data = error.get("data", {})
+        return self._rest_error(
+            400,
+            str(error.get("code", "AIQUEST_ERROR")),
+            str(error.get("message", "AI Quest request failed")),
+            retryable=data.get("retryable", False),
+            data=data,
         )
 
     def _sensor_hz(self) -> float:
