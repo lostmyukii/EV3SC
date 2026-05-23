@@ -322,6 +322,30 @@ class WeisileAIProviderShell(_HttpProviderBase):
         )
         return _safe_export_json(response)
 
+    def delete_dataset(self, dataset_id: str) -> Dict[str, Any]:
+        response = self._request(
+            "delete_dataset",
+            "DELETE",
+            f"/v1/ev3/datasets/{quote(dataset_id)}",
+        )
+        return {
+            "datasetId": dataset_id,
+            "status": "deleted",
+            "auditId": str(response.get("auditId") or ""),
+        }
+
+    def delete_model(self, model_id: str) -> Dict[str, Any]:
+        response = self._request(
+            "delete_model",
+            "DELETE",
+            f"/v1/ev3/models/{quote(model_id)}",
+        )
+        return {
+            "modelId": model_id,
+            "status": "deleted",
+            "auditId": str(response.get("auditId") or ""),
+        }
+
 
 class ThirdPartyAIQuestProviderAdapter(_HttpProviderBase):
     """Adapter for generic model services behind the AI Quest contract."""
@@ -409,6 +433,30 @@ class ThirdPartyAIQuestProviderAdapter(_HttpProviderBase):
         )
         return _safe_export_json(response)
 
+    def delete_dataset(self, dataset_id: str) -> Dict[str, Any]:
+        response = self._request(
+            "delete_dataset",
+            "DELETE",
+            f"/datasets/{quote(dataset_id)}",
+        )
+        return {
+            "id": dataset_id,
+            "state": "deleted",
+            "audit": response.get("audit", {}),
+        }
+
+    def delete_model(self, model_id: str) -> Dict[str, Any]:
+        response = self._request(
+            "delete_model",
+            "DELETE",
+            f"/models/{quote(model_id)}",
+        )
+        return {
+            "id": model_id,
+            "state": "deleted",
+            "audit": response.get("audit", {}),
+        }
+
 
 class MockAIQuestProvider:
     """Deterministic local provider used by tests and classroom preview."""
@@ -421,6 +469,8 @@ class MockAIQuestProvider:
         self._datasets: Dict[str, Sequence[Dict[str, Any]]] = {}
         self._models: Dict[str, Dict[str, Any]] = {}
         self._counter = 0
+        self._deleted_datasets = 0
+        self._deleted_models = 0
 
     def safe_diagnostics(self) -> Dict[str, Any]:
         return {"name": self.name, "local_preview": True}
@@ -480,6 +530,24 @@ class MockAIQuestProvider:
 
     def export_model(self, model_id: str) -> str:
         return export_model_rules(self._models[model_id])
+
+    def delete_dataset(self, dataset_id: str) -> Dict[str, Any]:
+        self._deleted_datasets += 1
+        self._datasets.pop(dataset_id, None)
+        return {
+            "id": dataset_id,
+            "state": "deleted",
+            "auditId": f"mock-delete-dataset-{self._deleted_datasets}",
+        }
+
+    def delete_model(self, model_id: str) -> Dict[str, Any]:
+        self._deleted_models += 1
+        self._models.pop(model_id, None)
+        return {
+            "id": model_id,
+            "state": "deleted",
+            "auditId": f"mock-delete-model-{self._deleted_models}",
+        }
 
 
 def build_ai_quest_provider_from_env(

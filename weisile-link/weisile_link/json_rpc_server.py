@@ -502,6 +502,16 @@ class ScratchJsonRpcServer:
             session = self._rest_session(session_id)
             rows = session.router.buffer.rows()
             return self._rest_ok({"count": len(rows), "rows": rows})
+        if route == "/api/aiquest/upload-status":
+            dataset_id = _first_query_value(query, "dataset_id")
+            if dataset_id is None:
+                dataset_id = _first_query_value(query, "datasetId") or ""
+            return self._rest_ok(self.ai_quest.get_upload_status(dataset_id))
+        if route == "/api/aiquest/audit":
+            limit = _first_query_value(query, "limit") or "50"
+            return self._rest_ok(
+                {"entries": self.ai_quest.get_audit_log(_safe_int(limit, 50))}
+            )
 
         endpoint = StatusEndpoint(
             self.manager,
@@ -663,6 +673,46 @@ class ScratchJsonRpcServer:
             result = self._handle_ai_quest_command(
                 payload.get("id"),
                 "aiquest.exportModel",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/delete-dataset":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest dataset deletion JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.deleteDataset",
+                payload,
+                payload.get("brick_id")
+                or payload.get("peripheralId")
+                or payload.get("sessionId")
+                or query_session_id,
+            )
+            return self._rest_from_json_rpc(result)
+        if route == "/api/aiquest/delete-model":
+            try:
+                payload = json.loads(body or "{}")
+            except json.JSONDecodeError:
+                return self._rest_error(
+                    400,
+                    "AIQUEST_INVALID_REQUEST",
+                    "Invalid AI Quest model deletion JSON",
+                    retryable=False,
+                )
+            result = self._handle_ai_quest_command(
+                payload.get("id"),
+                "aiquest.deleteModel",
                 payload,
                 payload.get("brick_id")
                 or payload.get("peripheralId")
@@ -922,6 +972,17 @@ class ScratchJsonRpcServer:
                         str(params.get("job_id") or params.get("jobId") or "")
                     ),
                 )
+            if method == "aiquest.getUploadStatus":
+                return make_result(
+                    request_id,
+                    self.ai_quest.get_upload_status(
+                        str(
+                            params.get("dataset_id")
+                            or params.get("datasetId")
+                            or ""
+                        )
+                    ),
+                )
             if method == "aiquest.selectModel":
                 return make_result(
                     request_id,
@@ -965,6 +1026,37 @@ class ScratchJsonRpcServer:
                             or ""
                         )
                     ),
+                )
+            if method == "aiquest.deleteDataset":
+                return make_result(
+                    request_id,
+                    self.ai_quest.delete_dataset(
+                        str(
+                            params.get("dataset_id")
+                            or params.get("datasetId")
+                            or ""
+                        )
+                    ),
+                )
+            if method == "aiquest.deleteModel":
+                return make_result(
+                    request_id,
+                    self.ai_quest.delete_model(
+                        str(
+                            params.get("model_id")
+                            or params.get("modelId")
+                            or ""
+                        )
+                    ),
+                )
+            if method == "aiquest.getAuditLog":
+                return make_result(
+                    request_id,
+                    {
+                        "entries": self.ai_quest.get_audit_log(
+                            _safe_int(params.get("limit"), 50)
+                        )
+                    },
                 )
         except AIQuestContractError as exc:
             data = dict(exc.data)
@@ -1107,8 +1199,9 @@ class ScratchJsonRpcServer:
             return self._rest_ok(response.get("result", {}))
         error = response["error"]
         data = error.get("data", {})
+        status = 503 if data.get("retryable", False) else 400
         return self._rest_error(
-            400,
+            status,
             str(error.get("code", "AIQUEST_ERROR")),
             str(error.get("message", "AI Quest request failed")),
             retryable=data.get("retryable", False),
@@ -1157,6 +1250,13 @@ def _first_query_value(query: Dict[str, Any], key: str) -> Optional[str]:
     if not values:
         return None
     return str(values[0])
+
+
+def _safe_int(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def create_default_server(

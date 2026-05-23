@@ -1,6 +1,8 @@
 import asyncio
 import json
 
+from weisile_link.ai_quest_contract import AIQuestContractService
+from weisile_link.ai_quest_providers import AIQuestProviderUnavailable
 from weisile_link.json_rpc_server import ScratchJsonRpcServer
 from weisile_link.runtime.degradation import DegradationManager, TransportKind
 
@@ -156,5 +158,128 @@ def test_ai_quest_predict_current_degrades_to_local_fallback_without_model():
             }
         ]
         assert transport.commands == []
+
+    asyncio.run(scenario())
+
+
+def test_ai_quest_json_rpc_delete_status_and_audit_routes():
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        server = ScratchJsonRpcServer(transport, manager=transport.manager)
+        websocket = FakeWebSocket()
+        await collect_ai_quest_rows(server)
+
+        for request in (
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-upload",
+                "method": "aiquest.uploadDataset",
+                "params": {"consent": True},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-train",
+                "method": "aiquest.startTraining",
+            },
+        ):
+            await server.handle_json_rpc_message(websocket, json.dumps(request))
+
+        dataset_id = websocket.sent[0]["result"]["dataset_id"]
+        model_id = websocket.sent[1]["result"]["model_id"]
+
+        for request in (
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-status",
+                "method": "aiquest.getUploadStatus",
+                "params": {"dataset_id": dataset_id},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-delete-dataset",
+                "method": "aiquest.deleteDataset",
+                "params": {"dataset_id": dataset_id},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-delete-model",
+                "method": "aiquest.deleteModel",
+                "params": {"model_id": model_id},
+            },
+            {
+                "jsonrpc": "2.0",
+                "id": "aiq-audit",
+                "method": "aiquest.getAuditLog",
+            },
+        ):
+            await server.handle_json_rpc_message(websocket, json.dumps(request))
+
+        status = websocket.sent[2]["result"]
+        dataset_delete = websocket.sent[3]["result"]
+        model_delete = websocket.sent[4]["result"]
+        audit = websocket.sent[5]["result"]
+
+        assert status["status"] == "complete"
+        assert status["progress"] == 100
+        assert dataset_delete["status"] == "deleted"
+        assert dataset_delete["raw_dataset_retained"] is False
+        assert model_delete["status"] == "deleted"
+        assert model_delete["cached_model_retained"] is False
+        assert "entries" in audit
+        assert [entry["event"] for entry in audit["entries"][-2:]] == [
+            "dataset.delete.complete",
+            "model.delete.complete",
+        ]
+
+    asyncio.run(scenario())
+
+
+def test_ai_quest_rest_routes_surface_retryable_errors_and_audit():
+    class FailingUploadProvider:
+        name = "failing-cloud"
+
+        def upload_dataset(self, payload):
+            raise AIQuestProviderUnavailable(
+                self.name,
+                "upload_dataset",
+                "cloud unavailable",
+                status_code=503,
+            )
+
+    async def scenario():
+        transport = FakeTransport()
+        transport.connected = True
+        transport.manager.record_reconnected(TransportKind.WIFI)
+        service = AIQuestContractService(provider=FailingUploadProvider())
+        server = ScratchJsonRpcServer(
+            transport,
+            manager=transport.manager,
+            ai_quest=service,
+        )
+        await collect_ai_quest_rows(server)
+
+        failed = await server.handle_post(
+            "/api/aiquest/upload",
+            json.dumps({"consent": True, "id": "rest-upload"}),
+        )
+        status = server.handle_get("/api/aiquest/upload-status")
+        audit = server.handle_get("/api/aiquest/audit")
+
+        failed_body = json.loads(failed.body)
+        status_body = json.loads(status.body)
+        audit_body = json.loads(audit.body)
+
+        assert failed.status == 503
+        assert failed_body["error"]["code"] == "AIQUEST_PROVIDER_UNAVAILABLE"
+        assert failed_body["error"]["retryable"] is True
+        assert failed_body["error"]["data"]["status_code"] == 503
+        assert status_body["data"]["status"] == "failed"
+        assert status_body["data"]["retryable"] is True
+        assert audit_body["data"]["entries"][-1]["event"] == (
+            "dataset.upload.failed"
+        )
+        assert audit_body["data"]["entries"][-1]["retryable"] is True
 
     asyncio.run(scenario())

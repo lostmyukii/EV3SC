@@ -194,6 +194,9 @@ class AIQuestContractService:
         self.models: Dict[str, Dict[str, Any]] = {}
         self.cached_models: Dict[str, Dict[str, Any]] = {}
         self.active_models: Dict[Tuple[str, str], str] = {}
+        self.upload_statuses: Dict[str, Dict[str, Any]] = {}
+        self.latest_upload_status: Optional[Dict[str, Any]] = None
+        self.audit_log: List[Dict[str, Any]] = []
         self.latest_dataset_id = ""
         self.latest_job_id = ""
 
@@ -209,17 +212,33 @@ class AIQuestContractService:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Upload allowed EV3 time-series data through the provider contract."""
+        model_scope = _scope(scope, scope_id)
         if consent is not True:
+            self._record_upload_failure(
+                "dataset.upload.rejected",
+                code="AIQUEST_CONSENT_REQUIRED",
+                message="AI Quest upload requires explicit consent",
+                provider=self.provider.name,
+                scope=model_scope.payload(),
+                retryable=False,
+            )
             raise AIQuestContractError(
                 "AIQUEST_CONSENT_REQUIRED",
                 "AI Quest upload requires explicit consent",
             )
         if not rows:
+            self._record_upload_failure(
+                "dataset.upload.failed",
+                code="AIQUEST_EMPTY_DATASET",
+                message="AI Quest upload requires collected EV3 rows",
+                provider=self.provider.name,
+                scope=model_scope.payload(),
+                retryable=False,
+            )
             raise AIQuestContractError(
                 "AIQUEST_EMPTY_DATASET",
                 "AI Quest upload requires collected EV3 rows",
             )
-        model_scope = _scope(scope, scope_id)
         samples = _time_series_samples(rows, raw_rows)
         payload = {
             "brick_id": brick_id,
@@ -231,11 +250,34 @@ class AIQuestContractService:
         try:
             provider_response = self.provider.upload_dataset(payload)
         except AIQuestProviderOperationError as exc:
-            raise _provider_contract_error(exc) from exc
+            error = _provider_contract_error(exc)
+            self.latest_upload_status = _upload_status(
+                "",
+                "failed",
+                0,
+                error.retryable,
+                error={
+                    "code": error.code,
+                    "message": error.message,
+                },
+                audit_id="",
+                timestamp=self.clock(),
+            )
+            self._record_audit(
+                "dataset.upload.failed",
+                provider=self.provider.name,
+                dataset_id="",
+                scope=model_scope.payload(),
+                status="failed",
+                retryable=error.retryable,
+                message=error.message,
+            )
+            raise error from exc
         normalized = normalize_provider_dataset_response(
             self.provider.name,
             provider_response,
         )
+        timestamp = self.clock()
         dataset = {
             **normalized,
             "scope": model_scope.payload(),
@@ -248,14 +290,34 @@ class AIQuestContractService:
                 "raw_scratch_project_included": False,
                 "provider_credentials_included": False,
             },
-            "uploaded_at": self.clock(),
+            "uploaded_at": timestamp,
         }
         self.datasets[dataset["dataset_id"]] = {
             "rows": list(rows),
             "scope": model_scope.payload(),
             "dataset": dataset,
         }
+        self.upload_statuses[dataset["dataset_id"]] = _upload_status(
+            dataset["dataset_id"],
+            "complete",
+            100,
+            False,
+            error=None,
+            audit_id=dataset["audit"]["audit_id"],
+            timestamp=timestamp,
+        )
+        self.latest_upload_status = self.upload_statuses[dataset["dataset_id"]]
         self.latest_dataset_id = dataset["dataset_id"]
+        self._record_audit(
+            "dataset.upload.complete",
+            provider=self.provider.name,
+            dataset_id=dataset["dataset_id"],
+            scope=model_scope.payload(),
+            status="complete",
+            retryable=False,
+            audit_id=dataset["audit"]["audit_id"],
+            message="AI Quest dataset upload completed",
+        )
         return dataset
 
     def start_training(
@@ -327,6 +389,116 @@ class AIQuestContractService:
                 "metrics": {"accuracy": 0},
             }
         return dict(job)
+
+    def get_upload_status(self, dataset_id: str = "") -> Dict[str, Any]:
+        """Return the latest upload progress visible to Scratch/REST."""
+        if dataset_id:
+            status = self.upload_statuses.get(dataset_id)
+            if status is not None:
+                return dict(status)
+        if self.latest_upload_status is not None:
+            return dict(self.latest_upload_status)
+        return _upload_status(
+            str(dataset_id or ""),
+            "notStarted",
+            0,
+            False,
+            error=None,
+            audit_id="",
+            timestamp=self.clock(),
+        )
+
+    def get_audit_log(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Return teacher-reviewable audit metadata without raw samples."""
+        safe_limit = max(1, min(500, int(limit or 50)))
+        return [dict(entry) for entry in self.audit_log[-safe_limit:]]
+
+    def delete_dataset(self, dataset_id: str) -> Dict[str, Any]:
+        """Delete provider/local dataset state and record an audit event."""
+        safe_dataset_id = str(dataset_id or "")
+        dataset = self.datasets.get(safe_dataset_id)
+        if dataset is None:
+            raise AIQuestContractError(
+                "AIQUEST_DATASET_NOT_FOUND",
+                "AI Quest dataset is not available",
+            )
+        try:
+            provider_response = self.provider.delete_dataset(safe_dataset_id)
+        except AIQuestProviderOperationError as exc:
+            raise _provider_contract_error(exc) from exc
+        audit_id = _provider_audit_id(provider_response)
+        self.datasets.pop(safe_dataset_id, None)
+        self.upload_statuses[safe_dataset_id] = _upload_status(
+            safe_dataset_id,
+            "deleted",
+            100,
+            False,
+            error=None,
+            audit_id=audit_id,
+            timestamp=self.clock(),
+        )
+        self.latest_upload_status = self.upload_statuses[safe_dataset_id]
+        if self.latest_dataset_id == safe_dataset_id:
+            self.latest_dataset_id = ""
+        result = {
+            "dataset_id": safe_dataset_id,
+            "status": "deleted",
+            "raw_dataset_retained": False,
+            "provider": self.provider.name,
+            "audit_id": audit_id,
+        }
+        self._record_audit(
+            "dataset.delete.complete",
+            provider=self.provider.name,
+            dataset_id=safe_dataset_id,
+            scope=dataset["scope"],
+            status="deleted",
+            retryable=False,
+            audit_id=audit_id,
+            message="AI Quest dataset deleted",
+        )
+        return result
+
+    def delete_model(self, model_id: str) -> Dict[str, Any]:
+        """Delete provider/local model state and active references."""
+        safe_model_id = str(model_id or "")
+        if (
+            safe_model_id not in self.models
+            and safe_model_id not in self.cached_models
+        ):
+            raise AIQuestContractError(
+                "AIQUEST_MODEL_NOT_FOUND",
+                "AI Quest model is not available",
+            )
+        try:
+            provider_response = self.provider.delete_model(safe_model_id)
+        except AIQuestProviderOperationError as exc:
+            raise _provider_contract_error(exc) from exc
+        audit_id = _provider_audit_id(provider_response)
+        self.models.pop(safe_model_id, None)
+        self.cached_models.pop(safe_model_id, None)
+        self.active_models = {
+            key: value
+            for key, value in self.active_models.items()
+            if value != safe_model_id
+        }
+        result = {
+            "model_id": safe_model_id,
+            "status": "deleted",
+            "cached_model_retained": False,
+            "provider": self.provider.name,
+            "audit_id": audit_id,
+        }
+        self._record_audit(
+            "model.delete.complete",
+            provider=self.provider.name,
+            model_id=safe_model_id,
+            status="deleted",
+            retryable=False,
+            audit_id=audit_id,
+            message="AI Quest model deleted",
+        )
+        return result
 
     def select_model(
         self,
@@ -414,6 +586,67 @@ class AIQuestContractService:
         if not self.active_models:
             return ""
         return next(reversed(self.active_models.values()))
+
+    def _record_audit(
+        self,
+        event: str,
+        *,
+        provider: str,
+        dataset_id: str = "",
+        model_id: str = "",
+        scope: Optional[Dict[str, str]] = None,
+        status: str,
+        retryable: bool,
+        audit_id: str = "",
+        message: str,
+    ) -> None:
+        self.audit_log.append(
+            {
+                "event": event,
+                "timestamp": self.clock(),
+                "provider": provider,
+                "dataset_id": dataset_id,
+                "model_id": model_id,
+                "scope": scope or {},
+                "status": status,
+                "retryable": retryable,
+                "audit_id": audit_id,
+                "message": message,
+            }
+        )
+
+    def _record_upload_failure(
+        self,
+        event: str,
+        *,
+        code: str,
+        message: str,
+        provider: str,
+        scope: Dict[str, str],
+        retryable: bool,
+    ) -> None:
+        timestamp = self.clock()
+        self.latest_upload_status = _upload_status(
+            "",
+            "failed",
+            0,
+            retryable,
+            error={
+                "code": code,
+                "message": message,
+            },
+            audit_id="",
+            timestamp=timestamp,
+        )
+        self._record_audit(
+            event,
+            provider=provider,
+            dataset_id="",
+            scope=scope,
+            status="failed",
+            retryable=retryable,
+            message=message,
+        )
 
 
 def predict_with_model(model: Dict[str, Any], features: Dict[str, Any]) -> str:
@@ -581,6 +814,39 @@ def _provider_contract_error(
         message,
         retryable=exc.retryable,
         data=exc.contract_data(),
+    )
+
+
+def _upload_status(
+    dataset_id: str,
+    status: str,
+    progress: int,
+    retryable: bool,
+    *,
+    error: Optional[Dict[str, str]],
+    audit_id: str,
+    timestamp: str,
+) -> Dict[str, Any]:
+    return {
+        "dataset_id": dataset_id,
+        "status": status,
+        "progress": max(0, min(100, int(progress))),
+        "retryable": retryable,
+        "error": error,
+        "audit_id": audit_id,
+        "updated_at": timestamp,
+    }
+
+
+def _provider_audit_id(response: Dict[str, Any]) -> str:
+    if not isinstance(response, dict):
+        return ""
+    audit = response.get("audit")
+    return str(
+        response.get("audit_id")
+        or response.get("auditId")
+        or (audit.get("id") if isinstance(audit, dict) else "")
+        or ""
     )
 
 

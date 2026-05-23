@@ -313,6 +313,15 @@ ports. This register records the sources used for the current implementation.
 | Local Trainer pipeline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/trainer_pipeline.py` | Source-backed local decision tree behavior reused by the deterministic mock provider and cached model export |
 | Python standard library documentation | `https://docs.python.org/3/library/urllib.request.html` | Dependency-free HTTPS JSON request implementation for the WeisileAI provider shell |
 
+## ScratchAI Integration — AI Quest Raw Time-Series Governance
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Section 8 requires dataset/model deletion and audit metadata; Section 9 allows raw EV3 time-series upload but requires consent, progress status, retry/error reporting, deletion, and audit logs; Section 13 defines student-visible upload/cloud error states |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 10.6 REST envelope and Section 15 privacy controls for explicit export/delete, student-data minimization, and teacher-facing clear/delete tooling |
+| AI Quest provider abstraction | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/ai_quest_providers.py` | Provider delete methods, retryable provider failure metadata, and credential redaction reused by contract-level governance |
+| Scratch-compatible JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | JSON-RPC 2.0 and REST envelope mapping for upload status, audit, dataset deletion, model deletion, and retryable cloud errors |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

@@ -1,12 +1,16 @@
 import json
 
+import pytest
+
 from weisile_link.ai_quest_contract import (
+    AIQuestContractError,
     AIQuestContractService,
     MockAIQuestProvider,
     normalize_provider_dataset_response,
     normalize_provider_prediction_response,
     normalize_provider_training_response,
 )
+from weisile_link.ai_quest_providers import AIQuestProviderUnavailable
 
 
 def collected_rows():
@@ -222,3 +226,171 @@ def test_prediction_uses_cloud_cached_and_local_fallback_modes():
         "mode": "localFallback",
         "model_id": "local-distance-rule",
     }
+
+
+def test_upload_status_and_audit_log_record_consent_and_provider_result():
+    provider = MockAIQuestProvider()
+    service = AIQuestContractService(
+        provider=provider,
+        clock=lambda: "2026-05-23T10:00:00Z",
+    )
+
+    uploaded = service.upload_time_series(
+        rows=collected_rows(),
+        raw_rows=raw_rows(),
+        brick_id="class-brick-1",
+        scope="project",
+        scope_id="scratch-project-1",
+        consent=True,
+        metadata={"project_id": "scratch-project-1"},
+    )
+
+    status = service.get_upload_status(uploaded["dataset_id"])
+    audit = service.get_audit_log()
+
+    assert status == {
+        "dataset_id": uploaded["dataset_id"],
+        "status": "complete",
+        "progress": 100,
+        "retryable": False,
+        "error": None,
+        "audit_id": uploaded["audit"]["audit_id"],
+        "updated_at": "2026-05-23T10:00:00Z",
+    }
+    assert audit[-1] == {
+        "event": "dataset.upload.complete",
+        "timestamp": "2026-05-23T10:00:00Z",
+        "provider": "mock",
+        "dataset_id": uploaded["dataset_id"],
+        "model_id": "",
+        "scope": {"type": "project", "id": "scratch-project-1"},
+        "status": "complete",
+        "retryable": False,
+        "audit_id": uploaded["audit"]["audit_id"],
+        "message": "AI Quest dataset upload completed",
+    }
+    assert "Ada Lovelace" not in json.dumps(audit)
+    assert "secret-token" not in json.dumps(audit)
+
+
+def test_provider_upload_failure_records_failed_status_and_audit_event():
+    class FailingUploadProvider(MockAIQuestProvider):
+        name = "failing-cloud"
+
+        def upload_dataset(self, payload):
+            raise AIQuestProviderUnavailable(
+                self.name,
+                "upload_dataset",
+                "rate limited",
+                status_code=429,
+            )
+
+    service = AIQuestContractService(
+        provider=FailingUploadProvider(),
+        clock=lambda: "2026-05-23T10:01:00Z",
+    )
+
+    with pytest.raises(AIQuestContractError) as error:
+        service.upload_time_series(
+            rows=collected_rows(),
+            raw_rows=[],
+            brick_id="class-brick-1",
+            consent=True,
+        )
+
+    status = service.get_upload_status()
+    audit = service.get_audit_log()
+
+    assert error.value.code == "AIQUEST_PROVIDER_UNAVAILABLE"
+    assert error.value.retryable is True
+    assert status == {
+        "dataset_id": "",
+        "status": "failed",
+        "progress": 0,
+        "retryable": True,
+        "error": {
+            "code": "AIQUEST_PROVIDER_UNAVAILABLE",
+            "message": "AI Quest provider is unavailable",
+        },
+        "audit_id": "",
+        "updated_at": "2026-05-23T10:01:00Z",
+    }
+    assert audit[-1]["event"] == "dataset.upload.failed"
+    assert audit[-1]["provider"] == "failing-cloud"
+    assert audit[-1]["retryable"] is True
+    assert audit[-1]["message"] == "AI Quest provider is unavailable"
+
+
+def test_missing_consent_records_failed_status_and_audit_event():
+    provider = MockAIQuestProvider()
+    service = AIQuestContractService(
+        provider=provider,
+        clock=lambda: "2026-05-23T10:01:30Z",
+    )
+
+    with pytest.raises(AIQuestContractError) as error:
+        service.upload_time_series(
+            rows=collected_rows(),
+            raw_rows=[],
+            brick_id="class-brick-1",
+            consent=False,
+        )
+
+    assert error.value.code == "AIQUEST_CONSENT_REQUIRED"
+    assert service.get_upload_status() == {
+        "dataset_id": "",
+        "status": "failed",
+        "progress": 0,
+        "retryable": False,
+        "error": {
+            "code": "AIQUEST_CONSENT_REQUIRED",
+            "message": "AI Quest upload requires explicit consent",
+        },
+        "audit_id": "",
+        "updated_at": "2026-05-23T10:01:30Z",
+    }
+    assert service.get_audit_log()[-1]["event"] == "dataset.upload.rejected"
+    assert provider.uploads == []
+
+
+def test_delete_dataset_and_model_remove_local_references_and_write_audit():
+    provider = MockAIQuestProvider()
+    service = AIQuestContractService(
+        provider=provider,
+        clock=lambda: "2026-05-23T10:02:00Z",
+    )
+    uploaded = service.upload_time_series(
+        rows=collected_rows(),
+        raw_rows=[],
+        brick_id="class-brick-1",
+        scope="courseTask",
+        scope_id="task-9",
+        consent=True,
+    )
+    trained = service.start_training(uploaded["dataset_id"])
+
+    dataset_delete = service.delete_dataset(uploaded["dataset_id"])
+    model_delete = service.delete_model(trained["model_id"])
+
+    assert dataset_delete == {
+        "dataset_id": uploaded["dataset_id"],
+        "status": "deleted",
+        "raw_dataset_retained": False,
+        "provider": "mock",
+        "audit_id": "mock-delete-dataset-1",
+    }
+    assert model_delete == {
+        "model_id": trained["model_id"],
+        "status": "deleted",
+        "cached_model_retained": False,
+        "provider": "mock",
+        "audit_id": "mock-delete-model-1",
+    }
+    assert uploaded["dataset_id"] not in service.datasets
+    assert trained["model_id"] not in service.models
+    assert trained["model_id"] not in service.cached_models
+    assert service.active_models == {}
+    assert [entry["event"] for entry in service.get_audit_log()[-2:]] == [
+        "dataset.delete.complete",
+        "model.delete.complete",
+    ]

@@ -107,6 +107,46 @@ def test_weisileai_shell_retries_retryable_upload_without_leaking_token():
     assert "server-secret" not in json.dumps(response)
 
 
+def test_weisileai_shell_deletes_dataset_and_model_without_token_leak():
+    client = RecordingHttpClient(
+        [
+            {"deleted": True, "auditId": "audit-delete-ds"},
+            {"deleted": True, "auditId": "audit-delete-model"},
+        ]
+    )
+    provider = WeisileAIProviderShell(
+        AIQuestProviderConfig(
+            name="weisileai",
+            base_url="https://aiquest.example/api",
+            token="server-secret",
+        ),
+        http_client=client,
+    )
+
+    dataset = provider.delete_dataset("wai-dataset-1")
+    model = provider.delete_model("wai-model-1")
+
+    assert dataset == {
+        "datasetId": "wai-dataset-1",
+        "status": "deleted",
+        "auditId": "audit-delete-ds",
+    }
+    assert model == {
+        "modelId": "wai-model-1",
+        "status": "deleted",
+        "auditId": "audit-delete-model",
+    }
+    assert [call["method"] for call in client.calls] == ["DELETE", "DELETE"]
+    assert client.calls[0]["url"] == (
+        "https://aiquest.example/api/v1/ev3/datasets/wai-dataset-1"
+    )
+    assert client.calls[1]["url"] == (
+        "https://aiquest.example/api/v1/ev3/models/wai-model-1"
+    )
+    assert "server-secret" not in json.dumps(dataset)
+    assert "server-secret" not in json.dumps(model)
+
+
 def test_third_party_adapter_normalizes_shapes_behind_contract():
     model_rules = {
         "schemaVersion": "vsle-ai-trainer-model-rules-v1",

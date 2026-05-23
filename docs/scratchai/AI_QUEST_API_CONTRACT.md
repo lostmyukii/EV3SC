@@ -14,9 +14,13 @@ prediction.
 | `uploadAIQuestDataset` | `aiquest.uploadDataset` | Uploads the collected EV3 time-series dataset through the AI Quest provider contract after consent is attached by the block |
 | `startAIQuestTraining` | `aiquest.startTraining` | Starts training from the latest uploaded dataset and normalizes provider job/model metadata |
 | `refreshAIQuestTrainingStatus` | `aiquest.getTrainingStatus` | Returns the latest normalized job status |
+| `getAIQuestUploadStatus` | `aiquest.getUploadStatus` | Returns upload progress/status for the latest or selected dataset |
 | `selectAIQuestModel` | `aiquest.selectModel` | Stores a safe model reference for `project`, `classSession`, or `courseTask` scope |
 | `updateAIQuestPrediction` | `aiquest.predictCurrent` | Predicts from the latest EV3 sensor frame using `cloud`, `cached`, or `localFallback` mode |
 | `exportAIQuestModel` | `aiquest.exportModel` | Exports model rules/report without raw datasets or provider credentials |
+| `deleteAIQuestDataset` | `aiquest.deleteDataset` | Deletes provider/local dataset state and records an audit event |
+| `deleteAIQuestModel` | `aiquest.deleteModel` | Deletes provider/local model state, cached rules, and active references |
+| `getAIQuestAuditLog` | `aiquest.getAuditLog` | Returns teacher-reviewable audit metadata without raw sensor samples |
 
 Reporter and Boolean blocks read the extension's last AI Quest state
 synchronously:
@@ -81,6 +85,38 @@ Retry exhaustion is mapped to `AIQUEST_PROVIDER_UNAVAILABLE` with
 Training providers may return only a safe cloud `model_id` without local model
 rules. That cloud-only model reference can still be selected for cloud
 prediction. Cached prediction is used only when local model rules are present.
+
+## Governance Routes And States
+
+AI Quest governance is available through JSON-RPC and internal REST routes:
+
+- `GET /api/aiquest/upload-status`
+- `GET /api/aiquest/audit`
+- `POST /api/aiquest/delete-dataset`
+- `POST /api/aiquest/delete-model`
+
+Upload status is intentionally small and student-visible:
+
+- `notStarted`
+- `complete`
+- `failed`
+- `deleted`
+
+Every upload failure includes `retryable`, `error.code`, and `error.message`.
+Provider outages that can be retried are returned from REST as HTTP 503 and
+from JSON-RPC with `data.retryable: true`.
+
+Audit records include only minimized metadata:
+
+- event name
+- timestamp
+- provider name
+- safe dataset/model identifier
+- safe project/class/course scope
+- status, retryability, provider audit ID, and short message
+
+Audit records never include raw EV3 samples, Scratch project JSON, student
+names, provider credentials, or local file paths.
 
 ## Prediction Modes
 
