@@ -332,6 +332,17 @@ ports. This register records the sources used for the current implementation.
 | Scratch-compatible JSON-RPC server | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | JSON-RPC 2.0 and REST route mapping for shared model operations and prediction-mode queries |
 | VSLE-EV3 extension baseline | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Existing EV3 category AI Quest block surface extended with publish/list/cache/use-cache/clear-cache controls and synchronous model availability reporters |
 
+## ScratchAI Integration — Unified Local Preview Stack
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| ScratchAI VSLE-EV3 integration design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-23-scratchai-vsle-ev3-integration-design.md` | Development sequence item 10 requires a unified local preview stack for ScratchAI editor, middleware, asset worker, WeisileLink, EV3 simulation, and AI Quest cloud mock |
+| ScratchAI editor preview startup | `/Users/yukii/Desktop/EV3SC/scripts/start_scratchai_preview.py` | Existing EV3SC-owned ScratchAI editor command and prerequisite checks reused by the unified stack |
+| ScratchAI service servers | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/ai-middleware/src/server.js`, `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/asset-worker/src/server.js`, `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/preview-server/src/server.js` | Local service start commands, ports, health/status routes, and localhost-only preview behavior |
+| VSLE preview backend | `/Users/yukii/Desktop/EV3SC/preview/weisile_preview_server.py` | Existing simulated EV3 transport, 50Hz-style sensor stream, Scratch Link compatible WebSocket endpoint, Trainer WebSocket endpoint, and mock AI Quest provider wiring |
+| VSLE-EV3 extension bundle | `/Users/yukii/Desktop/EV3SC/vsle-ev3-extension/index.js` | Unsandboxed extension bundle served locally for the ScratchAI `EV3` extension-library entry |
+| Python standard library documentation | `https://docs.python.org/3/library/urllib.request.html` | Proxy-free local HTTP health checks for `scripts/verify_unified_preview.py`, keeping localhost verification independent from developer machine proxy settings |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

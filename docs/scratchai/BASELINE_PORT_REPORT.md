@@ -84,3 +84,11 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | `.venv/bin/python -m pytest weisile-link/tests/test_ai_quest_providers.py -q` | exits 0 | passed; verifies server-side provider configuration, WeisileAI shell retry/delete behavior, third-party response adaptation, cloud-only model references, and retryable provider error mapping without exposing provider tokens |
 | `.venv/bin/python -m pytest weisile-link/tests -q` | exits 0 | passed; WeisileLink tests cover existing Scratch Link compatibility, sensor routing, Trainer routes, the AI Quest contract path, provider abstraction, raw time-series governance, and shared/cached model management |
 | `cd vsle-ev3-extension && npm test` | exits 0 | passed; extension tests cover the complete EV3 block surface plus AI Quest upload/train/status/select/publish/list/cache/use-cache/clear-cache/predict/export blocks and synchronous AI Quest reporters |
+
+## ScratchAI Unified Local Preview Stack
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python scripts/start_unified_preview.py --print-plan` | exits 0 | passed; resolves a six-service local preview stack for ScratchAI editor, middleware, asset worker, preview gateway, VSLE-EV3 extension hosting, WeisileLink EV3 simulation, Trainer WebSocket, and `AI_QUEST_PROVIDER=mock` without referencing `/Users/yukii/Desktop/scratch ai/` |
+| `.venv/bin/python -m pytest tests/test_unified_preview_stack.py -q` | exits 0 | passed; verifies prerequisite detection, local-only service command generation, port/env wiring, health-check manifest generation, and JSON-ready verification summaries |
+| `.venv/bin/python scripts/verify_unified_preview.py --weisile-link-port 20211 --trainer-port 18766 --timeout-seconds 180` while `scripts/start_unified_preview.py` runs on the same custom ports | exits 0 | passed; 7/7 checks reported OK for asset worker, middleware health/status, preview gateway status, ScratchAI editor HTML, WeisileLink JSON-RPC `getVersion`, and Trainer WebSocket connectivity |

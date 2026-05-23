@@ -2,6 +2,7 @@
 
 import asyncio
 import math
+import os
 import pathlib
 import sys
 import time
@@ -10,7 +11,10 @@ from typing import Any, Dict, Optional
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "weisile-link"))
 
-from weisile_link.json_rpc_server import ScratchJsonRpcServer  # noqa: E402
+from weisile_link.json_rpc_server import (  # noqa: E402
+    ScratchJsonRpcServer,
+    ScratchServerConfig,
+)
 from weisile_link.runtime.degradation import (  # noqa: E402
     DegradationManager,
     TransportKind,
@@ -142,11 +146,23 @@ async def sensor_loop(
 
 
 async def main() -> None:
+    host = os.getenv("WEISILE_LINK_HOST", "127.0.0.1")
+    link_port = int(os.getenv("WEISILE_LINK_PORT", "20111"))
+    trainer_port = int(os.getenv("TRAINER_WS_PORT", "8766"))
     transport = PreviewTransport()
-    server = ScratchJsonRpcServer(transport, manager=transport.manager)
+    server = ScratchJsonRpcServer(
+        transport,
+        manager=transport.manager,
+        config=ScratchServerConfig(
+            host=host,
+            port=link_port,
+            trainer_host=host,
+            trainer_port=trainer_port,
+        ),
+    )
     await transport.connect(server.handle_sensor_data)
-    print("VSLE preview backend: ws://127.0.0.1:20111/scratch/bt")
-    print("VSLE preview trainer: ws://127.0.0.1:8766")
+    print(f"VSLE preview backend: ws://{host}:{link_port}/scratch/bt")
+    print(f"VSLE preview trainer: ws://{host}:{trainer_port}")
     await asyncio.gather(
         server.run(),
         server.run_trainer(),

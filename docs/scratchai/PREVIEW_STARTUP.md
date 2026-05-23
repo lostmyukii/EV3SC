@@ -70,5 +70,8 @@ served.
 ## Current Boundary
 
 This startup path proves that the ScratchAI editor itself loads from EV3SC.
-It does not yet replace the ScratchAI extension library `EV3` tile with
-VSLE-EV3. That is the next integration step.
+For the full integrated local stack, including ScratchAI middleware, asset
+worker, preview gateway, WeisileLink, EV3 simulation, and AI Quest mock provider,
+use `scripts/start_unified_preview.py`.
+
+See `UNIFIED_PREVIEW_STACK.md` for the end-to-end preview workflow.
