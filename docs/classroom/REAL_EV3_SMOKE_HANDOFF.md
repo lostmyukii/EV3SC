@@ -43,6 +43,24 @@ Then verify the local Scratch Link compatible endpoint is reachable:
 nc -z -w 2 127.0.0.1 20111
 ```
 
+## Non-Invasive Smoke Readiness Gate
+
+Run the readiness gate before the confirmed smoke capture. It exits
+non-zero until both the physical EV3 endpoint and WeisileLink endpoint
+are reachable:
+
+```bash
+.venv/bin/python scripts/run_real_ev3_rehearsal.py \
+  --check-smoke-readiness \
+  --ev3-host ev3dev.local \
+  --ev3-port 8765 \
+  --weisile-link-host 127.0.0.1 \
+  --weisile-link-port 20111 \
+  --smoke-readiness-json docs/classroom/real_ev3_smoke_readiness.json \
+  --smoke-readiness-report docs/classroom/REAL_EV3_SMOKE_READINESS.md \
+  --require-smoke-ready
+```
+
 ## Confirmed One-Brick Smoke Capture
 
 Run only after physically confirming the EV3 endpoint and clearing the

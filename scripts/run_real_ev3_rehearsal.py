@@ -794,6 +794,19 @@ def render_smoke_handoff(
     """Render the operator handoff for confirmed physical EV3 smoke capture."""
 
     root = root.resolve()
+    readiness_command = (
+        ".venv/bin/python scripts/run_real_ev3_rehearsal.py \\\n"
+        "  --check-smoke-readiness \\\n"
+        f"  --ev3-host {ev3_host} \\\n"
+        f"  --ev3-port {ev3_port} \\\n"
+        "  --weisile-link-host 127.0.0.1 \\\n"
+        "  --weisile-link-port 20111 \\\n"
+        "  --smoke-readiness-json "
+        "docs/classroom/real_ev3_smoke_readiness.json \\\n"
+        "  --smoke-readiness-report "
+        "docs/classroom/REAL_EV3_SMOKE_READINESS.md \\\n"
+        "  --require-smoke-ready"
+    )
     smoke_command = (
         ".venv/bin/python scripts/run_real_ev3_rehearsal.py \\\n"
         "  --capture-smoke \\\n"
@@ -861,6 +874,16 @@ def render_smoke_handoff(
         "",
         "```bash",
         "nc -z -w 2 127.0.0.1 20111",
+        "```",
+        "",
+        "## Non-Invasive Smoke Readiness Gate",
+        "",
+        "Run the readiness gate before the confirmed smoke capture. It exits",
+        "non-zero until both the physical EV3 endpoint and WeisileLink endpoint",
+        "are reachable:",
+        "",
+        "```bash",
+        readiness_command,
         "```",
         "",
         "## Confirmed One-Brick Smoke Capture",
@@ -1143,6 +1166,14 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         action="store_true",
         help="Exit non-zero unless all real EV3 rehearsal gates pass.",
     )
+    parser.add_argument(
+        "--require-smoke-ready",
+        action="store_true",
+        help=(
+            "Exit non-zero unless the non-invasive EV3 smoke readiness "
+            "probe says the confirmed smoke capture can proceed."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -1192,6 +1223,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         if not args.smoke_readiness_json and not args.smoke_readiness_report:
             print(json.dumps(readiness, indent=2, sort_keys=True))
+        if (
+            args.require_smoke_ready
+            and readiness["safe_to_run_confirmed_smoke"] is not True
+        ):
+            return 2
 
     if args.capture_smoke:
         config = SmokeCaptureConfig(

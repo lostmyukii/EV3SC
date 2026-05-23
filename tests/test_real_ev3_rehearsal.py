@@ -8,6 +8,7 @@ from scripts.run_real_ev3_rehearsal import (
     build_rehearsal_plan,
     build_smoke_json_rpc_requests,
     evaluate_rehearsal_evidence,
+    main,
     pending_evidence_template,
     render_rehearsal_report,
     render_smoke_readiness_report,
@@ -259,6 +260,8 @@ def test_smoke_handoff_records_physical_ev3_confirmation_commands():
     assert "nc -z -w 2 ev3dev.local 8765" in markdown
     assert "PYTHONPATH=weisile-link" in markdown
     assert "EV3_IP=ev3dev.local" in markdown
+    assert "--check-smoke-readiness" in markdown
+    assert "--require-smoke-ready" in markdown
     assert "--capture-smoke" in markdown
     assert "--confirm-real-ev3" in markdown
     assert "--run-safe-motor-test" in markdown
@@ -300,3 +303,24 @@ def test_smoke_readiness_allows_confirmed_run_only_when_both_ports_reachable():
     assert readiness["safe_to_run_confirmed_smoke"] is True
     assert readiness["ev3_endpoint"]["reachable"] is True
     assert readiness["weisilelink_endpoint"]["reachable"] is True
+
+
+def test_require_smoke_ready_exits_nonzero_when_readiness_is_blocked():
+    result = main(
+        [
+            "--check-smoke-readiness",
+            "--ev3-host",
+            "127.0.0.1",
+            "--ev3-port",
+            "9",
+            "--weisile-link-host",
+            "127.0.0.1",
+            "--weisile-link-port",
+            "9",
+            "--probe-timeout-seconds",
+            "0.01",
+            "--require-smoke-ready",
+        ]
+    )
+
+    assert result == 2

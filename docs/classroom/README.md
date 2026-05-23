@@ -45,7 +45,8 @@ Before using `--confirm-real-ev3`, run the non-invasive readiness check:
   --weisile-link-host 127.0.0.1 \
   --weisile-link-port 20111 \
   --smoke-readiness-json docs/classroom/real_ev3_smoke_readiness.json \
-  --smoke-readiness-report docs/classroom/REAL_EV3_SMOKE_READINESS.md
+  --smoke-readiness-report docs/classroom/REAL_EV3_SMOKE_READINESS.md \
+  --require-smoke-ready
 ```
 
 ```bash
