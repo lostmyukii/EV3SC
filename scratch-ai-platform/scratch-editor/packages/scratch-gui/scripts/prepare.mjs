@@ -7,7 +7,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import yauzl from 'yauzl';
 import {fileURLToPath} from 'url';
 
 /** @typedef {import('yauzl').Entry} ZipEntry */
@@ -29,64 +28,56 @@ const basePath = path.join(__dirname, '..');
  * @param {Buffer} zipBuffer A buffer containing the zip file.
  * @returns {Promise<string>} A Promise for the base name of the written file (without directory).
  */
-const extractFirstMatchingFile = (filter, relativeDestDir, zipBuffer) => new Promise((resolve, reject) => {
-    try {
-        let extractedFileName;
-        yauzl.fromBuffer(zipBuffer, {lazyEntries: true}, (zipError, zipfile) => {
-            if (zipError) {
-                throw zipError;
-            }
-            zipfile.readEntry();
-            zipfile.on('end', () => {
-                resolve(extractedFileName);
-            });
-            zipfile.on('entry', entry => {
-                if (!filter(entry)) {
-                    // ignore non-matching file
-                    return zipfile.readEntry();
+const extractFirstMatchingFile = async (filter, relativeDestDir, zipBuffer) => {
+    const {default: yauzl} = await import('yauzl');
+    return new Promise((resolve, reject) => {
+        try {
+            let extractedFileName;
+            yauzl.fromBuffer(zipBuffer, {lazyEntries: true}, (zipError, zipfile) => {
+                if (zipError) {
+                    throw zipError;
                 }
-                if (extractedFileName) {
-                    console.warn(`Multiple matching files found. Ignoring: ${entry.fileName}`);
-                    return zipfile.readEntry();
-                }
-                extractedFileName = entry.fileName;
-                console.info(`Found matching file: ${entry.fileName}`);
-                zipfile.openReadStream(entry, (fileError, readStream) => {
-                    if (fileError) {
-                        throw fileError;
+                zipfile.readEntry();
+                zipfile.on('end', () => {
+                    resolve(extractedFileName);
+                });
+                zipfile.on('entry', entry => {
+                    if (!filter(entry)) {
+                        // ignore non-matching file
+                        return zipfile.readEntry();
                     }
-                    const baseName = path.basename(entry.fileName);
-                    const relativeDestFile = path.join(relativeDestDir, baseName);
-                    console.info(`Extracting ${relativeDestFile}`);
-                    const absoluteDestDir = path.join(basePath, relativeDestDir);
-                    fs.mkdirSync(absoluteDestDir, {recursive: true});
-                    const absoluteDestFile = path.join(basePath, relativeDestFile);
-                    const outStream = fs.createWriteStream(absoluteDestFile);
-                    readStream.on('end', () => {
-                        outStream.close();
-                        zipfile.readEntry();
+                    if (extractedFileName) {
+                        console.warn(`Multiple matching files found. Ignoring: ${entry.fileName}`);
+                        return zipfile.readEntry();
+                    }
+                    extractedFileName = entry.fileName;
+                    console.info(`Found matching file: ${entry.fileName}`);
+                    zipfile.openReadStream(entry, (fileError, readStream) => {
+                        if (fileError) {
+                            throw fileError;
+                        }
+                        const baseName = path.basename(entry.fileName);
+                        const relativeDestFile = path.join(relativeDestDir, baseName);
+                        console.info(`Extracting ${relativeDestFile}`);
+                        const absoluteDestDir = path.join(basePath, relativeDestDir);
+                        fs.mkdirSync(absoluteDestDir, {recursive: true});
+                        const absoluteDestFile = path.join(basePath, relativeDestFile);
+                        const outStream = fs.createWriteStream(absoluteDestFile);
+                        readStream.on('end', () => {
+                            outStream.close();
+                            zipfile.readEntry();
+                        });
+                        readStream.pipe(outStream);
                     });
-                    readStream.pipe(outStream);
                 });
             });
-        });
-    } catch (error) {
-        reject(error);
-    }
-});
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
 
-const downloadMicrobitHex = async () => {
-    const url = 'https://downloads.scratch.mit.edu/microbit/scratch-microbit.hex.zip';
-    console.info(`Downloading ${url}`);
-    const response = await fetch(url);
-    const zipBuffer = Buffer.from(await response.arrayBuffer());
-    const relativeHexDir = path.join('static', 'microbit');
-    const hexFileName = await extractFirstMatchingFile(
-        entry => /\.hex$/.test(entry.fileName),
-        path.join('static', 'microbit'),
-        zipBuffer
-    );
-    const relativeHexFile = path.join(relativeHexDir, hexFileName);
+const writeMicrobitHexUrl = relativeHexFile => {
     const relativeGeneratedDir = path.join('src', 'generated');
     const relativeGeneratedFile = path.join(relativeGeneratedDir, 'microbit-hex-url.cjs');
     const absoluteGeneratedDir = path.join(basePath, relativeGeneratedDir);
@@ -107,6 +98,43 @@ const downloadMicrobitHex = async () => {
         ].join('\n')
     );
     console.info(`Wrote ${relativeGeneratedFile}`);
+};
+
+const findLocalMicrobitHex = () => {
+    const relativeHexDir = path.join('static', 'microbit');
+    const absoluteHexDir = path.join(basePath, relativeHexDir);
+    if (!fs.existsSync(absoluteHexDir)) {
+        return null;
+    }
+    const hexFileName = fs
+        .readdirSync(absoluteHexDir)
+        .find(fileName => /\.hex$/.test(fileName));
+    if (!hexFileName) {
+        return null;
+    }
+    return path.join(relativeHexDir, hexFileName);
+};
+
+const downloadMicrobitHex = async () => {
+    const localHexFile = findLocalMicrobitHex();
+    if (localHexFile) {
+        console.info(`Using local ${localHexFile}`);
+        writeMicrobitHexUrl(localHexFile);
+        return;
+    }
+
+    const url = 'https://downloads.scratch.mit.edu/microbit/scratch-microbit.hex.zip';
+    console.info(`Downloading ${url}`);
+    const response = await fetch(url);
+    const zipBuffer = Buffer.from(await response.arrayBuffer());
+    const relativeHexDir = path.join('static', 'microbit');
+    const hexFileName = await extractFirstMatchingFile(
+        entry => /\.hex$/.test(entry.fileName),
+        path.join('static', 'microbit'),
+        zipBuffer
+    );
+    const relativeHexFile = path.join(relativeHexDir, hexFileName);
+    writeMicrobitHexUrl(relativeHexFile);
 };
 
 const prepare = async () => {
