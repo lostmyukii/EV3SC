@@ -2631,6 +2631,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/package.json`, `scratch-ai-platform/scratch-editor/scripts/install-husky-if-git.mjs`
 - **Next step**: Retry Scratch editor dependency installation and continue the editor baseline checks.
 
+### [2026-05-23] ScratchAI editor baseline
+- **Status**: ✅ Completed
+- **Commit**: `635881b`
+- **What was done**: Installed Scratch editor dependencies from the EV3SC-owned lockfile, built the local Scratch renderer/VM workspace artifacts required by the nested ScratchAI editor, ran targeted ScratchAI VM smoke tests, and verified the Scratch GUI development build succeeds. Recorded the exact commands, fallback notes, and generated-artifact ignore checks in the ScratchAI baseline report.
+- **Files created/modified**: `docs/scratchai/BASELINE_PORT_REPORT.md`
+- **Next step**: Create a local ScratchAI preview startup path inside EV3SC and verify the Scratch editor loads before replacing the EV3 extension entry with VSLE-EV3.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
