@@ -1,0 +1,27 @@
+[Unit]
+Description=VSLE WeisileLink Scratch-EV3 bridge
+Documentation=/opt/vsle/EV3SC/deploy/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vsle/EV3SC/weisile-link
+EnvironmentFile=-/etc/vsle/weisile-link.env
+Environment=WEISILE_LINK_HOST=127.0.0.1
+Environment=WEISILE_LINK_PORT=20111
+Environment=TRAINER_WS_PORT=8766
+Environment=EV3_IP=ev3dev.local
+Environment=EV3_WS_PORT=8765
+Environment=MAX_COLLECTED_POINTS=10000
+Environment=LOG_LEVEL=INFO
+ExecStart=/usr/bin/python3 -m weisile_link
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,13 @@
+.git
+.venv
+**/.DS_Store
+**/.pytest_cache
+**/__pycache__
+node_modules
+ai-quest-samples/dist
+deploy/.env*
+!deploy/env.example
+*.env
+*.pyc
+*.pyo
+*.log

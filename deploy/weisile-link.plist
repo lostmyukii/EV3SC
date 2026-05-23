@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>cn.vsle.weisile-link</string>
+  <key>WorkingDirectory</key>
+  <string>/opt/vsle/EV3SC/weisile-link</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>-m</string>
+    <string>weisile_link</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>WEISILE_LINK_HOST</key>
+    <string>127.0.0.1</string>
+    <key>WEISILE_LINK_PORT</key>
+    <string>20111</string>
+    <key>TRAINER_WS_PORT</key>
+    <string>8766</string>
+    <key>EV3_IP</key>
+    <string>ev3dev.local</string>
+    <key>EV3_WS_PORT</key>
+    <string>8765</string>
+    <key>MAX_COLLECTED_POINTS</key>
+    <string>10000</string>
+    <key>LOG_LEVEL</key>
+    <string>INFO</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/weisile-link.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/weisile-link.err.log</string>
+</dict>
+</plist>

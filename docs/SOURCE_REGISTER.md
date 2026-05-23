@@ -225,6 +225,18 @@ ports. This register records the sources used for the current implementation.
 | WeisileAI middleware reference | `/Users/yukii/Desktop/scratch ai/scratch-ai-platform/ai-middleware/README.md` | Read-only reference for keeping AI/model work behind server-side contracts and avoiding raw student data or secrets in exported artifacts |
 | Python standard library documentation | `https://docs.python.org/3/library/json.html` | Dependency-free deterministic `model_rules.json` serialization for the exported classroom rules model |
 
+## Phase 3 Step 4 — Docker Deployment Packaging
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Section 13.8 CI/CD package checks, Section 14 deployment flow, service templates, environment variable defaults, rollback/recovery, and release checklist requirements |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | EV3SC-only deployment ownership, no committed secrets, complete scoped implementation, test and GitHub/progress workflow |
+| Docker Compose file reference | `https://docs.docker.com/compose/compose-file/` | Source-backed Compose service, env file, port, volume, restart, and healthcheck structure for `deploy/docker-compose.yml` |
+| Docker Compose services reference | `https://docs.docker.com/reference/compose-file/services/` | Source-backed `healthcheck` and `depends_on.condition: service_healthy` behavior used by the preview service |
+| Dockerfile reference | `https://docs.docker.com/reference/dockerfile/` | Source-backed `FROM`, `COPY`, `USER`, `EXPOSE`, `HEALTHCHECK`, and `CMD` instructions used by the WeisileLink image |
+| WeisileLink runtime baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/json_rpc_server.py` | Existing `ScratchJsonRpcServer`, `ScratchServerConfig`, transport wiring, and Trainer WebSocket runtime used by the packaged `python -m weisile_link` entrypoint |
+| Local preview baseline | `/Users/yukii/Desktop/EV3SC/preview/weisile_preview_server.py` | Current localhost preview page and port `3001` behavior exposed by the Compose preview service |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

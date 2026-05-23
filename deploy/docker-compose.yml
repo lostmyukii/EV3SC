@@ -1,0 +1,41 @@
+name: vsle-ev3sc
+
+services:
+  weisile-link:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.weisile-link
+    image: vsle/weisile-link:local
+    env_file:
+      - ./env.example
+    environment:
+      WEISILE_LINK_HOST: "0.0.0.0"
+    ports:
+      - "127.0.0.1:20111:20111"
+      - "127.0.0.1:8766:8766"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s=socket.create_connection(('127.0.0.1', 20111), 3); s.close()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  preview:
+    image: python:3.11-slim
+    working_dir: /workspace
+    command: python -m http.server 3001 --bind 0.0.0.0
+    volumes:
+      - ../:/workspace:ro
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      weisile-link:
+        condition: service_healthy
+    restart: unless-stopped

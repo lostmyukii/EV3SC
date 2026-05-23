@@ -2030,6 +2030,11 @@ Merges are blocked when any required check fails.
 ### 14.1 WeisileLink Service (Teacher Computer)
 
 ```bash
+# Run with Docker Compose (local preview + WeisileLink)
+docker compose -f deploy/docker-compose.yml config
+docker compose -f deploy/docker-compose.yml build
+docker compose -f deploy/docker-compose.yml up
+
 # Install
 pip install -r weisile-link/requirements.txt
 

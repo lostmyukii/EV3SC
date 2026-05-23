@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    WEISILE_LINK_HOST=0.0.0.0 \
+    WEISILE_LINK_PORT=20111 \
+    TRAINER_WS_PORT=8766 \
+    EV3_WS_PORT=8765 \
+    MAX_COLLECTED_POINTS=10000 \
+    LOG_LEVEL=INFO
+
+WORKDIR /opt/vsle/ev3sc
+
+RUN groupadd --system vsle && useradd --system --gid vsle vsle
+
+COPY weisile-link/pyproject.toml ./weisile-link/pyproject.toml
+COPY weisile-link/weisile_link ./weisile-link/weisile_link
+
+RUN python -m pip install --no-cache-dir "websockets>=10,<16"
+
+WORKDIR /opt/vsle/ev3sc/weisile-link
+
+USER vsle
+
+EXPOSE 20111 8766
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD python -c "import os,socket; s=socket.create_connection(('127.0.0.1', int(os.getenv('WEISILE_LINK_PORT', '20111'))), 3); s.close()"
+
+CMD ["python", "-m", "weisile_link"]
