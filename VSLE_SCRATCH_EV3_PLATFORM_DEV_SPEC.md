@@ -2743,6 +2743,13 @@ material into:
 - **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/real_ev3_smoke_readiness.json`, `docs/classroom/README.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`
 - **Next step**: Connect a physical EV3, rerun `scripts/run_real_ev3_rehearsal.py --check-smoke-readiness ... --require-smoke-ready` until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-24] Real EV3 smoke readiness timestamp evidence
+- **Status**: ✅ Completed
+- **Commit**: `be9a92b`
+- **What was done**: Reran the smoke readiness gate and added the exact `created_at` timestamp to the Markdown readiness report so each blocked/proceed result is auditable from both JSON and Markdown evidence. The latest evidence still blocks confirmed smoke capture because `ev3dev.local:8765` is not resolvable while local WeisileLink on `127.0.0.1:20111` is reachable.
+- **Files created/modified**: `scripts/run_real_ev3_rehearsal.py`, `tests/test_real_ev3_rehearsal.py`, `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`
+- **Next step**: Connect a physical EV3, rerun the readiness gate until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
