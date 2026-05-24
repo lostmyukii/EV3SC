@@ -46,7 +46,9 @@ write_env_file_if_missing() {
   mkdir -p "${CONFIG_DIR}"
   umask 077
   local token
-  token="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  token="$(
+    python3 -c 'import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode("ascii").rstrip("="))'
+  )"
   {
     echo "WEISILE_PAIRING_TOKEN=${token}"
     echo "EV3_WS_PORT=8765"

@@ -19,7 +19,6 @@ import os
 import signal
 import socket
 import time
-from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Set
 
 WS_PORT = int(os.getenv("EV3_WS_PORT", "8765"))
@@ -69,7 +68,7 @@ class BluetoothLineEndpoint:
 
     async def recv(self) -> str:
         """Read one newline-terminated UTF-8 JSON message."""
-        loop = asyncio.get_running_loop()
+        loop = _get_event_loop()
         while b"\n" not in self._buffer:
             chunk = await loop.run_in_executor(
                 None,
@@ -88,7 +87,7 @@ class BluetoothLineEndpoint:
         payload = message.encode("utf-8")
         if not payload.endswith(b"\n"):
             payload += b"\n"
-        loop = asyncio.get_running_loop()
+        loop = _get_event_loop()
         await loop.run_in_executor(None, self.client_socket.sendall, payload)
 
     async def close(self, code: Any = None, reason: Any = None) -> None:
@@ -96,7 +95,7 @@ class BluetoothLineEndpoint:
         if self._closed:
             return
         self._closed = True
-        loop = asyncio.get_running_loop()
+        loop = _get_event_loop()
         await loop.run_in_executor(None, self.client_socket.close)
 
     def __aiter__(self) -> "BluetoothLineEndpoint":
@@ -110,7 +109,6 @@ class BluetoothLineEndpoint:
 
 
 def build_bluetooth_listener(
-    *,
     socket_module: Any = socket,
     address: str = "",
     channel: int = BT_RFCOMM_CHANNEL,
@@ -127,12 +125,41 @@ def build_bluetooth_listener(
     return listener
 
 
-@dataclass(frozen=True)
 class ValidatedCommand:
     """Validated EV3 command ready for hardware dispatch."""
 
-    method: str
-    params: Dict[str, Any]
+    def __init__(self, method: str, params: Dict[str, Any]) -> None:
+        self.method = method
+        self.params = params
+
+
+def _get_event_loop() -> Any:
+    """Return the active asyncio loop on Python 3.5 through modern Python."""
+    get_running_loop = getattr(asyncio, "get_running_loop", None)
+    if get_running_loop is not None:
+        try:
+            return get_running_loop()
+        except RuntimeError:
+            pass
+    return asyncio.get_event_loop()
+
+
+def _create_task(coro: Any) -> Any:
+    """Create an asyncio task on Python 3.5 through modern Python."""
+    create_task = getattr(asyncio, "create_task", None)
+    if create_task is not None:
+        return create_task(coro)
+    return asyncio.ensure_future(coro, loop=_get_event_loop())
+
+
+def _run_async(coro: Any) -> None:
+    """Run the server coroutine on Python 3.5 through modern Python."""
+    run = getattr(asyncio, "run", None)
+    if run is not None:
+        run(coro)
+        return
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(coro)
 
 
 def _number(params: Dict[str, Any], field: str, default: Any = None) -> float:
@@ -142,7 +169,7 @@ def _number(params: Dict[str, Any], field: str, default: Any = None) -> float:
     except (TypeError, ValueError) as exc:
         raise EV3CommandError(
             "EV3_INVALID_COMMAND",
-            f"{field} must be numeric",
+            "{} must be numeric".format(field),
             False,
             {"field": field},
         ) from exc
@@ -259,7 +286,7 @@ def _asset_name(params: Dict[str, Any], field: str, extensions: Set[str]) -> str
     ):
         raise EV3CommandError(
             "EV3_INVALID_COMMAND",
-            f"{field} must be a safe asset filename",
+            "{} must be a safe asset filename".format(field),
             False,
             {"field": field},
         )
@@ -542,7 +569,7 @@ class EV3DevHardware:
         setattr(motor, attr, value)
 
     def _motor_pid_attr(self, mode: str, term: str) -> str:
-        return f"{mode}_{MOTOR_PID_ATTR_SUFFIX[term]}"
+        return "{}_{}".format(mode, MOTOR_PID_ATTR_SUFFIX[term])
 
     def sync_run(self, port_l: str, port_r: str, speed: int, seconds: float) -> None:
         self.motor_run_timed(port_l, speed, seconds)
@@ -793,13 +820,14 @@ class VSLEEV3Server:
         self.pairing_token = pairing_token
         self.max_collected_points = max_collected_points
         self.clock = clock
-        self.clients: Set[Any] = set()
+        self.clients = set()  # type: Set[Any]
         self.collecting = False
         self.collect_label = ""
-        self.auto_collect_interval_s: Optional[float] = None
-        self.last_auto_collect_at: Optional[float] = None
-        self.collected_data: List[Dict[str, Any]] = []
+        self.auto_collect_interval_s = None  # type: Optional[float]
+        self.last_auto_collect_at = None  # type: Optional[float]
+        self.collected_data = []  # type: List[Dict[str, Any]]
         self._stopping = False
+        self._stop_event = None  # type: Optional[Any]
 
     async def authenticate_client(self, websocket: Any) -> bool:
         """Require `auth.pair` before accepting commands when token is set."""
@@ -1075,9 +1103,9 @@ class VSLEEV3Server:
     def _flatten_data_point(
         self, point: Dict[str, Any], prefix: str = ""
     ) -> Dict[str, Any]:
-        flat: Dict[str, Any] = {}
+        flat = {}  # type: Dict[str, Any]
         for key, value in point.items():
-            name = f"{prefix}.{key}" if prefix else key
+            name = "{}.{}".format(prefix, key) if prefix else key
             if isinstance(value, dict):
                 flat.update(self._flatten_data_point(value, name))
             elif isinstance(value, list):
@@ -1135,7 +1163,7 @@ class VSLEEV3Server:
             serve = websockets.serve
         self._stopping = False
 
-        loop = asyncio.get_running_loop()
+        loop = _get_event_loop()
         for signame in ("SIGINT", "SIGTERM"):
             sig = getattr(signal, signame, None)
             if sig is not None:
@@ -1144,10 +1172,11 @@ class VSLEEV3Server:
                 except (NotImplementedError, RuntimeError):
                     pass
 
-        sensor_task = asyncio.create_task(self.sensor_broadcast_loop())
+        self._stop_event = asyncio.Event()
+        sensor_task = _create_task(self.sensor_broadcast_loop())
         bluetooth_task = None
         if enable_bluetooth:
-            bluetooth_task = asyncio.create_task(
+            bluetooth_task = _create_task(
                 self.run_bluetooth(
                     address=bluetooth_address,
                     channel=bluetooth_channel,
@@ -1156,9 +1185,15 @@ class VSLEEV3Server:
             )
         server = await serve(self.handle_client, host, port, ping_interval=5)
         try:
-            await server.serve_forever()
+            if hasattr(server, "serve_forever"):
+                await server.serve_forever()
+            else:
+                await self._stop_event.wait()
         finally:
             self.stop()
+            if not hasattr(server, "serve_forever"):
+                server.close()
+                await server.wait_closed()
             sensor_task.cancel()
             if bluetooth_task is not None:
                 bluetooth_task.cancel()
@@ -1175,7 +1210,6 @@ class VSLEEV3Server:
 
     async def run_bluetooth(
         self,
-        *,
         address: str = "",
         channel: int = BT_RFCOMM_CHANNEL,
         socket_module: Any = socket,
@@ -1186,8 +1220,8 @@ class VSLEEV3Server:
             address=address,
             channel=channel,
         )
-        loop = asyncio.get_running_loop()
-        tasks: Set[asyncio.Task] = set()
+        loop = _get_event_loop()
+        tasks = set()  # type: Set[Any]
         try:
             while not self._stopping:
                 client_socket, _client_address = await loop.run_in_executor(
@@ -1195,7 +1229,7 @@ class VSLEEV3Server:
                     listener.accept,
                 )
                 endpoint = BluetoothLineEndpoint(client_socket)
-                task = asyncio.create_task(self.handle_bluetooth_endpoint(endpoint))
+                task = _create_task(self.handle_bluetooth_endpoint(endpoint))
                 tasks.add(task)
                 task.add_done_callback(tasks.discard)
         finally:
@@ -1208,6 +1242,8 @@ class VSLEEV3Server:
     def stop(self) -> None:
         """Request server shutdown and stop all motors for safety."""
         self._stopping = True
+        if self._stop_event is not None and not self._stop_event.is_set():
+            self._stop_event.set()
         self.hardware.motor_stop_all()
 
 
@@ -1219,7 +1255,7 @@ def main() -> None:
     bluetooth_address = os.getenv("EV3_BT_ADDRESS", "")
     bluetooth_channel = int(os.getenv("EV3_BT_RFCOMM_CHANNEL", str(BT_RFCOMM_CHANNEL)))
     server = VSLEEV3Server(EV3DevHardware(), pairing_token=PAIRING_TOKEN)
-    asyncio.run(
+    _run_async(
         server.run(
             host=host,
             port=port,

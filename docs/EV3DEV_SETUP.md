@@ -77,6 +77,29 @@ For offline classroom imaging where dependencies are already present:
 SKIP_PIP_INSTALL=1 ./scripts/install_ev3_autostart.sh
 ```
 
+For USB-only bring-up on the official ev3dev Stretch EV3 image, the brick may
+have Python 3.5.3 and no `pip` module. In that case, install a Python-3.5
+compatible `websockets` package from the teacher computer before running the
+installer with pip disabled. `websockets==7.0` supports Python 3.5 and is
+compatible with the EV3 server fallback path:
+
+```bash
+# On the teacher computer
+python -m pip download --no-binary=:all: --no-deps \
+  -d downloads/python-packages websockets==7.0
+scp downloads/python-packages/websockets-7.0.tar.gz \
+  robot@ev3dev.local:~/vsle-ev3-firmware/
+
+# On the EV3
+cd ~/vsle-ev3-firmware
+SITE="$(python3 -c 'import site; print(site.USER_SITE)')"
+mkdir -p "$SITE"
+tar -xzf websockets-7.0.tar.gz -C /tmp
+cp -r /tmp/websockets-7.0/src/websockets "$SITE/websockets"
+python3 -c 'import websockets; print(websockets.__version__)'
+SKIP_PIP_INSTALL=1 ./scripts/install_ev3_autostart.sh
+```
+
 Do not commit the generated `WEISILE_PAIRING_TOKEN` or any copied `ev3.env`
 file. Pairing tokens are per brick.
 

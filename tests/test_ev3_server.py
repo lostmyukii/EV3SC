@@ -1,4 +1,5 @@
 import asyncio
+import ast
 import importlib.util
 import json
 from pathlib import Path
@@ -14,6 +15,18 @@ def load_server_module():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def test_ev3_server_keeps_python35_runtime_compatibility():
+    source = SERVER_PATH.read_text(encoding="utf-8")
+
+    tree = ast.parse(source, filename=str(SERVER_PATH), feature_version=(3, 5))
+    assert "from dataclasses import" not in source
+    assert "asyncio.run(" not in source
+    assert "asyncio.create_task(" not in source
+    assert "asyncio.get_running_loop(" not in source
+    assert not any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
+    assert not any(isinstance(node, ast.AnnAssign) for node in ast.walk(tree))
 
 
 class FakeHardware:
