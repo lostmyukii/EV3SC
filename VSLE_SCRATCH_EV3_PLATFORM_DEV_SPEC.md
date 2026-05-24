@@ -2764,6 +2764,13 @@ material into:
 - **Files created/modified**: `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`
 - **Next step**: Connect a physical EV3, rerun the readiness gate with `--ev3-candidate-host <real-ev3-ip>` if mDNS does not resolve, wait for exit 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-25] ev3dev Stretch USB offline install compatibility
+- **Status**: ✅ Completed
+- **Commit**: `d34fdf6`
+- **What was done**: Fixed the EV3 firmware installer and server for the physical EV3 running the official ev3dev Stretch image over USB networking. Replaced the Python 3.6-only `secrets` token generator with a Python 3.5-compatible `os.urandom`/base64 generator, removed Python 3.6/3.7-only EV3 server runtime APIs, documented the no-pip offline `websockets==7.0` install path, and verified the real EV3 service reaches `active (running)` with port `8765` listening at `169.254.251.64`.
+- **Files created/modified**: `docs/EV3DEV_SETUP.md`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_autostart_assets.py`, `tests/test_ev3_server.py`
+- **Next step**: Start WeisileLink against the real EV3 endpoint `169.254.251.64:8765`, rerun the non-invasive smoke readiness gate until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
