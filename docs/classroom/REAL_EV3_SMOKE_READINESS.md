@@ -1,6 +1,6 @@
 # Real EV3 Smoke Readiness
 
-Date: 2026-05-23
+Date: 2026-05-25
 
 This readiness check is non-invasive. It checks TCP reachability only;
 it does not send motor commands and does not assert physical EV3
@@ -8,22 +8,23 @@ confirmation.
 
 ## Summary
 
-- Run timestamp: `2026-05-23T17:16:33.129246+00:00`
-- Safe to run confirmed smoke: false
+- Run timestamp: `2026-05-25T02:05:50.268672+00:00`
+- Safe to run confirmed smoke: true
 - EV3 endpoint: `ev3dev.local:8765`
-- EV3 reachable: false
-- WeisileLink endpoint: `127.0.0.1:20111`
+- EV3 reachable: true
+- WeisileLink endpoint: `127.0.0.1:21111`
 - WeisileLink reachable: true
 
 ## Endpoint Details
 
 | Endpoint | Reachable | Error |
 |---|---|---|
-| `ev3dev.local:8765` | false | [Errno 8] nodename nor servname provided, or not known |
-| `127.0.0.1:20111` | true |  |
+| `ev3dev.local:8765` | true |  |
+| `169.254.64.103:8765` | true |  |
+| `127.0.0.1:21111` | true |  |
 
 ## Next Action
 
-Do not run `--confirm-real-ev3` yet.
+Physical endpoint readiness is present. The human operator still must verify the endpoint is a real LEGO EV3 before using `--confirm-real-ev3`.
 
-Do not run --confirm-real-ev3 yet; connect physical EV3 and start WeisileLink real transport first.
+Run confirmed one-brick smoke capture with --confirm-real-ev3 and --run-safe-motor-test.

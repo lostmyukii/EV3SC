@@ -1,23 +1,28 @@
 {
-  "created_at": "2026-05-23T17:16:33.129246+00:00",
+  "created_at": "2026-05-25T02:05:50.268672+00:00",
   "ev3_candidates": [
     {
       "endpoint": "ev3dev.local:8765",
-      "error": "[Errno 8] nodename nor servname provided, or not known",
-      "reachable": false
+      "error": "",
+      "reachable": true
+    },
+    {
+      "endpoint": "169.254.64.103:8765",
+      "error": "",
+      "reachable": true
     }
   ],
   "ev3_endpoint": {
     "endpoint": "ev3dev.local:8765",
-    "error": "[Errno 8] nodename nor servname provided, or not known",
-    "reachable": false
+    "error": "",
+    "reachable": true
   },
-  "next_action": "Do not run --confirm-real-ev3 yet; connect physical EV3 and start WeisileLink real transport first.",
+  "next_action": "Run confirmed one-brick smoke capture with --confirm-real-ev3 and --run-safe-motor-test.",
   "root": "/Users/yukii/Desktop/EV3SC",
-  "safe_to_run_confirmed_smoke": false,
+  "safe_to_run_confirmed_smoke": true,
   "schema": "vsle.realEv3SmokeReadiness.v1",
   "weisilelink_endpoint": {
-    "endpoint": "127.0.0.1:20111",
+    "endpoint": "127.0.0.1:21111",
     "error": "",
     "reachable": true
   }
