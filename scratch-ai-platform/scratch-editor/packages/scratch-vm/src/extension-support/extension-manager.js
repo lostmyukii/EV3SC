@@ -19,9 +19,19 @@ const UNSANDBOXED_EXTENSION_URLS = [
     'https://platform.vsle.cn/extensions/ev3/index.js'
 ];
 
-const isUnsandboxedExtensionURL = extensionURL => (
-    UNSANDBOXED_EXTENSION_URLS.indexOf(extensionURL) !== -1
-);
+const getConfiguredVSLEEV3ExtensionURL = () => {
+    if (typeof process === 'undefined' || !process.env) {
+        return '';
+    }
+
+    return process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL || '';
+};
+
+const isUnsandboxedExtensionURL = extensionURL => {
+    const configuredURL = getConfiguredVSLEEV3ExtensionURL();
+    return UNSANDBOXED_EXTENSION_URLS.indexOf(extensionURL) !== -1 ||
+        (configuredURL && extensionURL === configuredURL);
+};
 
 // These extensions are currently built into the VM repository but should not be loaded at startup.
 // TODO: move these out into a separate repository?

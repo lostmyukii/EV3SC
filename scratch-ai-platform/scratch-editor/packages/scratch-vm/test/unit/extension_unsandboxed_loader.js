@@ -13,6 +13,24 @@ test('VSLE-EV3 URL is registered as an unsandboxed extension URL', t => {
     t.end();
 });
 
+test('configured VSLE-EV3 URL is registered as an unsandboxed extension URL', t => {
+    const previousUrl = process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL;
+    const deployedUrl = 'http://101.42.92.6:18612/vsle-ev3-extension/index.js';
+    process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL = deployedUrl;
+
+    t.equal(
+        ExtensionManager.isUnsandboxedExtensionURL(deployedUrl),
+        true
+    );
+
+    if (typeof previousUrl === 'undefined') {
+        delete process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL;
+    } else {
+        process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL = previousUrl;
+    }
+    t.end();
+});
+
 test('VSLE-EV3 URL loads through the unsandboxed main-thread Scratch API', async t => {
     const previousDocument = global.document;
     const previousScratch = global.Scratch;
