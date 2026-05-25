@@ -37,6 +37,12 @@ The script starts `webpack serve` from the EV3SC-owned `scratch-gui` package
 and embeds ScratchAI feature flags plus the default local middleware URL
 `http://127.0.0.1:8787`.
 
+The preview launcher enables the full ScratchAI assistant runtime, including
+image asset draft blocks, voice blocks, teacher controls, project planning,
+logic visualization, publishing, and related AI extension flags. A preview that
+only contains the assistant source code but omits these runtime flags is not
+valid ScratchAI evidence.
+
 To let the ScratchAI `EV3` extension card load the project-owned VSLE-EV3
 extension during development, also serve the EV3SC repo root on the
 spec-defined extension host:
@@ -66,11 +72,13 @@ In another terminal, run:
 The verifier polls the editor URL, checks the Scratch GUI HTML title, then
 fetches `gui.js` and confirms the ScratchAI-enabled Scratch GUI bundle is being
 served. It also verifies that the compiled runtime flags enable the visible
-AI Thinking Helper (`data-testid="ai-logic-coach-toggle"`).
+AI Thinking Helper (`data-testid="ai-logic-coach-toggle"`) and the asset draft
+generator (`data-testid="ai-logic-coach-asset-generator"`).
 
 A plain static server pointed at an old `build/` directory is not valid
 ScratchAI preview evidence unless that bundle was compiled with
-`SCRATCH_AI_ENABLED=true` and `SCRATCH_AI_PANEL_ENABLED=true`.
+`SCRATCH_AI_ENABLED=true`, `SCRATCH_AI_PANEL_ENABLED=true`, and
+`SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true`.
 
 ## Current Boundary
 

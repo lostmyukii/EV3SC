@@ -11,9 +11,11 @@ def test_gui_bundle_verifier_accepts_enabled_ai_assistant_bundle():
 const scratchAIEnabled = parseBooleanFlag( false ? 0 : "true", false);
 const aiFeatureFlags = Object.freeze({
   scratchAIEnabled,
-  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "true", false)
+  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "true", false),
+  scratchAIImageBlocksEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "true", false)
 });
 "data-testid": "ai-logic-coach-toggle";
+"data-testid": "ai-logic-coach-asset-generator";
 """
 
     markers = verify_scratchai_gui_bundle(gui_js)
@@ -21,7 +23,9 @@ const aiFeatureFlags = Object.freeze({
     assert markers == [
         "SCRATCH_AI_ENABLED=true",
         "SCRATCH_AI_PANEL_ENABLED=true",
+        "SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true",
         "ai-logic-coach-toggle",
+        "ai-logic-coach-asset-generator",
     ]
 
 
@@ -30,9 +34,11 @@ def test_gui_bundle_verifier_rejects_disabled_ai_assistant_bundle():
 const scratchAIEnabled = parseBooleanFlag( false ? 0 : "", false);
 const aiFeatureFlags = Object.freeze({
   scratchAIEnabled,
-  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "", false)
+  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "", false),
+  scratchAIImageBlocksEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "", false)
 });
 "data-testid": "ai-logic-coach-toggle";
+"data-testid": "ai-logic-coach-asset-generator";
 """
 
     with pytest.raises(ScratchAIPreviewVerificationError) as error:
@@ -40,3 +46,4 @@ const aiFeatureFlags = Object.freeze({
 
     assert "SCRATCH_AI_ENABLED=true" in str(error.value)
     assert "SCRATCH_AI_PANEL_ENABLED=true" in str(error.value)
+    assert "SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true" in str(error.value)

@@ -18,8 +18,8 @@ that project root.
 |---|---|---|
 | ScratchAI editor | `http://127.0.0.1:8601/` | Student-facing Scratch editor surface |
 | VSLE-EV3 extension static server | `http://127.0.0.1:8000/vsle-ev3-extension/index.js` | Unsandboxed extension bundle loaded by the ScratchAI `EV3` tile |
-| ScratchAI middleware | `http://127.0.0.1:8787` | ScratchAI server-side middleware with local model access disabled by default |
-| ScratchAI asset worker | `http://127.0.0.1:8790` | Mock asset worker for local-only preview |
+| ScratchAI middleware | `http://127.0.0.1:8787` | ScratchAI server-side middleware with local model access disabled by default and local preview CORS origins supplied by the stack launcher |
+| ScratchAI asset worker | `http://127.0.0.1:8790` | Local asset worker using `template-svg` by default so sprite/backdrop draft generation is exercised without downloading model weights |
 | ScratchAI preview gateway | `http://127.0.0.1:8602` | Local preview gateway and Scratch asset/project proxy |
 | WeisileLink EV3 simulation | `ws://127.0.0.1:20111/scratch/bt` | Scratch Link compatible JSON-RPC endpoint with simulated EV3 sensor stream |
 | Trainer subscription | `ws://127.0.0.1:8766` | Trainer WebSocket endpoint reused by preview clients |
@@ -27,6 +27,12 @@ that project root.
 The WeisileLink preview backend sets `AI_QUEST_PROVIDER=mock`, so AI Quest
 upload, training, prediction, shared model, and cached model flows stay local.
 Provider credentials are not needed and are not exposed to browser code.
+
+The asset worker defaults to `SCRATCH_AI_IMAGE_PROVIDER=template-svg`. This
+keeps classroom preview generation local while still returning a completed
+asset draft. To test a real configured image provider, pass
+`--asset-image-provider openai`, `gemini-image`, or another supported provider
+and keep credentials server-side.
 
 ## Prerequisites
 
@@ -67,6 +73,10 @@ If another WeisileLink preview is already running, choose unused preview ports:
   --trainer-port 18766
 ```
 
+The launcher passes the selected editor, extension, and preview-gateway origins
+to the middleware through `SCRATCH_AI_ALLOWED_ORIGINS`. This prevents browser
+preflight failures when avoiding a stale static preview on an old port.
+
 Open:
 
 ```text
@@ -98,6 +108,7 @@ non-default ports:
 The verifier checks:
 
 - ScratchAI editor HTML.
+- ScratchAI runtime flags for the AI Thinking Helper and asset generator.
 - ScratchAI middleware health and runtime status.
 - ScratchAI asset worker health.
 - ScratchAI preview gateway status.

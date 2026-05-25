@@ -38,7 +38,12 @@ def verify_scratchai_gui_bundle(gui_js: str) -> list[str]:
             gui_js,
             "scratchAIPanelEnabled",
         ),
+        "SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true": _has_enabled_flag(
+            gui_js,
+            "scratchAIImageBlocksEnabled",
+        ),
         "ai-logic-coach-toggle": "ai-logic-coach-toggle" in gui_js,
+        "ai-logic-coach-asset-generator": "ai-logic-coach-asset-generator" in gui_js,
     }
     missing = [marker for marker, present in required.items() if not present]
     if missing:

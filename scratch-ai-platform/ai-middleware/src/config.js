@@ -8,6 +8,16 @@ const DEFAULT_DEEPSEEK_MODEL = 'deepseek-chat';
 const DEFAULT_ASSET_WORKER_URL = 'http://127.0.0.1:8790';
 const DEFAULT_PORT = 8787;
 const DEFAULT_RELEASE_AUDIT_RETENTION_DAYS = 30;
+const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
+    'http://127.0.0.1:8601',
+    'http://127.0.0.1:8602',
+    'http://127.0.0.1:8603',
+    'http://127.0.0.1:8605',
+    'http://localhost:8601',
+    'http://localhost:8602',
+    'http://localhost:8603',
+    'http://localhost:8605'
+]);
 const RELEASE_AUDIT_SCHEMA_ID = 'scratch-ai-release-audit-v1';
 const TEACHER_AUTH_SCHEMA_ID = 'scratch-ai-teacher-auth-v1';
 const TEACHER_LOCK_SCHEMA_ID = 'scratch-ai-teacher-lock-v1';
@@ -43,6 +53,27 @@ const normalizePublicBaseUrl = value => {
     } catch (error) {
         return '';
     }
+};
+
+const normalizeAllowedOrigin = value => {
+    const candidate = String(value || '').trim();
+    if (!candidate) return '';
+    try {
+        const url = new URL(candidate);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
+        return url.origin;
+    } catch (error) {
+        return '';
+    }
+};
+
+const normalizeAllowedOrigins = value => {
+    const origins = String(value || '')
+        .split(',')
+        .map(normalizeAllowedOrigin)
+        .filter(Boolean);
+    const uniqueOrigins = Array.from(new Set(origins));
+    return uniqueOrigins.length > 0 ? uniqueOrigins : DEFAULT_ALLOWED_ORIGINS;
 };
 
 const normalizeWebhookUrl = value => {
@@ -112,6 +143,7 @@ const createMiddlewareConfig = (env = {}) => {
         provider,
         modelEnabled: isMoonshotEnabled || isDeepSeekEnabled,
         server: {
+            allowedOrigins: normalizeAllowedOrigins(env.SCRATCH_AI_ALLOWED_ORIGINS),
             port: parsePort(env.AI_MIDDLEWARE_PORT)
         },
         moonshot: {
@@ -317,6 +349,7 @@ const createPublicConfig = config => ({
 
 export {
     DEFAULT_ASSET_WORKER_URL,
+    DEFAULT_ALLOWED_ORIGINS,
     DEFAULT_DEEPSEEK_BASE_URL,
     DEFAULT_DEEPSEEK_MODEL,
     DEFAULT_MOONSHOT_BASE_URL,

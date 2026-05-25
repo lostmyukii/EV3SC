@@ -174,6 +174,7 @@ def main() -> int:
     parser.add_argument("--extension-port", type=int, default=None)
     parser.add_argument("--weisile-link-port", type=int, default=None)
     parser.add_argument("--trainer-port", type=int, default=None)
+    parser.add_argument("--asset-image-provider", default=None)
     parser.add_argument(
         "--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS
     )
@@ -191,6 +192,7 @@ def main() -> int:
             "extension_port": args.extension_port,
             "weisile_link_port": args.weisile_link_port,
             "trainer_port": args.trainer_port,
+            "asset_image_provider": args.asset_image_provider,
         }.items()
         if value is not None
     }

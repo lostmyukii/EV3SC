@@ -88,9 +88,17 @@ def test_unified_preview_plan_wires_all_local_services(tmp_path):
     ]
     env_by_id = {service["id"]: service["env"] for service in summary["services"]}
     assert env_by_id["asset-worker"]["ASSET_WORKER_PORT"] == "8791"
-    assert env_by_id["asset-worker"]["SCRATCH_AI_IMAGE_PROVIDER"] == "mock"
+    assert env_by_id["asset-worker"]["SCRATCH_AI_IMAGE_PROVIDER"] == "template-svg"
     assert env_by_id["ai-middleware"]["AI_MIDDLEWARE_PORT"] == "8788"
     assert env_by_id["ai-middleware"]["ASSET_WORKER_URL"] == "http://127.0.0.1:8791"
+    assert (
+        "http://127.0.0.1:8610"
+        in env_by_id["ai-middleware"]["SCRATCH_AI_ALLOWED_ORIGINS"]
+    )
+    assert (
+        "http://127.0.0.1:8604"
+        in env_by_id["ai-middleware"]["SCRATCH_AI_ALLOWED_ORIGINS"]
+    )
     assert env_by_id["preview-gateway"]["SCRATCH_AI_MIDDLEWARE_URL"] == (
         "http://127.0.0.1:8788"
     )
@@ -111,6 +119,19 @@ def test_unified_preview_plan_wires_all_local_services(tmp_path):
     assert preview_gateway_check["expected"] == "scratch-ai-preview-server"
     assert all(str(tmp_path) in service["cwd"] for service in summary["services"])
     assert "/Users/yukii/Desktop/scratch ai" not in repr(summary)
+
+
+def test_unified_preview_plan_allows_real_asset_provider_override(tmp_path):
+    _write_unified_preview_tree(tmp_path)
+
+    plan = build_unified_preview_plan(
+        root=tmp_path,
+        asset_image_provider="openai",
+    )
+    summary = command_summary(plan)
+    env_by_id = {service["id"]: service["env"] for service in summary["services"]}
+
+    assert env_by_id["asset-worker"]["SCRATCH_AI_IMAGE_PROVIDER"] == "openai"
 
 
 def test_unified_preview_plan_rejects_missing_prerequisites(tmp_path):

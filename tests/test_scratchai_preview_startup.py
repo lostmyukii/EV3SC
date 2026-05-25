@@ -63,6 +63,7 @@ def test_build_preview_command_uses_ev3sc_owned_scratch_gui(tmp_path):
     assert summary["env"]["PORT"] == "8610"
     assert summary["env"]["SCRATCH_AI_ENABLED"] == "true"
     assert summary["env"]["SCRATCH_AI_EXTENSION_ENABLED"] == "true"
+    assert summary["env"]["SCRATCH_AI_IMAGE_BLOCKS_ENABLED"] == "true"
     assert summary["url"] == "http://127.0.0.1:8610/"
 
 

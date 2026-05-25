@@ -39,6 +39,33 @@ test('falls back to the Phase 8 verified local origin for unknown origins', () =
     }), 'http://127.0.0.1:8602');
 });
 
+test('allows configured ScratchAI preview origins for middleware CORS', async () => {
+    const config = createMiddlewareConfig({
+        SCRATCH_AI_ALLOWED_ORIGINS: 'http://127.0.0.1:8631,http://localhost:8631'
+    });
+    const server = createServer(createRequestHandler(config));
+
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const port = server.address().port;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:${port}/api/v1/assets/image-jobs`, {
+            method: 'OPTIONS',
+            headers: {
+                Origin: 'http://127.0.0.1:8631'
+            }
+        });
+
+        assert.equal(response.status, 204);
+        assert.equal(
+            response.headers.get('access-control-allow-origin'),
+            'http://127.0.0.1:8631'
+        );
+    } finally {
+        await new Promise(resolve => server.close(resolve));
+    }
+});
+
 test('routes asset image jobs through middleware proxy', async () => {
     let capturedProxyRequest = null;
     const config = createMiddlewareConfig({

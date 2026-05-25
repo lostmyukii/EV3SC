@@ -38,6 +38,7 @@ DEFAULT_PREVIEW_GATEWAY_PORT = 8602
 DEFAULT_EXTENSION_PORT = 8000
 DEFAULT_WEISILE_LINK_PORT = 20111
 DEFAULT_TRAINER_PORT = 8766
+DEFAULT_ASSET_IMAGE_PROVIDER = "template-svg"
 
 SERVICE_REQUIREMENTS = (
     Path("scratch-ai-platform/ai-middleware/package.json"),
@@ -144,6 +145,7 @@ def build_unified_preview_plan(
     extension_port: int = DEFAULT_EXTENSION_PORT,
     weisile_link_port: int = DEFAULT_WEISILE_LINK_PORT,
     trainer_port: int = DEFAULT_TRAINER_PORT,
+    asset_image_provider: str | None = None,
 ) -> UnifiedPreviewPlan:
     """Build a complete local service plan for ScratchAI + VSLE-EV3."""
 
@@ -162,6 +164,11 @@ def build_unified_preview_plan(
     extension_url = f"http://{host}:{extension_port}/vsle-ev3-extension/index.js"
     weisile_link_url = f"ws://{host}:{weisile_link_port}/scratch/bt"
     trainer_url = f"ws://{host}:{trainer_port}"
+    resolved_asset_image_provider = (
+        asset_image_provider
+        or os.environ.get("SCRATCH_AI_IMAGE_PROVIDER")
+        or DEFAULT_ASSET_IMAGE_PROVIDER
+    ).strip() or DEFAULT_ASSET_IMAGE_PROVIDER
     editor = build_preview_command(
         root=root,
         host=host,
@@ -178,7 +185,7 @@ def build_unified_preview_plan(
             cwd=_require_inside_root(root / "scratch-ai-platform/asset-worker", root),
             env={
                 "ASSET_WORKER_PORT": str(asset_worker_port),
-                "SCRATCH_AI_IMAGE_PROVIDER": "mock",
+                "SCRATCH_AI_IMAGE_PROVIDER": resolved_asset_image_provider,
             },
             url=asset_worker_url,
         ),
@@ -191,6 +198,11 @@ def build_unified_preview_plan(
                 "AI_MIDDLEWARE_PORT": str(middleware_port),
                 "AI_MODEL_ENABLED": "false",
                 "ASSET_WORKER_URL": asset_worker_url,
+                "SCRATCH_AI_ALLOWED_ORIGINS": _allowed_origins(
+                    editor_port=editor_port,
+                    extension_port=extension_port,
+                    preview_gateway_port=preview_gateway_port,
+                ),
             },
             url=middleware_url,
         ),
@@ -402,6 +414,14 @@ def main() -> int:
     )
     parser.add_argument("--trainer-port", type=int, default=DEFAULT_TRAINER_PORT)
     parser.add_argument(
+        "--asset-image-provider",
+        default=None,
+        help=(
+            "Asset worker provider for AI character/background drafts. "
+            "Defaults to SCRATCH_AI_IMAGE_PROVIDER or template-svg."
+        ),
+    )
+    parser.add_argument(
         "--print-plan",
         action="store_true",
         help="Print the resolved stack plan and exit without starting services.",
@@ -418,6 +438,7 @@ def main() -> int:
         extension_port=args.extension_port,
         weisile_link_port=args.weisile_link_port,
         trainer_port=args.trainer_port,
+        asset_image_provider=args.asset_image_provider,
     )
     if args.print_plan:
         print(json.dumps(command_summary(plan), indent=2, sort_keys=True))

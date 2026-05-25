@@ -23,8 +23,9 @@ steps.
 | Stale static `8601` preview not used | PASS | Port `8601` was identified as a plain `python -m http.server` static preview compiled without ScratchAI runtime flags, so it was avoided for Section 13.7 evidence. |
 | ScratchAI unified stack health | PASS | `scripts/verify_unified_preview.py` passed 7/7 checks against ports `8611`, `8807`, `8810`, `8612`, `8010`, `20211`, and `18766`. |
 | AI assistant visible in browser | PASS | Browser DOM inspection found `data-testid="ai-logic-coach-toggle"` and the visible localized control text `AI思考帮手`. |
-| ScratchAI runtime flags enabled | PASS | The served `gui.js` contains `SCRATCH_AI_ENABLED=true`, `SCRATCH_AI_PANEL_ENABLED=true`, and `ai-logic-coach-toggle`. |
+| ScratchAI runtime flags enabled | PASS | The served `gui.js` contains `SCRATCH_AI_ENABLED=true`, `SCRATCH_AI_PANEL_ENABLED=true`, `SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true`, `ai-logic-coach-toggle`, and `ai-logic-coach-asset-generator`. |
 | EV3SC-owned runtime | PASS | The stack runs from `/Users/yukii/Desktop/EV3SC/` and does not depend on `/Users/yukii/Desktop/scratch ai/` at runtime. |
+| AI asset draft generation | PASS | Follow-up browser verification on `http://127.0.0.1:8631/` found the asset generator, submitted a sprite prompt through middleware, received `provider=template-svg`, `status=completed`, and `result.generated=true`, then showed `Draft generated` in the panel. Screenshot: `docs/classroom/evidence/scratchai_asset_draft_generated_20260525.png`. |
 
 ## Verifier Result
 
@@ -53,6 +54,12 @@ scratchai-editor-html: matched Scratch 3.0 GUI; matched SCRATCH_AI_ENABLED=true,
 The in-app browser was opened to `http://127.0.0.1:8611/`. The Scratch visual
 surface remained the standard Scratch GUI, and the ScratchAI assistant appeared
 as the right-side localized `AI思考帮手` control.
+
+The asset-draft follow-up opened the rebuilt ScratchAI GUI at
+`http://127.0.0.1:8631/`, clicked AI Thinking Helper, submitted a sprite prompt,
+and verified the generated draft card. The browser request was accepted by
+middleware CORS for the current editor origin and returned a completed local
+`template-svg` asset job.
 
 ## Next Action
 

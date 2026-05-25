@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 
 import {
     createMiddlewareConfig,
+    DEFAULT_ALLOWED_ORIGINS,
     createPublicConfig
 } from './config.js';
 import {resolveMiddlewareEnv} from './env-loader.js';
@@ -48,21 +49,20 @@ import {
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_HOSTED_RELEASE_BODY_BYTES = 5 * 1024 * 1024;
-const ALLOWED_ORIGINS = new Set([
-    'http://127.0.0.1:8601',
-    'http://127.0.0.1:8602',
-    'http://127.0.0.1:8603',
-    'http://127.0.0.1:8605',
-    'http://localhost:8601',
-    'http://localhost:8602',
-    'http://localhost:8603',
-    'http://localhost:8605'
-]);
+const ALLOWED_ORIGINS = new Set(DEFAULT_ALLOWED_ORIGINS);
+const DEFAULT_CORS_FALLBACK_ORIGIN = 'http://127.0.0.1:8602';
 const CORS_ALLOW_HEADERS = 'Content-Type, Authorization, X-Scratch-AI-Audit-Admin-Token, X-Scratch-AI-Request-Id, X-Scratch-AI-Teacher-Admin-Token, X-Scratch-AI-Teacher-Session-Token';
 
-const readAllowedOrigin = request => {
+const asAllowedOriginSet = origins => {
+    if (origins instanceof Set) return origins;
+    if (Array.isArray(origins)) return new Set(origins);
+    return ALLOWED_ORIGINS;
+};
+
+const readAllowedOrigin = (request, origins = ALLOWED_ORIGINS) => {
     const origin = request && request.headers ? request.headers.origin : '';
-    return ALLOWED_ORIGINS.has(origin) ? origin : 'http://127.0.0.1:8602';
+    const allowedOrigins = asAllowedOriginSet(origins);
+    return allowedOrigins.has(origin) ? origin : DEFAULT_CORS_FALLBACK_ORIGIN;
 };
 
 const parseBoolean = value => (
@@ -217,20 +217,22 @@ const createRuntimeStatusReply = config => ({
 });
 
 const sendJson = (request, response, statusCode, payload) => {
+    const allowedOrigins = request && request.scratchAiAllowedOrigins;
     response.writeHead(statusCode, {
         'Access-Control-Allow-Headers': CORS_ALLOW_HEADERS,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-        'Access-Control-Allow-Origin': readAllowedOrigin(request),
+        'Access-Control-Allow-Origin': readAllowedOrigin(request, allowedOrigins),
         'Content-Type': 'application/json; charset=utf-8'
     });
     response.end(JSON.stringify(payload));
 };
 
 const sendHtml = (request, response, statusCode, html) => {
+    const allowedOrigins = request && request.scratchAiAllowedOrigins;
     response.writeHead(statusCode, {
         'Access-Control-Allow-Headers': CORS_ALLOW_HEADERS,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-        'Access-Control-Allow-Origin': readAllowedOrigin(request),
+        'Access-Control-Allow-Origin': readAllowedOrigin(request, allowedOrigins),
         'Cache-Control': 'no-store',
         'Content-Type': 'text/html; charset=utf-8'
     });
@@ -242,10 +244,11 @@ const sendHtml = (request, response, statusCode, html) => {
 };
 
 const sendBinary = (request, response, statusCode, payload) => {
+    const allowedOrigins = request && request.scratchAiAllowedOrigins;
     response.writeHead(statusCode, {
         'Access-Control-Allow-Headers': CORS_ALLOW_HEADERS,
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-        'Access-Control-Allow-Origin': readAllowedOrigin(request),
+        'Access-Control-Allow-Origin': readAllowedOrigin(request, allowedOrigins),
         'Cache-Control': 'no-store',
         'Content-Length': payload && payload.data ? payload.data.length : 0,
         'Content-Type': payload && payload.contentType ? payload.contentType : 'application/octet-stream'
@@ -279,6 +282,9 @@ const readJsonBody = (request, maxBodyBytes = MAX_BODY_BYTES) => new Promise((re
 });
 
 const createRequestHandler = (config, fetchImpl = globalThis.fetch) => async (request, response) => {
+    request.scratchAiAllowedOrigins = asAllowedOriginSet(
+        config && config.server && config.server.allowedOrigins
+    );
     const requestUrl = new URL(request.url, 'http://scratch-ai-middleware.local');
     const pathname = requestUrl.pathname;
     installStructuredRequestLog({
