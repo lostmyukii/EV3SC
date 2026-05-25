@@ -2778,6 +2778,13 @@ material into:
 - **Files created/modified**: `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`
 - **Next step**: With the operator physically clearing Motor A, run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`, then attach the generated evidence/transcript before proceeding to the full Section 13.7 classroom rehearsal.
 
+### [2026-05-25] Real EV3 USB smoke transport stabilized
+- **Status**: ✅ Completed
+- **Commit**: `21c50da`
+- **What was done**: Fixed the real EV3 USB smoke path after the first confirmed capture attempt exposed two integration faults: the Mac `websockets` client was honoring the local proxy for the link-local EV3 address, and ev3dev Stretch's Python 3.5/websockets 7 server protocol did not support the `async for` receive loop. WeisileLink now disables WebSocket proxying for direct EV3 connections, the EV3 server uses an explicit `recv()` loop, and a no-motor real EV3 smoke capture now confirms real endpoint connection, real transport, emergency stop ack, and sensor notifications.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/wifi_transport.py`, `weisile-link/tests/test_wifi_transport.py`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_smoke_evidence.json`, `docs/classroom/real_ev3_smoke_report.json`, `docs/classroom/evidence/real_ev3_smoke_transcript.json`
+- **Next step**: After the operator confirms Motor A has clear space and the mechanism is safe, rerun the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test` so Motor A turns at low speed for about 0.25 seconds and the script records the final motor ack plus emergency stop evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
