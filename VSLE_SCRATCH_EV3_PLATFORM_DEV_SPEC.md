@@ -2848,6 +2848,13 @@ material into:
 - **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
 - **Next step**: Continue Section 13.7 real-hardware classroom evidence: 45-minute sensor freshness, AI Quest collection/training/export, and multi-device/disconnect recovery.
 
+### [2026-05-26] SiliconFlow role image provider deployment verification
+- **Status**: ✅ Completed
+- **Commit**: `65718ad`
+- **What was done**: Configured the isolated `101.42.92.6:18612` ScratchAI deployment to use the server-side `siliconflow-image` provider for role image drafts while keeping the API key in the remote secret env only. Verified the authenticated public gateway reports `currentProvider=siliconflow-image`, keeps DeepSeek text AI enabled, and completes a character PNG generation with transparent-background validation and server-side background repair.
+- **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
+- **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
