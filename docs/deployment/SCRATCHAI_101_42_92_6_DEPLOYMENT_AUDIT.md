@@ -56,7 +56,7 @@ Image/role draft AI:
 - Image generation enabled: `true`
 - External network: `false`
 - Model weights downloaded: `false`
-- Transparent role/background handling: server-side generated SVG asset path with transparent-background audit metadata.
+- Transparent role/background handling: character/sprite SVG drafts omit the background rectangle so they adopt into Scratch as transparent role assets; backdrop SVG drafts keep a full background rectangle.
 
 Important: EV3SC currently has image providers for `mock`, `gemini-image`, `openai-image`, `siliconflow-image`, and `template-svg`. DeepSeek is configured here for text/chat AI; no DeepSeek image provider exists in the EV3SC asset worker, so role image drafts use the in-repo `template-svg` provider until an external image provider key/model is supplied and approved.
 
@@ -137,6 +137,27 @@ Authenticated role draft smoke result:
   "status": "completed",
   "type": "character",
   "generated": true
+}
+```
+
+Authenticated transparent sprite/backdrop check:
+
+```json
+{
+  "sprite": {
+    "provider": "template-svg",
+    "status": "completed",
+    "generated": true,
+    "format": "svg",
+    "svgHasBackgroundRect": false
+  },
+  "backdrop": {
+    "provider": "template-svg",
+    "status": "completed",
+    "generated": true,
+    "format": "svg",
+    "svgHasBackgroundRect": true
+  }
 }
 ```
 
