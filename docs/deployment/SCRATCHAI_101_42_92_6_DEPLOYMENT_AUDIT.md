@@ -1,6 +1,7 @@
 # ScratchAI 101.42.92.6 Deployment Audit
 
 Date: 2026-05-25
+Updated: 2026-05-26
 
 ## Scope
 
@@ -52,13 +53,16 @@ DeepSeek's official API quick-start documents `https://api.deepseek.com` and `de
 
 Image/role draft AI:
 
-- Current provider: `template-svg`
+- Current provider: `siliconflow-image`
 - Image generation enabled: `true`
-- External network: `false`
+- External network: `true`
 - Model weights downloaded: `false`
-- Transparent role/background handling: character/sprite SVG drafts omit the background rectangle so they adopt into Scratch as transparent role assets; backdrop SVG drafts keep a full background rectangle.
+- API key: configured, redacted
+- Base URL: `https://api.siliconflow.cn/v1`
+- Model: `Tongyi-MAI/Z-Image-Turbo`
+- Transparent role/background handling: character/sprite PNG drafts require transparent backgrounds before adoption into Scratch. The server validates the generated PNG and can repair simple corner-background outputs before returning the asset to the browser.
 
-Important: EV3SC currently has image providers for `mock`, `gemini-image`, `openai-image`, `siliconflow-image`, and `template-svg`. DeepSeek is configured here for text/chat AI; no DeepSeek image provider exists in the EV3SC asset worker, so role image drafts use the in-repo `template-svg` provider until an external image provider key/model is supplied and approved.
+Important: EV3SC currently has image providers for `mock`, `gemini-image`, `openai-image`, `siliconflow-image`, and `template-svg`. DeepSeek is configured here for text/chat AI; SiliconFlow is configured for role/image drafts. The SiliconFlow provider is external-network and remains marked `provider-terms-review-required` before broad classroom release.
 
 ## Browser Evidence
 
@@ -116,7 +120,7 @@ Asset worker manifest:
 ```json
 {
   "proxied": true,
-  "currentProvider": "template-svg",
+  "currentProvider": "siliconflow-image",
   "providers": [
     "mock",
     "gemini-image",
@@ -133,33 +137,41 @@ Authenticated role draft smoke result:
 {
   "proxied": true,
   "blocked": false,
-  "provider": "template-svg",
+  "provider": "siliconflow-image",
   "status": "completed",
   "type": "character",
-  "generated": true
+  "generated": true,
+  "format": "png",
+  "mimeType": "image/png",
+  "model": "Tongyi-MAI/Z-Image-Turbo",
+  "externalNetwork": true
 }
 ```
 
-Authenticated transparent sprite/backdrop check:
+Authenticated SiliconFlow transparent role check:
 
 ```json
 {
-  "sprite": {
-    "provider": "template-svg",
-    "status": "completed",
-    "generated": true,
-    "format": "svg",
-    "svgHasBackgroundRect": false
+  "provider": "siliconflow-image",
+  "status": "completed",
+  "generated": true,
+  "type": "character",
+  "format": "png",
+  "mimeType": "image/png",
+  "transparentBackground": {
+    "required": true,
+    "serverValidated": true,
+    "passed": true,
+    "repaired": true,
+    "repairMethod": "server-corner-background-removal-v1",
+    "originalReason": "missing-transparent-pixels",
+    "reason": "transparent-png"
   },
-  "backdrop": {
-    "provider": "template-svg",
-    "status": "completed",
-    "generated": true,
-    "format": "svg",
-    "svgHasBackgroundRect": true
-  }
+  "reviewState": "pending-human-review"
 }
 ```
+
+Previous in-repo fallback verification remains valid for offline/local fallback: `template-svg` character drafts omit a background rectangle, while `template-svg` backdrop drafts keep one.
 
 ## Notes
 
