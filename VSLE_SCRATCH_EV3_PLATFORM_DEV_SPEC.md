@@ -2841,6 +2841,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/asset-worker/src/server.js`, `scratch-ai-platform/asset-worker/test/server.test.js`
 - **Next step**: Redeploy the updated asset worker to `101.42.92.6:18615`, rerun authenticated role-draft smoke evidence through `101.42.92.6:18612`, and update the deployment audit with the verified transparent sprite result.
 
+### [2026-05-25] Transparent sprite deployment verification
+- **Status**: ✅ Completed
+- **Commit**: `6d47d8b`
+- **What was done**: Updated the public deployment audit after redeploying the asset worker and rerunning authenticated sprite/backdrop draft checks through `101.42.92.6:18612`. The evidence confirms `template-svg` character drafts complete with `svgHasBackgroundRect=false`, while backdrop drafts complete with `svgHasBackgroundRect=true`.
+- **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
+- **Next step**: Continue Section 13.7 real-hardware classroom evidence: 45-minute sensor freshness, AI Quest collection/training/export, and multi-device/disconnect recovery.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
