@@ -2820,6 +2820,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`
 - **Next step**: Build the ScratchAI unified preview with the public EV3 extension URL, deploy it to `101.42.92.6` on an isolated port, configure DeepSeek text AI and the in-repo transparent sprite draft provider, then audit browser/health evidence without touching existing server applications.
 
+### [2026-05-25] Legacy preview static asset compatibility
+- **Status**: ✅ Completed
+- **Commit**: `8532d86`
+- **What was done**: Fixed the ScratchAI preview gateway so authenticated `/preview/index.html` and its relative assets, such as `/preview/gui.js`, resolve to the deployed static root instead of falling back to HTML. Added a regression test that fails on the MIME mismatch and passes after the `/preview/*` static-prefix normalization.
+- **Files created/modified**: `scratch-ai-platform/preview-server/src/server.js`, `scratch-ai-platform/preview-server/test/server.test.js`
+- **Next step**: Redeploy the updated preview gateway to `101.42.92.6:18612`, verify both `/` and `/preview/index.html` browser paths show AI Thinking Helper, then finish the deployment audit evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
