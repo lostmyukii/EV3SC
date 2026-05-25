@@ -1,0 +1,131 @@
+{
+  "checkedAt": "2026-05-25T16:38:54.870Z",
+  "url": "http://101.42.92.6:18612/",
+  "title": "Scratch 3.0 GUI",
+  "foundHelper": true,
+  "foundAssetGenerator": true,
+  "normalizedTextSample": "Settings File Edit Share See Project Page Tutorials Debug scratch-cat Code Costumes Sounds Motion Looks Sound Events Control Sensing Operators Variables My Blocks next backdrop 25 change color effect by 0 set color effect to clear graphic effects backdrop number stop all sounds 10 change pitch effect by 100 set pitch effect to clear sound effects -10 change volume by 100 set volume to % volume when clicked when space key pressed 10 when loudness > 1 wait seconds 10 repeat forever if then if then else wait until repeat until answer space key pressed? mouse down? mouse x mouse y loudness timer reset timer current year days since 2000 online? username + - * / 1 10 pick random to 50 > 50 < 50 = and or not mod round abs of Motion 10 move steps 15 turn degrees 15 turn degrees random position go to 0 0 go to x: y: 1 random position glide secs to 1 0 0 glide secs to x: y: 90 point in direction mouse-pointer point towards 10 change x by 0 set x to 10 change y by 0 set y to if on edge, bounce set rotation style left-right x position y position direction Looks Hello! 2 say for seconds Hello! say Hmm... 2 think for seconds Hmm... think costume2 switch costume to next costume backdrop1 switch backdrop to 10 change size by 100 set size to % show hide go to front layer 1 go forward layers costume number size Sound Meow play sound until done Meow start sound Events when this sprite clicked when backdrop switches to backdrop1 when I receive message1 message1 broadcast message1 broadcast and wait Control stop all when I start as a clone myself create clone of delete this clone Sensing mouse-pointer touching ? touching color ? color is touching ? mouse-pointer distance to What's your name? ask and wait set drag mode draggable Stage backdrop # of Operators apple banana join 1 apple letter of apple length of apple a contains ? Variables Make a Variable my variable 0 set my variable to 1 change my variable by show variable my variable hide variable my variable Make a List My Blocks Make a Block Backpack AI Thinking Helper THINK FIRST AI Thinking Helper x Make a sprite/backdrop asset My project 1 Sprites 0 Blocks 0 Starts 0 Messages Stage 0 blocks / 0 scripts / 0 starts Sprite1 0 blocks / 0 scripts / 0 starts No starting block yet. No messages yet. Program path Add a starting block to see the program path. Say it first Not started What I want How it works How I will check I checked it Check list Check score 1/5 What I want NOT YET Write what your project should do. Place: Say it first > What I want How it works NOT YET Write how your project should work. Place: Say it first > How it works How I will check NOT YET Write one way to test your project. Place: Say it first > How I will check Start block NOT YET Add or find the block that starts this part. Place: Program path > Start block Message check LOOKS GOOD Messages are matched, or you do not need messages. Place: Program path > Message check Script explanation Add a starting block before asking for a script explanati",
+  "consoleMessages": [
+    {
+      "type": "warning",
+      "text": "Warning: componentWillMount has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move code with side effects to componentDidMount, and set initial state in the constructor.\n* Rename componentWillMount to UNSAFE_componentWillMount "
+    },
+    {
+      "type": "warning",
+      "text": "Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move data fetching code or side effects to componentDidUpdate.\n* If you're updating state whenever props change, refactor your code to use mem"
+    },
+    {
+      "type": "warning",
+      "text": "Blockly.Workspace.getVariablesOfType was deprecated in v12 and will be deleted in v13.\nUse Blockly.Workspace.getVariableMap().getVariablesOfType instead."
+    },
+    {
+      "type": "warning",
+      "text": "There are no variable blocks, but there is a variable category."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "error",
+      "text": "Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node%s \n    at Popover (http://101.42.92.6:18612/gui.js:276873:5)\n   "
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x114001c4e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x114001d4400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x114001d4400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x114001d4400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s DeleteButton \n    at DeleteButton (http://101.42.92.6:18612/gui.js:159409:143)\n    at div\n    at http://101.42.92.6:18612/gui.js:452161:13\n    at htt"
+    },
+    {
+      "type": "error",
+      "text": "Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s dynamicBackdrops dynamicbackdrops \n "
+    },
+    {
+      "type": "warning",
+      "text": "Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move data fetching code or side effects to componentDidUpdate.\n* If you're updating state whenever props change, refactor your code to use mem"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    }
+  ],
+  "screenshotPath": "/Users/yukii/Desktop/EV3SC/docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_20260525.png"
+}
