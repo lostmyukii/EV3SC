@@ -123,6 +123,41 @@ def test_configure_endpoint_updates_wifi_uri_before_connection():
     assert transport.uri == "ws://10.0.0.9:9000"
 
 
+def test_connect_disables_websocket_proxy_for_direct_ev3_endpoint():
+    async def scenario():
+        websocket = FakeWebSocket()
+        calls = []
+
+        async def connector(uri, *, ping_interval=None, proxy=True):
+            calls.append(
+                {
+                    "uri": uri,
+                    "ping_interval": ping_interval,
+                    "proxy": proxy,
+                }
+            )
+            return websocket
+
+        transport = WiFiTransport(
+            "169.254.64.103",
+            connector=connector,
+            pairing_token="",
+        )
+
+        assert await transport.connect(lambda _payload: None) is True
+        assert calls == [
+            {
+                "uri": "ws://169.254.64.103:8765",
+                "ping_interval": 5,
+                "proxy": None,
+            }
+        ]
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
 def test_send_command_validates_normalizes_and_resolves_ack_from_receive_loop():
     async def scenario():
         websocket = FakeWebSocket()

@@ -153,6 +153,24 @@ class FakeWebSocket:
         return self.incoming.pop(0)
 
 
+class RecvOnlyWebSocket:
+    def __init__(self, incoming=None):
+        self.incoming = list(incoming or [])
+        self.sent = []
+        self.closed = None
+
+    async def recv(self):
+        if not self.incoming:
+            raise asyncio.TimeoutError()
+        return self.incoming.pop(0)
+
+    async def send(self, message):
+        self.sent.append(json.loads(message))
+
+    async def close(self, code=None, reason=None):
+        self.closed = (code, reason)
+
+
 class FakeBluetoothSocket:
     def __init__(self):
         self.sent = []
@@ -596,6 +614,29 @@ def test_client_disconnect_stops_all_motors_for_safety():
 
     assert ("motor_run_forever", "A", 50) in hardware.actions
     assert hardware.actions[-1] == ("motor_stop_all",)
+    assert server.clients == set()
+
+
+def test_handle_client_accepts_websockets_protocol_without_async_iterator():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+    ws = RecvOnlyWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "cmd-1",
+                    "method": "sound.stop",
+                    "params": {},
+                }
+            )
+        ]
+    )
+
+    asyncio.run(server.handle_client(ws))
+
+    assert ws.sent == [{"type": "ack", "id": "cmd-1", "ok": True}]
+    assert hardware.actions[-2:] == [("sound_stop",), ("motor_stop_all",)]
     assert server.clients == set()
 
 

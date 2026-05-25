@@ -6,18 +6,16 @@
   ],
   "expectedDevices": 1,
   "expectedTransportInstances": 1,
-  "failed": 6,
+  "failed": 4,
   "missingEvidence": [
     "scratchai-unified-stack",
-    "real-ev3-endpoint",
-    "weisilelink-real-transport",
     "sensor-stream-freshness",
     "aiquest-collection-training-export",
     "multi-device-rehearsal"
   ],
-  "notes": "1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was not provided.",
-  "operator": "Codex automated blocked attempt",
-  "passed": 1,
+  "notes": "1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was provided.",
+  "operator": "",
+  "passed": 3,
   "results": [
     {
       "detail": "Requires `scratchai_unified_stack=true` from the rehearsal run.",
@@ -33,18 +31,18 @@
       "evidence": "`ev3_endpoint_connected=true` with EV3 IP/host evidence and WeisileLink connection logs.",
       "id": "real-ev3-endpoint",
       "label": "Real EV3 endpoint connected",
-      "passed": false,
+      "passed": true,
       "requirement": "At least one real ev3dev EV3 brick connects through the unified ScratchAI stack.",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
       "detail": "Requires `weisilelink_real_transport=true`, not simulation.",
       "evidence": "`weisilelink_real_transport=true` with the transport mode and bridge status output.",
       "id": "weisilelink-real-transport",
       "label": "WeisileLink real transport",
-      "passed": false,
+      "passed": true,
       "requirement": "WeisileLink uses a real WiFi or Bluetooth EV3 transport, not the local simulated preview transport.",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
       "detail": "Requires motor command, emergency stop, and no in-class code changes.",
@@ -56,7 +54,7 @@
       "status": "PASS"
     },
     {
-      "detail": "Measured 9.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB.",
+      "detail": "Measured 16.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB.",
       "evidence": "`sensor_stream_hz>=45.0`, `sensor_stream_duration_minutes>=45.0`, `dropped_update_pct<=0.1`, and `memory_growth_mb<50.0`.",
       "id": "sensor-stream-freshness",
       "label": "Sensor stream freshness",
@@ -74,7 +72,7 @@
       "status": "FAIL"
     },
     {
-      "detail": "Observed 1 transports and 0 real EV3 devices; max reconnect 0.0s.",
+      "detail": "Observed 1 transports and 1 real EV3 devices; max reconnect 0.0s.",
       "evidence": "`transport_instance_count`, `device_count`, disconnect, reconnect, recovery-step, and no-code-change evidence.",
       "id": "multi-device-rehearsal",
       "label": "30-device classroom rehearsal",
@@ -83,6 +81,6 @@
       "status": "FAIL"
     }
   ],
-  "runStartedAt": "2026-05-23T16:13:33.876976+00:00",
+  "runStartedAt": "2026-05-25T02:42:40.795209+00:00",
   "status": "BLOCKED"
 }

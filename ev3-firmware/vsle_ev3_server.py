@@ -859,9 +859,16 @@ class VSLEEV3Server:
 
         self.clients.add(websocket)
         try:
-            async for raw in websocket:
+            while True:
+                try:
+                    raw = await websocket.recv()
+                except Exception:
+                    break
                 response = self.handle_raw_message(raw)
-                await self._send_json(websocket, response)
+                try:
+                    await self._send_json(websocket, response)
+                except Exception:
+                    break
         finally:
             self.clients.discard(websocket)
             self.hardware.motor_stop_all()

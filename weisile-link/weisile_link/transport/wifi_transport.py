@@ -100,7 +100,9 @@ class WiFiTransport:
 
                 connector = websockets.connect
 
-            self.ws = await connector(self.uri, ping_interval=5)
+            self.ws = await connector(
+                self.uri, **self._connect_kwargs(connector)
+            )
             if self._pairing_token:
                 paired = await self._pair()
                 if not paired:
@@ -135,6 +137,17 @@ class WiFiTransport:
 
         await self._close_socket(code=1008, reason="pairing failed")
         return False
+
+    def _connect_kwargs(self, connector: Connector) -> Dict[str, Any]:
+        """Build WebSocket client kwargs that work across library versions."""
+        kwargs: Dict[str, Any] = {"ping_interval": 5}
+        try:
+            parameters = inspect.signature(connector).parameters
+        except (TypeError, ValueError):
+            return kwargs
+        if "proxy" in parameters:
+            kwargs["proxy"] = None
+        return kwargs
 
     async def send_command(self, command: Dict[str, Any]) -> Dict[str, Any]:
         """Validate, send, and await one EV3 ack envelope."""

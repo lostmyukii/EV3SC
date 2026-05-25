@@ -1,6 +1,6 @@
 # Real EV3 Classroom Rehearsal
 
-Date: 2026-05-23
+Date: 2026-05-25
 
 This report covers the Section 13.7 manual classroom acceptance gate.
 Automated localhost testing does not replace the real EV3 classroom rehearsal.
@@ -9,8 +9,8 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 
 - Status: BLOCKED
 - Classroom approved: false
-- Gates passed: 1
-- Gates failed: 6
+- Gates passed: 3
+- Gates failed: 4
 - Expected real EV3 bricks: 1
 - Expected transport instances or simulated EV3 transports: 1
 
@@ -19,12 +19,12 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 | Gate | Status | Evidence detail |
 |---|---|---|
 | scratchai-unified-stack | FAIL | Requires `scratchai_unified_stack=true` from the rehearsal run. |
-| real-ev3-endpoint | FAIL | Requires `ev3_endpoint_connected=true` from a real EV3 brick. |
-| weisilelink-real-transport | FAIL | Requires `weisilelink_real_transport=true`, not simulation. |
+| real-ev3-endpoint | PASS | Requires `ev3_endpoint_connected=true` from a real EV3 brick. |
+| weisilelink-real-transport | PASS | Requires `weisilelink_real_transport=true`, not simulation. |
 | motor-command-safety | PASS | Requires motor command, emergency stop, and no in-class code changes. |
-| sensor-stream-freshness | FAIL | Measured 9.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB. |
+| sensor-stream-freshness | FAIL | Measured 16.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB. |
 | aiquest-collection-training-export | FAIL | Requires AI Quest collection plus training/export evidence. |
-| multi-device-rehearsal | FAIL | Observed 1 transports and 0 real EV3 devices; max reconnect 0.0s. |
+| multi-device-rehearsal | FAIL | Observed 1 transports and 1 real EV3 devices; max reconnect 0.0s. |
 
 ## Required Evidence
 
@@ -70,8 +70,8 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 
 ## Operator Notes
 
-1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was not provided.
+1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was provided.
 
 ## Next Action
 
-Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, real-ev3-endpoint, weisilelink-real-transport, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal.
+Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal.
