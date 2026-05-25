@@ -2792,6 +2792,13 @@ material into:
 - **Files created/modified**: `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_smoke_evidence.json`, `docs/classroom/real_ev3_smoke_report.json`, `docs/classroom/evidence/real_ev3_smoke_transcript.json`
 - **Next step**: Run the Section 13.7 classroom rehearsal evidence pass: verify the ScratchAI unified stack in the browser, collect the 45-minute sensor freshness evidence, complete AI Quest collection/training/export evidence, and record the classroom rehearsal/multi-device recovery evidence.
 
+### [2026-05-25] ScratchAI browser rehearsal gate
+- **Status**: ✅ Completed
+- **Commit**: `e29f45e`
+- **What was done**: Added a browser rehearsal gate that rejects ScratchAI previews whose GUI bundle contains the AI assistant source but was compiled with disabled ScratchAI runtime flags. Recorded screenshot and Markdown evidence showing the current `127.0.0.1:8601` preview is a stale/static build without the visible AI assistant, so it cannot count as Section 13.7 ScratchAI unified-stack browser evidence.
+- **Files created/modified**: `scripts/verify_scratchai_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_scratchai_preview_verifier.py`, `tests/test_unified_preview_stack.py`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_preview_missing_assistant.png`, `docs/classroom/README.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Stop or move the stale static `8601` preview, start the proper ScratchAI unified preview stack with `SCRATCH_AI_ENABLED=true` and `SCRATCH_AI_PANEL_ENABLED=true`, rerun unified browser verification until the AI Thinking Helper appears, then collect the 45-minute sensor freshness, AI Quest collection/training/export, and multi-device/disconnect recovery evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
