@@ -2827,6 +2827,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/preview-server/src/server.js`, `scratch-ai-platform/preview-server/test/server.test.js`
 - **Next step**: Redeploy the updated preview gateway to `101.42.92.6:18612`, verify both `/` and `/preview/index.html` browser paths show AI Thinking Helper, then finish the deployment audit evidence.
 
+### [2026-05-25] ScratchAI public deployment audit
+- **Status**: ✅ Completed
+- **Commit**: `c0eadfe`
+- **What was done**: Deployed the EV3SC-owned ScratchAI unified preview to `101.42.92.6` on isolated port `18612`, with middleware on `127.0.0.1:18614` and asset worker on `127.0.0.1:18615` so existing applications on `80`, `3000`, and `8001` remain untouched. Audited DeepSeek text AI configuration, the in-repo `template-svg` transparent role draft provider, authenticated role draft generation, browser-visible AI Thinking Helper, asset generator visibility, and the fixed legacy `/preview/index.html` path.
+- **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_root_ai_helper_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_state_20260525.json`, `docs/deployment/evidence/scratchai_101_42_92_6_asset_generator_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_asset_generator_state_20260525.json`, `docs/deployment/evidence/scratchai_101_42_92_6_preview_path_ai_helper_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_preview_path_state_20260525.json`
+- **Next step**: Continue Section 13.7 with physical-classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
