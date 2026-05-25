@@ -117,10 +117,23 @@ test('creates a real SVG draft with audit and review metadata', () => {
     assert.equal(job.result.generated, true);
     assert.equal(job.result.asset.format, 'svg');
     assert.equal(job.result.asset.dataUri.startsWith('data:image/svg+xml;base64,'), true);
+    const svg = Buffer.from(job.result.asset.dataUri.split(',')[1], 'base64').toString('utf8');
+    assert.equal(svg.includes('<rect width="480" height="480"'), false);
     assert.equal(job.review.required, true);
     assert.equal(job.audit.providerId, PROVIDER_MODES.TEMPLATE_SVG);
     assert.equal(job.audit.modelWeightsDownloaded, false);
     assert.equal(job.audit.promptStored, false);
+
+    const backdropJob = createTemplateImageJob({
+        type: 'backdrop',
+        prompt: 'sunny classroom',
+        size: {
+            width: 480,
+            height: 480
+        }
+    });
+    const backdropSvg = Buffer.from(backdropJob.result.asset.dataUri.split(',')[1], 'base64').toString('utf8');
+    assert.equal(backdropSvg.includes('<rect width="480" height="480"'), true);
 });
 
 test('exposes provider manifest and result audit schema', () => {

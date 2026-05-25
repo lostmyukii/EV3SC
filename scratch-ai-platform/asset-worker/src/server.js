@@ -1446,7 +1446,6 @@ const createCharacterSvg = ({
     const centerX = width / 2;
     return [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img">`,
-        `<rect width="${width}" height="${height}" fill="${palette.background}"/>`,
         `<ellipse cx="${centerX}" cy="${height * 0.84}" rx="${width * 0.25}" ry="${height * 0.05}" fill="#000000" opacity="0.12"/>`,
         `<path d="M${centerX - 82} ${height * 0.58} Q${centerX} ${height * 0.42} ${centerX + 82} ${height * 0.58} L${centerX + 62} ${height * 0.78} Q${centerX} ${height * 0.86} ${centerX - 62} ${height * 0.78} Z" fill="${palette.primary}"/>`,
         `<circle cx="${centerX}" cy="${height * 0.36}" r="${width * 0.17}" fill="${palette.secondary}"/>`,
