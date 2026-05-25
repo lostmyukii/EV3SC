@@ -202,6 +202,39 @@ test('issues preview session cookie from login form', async () => {
     }
 });
 
+test('serves static assets correctly under the legacy /preview path', async () => {
+    const staticRoot = await mkdtemp(join(tmpdir(), 'scratch-ai-preview-static-'));
+    await writeFile(join(staticRoot, 'index.html'), '<!doctype html><script src="gui.js"></script>');
+    await writeFile(join(staticRoot, 'gui.js'), 'window.scratchAiPreviewLoaded = true;');
+    const server = createServer(createRequestHandler({
+        auth: {
+            configured: false
+        },
+        middlewareUrl: 'http://127.0.0.1:9',
+        staticRoot
+    }));
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const port = server.address().port;
+
+    try {
+        const indexResponse = await fetch(`http://127.0.0.1:${port}/preview/index.html`);
+        assert.equal(indexResponse.status, 200);
+        assert.equal(indexResponse.headers.get('content-type'), 'text/html; charset=utf-8');
+        assert.equal((await indexResponse.text()).includes('gui.js'), true);
+
+        const scriptResponse = await fetch(`http://127.0.0.1:${port}/preview/gui.js`);
+        assert.equal(scriptResponse.status, 200);
+        assert.equal(scriptResponse.headers.get('content-type'), 'application/javascript; charset=utf-8');
+        assert.equal(await scriptResponse.text(), 'window.scratchAiPreviewLoaded = true;');
+    } finally {
+        await new Promise(resolve => server.close(resolve));
+        await rm(staticRoot, {
+            force: true,
+            recursive: true
+        });
+    }
+});
+
 test('blocks requests from hosts outside the configured allowlist', async () => {
     const server = createServer(createRequestHandler({
         auth: {

@@ -1358,13 +1358,24 @@ const resolveStaticPath = (staticRoot, pathname) => {
     return candidatePath;
 };
 
+const normalizeStaticRequestPath = pathname => {
+    if (pathname === '/preview' || pathname === '/preview/') {
+        return '/index.html';
+    }
+    if (String(pathname || '').indexOf('/preview/') === 0) {
+        return pathname.slice('/preview'.length);
+    }
+    return pathname;
+};
+
 const serveStatic = ({
     request,
     response,
     staticRoot,
     url
 }) => {
-    const candidatePath = resolveStaticPath(staticRoot, url.pathname === '/' ? '/index.html' : url.pathname);
+    const staticPathname = normalizeStaticRequestPath(url.pathname);
+    const candidatePath = resolveStaticPath(staticRoot, staticPathname === '/' ? '/index.html' : staticPathname);
     if (!candidatePath) {
         sendJson(response, 403, {error: 'Forbidden'});
         return;
