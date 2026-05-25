@@ -2813,6 +2813,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/ai-middleware/src/config.js`, `scratch-ai-platform/ai-middleware/src/server.js`, `scratch-ai-platform/ai-middleware/test/server.test.js`, `scripts/start_scratchai_preview.py`, `scripts/start_unified_preview.py`, `scripts/verify_scratchai_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_scratchai_preview_startup.py`, `tests/test_scratchai_preview_verifier.py`, `tests/test_unified_preview_stack.py`, `docs/scratchai/SCRATCHAI_PORT_PARITY_AUDIT.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/UNIFIED_PREVIEW_STACK.md`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_asset_generator_visible_20260525.png`, `docs/classroom/evidence/scratchai_asset_generator_section_20260525.png`, `docs/classroom/evidence/scratchai_asset_draft_generated_20260525.png`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the remaining Section 13.7 real-hardware classroom pass with physical EV3 endpoints: repeat the 45-minute workflow against real WeisileLink transport, attach real EV3 multi-device/disconnect records, and keep pilot approval blocked if any classroom failure requires code changes.
 
+### [2026-05-25] Configured public EV3 extension unsandboxed URL
+- **Status**: ✅ Completed
+- **Commit**: `b49bbd3`
+- **What was done**: Added a deployment-safe VSLE-EV3 extension URL path so `SCRATCH_AI_VSLE_EV3_EXTENSION_URL` can register the public EV3 extension as an Unsandboxed Extension without changing Scratch visual design. Verified the configured public URL fails before the patch and passes afterward, plus syntax checks on the changed VM and test files.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`
+- **Next step**: Build the ScratchAI unified preview with the public EV3 extension URL, deploy it to `101.42.92.6` on an isolated port, configure DeepSeek text AI and the in-repo transparent sprite draft provider, then audit browser/health evidence without touching existing server applications.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
