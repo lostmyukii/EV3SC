@@ -2834,6 +2834,13 @@ material into:
 - **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_root_ai_helper_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_state_20260525.json`, `docs/deployment/evidence/scratchai_101_42_92_6_asset_generator_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_asset_generator_state_20260525.json`, `docs/deployment/evidence/scratchai_101_42_92_6_preview_path_ai_helper_20260525.png`, `docs/deployment/evidence/scratchai_101_42_92_6_preview_path_state_20260525.json`
 - **Next step**: Continue Section 13.7 with physical-classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
 
+### [2026-05-25] Transparent template sprite drafts
+- **Status**: ✅ Completed
+- **Commit**: `e242b58`
+- **What was done**: Fixed the local `template-svg` image provider so character/sprite drafts omit the background rectangle and remain transparent when adopted into Scratch, while backdrop drafts still keep a full background. Added regression coverage that decodes the SVG data URI and verifies character drafts have no background rect while backdrops do.
+- **Files created/modified**: `scratch-ai-platform/asset-worker/src/server.js`, `scratch-ai-platform/asset-worker/test/server.test.js`
+- **Next step**: Redeploy the updated asset worker to `101.42.92.6:18615`, rerun authenticated role-draft smoke evidence through `101.42.92.6:18612`, and update the deployment audit with the verified transparent sprite result.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
