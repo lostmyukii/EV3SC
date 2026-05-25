@@ -2799,6 +2799,13 @@ material into:
 - **Files created/modified**: `scripts/verify_scratchai_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_scratchai_preview_verifier.py`, `tests/test_unified_preview_stack.py`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_preview_missing_assistant.png`, `docs/classroom/README.md`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/BASELINE_PORT_REPORT.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Stop or move the stale static `8601` preview, start the proper ScratchAI unified preview stack with `SCRATCH_AI_ENABLED=true` and `SCRATCH_AI_PANEL_ENABLED=true`, rerun unified browser verification until the AI Thinking Helper appears, then collect the 45-minute sensor freshness, AI Quest collection/training/export, and multi-device/disconnect recovery evidence.
 
+### [2026-05-25] Section 13.7 ScratchAI preview rehearsal evidence
+- **Status**: ✅ Completed
+- **Commit**: `38eb0c0`
+- **What was done**: Avoided the stale static `8601` preview, verified the real ScratchAI unified stack on `8611` with the localized AI Thinking Helper visible, and captured the simulated-preview Section 13.7 rehearsal evidence. The 45-minute sensor phase measured 49.977Hz for 45.001 minutes with 0.033% estimated dropped updates and 30.422MB memory growth; AI Quest uploaded 10,000 points, trained successfully at 0.8762 accuracy, exported model rules, and recorded 30 simulated device connections plus disconnect recovery in 0.065s. This is simulated preview evidence only; physical EV3 classroom approval still requires real endpoint and real transport evidence.
+- **Files created/modified**: `preview/weisile_preview_server.py`, `preview/tests/test_preview_static.js`, `scripts/run_section13_7_preview_rehearsal.py`, `tests/test_preview_backend.py`, `tests/test_section13_7_preview_rehearsal.py`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md`, `docs/classroom/evidence/scratchai_unified_stack_ai_helper.png`, `docs/classroom/evidence/scratchai_unified_stack_browser_state.json`, `docs/classroom/evidence/section13_7_preview_rehearsal_20260525.json`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the remaining Section 13.7 real-hardware classroom pass with physical EV3 endpoints: repeat the 45-minute workflow against real WeisileLink transport, attach real EV3 multi-device/disconnect records, and keep pilot approval blocked if any classroom failure requires code changes.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
