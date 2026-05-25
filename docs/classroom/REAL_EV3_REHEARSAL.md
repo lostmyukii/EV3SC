@@ -22,7 +22,7 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 | real-ev3-endpoint | PASS | Requires `ev3_endpoint_connected=true` from a real EV3 brick. |
 | weisilelink-real-transport | PASS | Requires `weisilelink_real_transport=true`, not simulation. |
 | motor-command-safety | PASS | Requires motor command, emergency stop, and no in-class code changes. |
-| sensor-stream-freshness | FAIL | Measured 16.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB. |
+| sensor-stream-freshness | FAIL | Measured 17.30Hz for 0.2 minutes, dropped 0.000%, memory +0.0MB. |
 | aiquest-collection-training-export | FAIL | Requires AI Quest collection plus training/export evidence. |
 | multi-device-rehearsal | FAIL | Observed 1 transports and 1 real EV3 devices; max reconnect 0.0s. |
 

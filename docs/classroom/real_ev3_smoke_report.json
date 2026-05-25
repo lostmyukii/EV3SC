@@ -54,7 +54,7 @@
       "status": "PASS"
     },
     {
-      "detail": "Measured 16.66Hz for 0.1 minutes, dropped 0.000%, memory +0.0MB.",
+      "detail": "Measured 17.30Hz for 0.2 minutes, dropped 0.000%, memory +0.0MB.",
       "evidence": "`sensor_stream_hz>=45.0`, `sensor_stream_duration_minutes>=45.0`, `dropped_update_pct<=0.1`, and `memory_growth_mb<50.0`.",
       "id": "sensor-stream-freshness",
       "label": "Sensor stream freshness",
@@ -81,6 +81,6 @@
       "status": "FAIL"
     }
   ],
-  "runStartedAt": "2026-05-25T02:42:40.795209+00:00",
+  "runStartedAt": "2026-05-25T02:49:03.919856+00:00",
   "status": "BLOCKED"
 }
