@@ -2785,6 +2785,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/wifi_transport.py`, `weisile-link/tests/test_wifi_transport.py`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_smoke_evidence.json`, `docs/classroom/real_ev3_smoke_report.json`, `docs/classroom/evidence/real_ev3_smoke_transcript.json`
 - **Next step**: After the operator confirms Motor A has clear space and the mechanism is safe, rerun the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test` so Motor A turns at low speed for about 0.25 seconds and the script records the final motor ack plus emergency stop evidence.
 
+### [2026-05-25] Confirmed Motor A real EV3 smoke capture
+- **Status**: ✅ Completed
+- **Commit**: `b9b2941`
+- **What was done**: Ran the confirmed one-brick smoke capture against the physical EV3 over USB networking with `--confirm-real-ev3 --run-safe-motor-test`. The capture recorded `connect_ok=true`, `motor_ack=true`, `emergency_stop_ack=true`, `sound_stop_ack=true`, no capture errors, and 173 real sensor notifications over about 10 seconds while keeping the broader classroom approval blocked until the remaining Section 13.7 evidence is collected.
+- **Files created/modified**: `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/classroom/real_ev3_smoke_evidence.json`, `docs/classroom/real_ev3_smoke_report.json`, `docs/classroom/evidence/real_ev3_smoke_transcript.json`
+- **Next step**: Run the Section 13.7 classroom rehearsal evidence pass: verify the ScratchAI unified stack in the browser, collect the 45-minute sensor freshness evidence, complete AI Quest collection/training/export evidence, and record the classroom rehearsal/multi-device recovery evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
