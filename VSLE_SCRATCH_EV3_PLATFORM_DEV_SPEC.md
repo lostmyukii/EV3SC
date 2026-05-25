@@ -2771,6 +2771,13 @@ material into:
 - **Files created/modified**: `docs/EV3DEV_SETUP.md`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_autostart_assets.py`, `tests/test_ev3_server.py`
 - **Next step**: Start WeisileLink against the real EV3 endpoint `169.254.251.64:8765`, rerun the non-invasive smoke readiness gate until it exits 0, then run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`.
 
+### [2026-05-25] Real EV3 smoke readiness confirmed over USB
+- **Status**: ✅ Completed
+- **Commit**: `ee05f59`
+- **What was done**: Reconnected the physical EV3 over USB networking after reboot at `169.254.64.103`, confirmed `vsle-ev3-server` autostart stayed `active (running)`, restarted WeisileLink against the real EV3 endpoint on port `21111`, and reran the non-invasive smoke readiness gate. The gate now reports both `ev3dev.local:8765` and `169.254.64.103:8765` reachable, with `safe_to_run_confirmed_smoke=true`.
+- **Files created/modified**: `docs/classroom/REAL_EV3_SMOKE_READINESS.md`, `docs/classroom/real_ev3_smoke_readiness.json`
+- **Next step**: With the operator physically clearing Motor A, run the confirmed one-brick smoke capture with `--confirm-real-ev3 --run-safe-motor-test`, then attach the generated evidence/transcript before proceeding to the full Section 13.7 classroom rehearsal.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
