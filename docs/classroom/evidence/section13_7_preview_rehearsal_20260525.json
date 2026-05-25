@@ -1,0 +1,161 @@
+{
+  "aiquest": {
+    "collection_verified": true,
+    "export": {
+      "id": "client-0-5381",
+      "jsonrpc": "2.0",
+      "result": {
+        "filename": "ai_quest_model_report.json",
+        "json": "{\n  \"features\": [\n    \"color_reflected\",\n    \"ultrasonic_cm\",\n    \"gyro_angle\",\n    \"touch_pressed\",\n    \"motor_a_pos\"\n  ],\n  \"model\": {\n    \"accuracy\": 0.8762,\n    \"accuracyGate\": 0.7,\n    \"id\": \"mock-model-1\",\n    \"type\": \"decision_tree\"\n  },\n  \"privacy\": {\n    \"clearRoute\": \"/api/data/clear\",\n    \"localFirst\": true,\n    \"studentDataIncluded\": false\n  },\n  \"rule\": {\n    \"falseLabel\": \"safe\",\n    \"feature\": \"ultrasonic_cm\",\n    \"operator\": \"<=\",\n    \"threshold\": 18.85,\n    \"trueLabel\": \"obstacle\"\n  },\n  \"schemaVersion\": \"vsle-ai-trainer-model-rules-v1\",\n  \"training\": {\n    \"labels\": [\n      \"obstacle\",\n      \"safe\"\n    ],\n    \"rows\": 10000,\n    \"trainedAt\": \"2026-05-25T05:09:42.884046Z\"\n  }\n}\n",
+        "model_id": "mock-model-1",
+        "provider_credentials_included": false,
+        "raw_dataset_included": false
+      }
+    },
+    "prediction": {
+      "id": "client-0-5380",
+      "jsonrpc": "2.0",
+      "result": {
+        "confidence": 0.8762,
+        "label": "safe",
+        "mode": "cloud",
+        "model_id": "mock-model-1"
+      }
+    },
+    "trainer_connected": true,
+    "trainer_message_count": 74,
+    "training": {
+      "id": "client-0-5378",
+      "jsonrpc": "2.0",
+      "result": {
+        "job_id": "mock-job-1",
+        "metrics": {
+          "accuracy": 0.8762
+        },
+        "model_id": "mock-model-1",
+        "status": "succeeded"
+      }
+    },
+    "training_export_verified": true,
+    "training_status": {
+      "id": "client-0-5379",
+      "jsonrpc": "2.0",
+      "result": {
+        "dataset_id": "mock-dataset-1",
+        "job_id": "mock-job-1",
+        "metrics": {
+          "accuracy": 0.8762
+        },
+        "model_id": "mock-model-1",
+        "status": "succeeded"
+      }
+    },
+    "upload_dataset": {
+      "id": "client-0-5377",
+      "jsonrpc": "2.0",
+      "result": {
+        "audit": {
+          "audit_id": "mock-audit-1",
+          "provider": "mock"
+        },
+        "data_boundary": {
+          "allowed_sample_count": 10000,
+          "provider_credentials_included": false,
+          "raw_scratch_project_included": false
+        },
+        "dataset_id": "mock-dataset-1",
+        "safe_reference": {
+          "dataset_id": "mock-dataset-1",
+          "scope": {
+            "id": "section13-7-preview",
+            "type": "project"
+          }
+        },
+        "scope": {
+          "id": "section13-7-preview",
+          "type": "project"
+        },
+        "status": "ready",
+        "uploaded_at": "2026-05-25T05:09:20.915303Z",
+        "uploaded_samples": 10000
+      }
+    },
+    "upload_to_trainer": {
+      "id": "client-0-5376",
+      "jsonrpc": "2.0",
+      "result": {
+        "trainer_clients": 1,
+        "uploaded_points": 10000
+      }
+    }
+  },
+  "aiquest_collection_verified": true,
+  "aiquest_training_export_verified": true,
+  "classroom_approved": false,
+  "classroom_or_lab": "ScratchAI preview stack",
+  "created_at": "2026-05-25T05:09:42.913155+00:00",
+  "device_count": 0,
+  "disconnect_count": 1,
+  "disconnects_recorded": true,
+  "dropped_update_pct": 0.033,
+  "duration_seconds_requested": 2700.0,
+  "ev3_endpoint_connected": false,
+  "evidence_files": [
+    "docs/classroom/evidence/section13_7_preview_rehearsal_20260525.json",
+    "docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md",
+    "docs/classroom/evidence/scratchai_unified_stack_ai_helper.png",
+    "docs/classroom/evidence/scratchai_unified_stack_browser_state.json"
+  ],
+  "max_sensor_gap_ms": 157,
+  "memory_end_mb": 114.203,
+  "memory_growth_mb": 30.422,
+  "memory_pids": [
+    7153,
+    7155,
+    7204,
+    7226,
+    7234,
+    10930
+  ],
+  "memory_start_mb": 83.781,
+  "notes": "Simulated preview rehearsal only. Real EV3 endpoint and real transport evidence are still required before a pilot class.",
+  "operator": "Codex",
+  "pilot_required_code_changes": false,
+  "reconnect_time_seconds_max": 0.065,
+  "recovery_records": [
+    {
+      "peripheral_id": "vsle-ev3-wifi-30",
+      "reconnect_seconds": 0.065,
+      "recovered": true,
+      "sensor_updates_after_reconnect": 6002,
+      "sensor_updates_before_disconnect": 5999
+    }
+  ],
+  "run_started_at": "2026-05-25T04:24:20.209468+00:00",
+  "schema": "vsle.section13_7PreviewRehearsal.v1",
+  "scratchai_unified_stack": true,
+  "sensor_client": "vsle-ev3-wifi",
+  "sensor_stream_duration_minutes": 45.001,
+  "sensor_stream_hz": 49.977,
+  "sensor_subscriber_count": 2,
+  "sensor_subscribers": [
+    "vsle-ev3-wifi",
+    "vsle-ev3-wifi-30"
+  ],
+  "sensor_update_count": 134941,
+  "simulated_device_count": 30,
+  "simulated_preview_only": true,
+  "teacher_recovery_steps": [
+    "Observe disconnected Scratch client.",
+    "Reconnect the same preview EV3 peripheral.",
+    "Restart notifications and confirm sensor updates resume.",
+    "Continue the activity without changing code."
+  ],
+  "teacher_recovery_steps_recorded": true,
+  "trainer_connected": true,
+  "trainer_message_count": 74,
+  "trainer_url": "ws://127.0.0.1:18766",
+  "transport_instance_count": 30,
+  "weisile_link_url": "ws://127.0.0.1:20211/scratch/bt",
+  "weisilelink_real_transport": false
+}

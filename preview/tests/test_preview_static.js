@@ -28,7 +28,7 @@ test('preview backend uses the real WeisileLink JSON-RPC server', () => {
     );
 
     assert.match(server, /ScratchJsonRpcServer/);
-    assert.match(server, /handle_sensor_data/);
+    assert.match(server, /handle_session_sensor_data/);
     assert.match(server, /run_trainer/);
     assert.match(server, /PreviewTransport/);
     assert.match(server, /data\.startCollect/);

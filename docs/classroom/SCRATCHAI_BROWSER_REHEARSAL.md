@@ -9,53 +9,55 @@ steps.
 
 ## Status
 
-- Status: BLOCKED
+- Status: PASS for the simulated unified-stack browser gate
 - Classroom approved: false
-- Browser URL checked: `http://127.0.0.1:8601/`
-- Process observed on port 8601: `python -m http.server 8601 --bind 127.0.0.1`
-- Screenshot: `docs/classroom/evidence/scratchai_preview_missing_assistant.png`
+- Stale preview avoided: `http://127.0.0.1:8601/`
+- Verified browser URL: `http://127.0.0.1:8611/`
+- Screenshot: `docs/classroom/evidence/scratchai_unified_stack_ai_helper.png`
+- Browser state JSON: `docs/classroom/evidence/scratchai_unified_stack_browser_state.json`
 
 ## Evidence
 
 | Check | Result | Evidence |
 |---|---|---|
-| Scratch GUI loads | PASS | `scripts/verify_scratchai_preview.py` fetched `index.html` and `gui.js` from `http://127.0.0.1:8601/`. |
-| AI assistant visible in browser | FAIL | Browser DOM inspection found no `data-testid="ai-logic-coach-toggle"` and no `Thinking Helper` text in the page body. |
-| ScratchAI runtime flags enabled | FAIL | The served `gui.js` compiles `scratchAIEnabled` and `scratchAIPanelEnabled` from empty strings, so the AI assistant is not mounted. |
-| EV3SC ScratchAI source present | PASS | The EV3SC-owned source tree contains `components/ai-logic-coach`, `lib/ai`, ScratchAI feature flags, and middleware routes under `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/`. |
+| Stale static `8601` preview not used | PASS | Port `8601` was identified as a plain `python -m http.server` static preview compiled without ScratchAI runtime flags, so it was avoided for Section 13.7 evidence. |
+| ScratchAI unified stack health | PASS | `scripts/verify_unified_preview.py` passed 7/7 checks against ports `8611`, `8807`, `8810`, `8612`, `8010`, `20211`, and `18766`. |
+| AI assistant visible in browser | PASS | Browser DOM inspection found `data-testid="ai-logic-coach-toggle"` and the visible localized control text `AI思考帮手`. |
+| ScratchAI runtime flags enabled | PASS | The served `gui.js` contains `SCRATCH_AI_ENABLED=true`, `SCRATCH_AI_PANEL_ENABLED=true`, and `ai-logic-coach-toggle`. |
+| EV3SC-owned runtime | PASS | The stack runs from `/Users/yukii/Desktop/EV3SC/` and does not depend on `/Users/yukii/Desktop/scratch ai/` at runtime. |
 
 ## Verifier Result
 
-The improved verifier now blocks this exact false-positive case:
-
 ```bash
-.venv/bin/python scripts/verify_scratchai_preview.py \
-  --url http://127.0.0.1:8601/ \
-  --timeout-seconds 10
+.venv/bin/python scripts/verify_unified_preview.py \
+  --editor-port 8611 \
+  --middleware-port 8807 \
+  --asset-worker-port 8810 \
+  --preview-gateway-port 8612 \
+  --extension-port 8010 \
+  --weisile-link-port 20211 \
+  --trainer-port 18766 \
+  --timeout-seconds 90
 ```
 
-Current result:
+Result summary:
 
 ```text
-ScratchAI GUI bundle is missing enabled assistant markers:
-SCRATCH_AI_ENABLED=true, SCRATCH_AI_PANEL_ENABLED=true
+passed: 7
+failed: 0
+scratchai-editor-html: matched Scratch 3.0 GUI; matched SCRATCH_AI_ENABLED=true, SCRATCH_AI_PANEL_ENABLED=true, ai-logic-coach-toggle
 ```
 
-## Root Cause
+## Browser Result
 
-The ScratchAI assistant was ported into EV3SC source, but the currently visible
-preview is being served from an already-built static bundle that was compiled
-without ScratchAI runtime flags. That static preview can contain the assistant
-source text in `gui.js` while still rendering no assistant in the browser.
-
-Use `scripts/start_scratchai_preview.py` or the full
-`scripts/start_unified_preview.py` stack so webpack compiles the ScratchAI
-feature flags for the preview session. Do not use a plain static
-`python -m http.server` preview as Section 13.7 ScratchAI browser evidence.
+The in-app browser was opened to `http://127.0.0.1:8611/`. The Scratch visual
+surface remained the standard Scratch GUI, and the ScratchAI assistant appeared
+as the right-side localized `AI思考帮手` control.
 
 ## Next Action
 
-Stop or move the static 8601 server, start the EV3SC-owned unified preview stack,
-rerun `scripts/verify_unified_preview.py`, and confirm in the browser that
-`data-testid="ai-logic-coach-toggle"` is present before starting the 45-minute
-sensor freshness run.
+Use `docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md` and
+`docs/classroom/evidence/section13_7_preview_rehearsal_20260525.json` for the
+45-minute simulated-preview rehearsal evidence. Physical EV3 classroom approval
+remains blocked until real EV3 endpoint and real transport evidence are
+attached.
