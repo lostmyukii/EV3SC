@@ -65,7 +65,12 @@ In another terminal, run:
 
 The verifier polls the editor URL, checks the Scratch GUI HTML title, then
 fetches `gui.js` and confirms the ScratchAI-enabled Scratch GUI bundle is being
-served.
+served. It also verifies that the compiled runtime flags enable the visible
+AI Thinking Helper (`data-testid="ai-logic-coach-toggle"`).
+
+A plain static server pointed at an old `build/` directory is not valid
+ScratchAI preview evidence unless that bundle was compiled with
+`SCRATCH_AI_ENABLED=true` and `SCRATCH_AI_PANEL_ENABLED=true`.
 
 ## Current Boundary
 

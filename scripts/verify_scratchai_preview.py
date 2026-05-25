@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -18,6 +19,34 @@ POLL_INTERVAL_SECONDS = 2.0
 
 class ScratchAIPreviewVerificationError(RuntimeError):
     """Raised when the ScratchAI editor preview does not load."""
+
+
+def _has_enabled_flag(gui_js: str, flag_name: str) -> bool:
+    patterns = (
+        rf"{re.escape(flag_name)}\s*=\s*parseBooleanFlag\(\s*(?:false\s*\?\s*0\s*:\s*)?[\"']true[\"']",
+        rf"{re.escape(flag_name)}:\s*[A-Za-z0-9_]+\s*&&\s*parseBooleanFlag\(\s*(?:false\s*\?\s*0\s*:\s*)?[\"']true[\"']",
+    )
+    return any(re.search(pattern, gui_js) for pattern in patterns)
+
+
+def verify_scratchai_gui_bundle(gui_js: str) -> list[str]:
+    """Verify the served GUI bundle enables the visible ScratchAI assistant."""
+
+    required = {
+        "SCRATCH_AI_ENABLED=true": _has_enabled_flag(gui_js, "scratchAIEnabled"),
+        "SCRATCH_AI_PANEL_ENABLED=true": _has_enabled_flag(
+            gui_js,
+            "scratchAIPanelEnabled",
+        ),
+        "ai-logic-coach-toggle": "ai-logic-coach-toggle" in gui_js,
+    }
+    missing = [marker for marker, present in required.items() if not present]
+    if missing:
+        raise ScratchAIPreviewVerificationError(
+            "ScratchAI GUI bundle is missing enabled assistant markers: "
+            + ", ".join(missing)
+        )
+    return list(required.keys())
 
 
 def _fetch_text(url: str, *, timeout: float) -> tuple[int, str]:
@@ -84,6 +113,7 @@ def verify_scratchai_preview(
             "Scratch GUI bundle is missing markers: "
             + ", ".join(missing_bundle_markers)
         )
+    enabled_assistant_markers = verify_scratchai_gui_bundle(gui_js)
 
     return {
         "url": url,
@@ -95,6 +125,7 @@ def verify_scratchai_preview(
         "markers_checked": [
             *required_html_markers,
             *required_bundle_markers,
+            *enabled_assistant_markers,
         ],
     }
 

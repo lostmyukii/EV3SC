@@ -93,6 +93,13 @@ The ScratchAI editor can now be locally previewed from EV3SC.
 | `.venv/bin/python -m pytest tests/test_unified_preview_stack.py -q` | exits 0 | passed; verifies prerequisite detection, local-only service command generation, port/env wiring, health-check manifest generation, and JSON-ready verification summaries |
 | `.venv/bin/python scripts/verify_unified_preview.py --weisile-link-port 20211 --trainer-port 18766 --timeout-seconds 180` while `scripts/start_unified_preview.py` runs on the same custom ports | exits 0 | passed; 7/7 checks reported OK for asset worker, middleware health/status, preview gateway status, ScratchAI editor HTML, WeisileLink JSON-RPC `getVersion`, and Trainer WebSocket connectivity |
 
+## ScratchAI Browser Rehearsal Gate
+
+| Command | Expected result | Result |
+|---|---|---|
+| `.venv/bin/python -m pytest tests/test_scratchai_preview_verifier.py tests/test_unified_preview_stack.py -q` | exits 0 | passed; verifies the ScratchAI preview and unified-stack verifiers reject GUI bundles where the AI Thinking Helper source exists but `SCRATCH_AI_ENABLED` or `SCRATCH_AI_PANEL_ENABLED` compiled false. |
+| `.venv/bin/python scripts/verify_scratchai_preview.py --url http://127.0.0.1:8601/ --timeout-seconds 10` against the currently visible static preview | exits 1 | passed as a blocking check; the current 8601 preview is served by `python -m http.server` and the bundle has disabled ScratchAI assistant flags, matching the observed missing AI assistant in the browser. |
+
 ## ScratchAI Final Automated Acceptance
 
 | Command | Expected result | Result |

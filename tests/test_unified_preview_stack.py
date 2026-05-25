@@ -11,6 +11,7 @@ from scripts.start_unified_preview import (
     missing_unified_preview_requirements,
 )
 from scripts.verify_unified_preview import (
+    probe_health_check,
     verification_summary,
     verify_health_checks,
 )
@@ -192,3 +193,37 @@ def test_http_health_fetch_bypasses_environment_proxy(monkeypatch):
         for handler in calls[0][1]
     )
     assert calls[1] == ("open", "http://127.0.0.1:8787/healthz", 1.0)
+
+
+def test_scratchai_editor_health_check_requires_enabled_ai_assistant(
+    monkeypatch,
+    tmp_path,
+):
+    _write_unified_preview_tree(tmp_path)
+    calls = []
+
+    def fake_fetch(url, *, timeout):
+        calls.append((url, timeout))
+        if url.endswith("/gui.js"):
+            return """
+const scratchAIEnabled = parseBooleanFlag( false ? 0 : "", false);
+const aiFeatureFlags = Object.freeze({
+  scratchAIEnabled,
+  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "", false)
+});
+"data-testid": "ai-logic-coach-toggle";
+"""
+        return '<title>Scratch 3.0 GUI</title><script src="gui.js"></script>'
+
+    monkeypatch.setattr(verify_unified_preview, "_fetch_text", fake_fetch)
+    check = build_unified_preview_plan(root=tmp_path).health_checks[-3]
+
+    result = probe_health_check(check)
+
+    assert check.id == "scratchai-editor-html"
+    assert result["ok"] is False
+    assert "SCRATCH_AI_ENABLED=true" in result["detail"]
+    assert calls == [
+        ("http://127.0.0.1:8601/", 10.0),
+        ("http://127.0.0.1:8601/gui.js", 30.0),
+    ]

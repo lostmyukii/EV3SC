@@ -13,6 +13,7 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `WORKBOOK_LINE_PATROL.md` | Students | Collect reflected-light data for line and floor classification. |
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
 | `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
+| `SCRATCHAI_BROWSER_REHEARSAL.md` | QA or pilot lead | Record the ScratchAI unified-stack browser evidence before the long classroom run. |
 | `REAL_EV3_SMOKE_HANDOFF.md` | Physical EV3 operator | Run the real-brick preflight, start WeisileLink against real hardware, and capture the confirmed one-brick smoke evidence. |
 | `REAL_EV3_SMOKE_READINESS.md` | QA or pilot lead | Record the non-invasive endpoint readiness check before running `--confirm-real-ev3`. |
 | `real_ev3_rehearsal_evidence.template.json` | QA or pilot lead | Record real hardware, sensor, AI Quest, and multi-device evidence for the rehearsal runner. |
@@ -79,3 +80,9 @@ Before any pilot class, run:
 
 Until real EV3 evidence is attached, the generated rehearsal report must remain
 blocked and must not be treated as classroom approval.
+
+The ScratchAI browser gate must also pass before the long rehearsal. If the
+editor is served by a plain static `python -m http.server` process, rerun the
+preview with `scripts/start_scratchai_preview.py` or
+`scripts/start_unified_preview.py`; otherwise the AI assistant feature flags may
+remain disabled even though the source code exists in the bundle.

@@ -9,6 +9,7 @@ import json
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Dict, List
@@ -19,6 +20,7 @@ try:
         UnifiedPreviewPlan,
         build_unified_preview_plan,
     )
+    from scripts.verify_scratchai_preview import verify_scratchai_gui_bundle
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from scripts.start_unified_preview import (
@@ -26,6 +28,7 @@ except ModuleNotFoundError:
         UnifiedPreviewPlan,
         build_unified_preview_plan,
     )
+    from scripts.verify_scratchai_preview import verify_scratchai_gui_bundle
 
 
 DEFAULT_TIMEOUT_SECONDS = 90.0
@@ -50,6 +53,10 @@ def _fetch_text(url: str, *, timeout: float) -> str:
             raise UnifiedPreviewVerificationError(f"HTTP {status} while checking {url}")
         charset = response.headers.get_content_charset() or "utf-8"
         return response.read().decode(charset, errors="replace")
+
+
+def _join_url(base_url: str, path: str) -> str:
+    return urllib.parse.urljoin(base_url.rstrip("/") + "/", path)
 
 
 async def _probe_websocket_json_rpc(url: str, expected: str) -> str:
@@ -86,6 +93,10 @@ def probe_health_check(check: HealthCheck) -> Dict[str, object]:
                     f"{check.url} did not contain {check.expected}"
                 )
             detail = f"matched {check.expected}"
+            if check.id == "scratchai-editor-html":
+                gui_js = _fetch_text(_join_url(check.url, "gui.js"), timeout=30.0)
+                markers = verify_scratchai_gui_bundle(gui_js)
+                detail = f"{detail}; matched {', '.join(markers)}"
         elif check.kind == "websocket-json-rpc":
             asyncio.run(_probe_websocket_json_rpc(check.url, check.expected))
             detail = f"matched {check.expected}"
