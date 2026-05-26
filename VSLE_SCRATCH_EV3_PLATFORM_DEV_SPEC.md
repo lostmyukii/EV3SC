@@ -2855,6 +2855,13 @@ material into:
 - **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
 - **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
 
+### [2026-05-26] ScratchAI testing auth bypass verification
+- **Status**: ✅ Completed
+- **Commit**: `040d728`
+- **What was done**: Disabled Basic Auth on the isolated `101.42.92.6:18612` ScratchAI preview for the current testing stage while retaining `systemcreator` as the staged username for future re-enabling. Verified unauthenticated root preview, preview status, DeepSeek health, SiliconFlow manifest, and SiliconFlow role image generation, including rejection of an opaque image and successful transparent role generation with server-side repair.
+- **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
+- **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
