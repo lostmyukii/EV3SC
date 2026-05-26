@@ -2972,6 +2972,13 @@ material into:
 - **Files created/modified**: `docs/desktop/*.md`, `desktop/README.md`, `desktop/macos/*`, `desktop/windows/*`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 2 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: implement diagnostics export and redaction in `weisile-link/weisile_link/desktop/diagnostics.py` with failing-then-passing tests.
 
+### [2026-05-26] WeisileLink desktop diagnostics redaction bundle
+- **Status**: ✅ Completed
+- **Commit**: `4d4f77e`
+- **What was done**: Added the WeisileLink desktop diagnostics package with token/API-key redaction, oversized label truncation, default Bluetooth address redaction, optional device-identifier inclusion for support, and default exclusion of raw student data. Verified the diagnostics tests failed before the package existed, then passed after implementation.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/weisile_link/desktop/diagnostics.py`, `weisile-link/tests/test_desktop_diagnostics.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 3 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: implement the official EV3 Direct Command encoder with source-backed byte framing tests and source-register updates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
