@@ -1,0 +1,193 @@
+{
+  "capturedAt": "2026-05-26T03:22:28.882Z",
+  "url": "http://101.42.92.6:18612/",
+  "libraryVisibleBeforeClick": true,
+  "libraryVisibleAfterClick": false,
+  "hasVSLECategory": true,
+  "ev3ScriptLoadedUnsandboxed": true,
+  "ev3LoadedViaSandboxWorker": false,
+  "expectedEV3ExtensionURL": "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+  "diagnostics": [
+    {
+      "type": "worker",
+      "url": "http://101.42.92.6:18612/chunks/fetch-worker.7298f079654fee093ceb.js"
+    },
+    {
+      "type": "requestfinished",
+      "url": "http://101.42.92.6:18612/vsle-ev3-extension/index.js"
+    }
+  ],
+  "resources": [
+    {
+      "name": "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+      "initiatorType": "script"
+    }
+  ],
+  "scriptSrcs": [
+    "http://101.42.92.6:18612/vsle-ev3-extension/index.js"
+  ],
+  "bodyIncludesEV3Blocks": true,
+  "bodyExcerpt": "Settings File Edit Share See Project Page Tutorials Debug scratch-cat Code Costumes Sounds Motion Looks Sound Events Control Sensing Operators Variables My Blocks EV3 next backdrop 25 change color effect by 0 set color effect to clear graphic effects backdrop number stop all sounds 10 change pitch effect by 100 set pitch effect to clear sound effects -10 change volume by 100 set volume to % volume when clicked when space key pressed 10 when loudness > 1 wait seconds 10 repeat forever if then if then else wait until repeat until answer space key pressed? mouse down? mouse x mouse y loudness timer reset timer current year days since 2000 online? username + - * / 1 10 pick random to 50 > 50 < 50 = and or not mod round abs of 10 move steps 15 turn degrees 15 turn degrees 0 0 go to x: y: 1 0 0 glide secs to x: y: 90 point in direction 10 change x by 0 set x to 10 change y by 0 set y to if on edge, bounce set rotation style left-right x position y position direction Hello! 2 say for seconds Hello! say Hmm... 2 think for seconds Hmm... think next costume 10 change size by 100 set size to % show hide go to front layer 1 go forward layers costume number size when this sprite clicked when I start as a clone delete this clone touching color ? color is touching ? What's your name? ask and wait set drag mode draggable apple banana join 1 apple letter of apple length of apple a contains ? Motion random position go to 1 random position glide secs to mouse-pointer point towards Looks costume2 switch costume to backdrop1 switch backdrop to Sound Meow play sound until done Meow start sound Events when backdrop switches to backdrop1 when I receive message1 message1 broadcast message1 broadcast and wait Control stop all myself create clone of Sensing mouse-pointer touching ? mouse-pointer distance to Stage backdrop # of Operators Variables Make a Variable my variable 0 set my variable to 1 change my variable by show variable my variable hide variable my variable Make a List My Blocks Make a Block EV3 A 50 电机 以 % 速度持续运行 A 50 1 电机 以 % 速度运行 秒 A 360 50 电机 运行到绝对位置 度 速度 % A 360 50 电机 旋转 度 速度 % A 停止电机 停止所有电机 A 50 设置电机 速度为 % A B 50 1 同步运行电机 和 速度 时间 秒 A B 0 50 同步电机 转向 速度 A 重置电机 位置计数 A speed kp 1 设置电机 PID 为 A 电机 当前位置 (度) A 电机 当前速度 (%) A speed kp 电机 PID A 等待电机 停止 A 电机 正在运行? S1 颜色传感器 识别颜色 S1 颜色传感器 反射光强度 S1 颜色传感器 环境光强度 S1 R 颜色传感器 RGB值 S1 5 颜色传感器 检测到 ? S2 超声波传感器 距离 (厘米) S2 超声波传感器 距离 (英寸) S2 20 超声波传感器 距离小于 厘米? S3 陀螺仪传感器 角度 S3 陀螺仪传感器 角速度 (°/s) S3 重置陀螺仪传感器 S4 触碰传感器 被按下? S4 等待触碰传感器 被按下 S4 等待触碰传感器 松开 S4 红外传感器 距离 S4 1 红外传感器 信标方向 (频道 ) S4 1 红外传感器 信标距离 (频道 ) S4 1 红外遥控器 频道 按钮 center EV3砖块 键被按下? EV3电池电量 (%) 440 0.5 播放音调 Hz 持续 秒 440 0.5 播放音调 Hz 持续 秒 并等待 ready.wav 播放声音文件 100 设置音量为 % 发出哔声 停止声音 1 Hello 在第 行显示 1 0 在第 行显示数字 清空显示屏 smile.png 显示图案 0 0 Hello 在位置 X= Y= 显示 0 0 177 127 从 , 到 , 画线 90 64 10 在 , 画圆形 半径= 刷新显示屏 green 设置状态灯为 关闭状态灯 100 等待 毫秒 停止所有EV3功能 EV3已连接? EV3电池电压 (V) 类别A 开始采集数据 标签= 停止数据采集 类别A 手动记录一条数据 标签= 上传数据到训练工场 清空已采集数据 已采集数据条数 导出数据为CSV文件 100 类别A 每 毫秒自动采集一条 标签= project scratch-project ",
+  "recentLogs": [
+    {
+      "type": "error",
+      "text": "Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s localesOnly localesonly \n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at ModalFocusProvider (http://101.42.92.6:18612/gui.js:178251:5)\n    at MediaQuery (http://101.42.92.6:18612/gui.js:282918:23)\n    at GUIComponent (http://101.42.92.6:18612/gui.js:160641:70)\n    at ConnectFunction (http://101.42.92.6:18612/gu"
+    },
+    {
+      "type": "error",
+      "text": "Warning: Unknown event handler property `%s`. It will be ignored.%s onUpdateDynamicAssets \n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at ModalFocusProvider (http://101.42.92.6:18612/gui.js:178251:5)\n    at MediaQuery (http://101.42.92.6:18612/gui.js:282918:23)\n    at GUIComponent (http://101.42.92.6:18612/gui.js:160641:70)\n    at ConnectFunction (http://101.42.92.6:18612/gui.js:279160:103)\n    at GUI (http://101.42.92.6:18612/gui.js:172439:1)\n    at ConnectFunction (http://101.42.92.6:18612/gui.js:279160:103)\n    at injectIntl(Connect(GUI))\n    at SystemPreferences (h"
+    },
+    {
+      "type": "error",
+      "text": "Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s setTheme settheme \n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at ModalFocusProvider (http://101.42.92.6:18612/gui.js:178251:5)\n    at MediaQuery (http://101.42.92.6:18612/gui.js:282918:23)\n    at GUIComponent (http://101.42.92.6:18612/gui.js:160641:70)\n    at ConnectFunction (http://101.42.92.6:18612/gui.js:2"
+    },
+    {
+      "type": "warning",
+      "text": "Warning: componentWillMount has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move code with side effects to componentDidMount, and set initial state in the constructor.\n* Rename componentWillMount to UNSAFE_componentWillMount to suppress this warning in non-strict mode. In React 18.x, only the UNSAFE_ name will work. To rename all deprecated lifecycles to their new names, you can run `npx react-codemod rename-unsafe-lifecycles` in your project source folder.\n\nPlease update the following components: %s ProjectSaverCompone"
+    },
+    {
+      "type": "warning",
+      "text": "Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move data fetching code or side effects to componentDidUpdate.\n* If you're updating state whenever props change, refactor your code to use memoization techniques or move it to static getDerivedStateFromProps. Learn more at: https://reactjs.org/link/derived-state\n* Rename componentWillReceiveProps to UNSAFE_componentWillReceiveProps to suppress this warning in non-strict mode. In React 18.x, only the UNSAFE_ name will work. To rename all d"
+    },
+    {
+      "type": "warning",
+      "text": "Blockly.Workspace.getVariablesOfType was deprecated in v12 and will be deleted in v13.\nUse Blockly.Workspace.getVariableMap().getVariablesOfType instead."
+    },
+    {
+      "type": "warning",
+      "text": "There are no variable blocks, but there is a variable category."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "error",
+      "text": "Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node%s \n    at Popover (http://101.42.92.6:18612/gui.js:276878:5)\n    at label\n    at Label (http://101.42.92.6:18612/gui.js:160383:20)\n    at DirectionPicker (http://101.42.92.6:18612/gui.js:159782:70)\n    at DirectionPicker (http://101.42.92.6:18612/gui.js:171944:5)\n    at div\n    at div\n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at Sprite"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x13c001c4e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x13c001d7a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x13c001d7a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x13c001d7a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s DeleteButton \n    at DeleteButton (http://101.42.92.6:18612/gui.js:159414:143)\n    at div\n    at http://101.42.92.6:18612/gui.js:452166:13\n    at http://101.42.92.6:18612/gui.js:452142:13\n    at http://101.42.92.6:18612/gui.js:451841:13\n    at http://101.42.92.6:18612/gui.js:449446:13\n    at Provider (http://101.42.92.6:18612/gui.js:449726:15)\n    at Provider (http://101.42.92.6:18612/gui.js:449726:15)\n    at Provider (http://101.42.92.6:18612/g"
+    },
+    {
+      "type": "error",
+      "text": "Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s dynamicBackdrops dynamicbackdrops \n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at StageSelector (http://101.42.92.6:18612/gui.js:167621:7)\n    at ThrottledPropertyWrapper (http://101.42.92.6:18612/gui.js:194574:5)\n    at DropAreaWrapper (http://101.42.92.6:18612/gui.js:187441:9)\n    at ConnectFunction (http://"
+    },
+    {
+      "type": "warning",
+      "text": "Warning: componentWillReceiveProps has been renamed, and is not recommended for use. See https://reactjs.org/link/unsafe-component-lifecycles for details.\n\n* Move data fetching code or side effects to componentDidUpdate.\n* If you're updating state whenever props change, refactor your code to use memoization techniques or move it to static getDerivedStateFromProps. Learn more at: https://reactjs.org/link/derived-state\n* Rename componentWillReceiveProps to UNSAFE_componentWillReceiveProps to suppress this warning in non-strict mode. In React 18.x, only the UNSAFE_ name will work. To rename all d"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateSliderHandles_: slider DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "FieldColourSlider.updateDom_: slider/readout DOM is not fully initialized"
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s SpinnerComponent \n    at SpinnerComponent (http://101.42.92.6:18612/gui.js:166502:5)\n    at div\n    at div\n    at div\n    at Box (http://101.42.92.6:18612/gui.js:156275:7)\n    at div\n    at div\n    at ModalPortal (http://101.42.92.6:18612/gui.js:275528:5)\n    at Modal (http://101.42.92.6:18612/gui.js:275212:5)\n    at ModalComponent (http://101.42.92.6:18612/gui.js:164483:136)\n    at Modal (http://101.42.92.6:18612/gui.js:173318:5)\n    at Connect"
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    }
+  ]
+}

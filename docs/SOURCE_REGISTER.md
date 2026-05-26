@@ -366,6 +366,14 @@ ports. This register records the sources used for the current implementation.
 | Real EV3 smoke handoff | `/Users/yukii/Desktop/EV3SC/docs/classroom/REAL_EV3_SMOKE_HANDOFF.md` | Operator-facing physical EV3 preflight and smoke-capture command sequence, including EV3 endpoint checks, WeisileLink real WiFi transport startup, explicit hardware confirmation warning, and the Section 13.7 follow-up command |
 | Real EV3 rehearsal evidence report | `/Users/yukii/Desktop/EV3SC/docs/classroom/REAL_EV3_REHEARSAL.md`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_evidence.template.json`, `/Users/yukii/Desktop/EV3SC/docs/classroom/real_ev3_rehearsal_pending_report.json` | Records the current blocked hardware gate and the JSON fields QA must fill from real ScratchAI + EV3 + AI Quest rehearsal evidence |
 
+## ScratchAI Integration — Public Deployment Evidence
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| Public ScratchAI deployment audit | `/Users/yukii/Desktop/EV3SC/docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md` | Records the isolated `101.42.92.6:18612` runtime layout, service names, AI provider configuration, and public EV3 extension click verification |
+| Public EV3 browser click evidence | `/Users/yukii/Desktop/EV3SC/docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`, `/Users/yukii/Desktop/EV3SC/docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png` | Confirms the public `EV3` extension card loads the VSLE-EV3 category, EV3 blocks appear in the Scratch palette, the extension script is loaded by the main-thread unsandboxed path, and the VSLE-EV3 URL is not loaded through a sandbox worker |
+| Public VSLE-EV3 extension URL | `http://101.42.92.6:18612/vsle-ev3-extension/index.js` | Browser-reachable unsandboxed extension bundle embedded in the public ScratchAI GUI build and served with `application/javascript` content type |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

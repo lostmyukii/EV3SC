@@ -70,6 +70,7 @@ Important: EV3SC currently has image providers for `mock`, `gemini-image`, `open
 - AI helper opened in browser: `docs/deployment/evidence/scratchai_101_42_92_6_ai_helper_open_20260525.png`
 - Asset generator visible: `docs/deployment/evidence/scratchai_101_42_92_6_asset_generator_20260525.png`
 - Legacy `/preview/index.html` path fixed and verified: `docs/deployment/evidence/scratchai_101_42_92_6_preview_path_ai_helper_20260525.png`
+- EV3 extension click loads VSLE-EV3 blocks: `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png`
 
 The `/preview/gui.js` compatibility check now returns:
 
@@ -77,6 +78,40 @@ The `/preview/gui.js` compatibility check now returns:
 HTTP/1.1 200 OK
 Content-Type: application/javascript; charset=utf-8
 ```
+
+## EV3 Extension Evidence
+
+On 2026-05-26, the isolated preview was redeployed as release
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-202605261110-ev3-url`.
+The build embeds `SCRATCH_AI_VSLE_EV3_EXTENSION_URL` as
+`http://101.42.92.6:18612/vsle-ev3-extension/index.js` and keeps ScratchAI
+middleware calls same-origin through the preview gateway.
+
+The EV3 extension static bundle is served from the in-repo
+`vsle-ev3-extension` source under `static/vsle-ev3-extension/`. The public
+route now returns JavaScript instead of the Scratch HTML fallback:
+
+```text
+HTTP/1.1 200 OK
+Content-Type: application/javascript; charset=utf-8
+```
+
+Browser click evidence:
+
+```json
+{
+  "hasVSLECategory": true,
+  "bodyIncludesEV3Blocks": true,
+  "ev3ScriptLoadedUnsandboxed": true,
+  "ev3LoadedViaSandboxWorker": false,
+  "expectedEV3ExtensionURL": "http://101.42.92.6:18612/vsle-ev3-extension/index.js"
+}
+```
+
+Evidence files:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png`
 
 ## API Evidence
 
