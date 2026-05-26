@@ -2993,6 +2993,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `weisile-link/tests/test_official_ev3_bt_transport.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/transport/__init__.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 5 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: add macOS/Windows native adapter package documentation plus clean-machine installer and official-firmware hardware smoke evidence gates.
 
+### [2026-05-26] Desktop install smoke evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `c57952d`
+- **What was done**: Added macOS and Windows native Bluetooth adapter boundary README files plus a desktop install smoke evidence runner that writes Markdown reports and refuses to mark support ready without release-artifact install, reboot/startup, Scratch Link endpoint, and real official-firmware EV3 Bluetooth evidence. Updated the desktop docs and source register so localhost-only developer runs cannot be mistaken for classroom-ready support.
+- **Files created/modified**: `desktop/macos/native/README.md`, `desktop/windows/native/README.md`, `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 6 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: audit and update `AGENTS.md` and the main platform spec so desktop distribution requirements, compatibility rows, and installer gates remain aligned with the implemented evidence workflow.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
