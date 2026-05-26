@@ -3020,6 +3020,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Run the Final Verification block from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`, including desktop packaging tests, install-smoke tests, WeisileLink desktop/official-firmware tests, desktop asset validation, and final git status review.
 
+### [2026-05-26] WeisileLink desktop final verification
+- **Status**: ✅ Completed
+- **Commit**: `b499e3e`
+- **What was done**: Ran the Final Verification block from the WeisileLink Desktop distribution plan. The root desktop packaging/install-smoke tests passed 10/10, the WeisileLink desktop diagnostics plus official EV3 Direct Command and Bluetooth transport tests passed 20/20, the desktop asset validator printed `desktop assets ok`, and git status showed only the preexisting local `.DS_Store`, `.preview-run/`, and `downloads/` artifacts outside this plan.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Collect real clean-machine macOS and Windows release-artifact evidence plus real official-firmware EV3 Bluetooth smoke evidence before any desktop package or compatibility mode is marked classroom ready.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
