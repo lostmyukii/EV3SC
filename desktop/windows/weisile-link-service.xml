@@ -1,0 +1,14 @@
+<service>
+  <id>WeisileLink</id>
+  <name>WeisileLink</name>
+  <description>VSLE Scratch-EV3 local bridge</description>
+  <!-- WEISILE_LINK_HOST=127.0.0.1 -->
+  <executable>%BASE%\WeisileLink.exe</executable>
+  <arguments></arguments>
+  <env name="WEISILE_LINK_HOST" value="127.0.0.1"/>
+  <env name="WEISILE_LINK_PORT" value="20111"/>
+  <env name="TRAINER_WS_PORT" value="8766"/>
+  <env name="WEISILE_TRANSPORT" value="wifi"/>
+  <env name="LOG_LEVEL" value="INFO"/>
+  <onfailure action="restart" delay="5 sec"/>
+</service>

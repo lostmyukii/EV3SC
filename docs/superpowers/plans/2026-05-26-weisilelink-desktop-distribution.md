@@ -95,7 +95,7 @@ Create or modify these files:
 - Create: `desktop/scripts/validate_desktop_assets.py`
 - Create: `tests/test_desktop_packaging.py`
 
-- [ ] **Step 1: Write failing packaging tests**
+- [x] **Step 1: Write failing packaging tests**
 
 Create `tests/test_desktop_packaging.py`:
 
@@ -162,7 +162,7 @@ def test_desktop_asset_validator_passes():
     assert result.returncode == 0, result.stderr + result.stdout
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run:
 
@@ -172,7 +172,7 @@ python -m pytest tests/test_desktop_packaging.py -v
 
 Expected: FAIL because `docs/desktop` and `desktop` files do not exist.
 
-- [ ] **Step 3: Create the desktop documentation**
+- [x] **Step 3: Create the desktop documentation**
 
 Create the five `docs/desktop/*.md` files. Each file must explicitly include:
 
@@ -192,7 +192,7 @@ Create the five `docs/desktop/*.md` files. Each file must explicitly include:
   chooses to delete them.
 ```
 
-- [ ] **Step 4: Create macOS packaging assets**
+- [x] **Step 4: Create macOS packaging assets**
 
 Create `desktop/macos/weisile-link.launchd.plist`:
 
@@ -236,7 +236,7 @@ Create `desktop/macos/weisile-link.launchd.plist`:
 Create `desktop/macos/install.sh` and `desktop/macos/uninstall.sh` with `set -eu`,
 localhost defaults, LaunchAgent load/unload, and log-directory creation.
 
-- [ ] **Step 5: Create Windows packaging assets**
+- [x] **Step 5: Create Windows packaging assets**
 
 Create `desktop/windows/weisile-link-service.xml`:
 
@@ -268,7 +268,7 @@ $Env:TRAINER_WS_PORT = "8766"
 
 Do not open LAN firewall rules in the default script.
 
-- [ ] **Step 6: Create desktop asset validator**
+- [x] **Step 6: Create desktop asset validator**
 
 Create `desktop/scripts/validate_desktop_assets.py`:
 
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 7: Run tests and validator**
+- [x] **Step 7: Run tests and validator**
 
 Run:
 
@@ -331,7 +331,7 @@ desktop/scripts/validate_desktop_assets.py
 
 Expected: all tests pass and validator prints `desktop assets ok`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 Run:
 
