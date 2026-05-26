@@ -10,11 +10,13 @@
 A unified platform that connects LEGO EV3 robots to a Scratch programming environment,
 with real-time sensor data streaming to an AI training system.
 
-Three interlocking products:
+Five interlocking products:
 1. **TurboWarp Scratch editor** — modified to load the VSLE-EV3 extension
 2. **VSLE-EV3 Extension** — 62 blocks controlling all EV3 hardware
 3. **WeisileLink** — Python bridge replacing Scratch Link (no install required)
 4. **ev3dev server** — Python running on the EV3 hardware
+5. **WeisileLink Desktop** — macOS/Windows local app packaging, diagnostics,
+   and optional official-firmware Bluetooth compatibility
 
 Full specification: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` — read it.
 
@@ -50,6 +52,8 @@ Required in-repo ownership:
 - WeisileLink Python bridge source, protocols, transports, runtime logic, and tests.
 - EV3 firmware/server source, setup scripts, systemd units, and tests.
 - WeisileAI Trainer integration code created for this project.
+- WeisileLink macOS/Windows desktop packaging, installer assets, native
+  adapter boundaries, diagnostics, release checks, and tests.
 - Documentation, source register, progress log, configuration, and test assets.
 
 External paths, including `/Users/yukii/Desktop/scratch ai/`, are source
@@ -174,16 +178,23 @@ Never break the Scratch Link protocol contract.
 {"status": "ok", "data": {...}}  # Not JSON-RPC 2.0
 ```
 
-### 5. Python stdlib for Bluetooth, no pybluez
+### 5. Bluetooth implementation boundaries, no pybluez
 
 ```python
-# CORRECT: Python stdlib socket
+# CORRECT on Linux/ev3dev RFCOMM paths: Python stdlib socket
 import socket
 sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
 
-# WRONG: pybluez is abandoned, breaks on macOS/Python 3.10+
+# WRONG everywhere: pybluez is abandoned, breaks on macOS/Python 3.10+
 import bluetooth  # DO NOT USE
 ```
+
+Python stdlib RFCOMM is only a supported implementation path on Linux/ev3dev
+where `socket.AF_BLUETOOTH` and `socket.BTPROTO_RFCOMM` are available and
+tested. macOS and Windows official-firmware EV3 Bluetooth compatibility MUST use
+a project-owned native adapter boundary or verified Scratch Link-derived native
+adapter. Do not claim macOS/Windows Bluetooth support from Python stdlib socket
+code.
 
 ### 6. EV3 and Scratch development must be based on open-source code
 
@@ -208,12 +219,52 @@ For each committed step:
 - Do not mark a step complete while known required behavior for that step remains missing.
 - Do not use "we will add this later" to defer requirements that belong to the current step.
 
+### 8. WeisileLink Desktop installers must be release-reliable
+
+macOS and Windows WeisileLink distribution work is not complete until the
+release artifact itself is installable and verifiable on a clean machine.
+
+Required desktop-release scope:
+- Bundled runtime or self-contained executable; do not depend on teacher
+  machines having a compatible system Python.
+- Localhost binding by default for `20111` and `8766`; LAN binding requires an
+  explicit teacher configuration.
+- Install, upgrade, auto-start after login/reboot, health check, diagnostics
+  export, crash restart, stop/start controls, and uninstall.
+- Signed release artifacts before external classroom distribution; macOS
+  releases must be notarized before non-developer distribution.
+- Logs and diagnostics must redact pairing tokens, API keys, oversized labels,
+  and student raw data by default.
+- macOS and Windows official-firmware Bluetooth compatibility must remain
+  explicitly labeled as a compatibility mode until native adapter tests and real
+  official-firmware EV3 smoke evidence pass on that OS.
+- Never mark a desktop installer complete if it only works from a developer
+  checkout.
+
+### 9. Official EV3 firmware Bluetooth compatibility is a limited mode
+
+The no-ev3dev Bluetooth mode is for fast trials and basic non-AI classroom
+projects. It does not replace the full ev3dev/WiFi VSLE mode.
+
+Rules for this mode:
+- Use EV3 Direct Command behavior from the EV3 Developer Kit and the
+  EV3SC-owned official Scratch EV3 extension reference.
+- Keep Scratch reporter and Boolean blocks synchronous by updating
+  `SensorCache` from a transport-owned polling loop.
+- Label unsupported blocks clearly in docs and UI; do not silently pretend that
+  AI Quest, 50Hz raw streaming, PID, full display drawing, or all advanced
+  sensors are complete before real hardware verification.
+- Clamp unsafe motor, sound, and duration values in WeisileLink before encoding
+  any EV3 Direct Command.
+- Disconnect or transport loss must issue the safest available stop behavior and
+  surface a Scratch-visible JSON-RPC error.
+
 ---
 
 ## Project Structure
 
 ```
-/Users/yukii/Desktop/scratch ai/
+/Users/yukii/Desktop/EV3SC/
 ├── AGENTS.md                              ← You are here
 ├── VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md ← Full spec
 ├── scratch-ai-platform/
@@ -224,11 +275,11 @@ For each committed step:
 │           │       └── scratch3_ev3/
 │           │           └── index.js       ← BASE CODE to extend
 │           └── scratch-gui/               ← UI: preserve visual design
-├── scratch-link/                          ← Reference: official protocol
-└── [new directories to create]:
-    ├── vsle-ev3-extension/                ← New: full EV3 extension
-    ├── weisile-link/                      ← New: Python bridge
-    └── ev3-firmware/                      ← New: code for EV3 brick
+├── docs/                                  ← Specs, plans, source register, classroom docs
+├── vsle-ev3-extension/                    ← Full EV3 extension
+├── weisile-link/                          ← Python bridge
+├── ev3-firmware/                          ← Code for EV3 brick
+└── deploy/                                ← Local deployment/service assets
 ```
 
 ### Key Files to Know
@@ -485,7 +536,7 @@ docs(blocks): update motor block reference
 | Mistake | Why Wrong | Correct Approach |
 |---------|-----------|-----------------|
 | Putting `await` in reporter block | Freezes Scratch | Read from sensor cache synchronously |
-| Importing pybluez | Abandoned, breaks on macOS | Use `socket.AF_BLUETOOTH` stdlib |
+| Importing pybluez | Abandoned and unreliable on modern macOS/Python | Use stdlib RFCOMM only on verified Linux/ev3dev paths; macOS/Windows need a native adapter boundary or WiFi |
 | Modifying scratch-gui CSS | Breaks Scratch visual identity | Add new CSS classes, don't modify existing |
 | Using sandboxed extension | 1s+ latency breaks motor control | Must use Unsandboxed extension |
 | Breaking JSON-RPC 2.0 format | Official scratch3_ev3 stops working | Test with both extensions |

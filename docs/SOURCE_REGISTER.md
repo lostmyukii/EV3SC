@@ -374,6 +374,19 @@ ports. This register records the sources used for the current implementation.
 | Public EV3 browser click evidence | `/Users/yukii/Desktop/EV3SC/docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`, `/Users/yukii/Desktop/EV3SC/docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png` | Confirms the public `EV3` extension card loads the VSLE-EV3 category, EV3 blocks appear in the Scratch palette, the extension script is loaded by the main-thread unsandboxed path, and the VSLE-EV3 URL is not loaded through a sandbox worker |
 | Public VSLE-EV3 extension URL | `http://101.42.92.6:18612/vsle-ev3-extension/index.js` | Browser-reachable unsandboxed extension bundle embedded in the public ScratchAI GUI build and served with `application/javascript` content type |
 
+## WeisileLink Desktop Distribution and Official EV3 Bluetooth Compatibility
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| WeisileLink desktop distribution design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-26-weisilelink-desktop-distribution-design.md` | macOS/Windows installer reliability, desktop supervision, diagnostics, native Bluetooth adapter boundaries, and compatibility-mode rollout requirements |
+| WeisileLink desktop implementation plan | `/Users/yukii/Desktop/EV3SC/docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md` | Task sequence for desktop docs/assets, diagnostics export, Direct Command encoding, official firmware BT transport, native adapter evidence, AGENTS updates, and spec updates |
+| VSLE platform specification | `/Users/yukii/Desktop/EV3SC/VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md` | Phase 4, Section 13.6/13.8 desktop gates, Section 14.7 desktop release rules, Section 16 degradation boundaries, and Section 18 compatibility rows |
+| AGENTS project instructions | `/Users/yukii/Desktop/EV3SC/AGENTS.md` | Non-negotiable desktop installer reliability, official firmware Bluetooth limitations, native adapter boundaries, no pybluez, and EV3SC-only file ownership |
+| WeisileLink CLI and deployment baseline | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/cli.py`, `/Users/yukii/Desktop/EV3SC/deploy/README.md`, `/Users/yukii/Desktop/EV3SC/deploy/weisile-link.plist`, `/Users/yukii/Desktop/EV3SC/deploy/weisile-link.service` | Existing service ports, localhost defaults, health/status behavior, and native service templates used as the starting point for desktop packaging |
+| Scratch Link Network Protocol | `/Users/yukii/Desktop/scratch ai/scratch-link/Documentation/NetworkProtocol.md` | `/scratch/bt` JSON-RPC endpoint, `discover`/`connect`/`send` flow, base64 message conventions, and official Scratch Link compatibility constraints |
+| Scratch official EV3 extension | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | EV3 Direct Command usage patterns and Scratch-side official-firmware compatibility behavior that must be source-backed before implementation |
+| LEGO MINDSTORMS EV3 Communication Developer Kit | `https://www.lego.com/cdn/cs/set/assets/blt6879b00ae6951482/LEGO_MINDSTORMS_EV3_Communication_Developer_Kit.pdf` | Direct Command framing, direct replies, bytecode command basis, and communication examples for official firmware Bluetooth compatibility |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from

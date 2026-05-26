@@ -88,8 +88,10 @@ The official Scratch Link + EV3 integration has five fundamental limitations con
 | Extension type | Unsandboxed Extension | Eliminates Worker postMessage overhead; required for 50Hz sensor polling |
 | EV3 OS | ev3dev (GPL-2.0) | Only option supporting Python WebSocket server on EV3 hardware |
 | Bridge protocol | JSON-RPC 2.0 over WebSocket | Scratch Link compatible; enables drop-in replacement |
-| BT transport | Python `socket` stdlib (RFCOMM) where OS supports `AF_BLUETOOTH` | No pybluez dependency; Linux/ev3dev supported, macOS/Windows use WiFi first |
+| Full-mode BT transport | Python `socket` stdlib (RFCOMM) only where `AF_BLUETOOTH` is verified | No pybluez dependency; Linux/ev3dev fallback only, macOS/Windows use WiFi unless a native adapter is implemented |
 | WiFi transport | asyncio WebSocket (WiFi dongle) | Enables multi-EV3, 50Hz streaming, eliminates Bluetooth |
+| WeisileLink Desktop | Signed macOS/Windows local app with bundled runtime | Makes classroom install reliable without teacher-installed Python |
+| Official firmware compatibility | Separate Bluetooth Classic mode using EV3 Direct Commands | Fast no-ev3dev trial path for basic non-AI projects; not equivalent to full VSLE mode |
 | UI preservation | Strict Scratch visual identity | Zero learning curve for existing Scratch users |
 | Data pipeline | WebSocket broadcast router | Single EV3 data stream → multiple consumers simultaneously |
 
@@ -1880,7 +1882,7 @@ classroom deployment, even if Phase 1 functionality appears to work.
 - [ ] All 62 blocks functional
 - [ ] Real-time sensor chart in WeisileAI Trainer showing EV3 data
 - [ ] Data collection workflow: record → upload → train → export
-- [ ] Bluetooth transport functional as fallback
+- [ ] Bluetooth transport functional as Linux/ev3dev RFCOMM fallback
 - [ ] 2 simultaneous EV3 bricks supported
 
 ### Phase 3 — Polish & AI Quest (Weeks 9–12)
@@ -1896,6 +1898,40 @@ classroom deployment, even if Phase 1 functionality appears to work.
 | Teacher guide + student workbooks | 5 days |
 | Performance testing (50Hz sustained, 4h session) | 3 days |
 | Security review | 2 days |
+
+### Phase 4 — WeisileLink Desktop and Official Firmware Compatibility
+
+**Goal**: Package WeisileLink as reliable macOS/Windows teacher-computer apps
+and add a clearly labeled official EV3 firmware Bluetooth compatibility mode.
+
+This phase does not replace full VSLE mode. Full VSLE mode remains the
+production classroom path for AI Quest, 50Hz raw sensor streaming, multi-device
+sessions, PID tuning, and complete display/system control.
+
+| Task | Duration |
+|------|----------|
+| Desktop documentation and packaging asset tests | 2 days |
+| Diagnostics export with redaction tests | 2 days |
+| EV3 Direct Command encoder for official firmware mode | 4 days |
+| Official firmware Bluetooth transport shell behind native adapter interface | 3 days |
+| macOS packaging assets, LaunchAgent, signing/notarization notes | 4 days |
+| Windows packaging assets, startup/service path, firewall-safe defaults | 4 days |
+| Native macOS and Windows Bluetooth adapter evidence gates | 5 days |
+| Clean-machine install, upgrade, reboot, uninstall, and diagnostics smoke | 4 days |
+
+**Phase 4 Acceptance Criteria**:
+- [ ] macOS and Windows release artifacts bundle their runtime and do not depend
+      on system Python.
+- [ ] Both desktop packages bind `20111` and `8766` to `127.0.0.1` by default.
+- [ ] Install, upgrade, auto-start, health check, diagnostics export, crash
+      restart, stop/start controls, and uninstall are documented and tested.
+- [ ] Diagnostics redact pairing tokens, API keys, Bluetooth addresses unless
+      explicitly included, oversized labels, and student raw data by default.
+- [ ] Official EV3 firmware Bluetooth compatibility is labeled as a limited
+      Basic Pack mode until native adapter tests and real official-firmware EV3
+      smoke evidence pass separately on macOS and Windows.
+- [ ] Unsupported AI Quest, 50Hz raw streaming, PID, full display drawing, and
+      advanced sensor features fail closed or are hidden/marked unsupported.
 
 ---
 
@@ -1995,6 +2031,8 @@ Classroom deployment is blocked until all gates below pass:
 | Data buffer | `MAX_COLLECTED_POINTS` cap verified; no unbounded memory growth |
 | Known code fixes | `websockets.serve`, display draw API, sound stop behavior covered by tests |
 | Scratch identity | Screenshot diff passes with only allowed EV3 additions |
+| Desktop install reliability | macOS and Windows clean install, upgrade, login/reboot auto-start, health check, diagnostics export, crash restart, stop/start, and uninstall verified from release artifacts |
+| Official firmware BT compatibility | Native adapter tests plus real official-firmware EV3 smoke evidence pass on each OS before the mode is marked available |
 
 ### 13.7 Manual Classroom Acceptance Test
 
@@ -2019,6 +2057,8 @@ required_checks:
   - extension: getInfo block count and sync reporter tests
   - docs: markdown link check for docs/*.md
   - package: build Scratch editor and WeisileLink artifacts
+  - desktop: python desktop/scripts/validate_desktop_assets.py && python -m pytest tests/test_desktop_packaging.py
+  - installer-smoke: clean-machine macOS/Windows release-artifact smoke before classroom release
 ```
 
 Merges are blocked when any required check fails.
@@ -2106,6 +2146,41 @@ Production releases must include:
 - [ ] Logs and health endpoints confirm transport, sensor rate, and client count
 - [ ] Rollback tested at least once on both teacher computer and EV3
 
+### 14.7 WeisileLink Desktop Distribution
+
+The desktop distribution is the supported teacher-computer install path for
+macOS and Windows. It wraps the existing WeisileLink core service with installer
+assets, startup supervision, diagnostics, and OS-specific native adapter
+boundaries.
+
+Required release behavior:
+- Bundle the Python runtime or ship a self-contained executable. Classroom
+  artifacts must not use a teacher machine's system Python.
+- Bind `20111` and `8766` to `127.0.0.1` by default. LAN binding requires an
+  explicit teacher configuration and pairing-token setup.
+- Provide documented install, upgrade, start, stop, health check, diagnostics
+  export, crash restart, and uninstall flows.
+- Sign release artifacts before external classroom distribution. macOS packages
+  must be notarized before non-developer distribution.
+- Preserve teacher configuration and pairing tokens during upgrade; remove
+  startup entries and service files during uninstall.
+- Write logs to documented user- or system-owned VSLE directories, not temporary
+  folders.
+- Redact pairing tokens, API keys, Bluetooth addresses unless explicitly
+  included, oversized labels, and student raw data from diagnostics by default.
+
+macOS packaging must install a signed `WeisileLink.app` and a per-user
+LaunchAgent. Windows packaging must provide a signed installer with either a
+per-user startup task or a documented machine-wide service path for IT-managed
+labs.
+
+Official EV3 firmware Bluetooth compatibility is a separate desktop mode. It
+uses host-native Bluetooth Classic adapters and EV3 Direct Commands; Python
+stdlib RFCOMM is not a supported macOS/Windows path. This mode may cover basic
+motor, touch, ultrasonic, color brightness, motor position, and sound workflows,
+but it must remain labeled as a limited compatibility mode until native adapter
+tests and real official-firmware EV3 smoke evidence pass on that OS.
+
 ---
 
 ## 15. Security, Privacy, and Safety
@@ -2172,7 +2247,11 @@ FERPA, GDPR-K, and local school policy sensitivity:
 
 ### 16.2 Degradation Rules
 
-- If WiFi fails, try Bluetooth only when the host OS supports stdlib RFCOMM.
+- In full VSLE mode, if WiFi fails, try Bluetooth only when the host OS supports
+  verified stdlib RFCOMM and the EV3-side RFCOMM listener is configured.
+- In official firmware compatibility mode, use only the OS-native Bluetooth
+  adapter boundary; do not fall back to Python stdlib Bluetooth on macOS or
+  Windows.
 - If both transports fail, Scratch blocks remain visible but connection state is
   false and command blocks return JSON-RPC errors.
 - If Trainer is unavailable, robot control and local data collection continue.
@@ -2255,6 +2334,9 @@ Teacher-facing UI should translate alerts into plain recovery steps.
 | Scratch runtime | TurboWarp fork | Unsandboxed Extension required |
 | Teacher computer WiFi transport | macOS, Windows, Linux | Primary supported classroom path |
 | Teacher computer Bluetooth transport | Linux only for stdlib RFCOMM | macOS/Windows require future adapter or WiFi |
+| WeisileLink Desktop macOS | Planned release artifact | Signed app/pkg, LaunchAgent, bundled runtime, localhost defaults, notarization before classroom distribution |
+| WeisileLink Desktop Windows | Planned release artifact | Signed installer, per-user startup or service option, bundled runtime, localhost defaults, firewall-safe behavior |
+| Official EV3 firmware Bluetooth compatibility | Limited planned mode | Basic non-AI pack only until native adapter tests and real official-firmware EV3 smoke evidence pass per OS |
 | EV3 OS | ev3dev Stretch/Buster compatible image | Must support Python 3 and ev3dev2 |
 | EV3 hardware | LEGO MINDSTORMS EV3 | WiFi USB dongle recommended |
 | Python | 3.9+ on teacher computer; EV3-compatible Python on brick | Avoid pybluez |
