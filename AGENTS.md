@@ -231,6 +231,14 @@ Required desktop-release scope:
   explicit teacher configuration.
 - Install, upgrade, auto-start after login/reboot, health check, diagnostics
   export, crash restart, stop/start controls, and uninstall.
+- Clean-machine release approval must be backed by an evidence JSON accepted by
+  `scripts/run_desktop_install_smoke.py`. At minimum it must record
+  `installed_from_release_artifact`, `started_after_reboot`,
+  `scratch_link_endpoint_ok`, and `official_firmware_bt_real_ev3_ok` as true
+  for the target OS before the installer or compatibility mode is marked
+  classroom ready.
+- Localhost-only or developer-checkout smoke runs must never be used as release
+  approval evidence.
 - Signed release artifacts before external classroom distribution; macOS
   releases must be notarized before non-developer distribution.
 - Logs and diagnostics must redact pairing tokens, API keys, oversized labels,

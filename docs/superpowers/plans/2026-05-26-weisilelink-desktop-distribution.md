@@ -789,7 +789,7 @@ git push origin main
 - Modify: `AGENTS.md`
 - Modify: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 
-- [ ] **Step 1: Update `AGENTS.md`**
+- [x] **Step 1: Update `AGENTS.md`**
 
 Add rules for desktop distribution:
 
@@ -801,7 +801,7 @@ auto-start, health check, diagnostics, uninstall, and real hardware evidence
 before a desktop release can be marked complete.
 ```
 
-- [ ] **Step 2: Update the main spec**
+- [x] **Step 2: Update the main spec**
 
 Add:
 
@@ -810,7 +810,7 @@ Add:
 - official firmware Bluetooth compatibility rows;
 - desktop installer gates in Section 13.6/13.8.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

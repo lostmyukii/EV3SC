@@ -1925,6 +1925,11 @@ sessions, PID tuning, and complete display/system control.
 - [ ] Both desktop packages bind `20111` and `8766` to `127.0.0.1` by default.
 - [ ] Install, upgrade, auto-start, health check, diagnostics export, crash
       restart, stop/start controls, and uninstall are documented and tested.
+- [ ] Clean-machine desktop approval is backed by
+      `scripts/run_desktop_install_smoke.py` evidence with
+      `installed_from_release_artifact`, `started_after_reboot`,
+      `scratch_link_endpoint_ok`, and
+      `official_firmware_bt_real_ev3_ok` true for the target OS.
 - [ ] Diagnostics redact pairing tokens, API keys, Bluetooth addresses unless
       explicitly included, oversized labels, and student raw data by default.
 - [ ] Official EV3 firmware Bluetooth compatibility is labeled as a limited
@@ -2031,8 +2036,8 @@ Classroom deployment is blocked until all gates below pass:
 | Data buffer | `MAX_COLLECTED_POINTS` cap verified; no unbounded memory growth |
 | Known code fixes | `websockets.serve`, display draw API, sound stop behavior covered by tests |
 | Scratch identity | Screenshot diff passes with only allowed EV3 additions |
-| Desktop install reliability | macOS and Windows clean install, upgrade, login/reboot auto-start, health check, diagnostics export, crash restart, stop/start, and uninstall verified from release artifacts |
-| Official firmware BT compatibility | Native adapter tests plus real official-firmware EV3 smoke evidence pass on each OS before the mode is marked available |
+| Desktop install reliability | macOS and Windows clean install, upgrade, login/reboot auto-start, health check, diagnostics export, crash restart, stop/start, and uninstall verified from release artifacts; `scripts/run_desktop_install_smoke.py` must accept the evidence JSON |
+| Official firmware BT compatibility | Native adapter tests plus real official-firmware EV3 smoke evidence pass on each OS before the mode is marked available; localhost-only developer smoke is explicitly insufficient |
 
 ### 13.7 Manual Classroom Acceptance Test
 
@@ -2058,7 +2063,7 @@ required_checks:
   - docs: markdown link check for docs/*.md
   - package: build Scratch editor and WeisileLink artifacts
   - desktop: python desktop/scripts/validate_desktop_assets.py && python -m pytest tests/test_desktop_packaging.py
-  - installer-smoke: clean-machine macOS/Windows release-artifact smoke before classroom release
+  - installer-smoke: python -m pytest tests/test_desktop_install_smoke.py && python scripts/run_desktop_install_smoke.py --evidence <clean-machine-evidence.json> --report <install-smoke-report.md>
 ```
 
 Merges are blocked when any required check fails.
@@ -2168,6 +2173,14 @@ Required release behavior:
   folders.
 - Redact pairing tokens, API keys, Bluetooth addresses unless explicitly
   included, oversized labels, and student raw data from diagnostics by default.
+- Pass the install smoke evidence gate with `scripts/run_desktop_install_smoke.py`
+  before any OS-specific desktop package or official firmware Bluetooth mode is
+  marked classroom ready. The evidence JSON must come from an installed release
+  artifact and must set `installed_from_release_artifact`,
+  `started_after_reboot`, `scratch_link_endpoint_ok`, and
+  `official_firmware_bt_real_ev3_ok` to true.
+- Reject developer-checkout, localhost-only, or simulated-only evidence for
+  classroom readiness claims.
 
 macOS packaging must install a signed `WeisileLink.app` and a per-user
 LaunchAgent. Windows packaging must provide a signed installer with either a
@@ -2334,9 +2347,9 @@ Teacher-facing UI should translate alerts into plain recovery steps.
 | Scratch runtime | TurboWarp fork | Unsandboxed Extension required |
 | Teacher computer WiFi transport | macOS, Windows, Linux | Primary supported classroom path |
 | Teacher computer Bluetooth transport | Linux only for stdlib RFCOMM | macOS/Windows require future adapter or WiFi |
-| WeisileLink Desktop macOS | Planned release artifact | Signed app/pkg, LaunchAgent, bundled runtime, localhost defaults, notarization before classroom distribution |
-| WeisileLink Desktop Windows | Planned release artifact | Signed installer, per-user startup or service option, bundled runtime, localhost defaults, firewall-safe behavior |
-| Official EV3 firmware Bluetooth compatibility | Limited planned mode | Basic non-AI pack only until native adapter tests and real official-firmware EV3 smoke evidence pass per OS |
+| WeisileLink Desktop macOS | Planned release artifact | Signed app/pkg, LaunchAgent, bundled runtime, localhost defaults, notarization before classroom distribution, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |
+| WeisileLink Desktop Windows | Planned release artifact | Signed installer, per-user startup or service option, bundled runtime, localhost defaults, firewall-safe behavior, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |
+| Official EV3 firmware Bluetooth compatibility | Limited planned mode | Basic non-AI pack only until native adapter tests, release-artifact install smoke, and real official-firmware EV3 smoke evidence pass per OS |
 | EV3 OS | ev3dev Stretch/Buster compatible image | Must support Python 3 and ev3dev2 |
 | EV3 hardware | LEGO MINDSTORMS EV3 | WiFi USB dongle recommended |
 | Python | 3.9+ on teacher computer; EV3-compatible Python on brick | Avoid pybluez |
