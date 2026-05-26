@@ -348,7 +348,7 @@ git push origin main
 - Create: `weisile-link/weisile_link/desktop/diagnostics.py`
 - Create: `weisile-link/tests/test_desktop_diagnostics.py`
 
-- [ ] **Step 1: Write failing diagnostics tests**
+- [x] **Step 1: Write failing diagnostics tests**
 
 Create `weisile-link/tests/test_desktop_diagnostics.py`:
 
@@ -391,7 +391,7 @@ def test_build_diagnostics_bundle_excludes_raw_student_data():
     assert "student_data" not in bundle
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -401,7 +401,7 @@ cd weisile-link && python -m pytest tests/test_desktop_diagnostics.py -v
 
 Expected: FAIL because `weisile_link.desktop.diagnostics` is missing.
 
-- [ ] **Step 3: Implement diagnostics redaction**
+- [x] **Step 3: Implement diagnostics redaction**
 
 Create `weisile-link/weisile_link/desktop/diagnostics.py` with:
 
@@ -458,7 +458,7 @@ def build_diagnostics_bundle(
     return bundle
 ```
 
-- [ ] **Step 4: Run diagnostics tests**
+- [x] **Step 4: Run diagnostics tests**
 
 Run:
 
@@ -468,7 +468,7 @@ cd weisile-link && python -m pytest tests/test_desktop_diagnostics.py -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
