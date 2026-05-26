@@ -2869,6 +2869,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`, `scripts/start_scratchai_preview.py`, `scripts/start_unified_preview.py`, `scripts/verify_scratchai_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_scratchai_preview_startup.py`, `tests/test_scratchai_preview_verifier.py`, `tests/test_unified_preview_stack.py`, `docs/SOURCE_REGISTER.md`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_ev3_blocks_loaded_20260526.json`, `docs/classroom/evidence/scratchai_ev3_blocks_loaded_20260526.png`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/UNIFIED_PREVIEW_STACK.md`
 - **Next step**: Redeploy the isolated ScratchAI preview on `101.42.92.6:18612` after SSH/server access is available, then rerun the browser EV3 extension click audit against the public site.
 
+### [2026-05-26] Public EV3 extension deployment verification
+- **Status**: ✅ Completed
+- **Commit**: `06b37fd`
+- **What was done**: Recorded the refreshed public deployment audit after the isolated `101.42.92.6:18612` ScratchAI bundle was redeployed with the configured public VSLE-EV3 extension URL. Browser evidence confirms the `EV3` extension card loads the VSLE-EV3 category, shows EV3 blocks in the palette, fetches `/vsle-ev3-extension/index.js` as a main-thread script, and does not load the EV3 extension through a sandbox worker.
+- **Files created/modified**: `docs/SOURCE_REGISTER.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png`
+- **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
