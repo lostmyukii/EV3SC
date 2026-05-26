@@ -9,7 +9,7 @@ Updated: 2026-05-26
 - Kept existing server applications untouched on ports `80`, `3000`, and `8001`.
 - Exposed only the preview gateway publicly on `18612`.
 - Kept AI middleware on `127.0.0.1:18614` and asset worker on `127.0.0.1:18615`.
-- Configured preview authentication. The username is `ubuntu`; the password is intentionally not recorded in this repository.
+- Preview authentication is disabled for the current testing stage. The remote secret file keeps `systemcreator` as the staged username for future re-enabling, but the runtime password value is blank so Basic Auth is not configured.
 
 ## Runtime Layout
 
@@ -86,7 +86,7 @@ Preview readiness:
 {
   "service": "scratch-ai-preview-server",
   "ready": true,
-  "basicAuth": true,
+  "basicAuth": false,
   "hostAllowlist": true,
   "publicBaseUrlConfigured": true,
   "publicBaseUrlScheme": "http",
@@ -131,7 +131,7 @@ Asset worker manifest:
 }
 ```
 
-Authenticated role draft smoke result:
+Unauthenticated role draft smoke result:
 
 ```json
 {
@@ -148,7 +148,7 @@ Authenticated role draft smoke result:
 }
 ```
 
-Authenticated SiliconFlow transparent role check:
+Unauthenticated SiliconFlow transparent role check:
 
 ```json
 {
@@ -172,6 +172,8 @@ Authenticated SiliconFlow transparent role check:
 ```
 
 Previous in-repo fallback verification remains valid for offline/local fallback: `template-svg` character drafts omit a background rectangle, while `template-svg` backdrop drafts keep one.
+
+Prompt robustness check: the prompt `transparent classroom EV3 helper sprite, clean silhouette, no background` produced an opaque provider image and the server correctly rejected it with `generated=false` because transparent-background repair did not pass. The prompt `transparent friendly EV3 robot helper sprite, full body, clean silhouette, no background` completed with `generated=true`; this confirms the provider is reachable while preserving the classroom requirement that character assets must pass transparent-background validation before adoption.
 
 ## Notes
 
