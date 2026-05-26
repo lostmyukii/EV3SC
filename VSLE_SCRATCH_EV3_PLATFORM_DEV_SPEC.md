@@ -3027,6 +3027,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Collect real clean-machine macOS and Windows release-artifact evidence plus real official-firmware EV3 Bluetooth smoke evidence before any desktop package or compatibility mode is marked classroom ready.
 
+### [2026-05-26] Desktop clean-machine evidence gate check
+- **Status**: ✅ Completed
+- **Commit**: `3610692`
+- **What was done**: Ran `scripts/run_desktop_install_smoke.py` against the documented macOS and Windows evidence paths. Both gates correctly exited non-zero because the required clean-machine evidence JSON files are not present, and the generated reports record `Classroom ready: no` without fabricating release support.
+- **Files created/modified**: `docs/desktop/evidence/macos-install-smoke.md`, `docs/desktop/evidence/windows-install-smoke.md`
+- **Next step**: Produce real `docs/desktop/evidence/macos-install-smoke.json` and `docs/desktop/evidence/windows-install-smoke.json` from signed release-artifact installs on clean machines, including reboot/startup, Scratch Link endpoint, and real official-firmware EV3 Bluetooth smoke evidence, then rerun the gates until the reports say `Classroom ready: yes`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
