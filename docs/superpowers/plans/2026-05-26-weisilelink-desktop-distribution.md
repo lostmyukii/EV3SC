@@ -485,7 +485,7 @@ git push origin main
 - Create: `weisile-link/tests/test_official_ev3_direct_command.py`
 - Modify: `docs/SOURCE_REGISTER.md`
 
-- [ ] **Step 1: Write failing Direct Command tests**
+- [x] **Step 1: Write failing Direct Command tests**
 
 Create `weisile-link/tests/test_official_ev3_direct_command.py`:
 
@@ -524,7 +524,7 @@ def test_build_poll_device_list_requests_33_bytes():
     assert OPINPUT_DEVICE_LIST in command
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -534,7 +534,7 @@ cd weisile-link && python -m pytest tests/test_official_ev3_direct_command.py -v
 
 Expected: FAIL because the module is missing.
 
-- [ ] **Step 3: Implement source-backed byte helpers**
+- [x] **Step 3: Implement source-backed byte helpers**
 
 Create `weisile-link/weisile_link/protocol/official_ev3_direct_command.py` with
 constants copied from the EV3SC-owned official Scratch EV3 extension reference
@@ -609,7 +609,7 @@ def build_motor_stop(*, port_mask: int, brake: bool) -> bytes:
     )
 ```
 
-- [ ] **Step 4: Run Direct Command tests**
+- [x] **Step 4: Run Direct Command tests**
 
 Run:
 
@@ -619,7 +619,7 @@ cd weisile-link && python -m pytest tests/test_official_ev3_direct_command.py -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Update source register**
+- [x] **Step 5: Update source register**
 
 Add a row under a new "WeisileLink Desktop Official EV3 Bluetooth" section in
 `docs/SOURCE_REGISTER.md` citing:
@@ -628,7 +628,7 @@ Add a row under a new "WeisileLink Desktop Official EV3 Bluetooth" section in
 | Scratch official EV3 extension | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | Source-backed Direct Command constants, motor stop/timed run, sensor polling, and reply parsing behavior for official firmware compatibility |
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Run:
 

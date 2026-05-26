@@ -389,6 +389,14 @@ ports. This register records the sources used for the current implementation.
 | Scratch official EV3 extension | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | EV3 Direct Command usage patterns and Scratch-side official-firmware compatibility behavior that must be source-backed before implementation |
 | LEGO MINDSTORMS EV3 Communication Developer Kit | `https://www.lego.com/cdn/cs/set/assets/blt6879b00ae6951482/LEGO_MINDSTORMS_EV3_Communication_Developer_Kit.pdf` | Direct Command framing, direct replies, bytecode command basis, and communication examples for official firmware Bluetooth compatibility |
 
+## WeisileLink Desktop Official EV3 Bluetooth
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| Scratch official EV3 extension | `/Users/yukii/Desktop/EV3SC/scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_ev3/index.js` | Source-backed Direct Command constants, motor stop, device-list polling, sensor `OPINPUT_READSI` polling, motor count polling, and Direct Reply layout comments for official firmware compatibility |
+| LEGO MINDSTORMS EV3 Communication Developer Kit | `https://www.lego.com/cdn/cs/set/assets/blt6879b00ae6951482/LEGO_MINDSTORMS_EV3_Communication_Developer_Kit.pdf` | Direct Command header bytes, little-endian command length and message counter, global/local allocation bytes, Direct Reply type, and transport-independent official EV3 protocol framing |
+| Official EV3 Direct Command encoder | `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/protocol/official_ev3_direct_command.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/tests/test_official_ev3_direct_command.py` | Project-owned encoder and tests for source-backed official firmware command frames before native macOS/Windows Bluetooth transport integration |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
