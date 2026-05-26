@@ -3013,6 +3013,13 @@ material into:
 - **Files created/modified**: `desktop/macos/native/README.md`, `desktop/windows/native/README.md`, `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 6 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: audit and update `AGENTS.md` and the main platform spec so desktop distribution requirements, compatibility rows, and installer gates remain aligned with the implemented evidence workflow.
 
+### [2026-05-26] WeisileLink desktop requirements alignment
+- **Status**: ✅ Completed
+- **Commit**: `c2485a2`
+- **What was done**: Updated `AGENTS.md` and the main platform specification so the desktop release rules, Phase 4 acceptance criteria, Section 13.6/13.8 gates, Section 14.7 desktop distribution rules, and Section 18 compatibility rows all reference the same install-smoke evidence workflow. The docs now explicitly reject developer-checkout, localhost-only, and simulated-only evidence for classroom-ready desktop or official-firmware Bluetooth claims.
+- **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Run the Final Verification block from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`, including desktop packaging tests, install-smoke tests, WeisileLink desktop/official-firmware tests, desktop asset validation, and final git status review.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
