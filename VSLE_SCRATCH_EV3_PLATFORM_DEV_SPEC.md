@@ -2979,6 +2979,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/weisile_link/desktop/diagnostics.py`, `weisile-link/tests/test_desktop_diagnostics.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 3 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: implement the official EV3 Direct Command encoder with source-backed byte framing tests and source-register updates.
 
+### [2026-05-26] Official EV3 Direct Command encoder
+- **Status**: ✅ Completed
+- **Commit**: `407a58e`
+- **What was done**: Added the source-backed official EV3 Direct Command encoder for command header framing, device-list polling, motor stop, sensor SI polling, and motor-count polling. The implementation follows the EV3SC-owned Scratch official EV3 extension constants and the LEGO EV3 Communication Developer Kit Direct Command frame layout.
+- **Files created/modified**: `weisile-link/weisile_link/protocol/official_ev3_direct_command.py`, `weisile-link/tests/test_official_ev3_direct_command.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 4 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: add the official firmware Bluetooth transport shell behind a native adapter protocol and keep macOS/Windows support unavailable until adapter evidence exists.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
