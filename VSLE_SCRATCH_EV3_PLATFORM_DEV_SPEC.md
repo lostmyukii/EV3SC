@@ -2958,6 +2958,13 @@ material into:
 - **Files created/modified**: `docs/SOURCE_REGISTER.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png`
 - **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
 
+### [2026-05-26] WeisileLink desktop distribution design audit
+- **Status**: ✅ Completed
+- **Commit**: `31fdc46`
+- **What was done**: Added the WeisileLink Desktop macOS/Windows distribution design and implementation plan, then audited and connected the docs back into `AGENTS.md`, the source register, and the main platform specification. The spec now separates full VSLE mode from official EV3 firmware Bluetooth compatibility mode, adds desktop installer reliability gates, native Bluetooth adapter boundaries, clean-machine release checks, and explicit unsupported-mode limitations.
+- **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/specs/2026-05-26-weisilelink-desktop-distribution-design.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 1 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: create desktop install docs, macOS/Windows packaging asset skeletons, and failing-then-passing packaging validation tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
