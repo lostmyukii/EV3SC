@@ -2986,6 +2986,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/protocol/official_ev3_direct_command.py`, `weisile-link/tests/test_official_ev3_direct_command.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 4 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: add the official firmware Bluetooth transport shell behind a native adapter protocol and keep macOS/Windows support unavailable until adapter evidence exists.
 
+### [2026-05-26] Official EV3 Bluetooth transport shell
+- **Status**: ✅ Completed
+- **Commit**: `fc48944`
+- **What was done**: Added the official EV3 firmware Bluetooth compatibility transport shell with a project-owned native adapter protocol, explicit unsupported behavior when no adapter is injected, safe all-motor stop on disconnect, and a CLI `official-bluetooth` entry. The implementation does not claim macOS/Windows Bluetooth support and keeps real adapter/hardware approval behind the next evidence gate.
+- **Files created/modified**: `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `weisile-link/tests/test_official_ev3_bt_transport.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/transport/__init__.py`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 5 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: add macOS/Windows native adapter package documentation plus clean-machine installer and official-firmware hardware smoke evidence gates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
