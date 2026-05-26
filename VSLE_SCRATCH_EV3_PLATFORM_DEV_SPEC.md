@@ -2862,6 +2862,13 @@ material into:
 - **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
 - **Next step**: Continue Section 13.7 real-hardware classroom evidence: run the real 45-minute sensor freshness pass, AI Quest collection/training/export against the classroom stack, and multi-device/disconnect recovery records.
 
+### [2026-05-26] ScratchAI EV3 browser unsandboxed URL fix
+- **Status**: ✅ Completed
+- **Commit**: `beb1c4b`
+- **What was done**: Fixed the ScratchAI VM extension manager so the build-configured `SCRATCH_AI_VSLE_EV3_EXTENSION_URL` remains browser-reachable after webpack replaces the environment variable, allowing the public VSLE-EV3 extension URL to stay on the Unsandboxed Extension path instead of falling back to the sandbox worker. Added verifier/startup coverage and local browser evidence showing EV3 blocks load from the configured URL; a fresh audit still shows the currently deployed `101.42.92.6:18612` bundle is stale and needs redeployment before the public site reflects the fix.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extension-support/extension-manager.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_unsandboxed_loader.js`, `scripts/start_scratchai_preview.py`, `scripts/start_unified_preview.py`, `scripts/verify_scratchai_preview.py`, `scripts/verify_unified_preview.py`, `tests/test_scratchai_preview_startup.py`, `tests/test_scratchai_preview_verifier.py`, `tests/test_unified_preview_stack.py`, `docs/SOURCE_REGISTER.md`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_ev3_blocks_loaded_20260526.json`, `docs/classroom/evidence/scratchai_ev3_blocks_loaded_20260526.png`, `docs/scratchai/PREVIEW_STARTUP.md`, `docs/scratchai/UNIFIED_PREVIEW_STACK.md`
+- **Next step**: Redeploy the isolated ScratchAI preview on `101.42.92.6:18612` after SSH/server access is available, then rerun the browser EV3 extension click audit against the public site.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
