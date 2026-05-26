@@ -108,6 +108,7 @@ def build_preview_command(
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
     middleware_url: str = DEFAULT_MIDDLEWARE_URL,
+    vsle_ev3_extension_url: str | None = None,
 ) -> PreviewCommand:
     """Build the npm command that starts the ScratchAI editor preview."""
 
@@ -131,6 +132,13 @@ def build_preview_command(
         "PORT": str(port),
         "SCRATCH_AI_MIDDLEWARE_URL": middleware_url.rstrip("/"),
     }
+    resolved_extension_url = (
+        vsle_ev3_extension_url
+        or os.environ.get("SCRATCH_AI_VSLE_EV3_EXTENSION_URL")
+        or ""
+    ).strip()
+    if resolved_extension_url:
+        env["SCRATCH_AI_VSLE_EV3_EXTENSION_URL"] = resolved_extension_url
     return PreviewCommand(
         command=("npm", "run", "start", "--", "--host", host),
         cwd=gui_root,
@@ -165,6 +173,11 @@ def main() -> int:
         help="ScratchAI middleware URL embedded into the editor bundle.",
     )
     parser.add_argument(
+        "--vsle-ev3-extension-url",
+        default=None,
+        help="VSLE-EV3 unsandboxed extension URL embedded into the editor bundle.",
+    )
+    parser.add_argument(
         "--print-command",
         action="store_true",
         help="Print the resolved command and exit without starting webpack.",
@@ -176,6 +189,7 @@ def main() -> int:
         host=args.host,
         port=args.port,
         middleware_url=args.middleware_url,
+        vsle_ev3_extension_url=args.vsle_ev3_extension_url,
     )
     if args.print_command:
         print(json.dumps(command_summary(preview), indent=2, sort_keys=True))

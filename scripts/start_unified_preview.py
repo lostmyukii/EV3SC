@@ -77,6 +77,7 @@ class HealthCheck:
     kind: str
     url: str
     expected: str
+    expected_extension_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -174,6 +175,7 @@ def build_unified_preview_plan(
         host=host,
         port=editor_port,
         middleware_url=middleware_url,
+        vsle_ev3_extension_url=extension_url,
     )
     python = _python_command(root)
 
@@ -287,6 +289,7 @@ def build_unified_preview_plan(
             kind="http-html",
             url=editor.url,
             expected="Scratch 3.0 GUI",
+            expected_extension_url=extension_url,
         ),
         HealthCheck(
             id="weisile-link-json-rpc",
@@ -338,6 +341,11 @@ def command_summary(plan: UnifiedPreviewPlan) -> Dict[str, object]:
                 "kind": check.kind,
                 "url": check.url,
                 "expected": check.expected,
+                **(
+                    {"expectedExtensionURL": check.expected_extension_url}
+                    if check.expected_extension_url
+                    else {}
+                ),
             }
             for check in plan.health_checks
         ],

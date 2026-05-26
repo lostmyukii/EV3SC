@@ -95,7 +95,10 @@ def probe_health_check(check: HealthCheck) -> Dict[str, object]:
             detail = f"matched {check.expected}"
             if check.id == "scratchai-editor-html":
                 gui_js = _fetch_text(_join_url(check.url, "gui.js"), timeout=30.0)
-                markers = verify_scratchai_gui_bundle(gui_js)
+                markers = verify_scratchai_gui_bundle(
+                    gui_js,
+                    expected_vsle_ev3_extension_url=check.expected_extension_url,
+                )
                 detail = f"{detail}; matched {', '.join(markers)}"
         elif check.kind == "websocket-json-rpc":
             asyncio.run(_probe_websocket_json_rpc(check.url, check.expected))

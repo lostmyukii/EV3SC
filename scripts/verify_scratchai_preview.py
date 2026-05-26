@@ -29,7 +29,21 @@ def _has_enabled_flag(gui_js: str, flag_name: str) -> bool:
     return any(re.search(pattern, gui_js) for pattern in patterns)
 
 
-def verify_scratchai_gui_bundle(gui_js: str) -> list[str]:
+def _has_browser_reachable_vsle_ev3_url(gui_js: str, expected_url: str) -> bool:
+    url_index = gui_js.find(expected_url)
+    if url_index == -1:
+        return False
+    guard = "typeof process === 'undefined' || !process.env"
+    guard_index = gui_js.rfind(guard, 0, url_index)
+    function_index = gui_js.rfind("getConfiguredVSLEEV3ExtensionURL", 0, url_index)
+    return not (function_index != -1 and function_index < guard_index)
+
+
+def verify_scratchai_gui_bundle(
+    gui_js: str,
+    *,
+    expected_vsle_ev3_extension_url: str | None = None,
+) -> list[str]:
     """Verify the served GUI bundle enables the visible ScratchAI assistant."""
 
     required = {
@@ -45,6 +59,17 @@ def verify_scratchai_gui_bundle(gui_js: str) -> list[str]:
         "ai-logic-coach-toggle": "ai-logic-coach-toggle" in gui_js,
         "ai-logic-coach-asset-generator": "ai-logic-coach-asset-generator" in gui_js,
     }
+    if expected_vsle_ev3_extension_url:
+        required[
+            "SCRATCH_AI_VSLE_EV3_EXTENSION_URL="
+            f"{expected_vsle_ev3_extension_url}"
+        ] = expected_vsle_ev3_extension_url in gui_js
+        required[
+            "SCRATCH_AI_VSLE_EV3_EXTENSION_URL browser-reachable"
+        ] = _has_browser_reachable_vsle_ev3_url(
+            gui_js,
+            expected_vsle_ev3_extension_url,
+        )
     missing = [marker for marker, present in required.items() if not present]
     if missing:
         raise ScratchAIPreviewVerificationError(

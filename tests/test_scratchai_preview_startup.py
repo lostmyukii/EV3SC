@@ -46,12 +46,14 @@ def test_missing_preview_requirements_reports_unbuilt_vm_artifact(tmp_path):
 
 def test_build_preview_command_uses_ev3sc_owned_scratch_gui(tmp_path):
     _write_preview_tree(tmp_path)
+    extension_url = "http://127.0.0.1:8001/vsle-ev3-extension/index.js"
 
     preview = build_preview_command(
         root=tmp_path,
         host="127.0.0.1",
         port=8610,
         middleware_url=DEFAULT_MIDDLEWARE_URL,
+        vsle_ev3_extension_url=extension_url,
     )
     summary = command_summary(preview)
 
@@ -64,6 +66,7 @@ def test_build_preview_command_uses_ev3sc_owned_scratch_gui(tmp_path):
     assert summary["env"]["SCRATCH_AI_ENABLED"] == "true"
     assert summary["env"]["SCRATCH_AI_EXTENSION_ENABLED"] == "true"
     assert summary["env"]["SCRATCH_AI_IMAGE_BLOCKS_ENABLED"] == "true"
+    assert summary["env"]["SCRATCH_AI_VSLE_EV3_EXTENSION_URL"] == extension_url
     assert summary["url"] == "http://127.0.0.1:8610/"
 
 

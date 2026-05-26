@@ -19,12 +19,17 @@ const UNSANDBOXED_EXTENSION_URLS = [
     'https://platform.vsle.cn/extensions/ev3/index.js'
 ];
 
-const getConfiguredVSLEEV3ExtensionURL = () => {
-    if (typeof process === 'undefined' || !process.env) {
-        return '';
-    }
+const BUILD_CONFIGURED_VSLE_EV3_EXTENSION_URL =
+    process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL || '';
 
-    return process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL || '';
+const getConfiguredVSLEEV3ExtensionURL = () => {
+    if (BUILD_CONFIGURED_VSLE_EV3_EXTENSION_URL) {
+        return BUILD_CONFIGURED_VSLE_EV3_EXTENSION_URL;
+    }
+    if (typeof process !== 'undefined' && process.env) {
+        return process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL || '';
+    }
+    return '';
 };
 
 const isUnsandboxedExtensionURL = extensionURL => {

@@ -1,0 +1,147 @@
+{
+  "capturedAt": "2026-05-26T10:08:34+08:00",
+  "url": "http://127.0.0.1:8611/",
+  "libraryVisibleBeforeClick": true,
+  "libraryVisibleAfterClick": false,
+  "hasVSLECategory": true,
+  "ev3ScriptLoadedUnsandboxed": true,
+  "ev3LoadedViaSandboxWorker": false,
+  "diagnostics": [
+    {
+      "type": "worker",
+      "url": "http://127.0.0.1:8611/chunks/fetch-worker.7298f079654fee093ceb.js"
+    },
+    {
+      "type": "script",
+      "src": null
+    },
+    {
+      "type": "script",
+      "src": "http://127.0.0.1:8000/vsle-ev3-extension/index.js"
+    }
+  ],
+  "bodyIncludesEV3Blocks": true,
+  "bodyExcerpt": "Settings File Edit Share See Project Page Tutorials Debug scratch-cat Code Costumes Sounds Motion Looks Sound Events Control Sensing Operators Variables My Blocks EV3 next backdrop 25 change color effect by 0 set color effect to clear graphic effects backdrop number stop all sounds 10 change pitch effect by 100 set pitch effect to clear sound effects -10 change volume by 100 set volume to % volume when clicked when space key pressed 10 when loudness > 1 wait seconds 10 repeat forever if then if then else wait until repeat until answer space key pressed? mouse down? mouse x mouse y loudness timer reset timer current year days since 2000 online? username + - * / 1 10 pick random to 50 > 50 < 50 = and or not mod round abs of 10 move steps 15 turn degrees 15 turn degrees 0 0 go to x: y: 1 0 0 glide secs to x: y: 90 point in direction 10 change x by 0 set x to 10 change y by 0 set y to if on edge, bounce set rotation style left-right x position y position direction Hello! 2 say for seconds Hello! say Hmm... 2 think for seconds Hmm... think next costume 10 change size by 100 set size to % show hide go to front layer 1 go forward layers costume number size when this sprite clicked when I start as a clone delete this clone touching color ? color is touching ? What's your name? ask and wait set drag mode draggable apple banana join 1 apple letter of apple length of apple a contains ? Motion random position go to 1 random position glide secs to mouse-pointer point towards Looks costume2 switch costume to backdrop1 switch backdrop to Sound Meow play sound until done Meow start sound Events when backdrop switches to backdrop1 when I receive message1 message1 broadcast message1 broadcast and wait Control stop all myself create clone of Sensing mouse-pointer touching ? mouse-pointer distance to Stage backdrop # of Operators Variables Make a Variable my variable 0 set my variable to 1 change my variable by show variable my variable hide variable my variable Make a List My Blocks Make a Block EV3 A 50 电机 以 % 速度持续运行 A 50 1 电机 以 % 速度运行 秒 A 360 50 电机 运行到绝对位置 度 速度 % A 360 50 电机 旋转 度 速度 % A 停止电机 停止所有电机 A 50 设置电机 速度为 % A B 50 1 同步运行电机 和 速度 时间 秒 A B 0 50 同步电机 转向 速度 A 重置电机 位置计数 A speed kp 1 设置电机 PID 为 A 电机 当前位置 (度) A 电机 当前速度 (%) A speed kp 电机 PID A 等待电机 停止 A 电机 正在运行? S1 颜色传感器 识别颜色 S1 颜色传感器 反射光强度 S1 颜色传感器 环境光强度 S1 R 颜色传感器 RGB值 S1 5 颜色传感器 检测到 ? S2 超声波传感器 距离 (厘米) S2 超声波传感器 距离 (英寸) S2 20 超声波传感器 距离小于 厘米? S3 陀螺仪传感器 角度 S3 陀螺仪传感器 角速度 (°/s) S3 重置陀螺仪传感器 S4 触碰传感器 被按下? S4 等待触碰传感器 被按下 S4 等待触碰传感器 松开 S4 红外传感器 距离 S4 1 红外传感器 信标方向 (频道 ) S4 1 红外传感器 信标距离 (频道 ) S4 1 红外遥控器 频道 按钮 center EV3砖块 键被按下? E",
+  "recentLogs": [
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "warning",
+      "text": "The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s SpinnerComponent \n    at SpinnerComponent (http://127.0.0.1:8611/gui.js:166502:5)\n    at div\n    at div\n    at div\n    at Box (http://127.0.0.1:8611/gui.js:156275:7)\n    at div\n    at div\n    at ModalPortal (http://127.0.0.1:8611/gui.js:275528:5)\n    at Modal (http://127.0.0.1:8611/gui.js:275212:5)\n    at ModalComponent (http://127.0.0.1:8611/gui."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    },
+    {
+      "type": "warning",
+      "text": "Unable to find [category][flyoutinflater] in the registry."
+    }
+  ]
+}

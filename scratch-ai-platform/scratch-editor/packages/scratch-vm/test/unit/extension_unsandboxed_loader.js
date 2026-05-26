@@ -31,6 +31,38 @@ test('configured VSLE-EV3 URL is registered as an unsandboxed extension URL', t 
     t.end();
 });
 
+test('configured VSLE-EV3 URL stays unsandboxed when browser process is absent', t => {
+    const extensionManagerPath = require.resolve(
+        '../../src/extension-support/extension-manager'
+    );
+    const previousUrl = process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL;
+    const previousProcess = global.process;
+    const deployedUrl = 'http://127.0.0.1:8000/vsle-ev3-extension/index.js';
+    let result = false;
+
+    delete require.cache[extensionManagerPath];
+    process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL = deployedUrl;
+    const ConfiguredExtensionManager = require(
+        '../../src/extension-support/extension-manager'
+    );
+
+    try {
+        global.process = undefined;
+        result = ConfiguredExtensionManager.isUnsandboxedExtensionURL(deployedUrl);
+    } finally {
+        global.process = previousProcess;
+        if (typeof previousUrl === 'undefined') {
+            delete process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL;
+        } else {
+            process.env.SCRATCH_AI_VSLE_EV3_EXTENSION_URL = previousUrl;
+        }
+        delete require.cache[extensionManagerPath];
+    }
+
+    t.equal(result, true);
+    t.end();
+});
+
 test('VSLE-EV3 URL loads through the unsandboxed main-thread Scratch API', async t => {
     const previousDocument = global.document;
     const previousScratch = global.Scratch;

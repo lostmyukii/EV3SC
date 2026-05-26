@@ -102,6 +102,9 @@ def test_unified_preview_plan_wires_all_local_services(tmp_path):
     assert env_by_id["preview-gateway"]["SCRATCH_AI_MIDDLEWARE_URL"] == (
         "http://127.0.0.1:8788"
     )
+    assert env_by_id["scratchai-editor"]["SCRATCH_AI_VSLE_EV3_EXTENSION_URL"] == (
+        "http://127.0.0.1:8001/vsle-ev3-extension/index.js"
+    )
     assert env_by_id["weisile-link-preview"]["AI_QUEST_PROVIDER"] == "mock"
     assert env_by_id["weisile-link-preview"]["WEISILE_LINK_HOST"] == "127.0.0.1"
     assert env_by_id["weisile-link-preview"]["WEISILE_LINK_PORT"] == "20211"
@@ -248,3 +251,34 @@ const aiFeatureFlags = Object.freeze({
         ("http://127.0.0.1:8601/", 10.0),
         ("http://127.0.0.1:8601/gui.js", 30.0),
     ]
+
+
+def test_scratchai_editor_health_check_rejects_wrong_ev3_extension_url(
+    monkeypatch,
+    tmp_path,
+):
+    _write_unified_preview_tree(tmp_path)
+
+    def fake_fetch(url, *, timeout):
+        if url.endswith("/gui.js"):
+            return """
+const scratchAIEnabled = parseBooleanFlag( false ? 0 : "true", false);
+const aiFeatureFlags = Object.freeze({
+  scratchAIEnabled,
+  scratchAIPanelEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "true", false),
+  scratchAIImageBlocksEnabled: scratchAIEnabled && parseBooleanFlag( false ? 0 : "true", false)
+});
+"data-testid": "ai-logic-coach-toggle";
+"data-testid": "ai-logic-coach-asset-generator";
+const VSLE_EV3_EXTENSION_URL = "http://101.42.92.6:18612/vsle-ev3-extension/index.js";
+"""
+        return '<title>Scratch 3.0 GUI</title><script src="gui.js"></script>'
+
+    monkeypatch.setattr(verify_unified_preview, "_fetch_text", fake_fetch)
+    check = build_unified_preview_plan(root=tmp_path).health_checks[-3]
+
+    result = probe_health_check(check)
+
+    assert check.id == "scratchai-editor-html"
+    assert result["ok"] is False
+    assert "SCRATCH_AI_VSLE_EV3_EXTENSION_URL" in result["detail"]

@@ -30,7 +30,11 @@ git. They must stay under `/Users/yukii/Desktop/EV3SC/`.
 Run this from `/Users/yukii/Desktop/EV3SC`:
 
 ```bash
-.venv/bin/python scripts/start_scratchai_preview.py --host 127.0.0.1 --port 8601
+.venv/bin/python scripts/start_scratchai_preview.py \
+  --host 127.0.0.1 \
+  --port 8601 \
+  --vsle-ev3-extension-url \
+    http://127.0.0.1:8000/vsle-ev3-extension/index.js
 ```
 
 The script starts `webpack serve` from the EV3SC-owned `scratch-gui` package
@@ -52,8 +56,11 @@ python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
 The ScratchAI `EV3` card loads
-`http://localhost:8000/vsle-ev3-extension/index.js` as an Unsandboxed
-Extension and selects the loaded `vsleev3` block category.
+`http://127.0.0.1:8000/vsle-ev3-extension/index.js` as an Unsandboxed
+Extension and selects the loaded `vsleev3` block category. Keep the editor host
+and extension URL host aligned. If the editor is opened on `127.0.0.1`, use the
+`127.0.0.1` extension URL; if it is opened on `localhost`, use the `localhost`
+extension URL.
 
 To inspect the exact command without starting the server:
 
@@ -78,7 +85,10 @@ generator (`data-testid="ai-logic-coach-asset-generator"`).
 A plain static server pointed at an old `build/` directory is not valid
 ScratchAI preview evidence unless that bundle was compiled with
 `SCRATCH_AI_ENABLED=true`, `SCRATCH_AI_PANEL_ENABLED=true`, and
-`SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true`.
+`SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true`. For EV3 evidence, the bundle must also
+embed a browser-reachable `SCRATCH_AI_VSLE_EV3_EXTENSION_URL`; a URL string that
+is hidden behind a browser-time `process` guard is not valid because the EV3
+card will fall back to the sandbox worker and the EV3 blocks will not appear.
 
 ## Current Boundary
 

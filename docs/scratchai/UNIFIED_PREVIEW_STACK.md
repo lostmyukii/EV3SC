@@ -76,6 +76,10 @@ If another WeisileLink preview is already running, choose unused preview ports:
 The launcher passes the selected editor, extension, and preview-gateway origins
 to the middleware through `SCRATCH_AI_ALLOWED_ORIGINS`. This prevents browser
 preflight failures when avoiding a stale static preview on an old port.
+It also passes the selected local extension URL to the editor through
+`SCRATCH_AI_VSLE_EV3_EXTENSION_URL`, so the ScratchAI `EV3` tile loads the
+VSLE-EV3 bundle as an Unsandboxed Extension from the same local host family as
+the editor.
 
 Open:
 
@@ -109,6 +113,8 @@ The verifier checks:
 
 - ScratchAI editor HTML.
 - ScratchAI runtime flags for the AI Thinking Helper and asset generator.
+- Browser-reachable `SCRATCH_AI_VSLE_EV3_EXTENSION_URL` in the served
+  `gui.js`, so the EV3 tile cannot silently fall back to the sandbox worker.
 - ScratchAI middleware health and runtime status.
 - ScratchAI asset worker health.
 - ScratchAI preview gateway status.
