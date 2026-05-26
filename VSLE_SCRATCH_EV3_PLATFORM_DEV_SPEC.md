@@ -2965,6 +2965,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/SOURCE_REGISTER.md`, `docs/superpowers/specs/2026-05-26-weisilelink-desktop-distribution-design.md`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
 - **Next step**: Execute Task 1 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: create desktop install docs, macOS/Windows packaging asset skeletons, and failing-then-passing packaging validation tests.
 
+### [2026-05-26] WeisileLink desktop installer design assets
+- **Status**: ✅ Completed
+- **Commit**: `434bb47`
+- **What was done**: Added desktop install documentation, macOS LaunchAgent/install/uninstall assets, Windows startup/service install assets, and a static desktop asset validator. Verified the Task 1 tests failed before assets existed, then passed after implementation with `desktop assets ok`.
+- **Files created/modified**: `docs/desktop/*.md`, `desktop/README.md`, `desktop/macos/*`, `desktop/windows/*`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`, `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`
+- **Next step**: Execute Task 2 from `docs/superpowers/plans/2026-05-26-weisilelink-desktop-distribution.md`: implement diagnostics export and redaction in `weisile-link/weisile_link/desktop/diagnostics.py` with failing-then-passing tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
