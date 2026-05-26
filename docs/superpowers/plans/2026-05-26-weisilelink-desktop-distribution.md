@@ -734,7 +734,7 @@ git push origin main
 - Modify: `docs/desktop/WINDOWS_INSTALL.md`
 - Modify: `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`
 
-- [ ] **Step 1: Add native adapter README files**
+- [x] **Step 1: Add native adapter README files**
 
 Each README must state:
 
@@ -744,7 +744,7 @@ this OS. Python stdlib RFCOMM is not supported here. Real EV3 smoke evidence is
 required before this adapter can be marked classroom ready.
 ```
 
-- [ ] **Step 2: Add desktop smoke runner test**
+- [x] **Step 2: Add desktop smoke runner test**
 
 Create `tests/test_desktop_install_smoke.py` to verify the runner refuses to mark
 support complete without an evidence JSON containing:
@@ -758,12 +758,12 @@ support complete without an evidence JSON containing:
 }
 ```
 
-- [ ] **Step 3: Implement `scripts/run_desktop_install_smoke.py`**
+- [x] **Step 3: Implement `scripts/run_desktop_install_smoke.py`**
 
 The script must write a Markdown report and exit non-zero when required evidence
 is missing. It must not fabricate success from localhost-only developer runs.
 
-- [ ] **Step 4: Run smoke tests**
+- [x] **Step 4: Run smoke tests**
 
 Run:
 
@@ -773,7 +773,7 @@ python -m pytest tests/test_desktop_install_smoke.py -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 

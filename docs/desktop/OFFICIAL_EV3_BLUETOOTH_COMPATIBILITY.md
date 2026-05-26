@@ -50,6 +50,40 @@ Python stdlib Bluetooth is not a macOS or Windows implementation path. macOS
 and Windows support must stay unavailable until native adapter tests and real
 official-firmware EV3 smoke evidence pass on that OS.
 
+Native adapter ownership is documented in:
+
+- `desktop/macos/native/README.md`
+- `desktop/windows/native/README.md`
+
+Both adapters must stay behind the WeisileLink
+`NativeBluetoothAdapterProtocol` boundary.
+
+## Install Smoke Evidence Gate
+
+Official firmware Bluetooth compatibility can be marked available on an OS only
+after the installed release artifact produces evidence with these fields:
+
+```json
+{
+  "installed_from_release_artifact": true,
+  "started_after_reboot": true,
+  "scratch_link_endpoint_ok": true,
+  "official_firmware_bt_real_ev3_ok": true
+}
+```
+
+Run:
+
+```bash
+python scripts/run_desktop_install_smoke.py \
+  --evidence docs/desktop/evidence/<os>-install-smoke.json \
+  --report docs/desktop/evidence/<os>-install-smoke.md
+```
+
+The runner exits non-zero when any field is missing, false, or when the evidence
+declares a developer-checkout or localhost-only run. That prevents a local
+development smoke from being mistaken for release support.
+
 ## Sensor Freshness
 
 Compatibility mode updates the same `SensorCache` shape as full VSLE mode, but

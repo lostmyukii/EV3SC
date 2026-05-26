@@ -52,8 +52,38 @@ On a clean Windows machine with no developer tools and no custom Python:
 7. Export diagnostics and confirm redaction.
 8. Uninstall and confirm startup entries and service files are removed.
 
+## Install Smoke Evidence Gate
+
+Before Windows support can be marked classroom ready, collect evidence from the
+installed release artifact, not from a developer checkout. The evidence JSON
+must include:
+
+```json
+{
+  "installed_from_release_artifact": true,
+  "started_after_reboot": true,
+  "scratch_link_endpoint_ok": true,
+  "official_firmware_bt_real_ev3_ok": true
+}
+```
+
+Run the gate from the repository root:
+
+```bash
+python scripts/run_desktop_install_smoke.py \
+  --evidence docs/desktop/evidence/windows-install-smoke.json \
+  --report docs/desktop/evidence/windows-install-smoke.md
+```
+
+The report must say `Classroom ready: yes` before Windows official firmware
+Bluetooth compatibility can be shown as available to teachers.
+
 ## Official Firmware Bluetooth
 
 Windows official firmware Bluetooth compatibility must use a native adapter
 based on Windows-supported Bluetooth Classic APIs such as WinRT or .NET
 Bluetooth APIs. Python stdlib RFCOMM is not a supported Windows path.
+
+The native adapter source and evidence requirements live in
+`desktop/windows/native/README.md`. The mode remains unavailable until the
+install smoke gate records real official-firmware EV3 Bluetooth evidence.
