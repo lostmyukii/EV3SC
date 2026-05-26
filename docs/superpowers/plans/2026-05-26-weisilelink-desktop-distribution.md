@@ -645,7 +645,7 @@ git push origin main
 - Create: `weisile-link/tests/test_official_ev3_bt_transport.py`
 - Modify: `weisile-link/weisile_link/cli.py`
 
-- [ ] **Step 1: Write fake-adapter transport tests**
+- [x] **Step 1: Write fake-adapter transport tests**
 
 Create `weisile-link/tests/test_official_ev3_bt_transport.py` with a fake native
 adapter that records writes and returns deterministic EV3 replies. Tests must
@@ -665,7 +665,7 @@ async def test_transport_marks_unsupported_without_native_adapter():
 The tests should assert that unsupported macOS/Windows native adapter absence
 returns `False` from `connect()` rather than attempting Python stdlib Bluetooth.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -675,7 +675,7 @@ cd weisile-link && python -m pytest tests/test_official_ev3_bt_transport.py -v
 
 Expected: FAIL because the transport does not exist.
 
-- [ ] **Step 3: Implement transport shell with adapter boundary**
+- [x] **Step 3: Implement transport shell with adapter boundary**
 
 Create `official_ev3_bt_transport.py` with:
 
@@ -703,7 +703,7 @@ class OfficialEV3BluetoothTransport:
 This task is not allowed to claim real macOS or Windows Bluetooth support. It
 only creates the tested core boundary.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 
@@ -713,7 +713,7 @@ cd weisile-link && python -m pytest tests/test_official_ev3_bt_transport.py -v
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 

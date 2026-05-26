@@ -23,6 +23,9 @@ from weisile_link.json_rpc_server import (
 )
 from weisile_link.runtime.degradation import DegradationManager
 from weisile_link.transport.bluetooth_transport import BluetoothTransport
+from weisile_link.transport.official_ev3_bt_transport import (
+    OfficialEV3BluetoothTransport,
+)
 from weisile_link.transport.selector import AutoTransport
 from weisile_link.transport.wifi_transport import WiFiTransport
 
@@ -37,6 +40,7 @@ class WeisileLinkRuntimeConfig:
     ev3_ip: str = "ev3dev.local"
     ev3_ws_port: int = 8765
     ev3_bt: str = ""
+    ev3_official_bt: str = ""
     transport: str = "auto"
     max_collected_points: int = 10_000
     log_level: str = "INFO"
@@ -52,6 +56,10 @@ class WeisileLinkRuntimeConfig:
             ev3_ip=os.getenv("EV3_IP", cls.ev3_ip),
             ev3_ws_port=_int_env("EV3_WS_PORT", cls.ev3_ws_port),
             ev3_bt=os.getenv("EV3_BT", cls.ev3_bt),
+            ev3_official_bt=os.getenv(
+                "EV3_OFFICIAL_BT",
+                cls.ev3_official_bt,
+            ),
             transport=os.getenv("WEISILE_TRANSPORT", cls.transport).lower(),
             max_collected_points=_int_env(
                 "MAX_COLLECTED_POINTS",
@@ -77,7 +85,14 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
         bluetooth_transport = BluetoothTransport(config.ev3_bt, manager=manager)
         manager.bluetooth_supported = bluetooth_transport.supported
 
-    if config.transport == "wifi" or bluetooth_transport is None:
+    if config.transport in {"official-bluetooth", "official_ev3_bluetooth"}:
+        official_transport = OfficialEV3BluetoothTransport(
+            config.ev3_official_bt or config.ev3_bt,
+            manager=manager,
+        )
+        manager.bluetooth_supported = official_transport.supported
+        transport = official_transport
+    elif config.transport == "wifi" or bluetooth_transport is None:
         transport = wifi_transport
     elif config.transport == "bluetooth":
         transport = AutoTransport(
