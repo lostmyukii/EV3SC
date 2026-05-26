@@ -1,0 +1,15 @@
+# WeisileLink Desktop Install Smoke Report
+
+Evidence: `docs/desktop/evidence/windows-install-smoke.json`
+Classroom ready: no
+
+## Required Checks
+
+- installed_from_release_artifact: fail
+- started_after_reboot: fail
+- scratch_link_endpoint_ok: fail
+- official_firmware_bt_real_ev3_ok: fail
+
+## Failures
+
+- evidence file is missing
