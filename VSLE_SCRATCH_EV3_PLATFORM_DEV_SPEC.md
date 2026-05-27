@@ -3048,6 +3048,13 @@ material into:
 - **Files created/modified**: `desktop/macos/install.sh`, `desktop/macos/weisile-link.launchd.plist`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`
 - **Next step**: Reinstall the regenerated macOS smoke artifact on this Mac after stopping local port conflicts, then collect clean-machine signed-artifact evidence on macOS and Windows.
 
+### [2026-05-27] macOS native adapter process bridge
+- **Status**: ✅ Completed
+- **Commit**: `1b161e5`
+- **What was done**: Added an EV3SC-owned macOS IOBluetooth command-line adapter for official-firmware EV3 Bluetooth compatibility and a Python JSON-line subprocess bridge that injects it through `WEISILE_OFFICIAL_BT_ADAPTER`. Added tests for adapter process connect/send/recv/close behavior, native error propagation, CLI adapter injection, and macOS Objective-C syntax validation while keeping classroom readiness blocked until real signed-artifact and EV3 smoke evidence exists.
+- **Files created/modified**: `desktop/macos/native/README.md`, `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `desktop/macos/native/build.sh`, `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/weisile_link/cli.py`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Build the macOS native adapter into the desktop release artifact, then collect real paired-EV3 official-firmware Bluetooth smoke evidence and clean-machine signed/notarized install evidence before marking the mode available.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
