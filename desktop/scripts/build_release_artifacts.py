@@ -156,6 +156,12 @@ def _codesign_macos_app(app: Path, identity: str | None) -> bool:
 
 def build_macos(args: argparse.Namespace) -> dict[str, object]:
     executable = _require_existing_executable(args.executable)
+    if args.native_adapter is None:
+        raise ValueError(
+            "macOS release artifacts require --native-adapter pointing to "
+            "the built WeisileEV3BluetoothAdapter binary."
+        )
+    native_adapter = _require_existing_executable(args.native_adapter)
     output = _prepare_output(args.output)
     app = output / "WeisileLink.app"
     if app.exists():
@@ -165,6 +171,10 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
     macos_dir = contents / "MacOS"
     resources = contents / "Resources"
     _copy_executable(executable, macos_dir / "WeisileLink")
+    _copy_executable(
+        native_adapter,
+        resources / "native" / "WeisileEV3BluetoothAdapter",
+    )
     _copy_asset(MACOS_ASSET_ROOT / "install.sh", resources / "install.sh", True)
     _copy_asset(MACOS_ASSET_ROOT / "uninstall.sh", resources / "uninstall.sh", True)
     _copy_asset(
@@ -190,6 +200,8 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
         "notarized": False,
         "classroom_ready": False,
         "contains_self_contained_executable": True,
+        "contains_macos_native_bluetooth_adapter": True,
+        "official_firmware_bt_classroom_ready": False,
         "build_host_can_run_target": _host_can_run_target("macos"),
         "localhost_defaults": {
             "WEISILE_LINK_HOST": "127.0.0.1",
@@ -313,6 +325,14 @@ def parse_args(argv: list[str]) -> tuple[argparse.ArgumentParser, argparse.Names
 
     macos = subparsers.add_parser("macos", help="Build a macOS app zip.")
     _add_common_args(macos)
+    macos.add_argument(
+        "--native-adapter",
+        type=Path,
+        help=(
+            "Path to the built WeisileEV3BluetoothAdapter binary bundled "
+            "for official-firmware Bluetooth compatibility mode."
+        ),
+    )
     macos.set_defaults(builder=build_macos, command_parser=macos)
 
     windows = subparsers.add_parser("windows", help="Build a Windows zip.")

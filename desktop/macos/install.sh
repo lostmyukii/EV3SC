@@ -12,9 +12,15 @@ export WEISILE_LINK_HOST="127.0.0.1"
 export WEISILE_LINK_PORT="20111"
 export TRAINER_WS_PORT="8766"
 export WEISILE_TRANSPORT="wifi"
+export WEISILE_OFFICIAL_BT_ADAPTER="${APP_PATH}/Contents/Resources/native/WeisileEV3BluetoothAdapter"
 
 if [ ! -d "${APP_PATH}" ]; then
   echo "Missing ${APP_PATH}. Install the signed WeisileLink.app bundle first." >&2
+  exit 1
+fi
+
+if [ ! -x "${WEISILE_OFFICIAL_BT_ADAPTER}" ]; then
+  echo "Missing executable native adapter: ${WEISILE_OFFICIAL_BT_ADAPTER}" >&2
   exit 1
 fi
 

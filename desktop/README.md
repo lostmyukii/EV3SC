@@ -42,8 +42,11 @@ Unsigned artifacts are blocked by default. Use `--allow-unsigned` only for
 internal smoke testing before signing, notarization, and clean-machine evidence:
 
 ```bash
+desktop/macos/native/build.sh
+
 ./.venv/bin/python desktop/scripts/build_release_artifacts.py macos \
   --executable path/to/WeisileLink \
+  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter \
   --output desktop/release/macos \
   --version 0.1.0 \
   --allow-unsigned

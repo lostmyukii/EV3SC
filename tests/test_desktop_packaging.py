@@ -32,6 +32,11 @@ def test_macos_launch_agent_uses_localhost_and_bundled_binary():
     env = data["EnvironmentVariables"]
     assert env["WEISILE_LINK_HOST"] == "127.0.0.1"
     assert env["WEISILE_LINK_PORT"] == "20111"
+    assert env["WEISILE_TRANSPORT"] == "wifi"
+    assert env["WEISILE_OFFICIAL_BT_ADAPTER"] == (
+        "/Applications/WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter"
+    )
     assert data["RunAtLoad"] is True
     assert data["KeepAlive"] is True
 

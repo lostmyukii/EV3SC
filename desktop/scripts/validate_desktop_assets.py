@@ -32,6 +32,17 @@ def main() -> int:
     if env.get("WEISILE_LINK_HOST") != "127.0.0.1":
         print("macOS LaunchAgent must bind localhost by default", file=sys.stderr)
         return 1
+    expected_adapter = (
+        "/Applications/WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter"
+    )
+    if env.get("WEISILE_OFFICIAL_BT_ADAPTER") != expected_adapter:
+        print(
+            "macOS LaunchAgent must point official-firmware Bluetooth mode "
+            "at the bundled native adapter",
+            file=sys.stderr,
+        )
+        return 1
     for key in ("StandardOutPath", "StandardErrorPath"):
         value = plist.get(key, "")
         if "~" in value or not value.startswith("__WEISILE_LOG_DIR__/"):

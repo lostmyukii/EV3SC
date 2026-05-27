@@ -19,6 +19,8 @@
     <string>8766</string>
     <key>WEISILE_TRANSPORT</key>
     <string>wifi</string>
+    <key>WEISILE_OFFICIAL_BT_ADAPTER</key>
+    <string>/Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter</string>
     <key>LOG_LEVEL</key>
     <string>INFO</string>
   </dict>

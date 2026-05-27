@@ -29,8 +29,11 @@ The checked packager for the app bundle zip is
 release zip, and manifest under `desktop/release/`:
 
 ```bash
+desktop/macos/native/build.sh
+
 ./.venv/bin/python desktop/scripts/build_release_artifacts.py macos \
   --executable path/to/WeisileLink \
+  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter \
   --output desktop/release/macos \
   --version 0.1.0 \
   --allow-unsigned

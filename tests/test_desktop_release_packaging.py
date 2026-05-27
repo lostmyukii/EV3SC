@@ -40,8 +40,32 @@ def test_macos_packager_refuses_unsigned_by_default(tmp_path):
     assert "--allow-unsigned" in result.stderr
 
 
+def test_macos_packager_requires_native_bluetooth_adapter(tmp_path):
+    executable = _fake_executable(tmp_path / "WeisileLink")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(PACKAGER),
+            "macos",
+            "--executable",
+            str(executable),
+            "--output",
+            str(tmp_path / "release"),
+            "--allow-unsigned",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "--native-adapter" in result.stderr
+
+
 def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     executable = _fake_executable(tmp_path / "WeisileLink")
+    native_adapter = _fake_executable(tmp_path / "WeisileEV3BluetoothAdapter")
     output = tmp_path / "release"
     result = subprocess.run(
         [
@@ -50,6 +74,8 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
             "macos",
             "--executable",
             str(executable),
+            "--native-adapter",
+            str(native_adapter),
             "--output",
             str(output),
             "--version",
@@ -66,6 +92,9 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     app = output / "WeisileLink.app"
     assert (app / "Contents/MacOS/WeisileLink").is_file()
     assert os.access(app / "Contents/MacOS/WeisileLink", os.X_OK)
+    adapter = app / "Contents/Resources/native/WeisileEV3BluetoothAdapter"
+    assert adapter.is_file()
+    assert os.access(adapter, os.X_OK)
     assert (app / "Contents/Resources/install.sh").is_file()
     assert (app / "Contents/Resources/weisile-link.launchd.plist").is_file()
 
@@ -78,6 +107,9 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     with zipfile.ZipFile(zip_path) as archive:
         names = set(archive.namelist())
     assert "WeisileLink.app/Contents/MacOS/WeisileLink" in names
+    assert (
+        "WeisileLink.app/Contents/Resources/native/" "WeisileEV3BluetoothAdapter"
+    ) in names
     assert "WeisileLink.app/Contents/Resources/install.sh" in names
 
     metadata = json.loads(
@@ -89,6 +121,8 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     assert metadata["signed"] is False
     assert metadata["classroom_ready"] is False
     assert metadata["contains_self_contained_executable"] is True
+    assert metadata["contains_macos_native_bluetooth_adapter"] is True
+    assert metadata["official_firmware_bt_classroom_ready"] is False
 
 
 def test_windows_packager_creates_zip_and_metadata(tmp_path):
