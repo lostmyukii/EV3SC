@@ -3062,6 +3062,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/protocol/official_ev3_direct_command.py`, `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `weisile-link/tests/test_official_ev3_direct_command.py`, `weisile-link/tests/test_official_ev3_bt_transport.py`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Package the macOS native adapter into a signed/notarized desktop release artifact, then run a real paired official-firmware EV3 smoke test and record `official_firmware_bt_real_ev3_ok: true` only from the install-smoke evidence workflow.
 
+### [2026-05-27] macOS native adapter release bundling
+- **Status**: ✅ Completed
+- **Commit**: `14a68e9`
+- **What was done**: Updated the desktop release packager so macOS artifacts must include the built `WeisileEV3BluetoothAdapter` binary under the app bundle resources, added LaunchAgent wiring for `WEISILE_OFFICIAL_BT_ADAPTER`, and regenerated an internal unsigned macOS smoke artifact with a manifest that records the native adapter is present while official-firmware Bluetooth remains not classroom ready.
+- **Files created/modified**: `desktop/scripts/build_release_artifacts.py`, `desktop/scripts/validate_desktop_assets.py`, `desktop/macos/install.sh`, `desktop/macos/weisile-link.launchd.plist`, `tests/test_desktop_release_packaging.py`, `tests/test_desktop_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the macOS release artifact on a clean macOS machine with a paired official-firmware EV3 and record real install-smoke evidence, including `official_firmware_bt_real_ev3_ok: true`, before marking the compatibility mode available.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
