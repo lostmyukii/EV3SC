@@ -19,7 +19,7 @@ if [ ! -d "${APP_PATH}" ]; then
 fi
 
 mkdir -p "${LAUNCH_AGENTS_DIR}" "${LOG_DIR}"
-cp "${PLIST_SOURCE}" "${PLIST_TARGET}"
+sed "s#__WEISILE_LOG_DIR__#${LOG_DIR}#g" "${PLIST_SOURCE}" > "${PLIST_TARGET}"
 
 if launchctl list "${LABEL}" >/dev/null 2>&1; then
   launchctl unload "${PLIST_TARGET}" >/dev/null 2>&1 || true

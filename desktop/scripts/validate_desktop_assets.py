@@ -32,10 +32,17 @@ def main() -> int:
     if env.get("WEISILE_LINK_HOST") != "127.0.0.1":
         print("macOS LaunchAgent must bind localhost by default", file=sys.stderr)
         return 1
+    for key in ("StandardOutPath", "StandardErrorPath"):
+        value = plist.get(key, "")
+        if "~" in value or not value.startswith("__WEISILE_LOG_DIR__/"):
+            print(
+                "macOS LaunchAgent log paths must use install-time absolute "
+                f"path placeholders: {key}",
+                file=sys.stderr,
+            )
+            return 1
 
-    windows_text = (ROOT / "desktop/windows/install.ps1").read_text(
-        encoding="utf-8"
-    )
+    windows_text = (ROOT / "desktop/windows/install.ps1").read_text(encoding="utf-8")
     if "0.0.0.0" in windows_text:
         print("Windows default install must not bind LAN", file=sys.stderr)
         return 1

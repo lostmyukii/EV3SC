@@ -36,10 +36,23 @@ def test_macos_launch_agent_uses_localhost_and_bundled_binary():
     assert data["KeepAlive"] is True
 
 
+def test_macos_install_script_writes_absolute_log_paths():
+    plist_path = ROOT / "desktop/macos/weisile-link.launchd.plist"
+    with plist_path.open("rb") as handle:
+        data = plistlib.load(handle)
+    assert data["StandardOutPath"].startswith("__WEISILE_LOG_DIR__/")
+    assert data["StandardErrorPath"].startswith("__WEISILE_LOG_DIR__/")
+    assert "~" not in data["StandardOutPath"]
+    assert "~" not in data["StandardErrorPath"]
+
+    install_text = (ROOT / "desktop/macos/install.sh").read_text(encoding="utf-8")
+    assert "__WEISILE_LOG_DIR__" in install_text
+    assert "LOG_DIR" in install_text
+    assert ">" in install_text
+
+
 def test_windows_install_scripts_keep_localhost_defaults():
-    install_text = (ROOT / "desktop/windows/install.ps1").read_text(
-        encoding="utf-8"
-    )
+    install_text = (ROOT / "desktop/windows/install.ps1").read_text(encoding="utf-8")
     service_text = (ROOT / "desktop/windows/weisile-link-service.xml").read_text(
         encoding="utf-8"
     )

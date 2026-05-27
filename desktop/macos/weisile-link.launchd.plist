@@ -27,8 +27,8 @@
   <key>KeepAlive</key>
   <true/>
   <key>StandardOutPath</key>
-  <string>~/Library/Logs/WeisileLink/weisile-link.out.log</string>
+  <string>__WEISILE_LOG_DIR__/weisile-link.out.log</string>
   <key>StandardErrorPath</key>
-  <string>~/Library/Logs/WeisileLink/weisile-link.err.log</string>
+  <string>__WEISILE_LOG_DIR__/weisile-link.err.log</string>
 </dict>
 </plist>
