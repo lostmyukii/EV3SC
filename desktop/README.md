@@ -31,3 +31,29 @@ Run:
 ./.venv/bin/python -m pytest tests/test_desktop_packaging.py -v
 desktop/scripts/validate_desktop_assets.py
 ```
+
+## Release Artifact Packaging
+
+`desktop/scripts/build_release_artifacts.py` creates checked release artifact
+folders, zip files, and manifests under `desktop/release/` from an already
+built self-contained WeisileLink executable.
+
+Unsigned artifacts are blocked by default. Use `--allow-unsigned` only for
+internal smoke testing before signing, notarization, and clean-machine evidence:
+
+```bash
+./.venv/bin/python desktop/scripts/build_release_artifacts.py macos \
+  --executable path/to/WeisileLink \
+  --output desktop/release/macos \
+  --version 0.1.0 \
+  --allow-unsigned
+
+./.venv/bin/python desktop/scripts/build_release_artifacts.py windows \
+  --executable path/to/WeisileLink.exe \
+  --output desktop/release/windows \
+  --version 0.1.0 \
+  --allow-unsigned
+```
+
+Classroom release status still requires signed artifacts, macOS notarization,
+and clean-machine install smoke evidence from the generated artifact.

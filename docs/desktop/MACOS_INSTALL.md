@@ -24,6 +24,22 @@ The classroom artifact is a signed `.pkg` that installs a signed
 runtime or a self-contained executable. It must not call `/usr/bin/python3` for
 classroom releases.
 
+The checked packager for the app bundle zip is
+`desktop/scripts/build_release_artifacts.py`. It writes the app bundle,
+release zip, and manifest under `desktop/release/`:
+
+```bash
+./.venv/bin/python desktop/scripts/build_release_artifacts.py macos \
+  --executable path/to/WeisileLink \
+  --output desktop/release/macos \
+  --version 0.1.0 \
+  --allow-unsigned
+```
+
+`--allow-unsigned` is only for internal smoke testing. A classroom macOS
+artifact must be signed, converted to the approved installer shape, notarized,
+and then verified on a clean machine.
+
 The installer registers a per-user LaunchAgent named `cn.vsle.weisile-link`.
 The LaunchAgent starts WeisileLink on login, keeps it alive, binds to
 `127.0.0.1`, and writes logs to `~/Library/Logs/WeisileLink`.

@@ -59,3 +59,29 @@ No desktop package is classroom ready until the release artifact itself passes
 clean-machine install, upgrade, login/reboot auto-start, health check,
 ScratchAI WebSocket connection, diagnostics export, crash recovery, and
 uninstall verification on the target OS.
+
+## Release Artifact Packaging
+
+The first packaging step is `desktop/scripts/build_release_artifacts.py`. It
+packages an already-built self-contained executable into the target release
+layout, writes a zip file, and records a manifest under `desktop/release/`.
+
+Example internal smoke commands:
+
+```bash
+./.venv/bin/python desktop/scripts/build_release_artifacts.py macos \
+  --executable path/to/WeisileLink \
+  --output desktop/release/macos \
+  --version 0.1.0 \
+  --allow-unsigned
+
+./.venv/bin/python desktop/scripts/build_release_artifacts.py windows \
+  --executable path/to/WeisileLink.exe \
+  --output desktop/release/windows \
+  --version 0.1.0 \
+  --allow-unsigned
+```
+
+The `--allow-unsigned` path is not classroom ready. External distribution still
+requires signed artifacts, macOS notarization, and clean-machine install smoke
+reports generated from the same artifact.

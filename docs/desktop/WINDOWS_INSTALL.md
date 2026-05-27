@@ -29,6 +29,22 @@ installer must place WeisileLink under either:
 The release must include a bundled runtime or self-contained executable. It must
 not require teacher-installed Python.
 
+The checked packager for the Windows zip artifact is
+`desktop/scripts/build_release_artifacts.py`. It writes the package directory,
+release zip, and manifest under `desktop/release/`:
+
+```bash
+./.venv/bin/python desktop/scripts/build_release_artifacts.py windows \
+  --executable path/to/WeisileLink.exe \
+  --output desktop/release/windows \
+  --version 0.1.0 \
+  --allow-unsigned
+```
+
+`--allow-unsigned` is only for internal smoke testing. A classroom Windows
+artifact must be signed, wrapped in the approved installer shape, and then
+verified on a clean machine.
+
 ## Startup and Firewall Defaults
 
 The first classroom release should support per-user startup because admin rights

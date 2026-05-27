@@ -3,6 +3,10 @@
 .pytest_cache/
 __pycache__/
 *.py[cod]
+.pip-cache/
+.pyinstaller-cache/
+desktop/build/
+desktop/release/
 
 # ScratchAI port generated artifacts
 scratch-ai-platform/**/node_modules/
