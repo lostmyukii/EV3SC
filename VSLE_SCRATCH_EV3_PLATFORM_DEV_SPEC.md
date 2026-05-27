@@ -3034,6 +3034,13 @@ material into:
 - **Files created/modified**: `docs/desktop/evidence/macos-install-smoke.md`, `docs/desktop/evidence/windows-install-smoke.md`
 - **Next step**: Produce real `docs/desktop/evidence/macos-install-smoke.json` and `docs/desktop/evidence/windows-install-smoke.json` from signed release-artifact installs on clean machines, including reboot/startup, Scratch Link endpoint, and real official-firmware EV3 Bluetooth smoke evidence, then rerun the gates until the reports say `Classroom ready: yes`.
 
+### [2026-05-27] Desktop release artifact packager
+- **Status**: ✅ Completed
+- **Commit**: `1c71202`
+- **What was done**: Added a reproducible WeisileLink Desktop release artifact packager for macOS and Windows zip/manifest layouts from self-contained executables. The packager refuses unsigned artifacts by default, records localhost defaults and non-classroom status in manifests, and was used to generate an ignored internal macOS unsigned smoke artifact from a PyInstaller onefile executable.
+- **Files created/modified**: `.gitignore`, `desktop/scripts/build_release_artifacts.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Build or obtain a Windows self-contained `WeisileLink.exe` on a real Windows build host, package it with `desktop/scripts/build_release_artifacts.py`, then move both OS artifacts into signing/notarization and clean-machine install smoke evidence collection.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
