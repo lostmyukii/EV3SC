@@ -23,6 +23,7 @@ from weisile_link.json_rpc_server import (
 )
 from weisile_link.runtime.degradation import DegradationManager
 from weisile_link.transport.bluetooth_transport import BluetoothTransport
+from weisile_link.transport.native_adapter_process import NativeAdapterProcess
 from weisile_link.transport.official_ev3_bt_transport import (
     OfficialEV3BluetoothTransport,
 )
@@ -41,6 +42,7 @@ class WeisileLinkRuntimeConfig:
     ev3_ws_port: int = 8765
     ev3_bt: str = ""
     ev3_official_bt: str = ""
+    official_bt_adapter: str = ""
     transport: str = "auto"
     max_collected_points: int = 10_000
     log_level: str = "INFO"
@@ -59,6 +61,10 @@ class WeisileLinkRuntimeConfig:
             ev3_official_bt=os.getenv(
                 "EV3_OFFICIAL_BT",
                 cls.ev3_official_bt,
+            ),
+            official_bt_adapter=os.getenv(
+                "WEISILE_OFFICIAL_BT_ADAPTER",
+                cls.official_bt_adapter,
             ),
             transport=os.getenv("WEISILE_TRANSPORT", cls.transport).lower(),
             max_collected_points=_int_env(
@@ -86,8 +92,14 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
         manager.bluetooth_supported = bluetooth_transport.supported
 
     if config.transport in {"official-bluetooth", "official_ev3_bluetooth"}:
+        native_adapter = (
+            NativeAdapterProcess(config.official_bt_adapter)
+            if config.official_bt_adapter
+            else None
+        )
         official_transport = OfficialEV3BluetoothTransport(
             config.ev3_official_bt or config.ev3_bt,
+            adapter=native_adapter,
             manager=manager,
         )
         manager.bluetooth_supported = official_transport.supported

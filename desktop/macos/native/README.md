@@ -18,6 +18,34 @@ Implementation rules:
   classroom build.
 - Keep pairing tokens and EV3 Bluetooth addresses out of committed evidence.
 
+Current adapter slice:
+
+- `WeisileEV3BluetoothAdapter.m` is a command-line native adapter using
+  IOBluetooth.
+- `build.sh --check` verifies Objective-C syntax against the macOS SDK.
+- The adapter speaks newline-delimited JSON with Python:
+  - `connect` with `address` opens RFCOMM channel `1`;
+  - `send` writes a base64 EV3 Direct Command frame;
+  - `recv` returns a base64 raw EV3 reply frame;
+  - `close` closes the RFCOMM channel.
+- The EV3 must already be paired in macOS Bluetooth settings.
+
+Build:
+
+```bash
+desktop/macos/native/build.sh --check
+desktop/macos/native/build.sh
+```
+
+Runtime selection is explicit and remains a compatibility mode:
+
+```bash
+WEISILE_TRANSPORT=official-bluetooth \
+EV3_OFFICIAL_BT=00:16:53:12:34:56 \
+WEISILE_OFFICIAL_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter \
+/Applications/WeisileLink.app/Contents/MacOS/WeisileLink
+```
+
 Required evidence before classroom readiness:
 
 - Release artifact installed on a clean macOS machine.
