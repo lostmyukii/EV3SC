@@ -3041,6 +3041,13 @@ material into:
 - **Files created/modified**: `.gitignore`, `desktop/scripts/build_release_artifacts.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Build or obtain a Windows self-contained `WeisileLink.exe` on a real Windows build host, package it with `desktop/scripts/build_release_artifacts.py`, then move both OS artifacts into signing/notarization and clean-machine install smoke evidence collection.
 
+### [2026-05-27] macOS LaunchAgent install log path fix
+- **Status**: ✅ Completed
+- **Commit**: `d4c92e4`
+- **What was done**: Verified the installed macOS app binary can start on temporary localhost ports, then fixed the LaunchAgent template so install-time scripts write absolute log paths instead of `~` paths that launchd does not expand reliably. Added regression coverage and regenerated the ignored internal macOS unsigned smoke artifact with the corrected installer assets.
+- **Files created/modified**: `desktop/macos/install.sh`, `desktop/macos/weisile-link.launchd.plist`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`
+- **Next step**: Reinstall the regenerated macOS smoke artifact on this Mac after stopping local port conflicts, then collect clean-machine signed-artifact evidence on macOS and Windows.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
