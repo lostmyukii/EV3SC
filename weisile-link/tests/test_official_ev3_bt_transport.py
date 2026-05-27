@@ -1,7 +1,10 @@
 import asyncio
+import struct
+
 import pytest
 
 from weisile_link.cli import WeisileLinkRuntimeConfig, build_server
+from weisile_link.protocol.official_ev3_direct_command import DIRECT_REPLY
 from weisile_link.protocol.official_ev3_direct_command import OPOUTPUT_STOP
 from weisile_link.runtime.degradation import DegradationManager, TransportKind
 from weisile_link.transport.official_ev3_bt_transport import (
@@ -10,10 +13,11 @@ from weisile_link.transport.official_ev3_bt_transport import (
 
 
 class FakeNativeBluetoothAdapter:
-    def __init__(self):
+    def __init__(self, replies=None):
         self.connected_to = None
         self.writes = []
         self.closed = False
+        self.replies = list(replies or [])
 
     async def connect(self, address):
         self.connected_to = address
@@ -22,6 +26,8 @@ class FakeNativeBluetoothAdapter:
         self.writes.append(payload)
 
     async def recv(self):
+        if self.replies:
+            return self.replies.pop(0)
         return b""
 
     async def close(self):
@@ -34,6 +40,7 @@ def test_transport_rejects_commands_before_connect():
         transport = OfficialEV3BluetoothTransport(
             "00:16:53:12:34:56",
             adapter=adapter,
+            auto_poll=False,
         )
 
         with pytest.raises(ConnectionError):
@@ -58,6 +65,7 @@ def test_transport_sends_motor_stop_direct_command_after_validation():
             "00:16:53:12:34:56",
             adapter=adapter,
             manager=manager,
+            auto_poll=False,
         )
 
         connected = await transport.connect(lambda _payload: None)
@@ -92,6 +100,7 @@ def test_transport_disconnect_sends_safe_stop_before_close():
         transport = OfficialEV3BluetoothTransport(
             "00:16:53:12:34:56",
             adapter=adapter,
+            auto_poll=False,
         )
 
         assert await transport.connect(lambda _payload: None) is True
@@ -134,6 +143,7 @@ def test_transport_returns_unsupported_ack_for_unmapped_methods():
         transport = OfficialEV3BluetoothTransport(
             "00:16:53:12:34:56",
             adapter=adapter,
+            auto_poll=False,
         )
 
         assert await transport.connect(lambda _payload: None) is True
@@ -149,6 +159,76 @@ def test_transport_returns_unsupported_ack_for_unmapped_methods():
         assert ack["code"] == "EV3_INVALID_COMMAND"
         assert ack["id"] == "run-1"
         assert adapter.writes == []
+
+    asyncio.run(scenario())
+
+
+def test_transport_polls_official_firmware_values_into_sensor_cache():
+    async def scenario():
+        device_payload = bytearray(33)
+        device_payload[0] = 29
+        device_payload[1] = 30
+        device_payload[2] = 126
+        device_payload[3] = 16
+        device_payload[16] = 7
+        values_payload = (
+            struct.pack("<f", 42.0)
+            + struct.pack("<f", 10.0)
+            + struct.pack("<f", 0.0)
+            + struct.pack("<f", 1.0)
+            + struct.pack("<i", 360)
+            + struct.pack("<i", 0)
+            + struct.pack("<i", 0)
+            + struct.pack("<i", 0)
+        )
+        adapter = FakeNativeBluetoothAdapter(
+            [
+                _direct_reply(bytes(device_payload), message_counter=0),
+                _direct_reply(values_payload, message_counter=1),
+            ]
+        )
+        manager = DegradationManager()
+        sensor_updates = []
+        transport = OfficialEV3BluetoothTransport(
+            "00:16:53:12:34:56",
+            adapter=adapter,
+            manager=manager,
+            auto_poll=False,
+            monotonic_ms=lambda: 1_000,
+        )
+
+        assert await transport.connect(sensor_updates.append) is True
+        await transport.poll_once()
+        await transport.poll_once()
+
+        assert sensor_updates
+        update = sensor_updates[0]
+        assert update["type"] == "sensor_update"
+        assert update["sensors"]["S1"]["ambient"] == 42.0
+        assert update["sensors"]["S1"]["brightness"] == 42.0
+        assert update["sensors"]["S2"]["distance_inch"] == 10.0
+        assert update["sensors"]["S2"]["distance_cm"] == 25.4
+        assert update["sensors"]["S4"]["pressed"] is True
+        assert update["motors"]["A"]["position"] == 360
+
+        cached = manager.get_sensor_value(
+            "sensors.S2.distance_cm",
+            now_ms=1_050,
+            default=0,
+        )
+        assert cached.value == 25.4
+        assert cached.stale is False
+        assert (
+            manager.get_sensor_value(
+                "sensors.S4.pressed",
+                now_ms=1_050,
+                default=False,
+            ).value
+            is True
+        )
+        assert manager.sensor_stale_after_ms == 500
+
+        await transport.disconnect()
 
     asyncio.run(scenario())
 
@@ -185,3 +265,20 @@ def test_runtime_config_default_does_not_enable_official_mode(monkeypatch):
 
     assert config.transport == "auto"
     assert config.ev3_official_bt == ""
+
+
+def _direct_reply(
+    payload: bytes,
+    *,
+    message_counter: int = 0,
+    reply_type: int = DIRECT_REPLY,
+) -> bytes:
+    frame = bytearray()
+    frame.extend(b"\x00\x00")
+    frame.append(message_counter & 0xFF)
+    frame.append((message_counter >> 8) & 0xFF)
+    frame.append(reply_type)
+    frame.extend(payload)
+    frame[0] = (len(frame) - 2) & 0xFF
+    frame[1] = ((len(frame) - 2) >> 8) & 0xFF
+    return bytes(frame)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+import struct
+from typing import Iterable, List, Optional, Sequence
 
 
 # Source basis:
@@ -152,3 +153,100 @@ def build_motor_count_poll(
         allocation=FLOAT_GLOBAL_ALLOCATION,
         message_counter=message_counter,
     )
+
+
+def build_sensor_motor_poll(
+    sensor_modes: Sequence[Optional[int]],
+    *,
+    message_counter: int = 0,
+) -> bytes:
+    """Poll four sensor slots and four motor counts like Scratch EV3."""
+    if len(sensor_modes) != 4:
+        raise ValueError("sensor_modes must contain exactly four ports")
+
+    bytecode: List[int] = []
+    global_index = 0
+    for port_index, mode in enumerate(sensor_modes):
+        if mode is not None:
+            _validate_byte(mode, "mode")
+            bytecode.extend(
+                [
+                    OPINPUT_READSI,
+                    LAYER,
+                    port_index,
+                    DO_NOT_CHANGE_TYPE,
+                    mode,
+                    *_global_variable_index(global_index),
+                ]
+            )
+        global_index += FLOAT_GLOBAL_ALLOCATION
+
+    for port_index in range(4):
+        bytecode.extend(
+            [
+                OPOUTPUT_GET_COUNT,
+                LAYER,
+                port_index,
+                *_global_variable_index(global_index),
+            ]
+        )
+        global_index += FLOAT_GLOBAL_ALLOCATION
+
+    return build_direct_command(
+        DIRECT_COMMAND_REPLY,
+        bytecode,
+        allocation=global_index,
+        message_counter=message_counter,
+    )
+
+
+def parse_direct_reply_payload(
+    frame: bytes,
+    *,
+    expected_counter: Optional[int] = None,
+) -> bytes:
+    """Validate an EV3 Direct Reply frame and return global memory bytes."""
+    if len(frame) < 5:
+        raise ValueError("Direct Reply frame is too short")
+
+    declared_length = frame[0] | (frame[1] << 8)
+    actual_length = len(frame) - 2
+    if declared_length != actual_length:
+        raise ValueError("Direct Reply length header does not match frame")
+
+    message_counter = frame[2] | (frame[3] << 8)
+    if expected_counter is not None and message_counter != (
+        expected_counter & 0xFFFF
+    ):
+        raise ValueError("Direct Reply message counter mismatch")
+
+    reply_type = frame[4]
+    if reply_type == DIRECT_REPLY_ERROR:
+        raise ValueError("EV3 returned Direct Command error reply")
+    if reply_type != DIRECT_REPLY:
+        raise ValueError("frame is not an EV3 Direct Reply")
+
+    return frame[5:]
+
+
+def decode_float_globals(payload: bytes) -> List[float]:
+    """Decode Direct Reply global memory as little-endian SI floats."""
+    _validate_global_payload_size(payload)
+    return [
+        struct.unpack_from("<f", payload, offset)[0]
+        for offset in range(0, len(payload), FLOAT_GLOBAL_ALLOCATION)
+    ]
+
+
+def decode_int32_globals(payload: bytes) -> List[int]:
+    """Decode Direct Reply global memory as little-endian signed integers."""
+    _validate_global_payload_size(payload)
+    return [
+        struct.unpack_from("<i", payload, offset)[0]
+        for offset in range(0, len(payload), FLOAT_GLOBAL_ALLOCATION)
+    ]
+
+
+def _validate_global_payload_size(payload: bytes) -> None:
+    if len(payload) % FLOAT_GLOBAL_ALLOCATION != 0:
+        raise ValueError("global payload length must be a multiple of 4")

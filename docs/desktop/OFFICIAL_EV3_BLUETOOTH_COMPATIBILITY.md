@@ -39,6 +39,27 @@ brick, and does not replace full VSLE mode.
 | AI Quest raw stream | Full VSLE mode only |
 | 50Hz raw streaming | Full VSLE mode only |
 
+## Current Implementation Status
+
+The EV3SC transport now has an automated, fake-adapter verified Direct Reply
+path for official-firmware polling:
+
+- Device-list replies identify sensor ports and motor ports using the official
+  Scratch EV3 byte offsets.
+- Sensor/motor value replies decode sensor SI floats and motor signed 32-bit
+  tachometer counts from Direct Reply global memory.
+- Supported Basic Pack cache paths include `sensors.S1.ambient`,
+  `sensors.S1.brightness`, `sensors.S2.distance_inch`,
+  `sensors.S2.distance_cm`, `sensors.S4.pressed`, and
+  `motors.<A-D>.position` when the EV3 reports a motor on that port.
+- The poll loop writes the same `SensorCache` shape used by VSLE mode and emits
+  normal `sensor_update` payloads to the Scratch-facing bridge.
+
+This is still not real hardware approval. macOS official-firmware Bluetooth
+compatibility remains blocked until a paired official-firmware EV3 connects
+through the native adapter and the install-smoke evidence gate records
+`official_firmware_bt_real_ev3_ok: true` from a release artifact.
+
 ## Transport Boundary
 
 The Scratch-facing endpoint remains JSON-RPC 2.0 over
