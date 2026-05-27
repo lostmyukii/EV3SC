@@ -3055,6 +3055,13 @@ material into:
 - **Files created/modified**: `desktop/macos/native/README.md`, `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `desktop/macos/native/build.sh`, `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/weisile_link/cli.py`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Build the macOS native adapter into the desktop release artifact, then collect real paired-EV3 official-firmware Bluetooth smoke evidence and clean-machine signed/notarized install evidence before marking the mode available.
 
+### [2026-05-27] Official EV3 Bluetooth sensor cache polling
+- **Status**: ✅ Completed
+- **Commit**: `b5bfa74`
+- **What was done**: Added Direct Reply validation and global-memory decoders for official EV3 firmware responses, plus fake-adapter verified device-list and sensor/motor polling through the official Bluetooth transport. The transport now writes Basic Pack values into the same `SensorCache` paths used by Scratch while keeping real macOS official-firmware hardware approval blocked behind release-artifact smoke evidence.
+- **Files created/modified**: `weisile-link/weisile_link/protocol/official_ev3_direct_command.py`, `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `weisile-link/tests/test_official_ev3_direct_command.py`, `weisile-link/tests/test_official_ev3_bt_transport.py`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Package the macOS native adapter into a signed/notarized desktop release artifact, then run a real paired official-firmware EV3 smoke test and record `official_firmware_bt_real_ev3_ok: true` only from the install-smoke evidence workflow.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
