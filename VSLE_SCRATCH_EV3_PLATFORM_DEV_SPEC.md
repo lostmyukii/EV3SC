@@ -3076,6 +3076,13 @@ material into:
 - **Files created/modified**: `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
 - **Next step**: Review the design, then create an implementation plan for the `vsle-bluetooth` full-mode transport, website connection-flow copy, tests, and real EV3 Bluetooth evidence gates.
 
+### [2026-05-28] Website Bluetooth design audit
+- **Status**: ✅ Completed
+- **Commit**: `6cfb33d`
+- **What was done**: Audited the website Bluetooth full-module design against the current EV3SC block surface, WeisileLink command validators, existing full-mode RFCOMM transport, EV3 server Bluetooth listener, and official-firmware compatibility boundary. Clarified that `vsle-bluetooth` should be a clear product alias or rename of the existing full VSLE JSON-line Bluetooth path, not a duplicate implementation, and that EV3-side work means enabling/updating the EV3SC server rather than writing a new LEGO firmware image.
+- **Files created/modified**: `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
+- **Next step**: Create the implementation plan with a generated command coverage matrix, full Bluetooth transport aliasing, native byte-stream adapter generalization, EV3 setup updates, and real EV3 full-Bluetooth smoke evidence gates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
