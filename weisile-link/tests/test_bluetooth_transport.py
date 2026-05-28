@@ -8,6 +8,7 @@ from weisile_link.protocol.errors import ValidationError
 from weisile_link.runtime.degradation import DegradationManager, TransportKind
 from weisile_link.transport.bluetooth_transport import (
     BluetoothTransport,
+    VSLEBluetoothTransport,
     host_supports_stdlib_rfcomm,
 )
 
@@ -85,6 +86,55 @@ class FakeSocketModule:
 
 def decoded_writes(fake_file):
     return [json.loads(payload.decode("utf-8")) for payload in fake_file.writes]
+
+
+class FakeNativeByteStream:
+    def __init__(self):
+        self.connected_to = None
+        self.sent = []
+        self.incoming = queue.Queue()
+        self.closed = False
+        self.executable = "/tmp/fake-vsle-native-adapter"
+
+    async def connect(self, address, *, channel=1, profile="rfcomm"):
+        self.connected_to = (address, channel, profile)
+
+    async def send(self, payload):
+        self.sent.append(payload)
+
+    async def recv(self):
+        while True:
+            try:
+                return self.incoming.get_nowait()
+            except queue.Empty:
+                await asyncio.sleep(0.001)
+
+    async def status(self):
+        from weisile_link.transport.native_byte_stream import (
+            NativeByteStreamStatus,
+        )
+
+        return NativeByteStreamStatus(
+            connected=True,
+            adapter_version="fake-native",
+            profile="rfcomm",
+        )
+
+    async def close(self):
+        self.closed = True
+        self.feed(b"")
+
+    def feed(self, payload):
+        if isinstance(payload, dict):
+            payload = (
+                json.dumps(payload, separators=(",", ":")).encode("utf-8")
+                + b"\n"
+            )
+        self.incoming.put(payload)
+
+
+def decoded_native_writes(adapter):
+    return [json.loads(payload.decode("utf-8")) for payload in adapter.sent]
 
 
 def test_support_detection_requires_linux_stdlib_rfcomm_symbols():
@@ -328,6 +378,174 @@ def test_disconnect_rejects_pending_commands_and_closes_socket():
 
         assert transport.pending_command_ids == ()
         assert fake_socket.closed is True
+        assert manager.connection_state.connected is False
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_uses_native_adapter_for_json_line_protocol():
+    async def scenario():
+        adapter = FakeNativeByteStream()
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=manager,
+            pairing_token="secret",
+        )
+        adapter.feed({"type": "ack", "id": "auth.pair", "ok": True})
+
+        connected = await transport.connect(lambda _payload: None)
+
+        assert connected is True
+        assert adapter.connected_to == ("00:16:53:AA:BB:CC", 1, "rfcomm")
+        assert decoded_native_writes(adapter)[0] == {
+            "id": "auth.pair",
+            "method": "auth.pair",
+            "params": {"token": "secret"},
+        }
+        assert manager.connection_state.transport_label == "vsle-bluetooth"
+        assert manager.connection_state.transport_capability == "full"
+        assert manager.connection_state.native_adapter_path == (
+            "/tmp/fake-vsle-native-adapter"
+        )
+        assert manager.connection_state.native_adapter_status == "fake-native"
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_native_adapter_resolves_command_ack():
+    async def scenario():
+        adapter = FakeNativeByteStream()
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=DegradationManager(bluetooth_supported=True),
+        )
+        assert await transport.connect(lambda _payload: None) is True
+
+        command_task = asyncio.create_task(
+            transport.send_command(
+                {
+                    "id": "cmd-native",
+                    "method": "motor.runTimed",
+                    "params": {"port": "a", "speed": 125, "time": 90},
+                }
+            )
+        )
+        await asyncio.sleep(0.01)
+
+        assert decoded_native_writes(adapter)[0] == {
+            "id": "cmd-native",
+            "method": "motor.runTimed",
+            "params": {"port": "A", "speed": 100, "time": 60},
+        }
+
+        adapter.feed({"type": "ack", "id": "cmd-native", "ok": True})
+        ack = await command_task
+
+        assert ack == {"type": "ack", "id": "cmd-native", "ok": True}
+        assert transport.pending_command_ids == ()
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_native_adapter_routes_sensor_updates_to_cache():
+    async def scenario():
+        adapter = FakeNativeByteStream()
+        manager = DegradationManager(bluetooth_supported=True)
+        sensor_updates = []
+
+        async def on_sensor_data(payload):
+            sensor_updates.append(payload)
+
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=manager,
+            monotonic_ms=lambda: 2_000,
+        )
+        assert await transport.connect(on_sensor_data) is True
+
+        adapter.feed(
+            {
+                "type": "sensor_update",
+                "sensors": {"S2": {"distance_cm": 31.5}},
+                "motors": {"A": {"running": True}},
+                "system": {"battery_pct": 77},
+            }
+        )
+        await asyncio.sleep(0.01)
+
+        assert sensor_updates[0]["sensors"]["S2"]["distance_cm"] == 31.5
+        cached = manager.get_sensor_value(
+            "sensors.S2.distance_cm",
+            now_ms=2_050,
+            default=0,
+        )
+        assert cached.value == 31.5
+        assert cached.stale is False
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_native_adapter_timeout_records_failure():
+    async def scenario():
+        adapter = FakeNativeByteStream()
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=manager,
+            command_timeout_s=0.01,
+        )
+        assert await transport.connect(lambda _payload: None) is True
+
+        with pytest.raises(TimeoutError):
+            await transport.send_command(
+                {
+                    "id": "cmd-timeout",
+                    "method": "motor.stop",
+                    "params": {"port": "A"},
+                }
+            )
+
+        assert transport.pending_command_ids == ()
+        assert manager.connection_state.bluetooth_failed is True
+        assert manager.connection_state.connected is False
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_native_adapter_disconnect_sends_safe_stop_and_closes():
+    async def scenario():
+        adapter = FakeNativeByteStream()
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=manager,
+        )
+        assert await transport.connect(lambda _payload: None) is True
+
+        await transport.disconnect()
+
+        assert decoded_native_writes(adapter) == [
+            {
+                "id": "system.stopAll",
+                "method": "system.stopAll",
+                "params": {},
+            }
+        ]
+        assert adapter.closed is True
         assert manager.connection_state.connected is False
 
     asyncio.run(scenario())

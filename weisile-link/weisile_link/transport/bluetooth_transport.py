@@ -1,4 +1,4 @@
-"""Bluetooth Classic RFCOMM transport for WeisileLink.
+"""Full VSLE Bluetooth Classic RFCOMM transport for WeisileLink.
 
 Sources:
 - VSLE spec Section 5.5 defines stdlib RFCOMM transport, no pybluez.
@@ -6,6 +6,8 @@ Sources:
 - Python socket documentation defines AF_BLUETOOTH/BTPROTO_RFCOMM.
 - EV3SC `vsle_ev3_server.py` defines the JSON ack and sensor payloads reused
   over the RFCOMM byte stream.
+- EV3SC `native_byte_stream.py` defines the macOS/Windows native adapter
+  boundary used when stdlib RFCOMM is not supported.
 """
 
 import asyncio
@@ -22,6 +24,7 @@ from weisile_link.runtime.degradation import (
     SensorSnapshot,
     TransportKind,
 )
+from weisile_link.transport.native_byte_stream import NativeByteStreamAdapter
 
 EV3_BT_CHANNEL = 1
 SensorCallback = Callable[[Dict[str, Any]], Optional[Awaitable[None]]]
@@ -46,6 +49,9 @@ def host_supports_stdlib_rfcomm(
 class BluetoothTransport:
     """EV3 fallback transport using Python stdlib Bluetooth RFCOMM."""
 
+    transport_label = "bluetooth"
+    transport_capability = "full"
+
     def __init__(
         self,
         ev3_address: str,
@@ -54,6 +60,7 @@ class BluetoothTransport:
         pairing_token: str = "",
         socket_module: Any = socket,
         platform_name: Optional[str] = None,
+        native_adapter: Optional[NativeByteStreamAdapter] = None,
         manager: Optional[DegradationManager] = None,
         command_timeout_s: float = 5.0,
         connect_timeout_s: float = 10.0,
@@ -65,6 +72,8 @@ class BluetoothTransport:
         self._pairing_token = pairing_token
         self._socket_module = socket_module
         self._platform_name = platform_name
+        self._native_adapter = native_adapter
+        self._native_read_buffer = bytearray()
         self.command_timeout_s = command_timeout_s
         self.connect_timeout_s = connect_timeout_s
         self.sock: Any = None
@@ -94,6 +103,8 @@ class BluetoothTransport:
     @property
     def supported(self) -> bool:
         """Whether this host is allowed to attempt stdlib RFCOMM."""
+        if self._native_adapter is not None:
+            return True
         return host_supports_stdlib_rfcomm(
             self._socket_module,
             platform_name=self._platform_name,
@@ -120,35 +131,74 @@ class BluetoothTransport:
         self._sensor_callback = on_sensor_data
         self._closed_by_request = False
         self.manager.bluetooth_supported = self.supported
-        if not self.supported:
-            self._record_failure("stdlib RFCOMM is not supported on this host")
-            return False
-
         try:
-            self.sock = self._socket_module.socket(
-                self._socket_module.AF_BLUETOOTH,
-                self._socket_module.SOCK_STREAM,
-                self._socket_module.BTPROTO_RFCOMM,
-            )
-            self.sock.settimeout(self.connect_timeout_s)
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(
-                None,
-                self.sock.connect,
-                (self.ev3_address, self.channel),
-            )
-            self._file = self.sock.makefile("rwb", buffering=0)
+            if self._native_adapter is not None:
+                if not await self._open_native_adapter():
+                    await self._close_socket()
+                    return False
+            else:
+                if not self.supported:
+                    self._record_failure(
+                        "stdlib RFCOMM is not supported on this host"
+                    )
+                    return False
+
+                self.sock = self._socket_module.socket(
+                    self._socket_module.AF_BLUETOOTH,
+                    self._socket_module.SOCK_STREAM,
+                    self._socket_module.BTPROTO_RFCOMM,
+                )
+                self.sock.settimeout(self.connect_timeout_s)
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(
+                    None,
+                    self.sock.connect,
+                    (self.ev3_address, self.channel),
+                )
+                self._file = self.sock.makefile("rwb", buffering=0)
+                self._record_reconnected()
+
             if self._pairing_token and not await self._pair():
                 self._record_failure("pairing failed")
                 await self._close_socket()
                 return False
 
-            self.manager.record_reconnected(TransportKind.BLUETOOTH)
             self._receive_task = asyncio.create_task(self._receive_loop())
             return True
         except Exception as exc:
             self._record_failure(str(exc) or type(exc).__name__)
             await self._close_socket()
+            return False
+
+    async def _open_native_adapter(self) -> bool:
+        """Open an injected OS-native RFCOMM byte stream."""
+        if self._native_adapter is None:
+            return False
+        try:
+            await self._native_adapter.connect(
+                self.ev3_address,
+                channel=self.channel,
+                profile="rfcomm",
+            )
+            status = await self._native_adapter.status()
+            if not status.connected:
+                reason = status.last_error or "native adapter is disconnected"
+                self._record_failure(reason)
+                return False
+            self._native_read_buffer.clear()
+            self._record_reconnected(
+                native_adapter_path=str(
+                    getattr(self._native_adapter, "executable", "")
+                ),
+                native_adapter_status=(
+                    status.adapter_version
+                    or status.profile
+                    or "native byte stream connected"
+                ),
+            )
+            return True
+        except Exception as exc:
+            self._record_failure(str(exc) or type(exc).__name__)
             return False
 
     async def _pair(self) -> bool:
@@ -167,7 +217,8 @@ class BluetoothTransport:
 
     async def send_command(self, command: Dict[str, Any]) -> Dict[str, Any]:
         """Validate, send, and await one EV3 ack envelope."""
-        if self._file is None or not self.connected:
+        stream_missing = self._file is None and self._native_adapter is None
+        if stream_missing or not self.connected:
             raise ConnectionError("EV3 Bluetooth transport is disconnected")
 
         method = str(command.get("method", ""))
@@ -204,6 +255,8 @@ class BluetoothTransport:
     async def disconnect(self) -> None:
         """Close RFCOMM and reject pending commands."""
         self._closed_by_request = True
+        if self.connected:
+            await self._send_safe_stop()
         self.manager.connection_state.connected = False
         self.manager.connection_state.active_transport = None
         self._reject_pending(
@@ -235,6 +288,7 @@ class BluetoothTransport:
             failure_reason = str(exc) or type(exc).__name__
         finally:
             if not self._closed_by_request:
+                await self._send_safe_stop()
                 self._record_failure(failure_reason)
                 self._reject_pending(ConnectionError(failure_reason))
 
@@ -244,17 +298,22 @@ class BluetoothTransport:
         )
 
         async with self._write_lock:
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, self._file.write, line)
-            flush = getattr(self._file, "flush", None)
-            if flush is not None:
-                await loop.run_in_executor(None, flush)
+            await self._write_bytes(line)
+
+    async def _write_bytes(self, payload: bytes) -> None:
+        if self._native_adapter is not None:
+            await self._native_adapter.send(payload)
+            return
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._file.write, payload)
+        flush = getattr(self._file, "flush", None)
+        if flush is not None:
+            await loop.run_in_executor(None, flush)
 
     async def _read_json_line(self) -> Dict[str, Any]:
-        if self._file is None:
+        if self._file is None and self._native_adapter is None:
             raise ConnectionError("EV3 Bluetooth transport is disconnected")
-        loop = asyncio.get_running_loop()
-        raw = await loop.run_in_executor(None, self._file.readline)
+        raw = await self._read_bytes_line()
         if not raw:
             raise ConnectionError("EV3 Bluetooth RFCOMM closed")
         if isinstance(raw, str):
@@ -262,6 +321,19 @@ class BluetoothTransport:
         else:
             raw_text = raw.decode("utf-8").strip()
         return json.loads(raw_text)
+
+    async def _read_bytes_line(self) -> bytes:
+        if self._native_adapter is not None:
+            while b"\n" not in self._native_read_buffer:
+                chunk = await self._native_adapter.recv()
+                if not chunk:
+                    raise ConnectionError("EV3 Bluetooth RFCOMM closed")
+                self._native_read_buffer.extend(chunk)
+            line, _, rest = self._native_read_buffer.partition(b"\n")
+            self._native_read_buffer = bytearray(rest)
+            return bytes(line) + b"\n"
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._file.readline)
 
     async def _emit_sensor_payload(self, payload: Dict[str, Any]) -> None:
         if self._sensor_callback is None:
@@ -316,6 +388,32 @@ class BluetoothTransport:
             reason or "bluetooth transport failed",
         )
 
+    def _record_reconnected(
+        self,
+        *,
+        native_adapter_path: Optional[str] = None,
+        native_adapter_status: Optional[str] = None,
+    ) -> None:
+        self.manager.record_reconnected(
+            TransportKind.BLUETOOTH,
+            label=self.transport_label,
+            capability=self.transport_capability,
+            native_adapter_path=native_adapter_path,
+            native_adapter_status=native_adapter_status,
+        )
+
+    async def _send_safe_stop(self) -> None:
+        try:
+            await self._write_json_line(
+                {
+                    "id": "system.stopAll",
+                    "method": "system.stopAll",
+                    "params": {},
+                }
+            )
+        except Exception:
+            return
+
     async def _close_socket(self) -> None:
         loop = asyncio.get_running_loop()
         file_handle = self._file
@@ -327,9 +425,17 @@ class BluetoothTransport:
             await loop.run_in_executor(None, file_handle.close)
         if sock is not None and hasattr(sock, "close"):
             await loop.run_in_executor(None, sock.close)
+        if self._native_adapter is not None:
+            await self._native_adapter.close()
 
     def _command_id(self, supplied_id: Any) -> Any:
         if supplied_id is not None:
             return supplied_id
         self._next_command_id += 1
         return f"bluetooth-{self._next_command_id}"
+
+
+class VSLEBluetoothTransport(BluetoothTransport):
+    """Product-named full VSLE Bluetooth transport."""
+
+    transport_label = "vsle-bluetooth"
