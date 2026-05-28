@@ -124,23 +124,32 @@ with default EV3 server port `8765`. The expected local env file is:
 /home/robot/.config/vsle/ev3.env
 ```
 
-Optional Bluetooth Classic fallback is disabled by default because WiFi is the
-primary classroom path. On EV3 bricks that should accept RFCOMM fallback
-connections, add these lines to the same env file:
+## Full VSLE Bluetooth
+
+Full VSLE Bluetooth requires ev3dev and `vsle_ev3_server.py`; it is not official firmware compatibility mode. Enable it only after the EV3 is paired and classroom safety is checked.
+
+The systemd unit and installer keep Bluetooth disabled by default:
 
 ```bash
-EV3_ENABLE_BLUETOOTH=1
+EV3_ENABLE_BLUETOOTH=0
 EV3_BT_RFCOMM_CHANNEL=1
 ```
 
-Then restart the service:
+To enable the EV3-side full VSLE Bluetooth RFCOMM listener during install, run
+the installer with explicit environment variables:
 
 ```bash
-sudo systemctl restart vsle-ev3-server
+VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./ev3-firmware/scripts/install.sh
 ```
 
-The RFCOMM path uses Python stdlib Bluetooth sockets, not pybluez. It reuses the
-same pairing token and command/sensor JSON envelopes as the WiFi server.
+If you are already inside the copied `~/vsle-ev3-firmware` directory on the
+EV3, use the same variables with `./scripts/install.sh`.
+
+The ScratchAI website must select `vsle-bluetooth` for full module coverage.
+Official firmware compatibility remains `official-bluetooth` and does not
+cover AI Quest, PID, 50Hz raw streaming, or full display behavior. The full
+VSLE Bluetooth RFCOMM path uses Python stdlib Bluetooth sockets, not pybluez,
+and reuses the same pairing token plus command/sensor JSON envelopes as WiFi.
 
 ## 6. Roll back
 

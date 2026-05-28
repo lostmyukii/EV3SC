@@ -10,7 +10,9 @@ SERVER_PATH = ROOT / "ev3-firmware" / "vsle_ev3_server.py"
 
 
 def load_server_module():
-    spec = importlib.util.spec_from_file_location("vsle_ev3_server", SERVER_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "vsle_ev3_server", SERVER_PATH
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -638,6 +640,36 @@ def test_handle_client_accepts_websockets_protocol_without_async_iterator():
     assert ws.sent == [{"type": "ack", "id": "cmd-1", "ok": True}]
     assert hardware.actions[-2:] == [("sound_stop",), ("motor_stop_all",)]
     assert server.clients == set()
+
+
+def test_bluetooth_endpoint_uses_same_auth_and_command_handler_as_wifi():
+    module = load_server_module()
+    hardware = FakeHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="secret")
+    endpoint = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "pair-1",
+                    "method": "auth.pair",
+                    "params": {"token": "secret"},
+                }
+            ),
+            json.dumps(
+                {
+                    "id": "cmd-1",
+                    "method": "motor.stop",
+                    "params": {"port": "A"},
+                }
+            ),
+        ]
+    )
+
+    asyncio.run(server.handle_bluetooth_endpoint(endpoint))
+
+    assert endpoint.sent[0] == {"type": "ack", "id": "pair-1", "ok": True}
+    assert endpoint.sent[1] == {"type": "ack", "id": "cmd-1", "ok": True}
+    assert hardware.actions == [("motor_stop", "A"), ("motor_stop_all",)]
 
 
 def test_run_uses_websockets_serve_with_configured_host_and_port():

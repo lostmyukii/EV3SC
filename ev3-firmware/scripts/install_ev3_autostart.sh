@@ -13,6 +13,9 @@ BACKUP_ROOT="${BACKUP_ROOT:-/home/robot/vsle-backups}"
 CONFIG_DIR="${CONFIG_DIR:-/home/robot/.config/vsle}"
 ENV_FILE="${ENV_FILE:-${CONFIG_DIR}/ev3.env}"
 SKIP_PIP_INSTALL="${SKIP_PIP_INSTALL:-0}"
+EV3_ENABLE_BLUETOOTH="${VSLE_EV3_ENABLE_BLUETOOTH:-0}"
+EV3_BT_ADDRESS="${VSLE_EV3_BT_ADDRESS:-}"
+EV3_BT_RFCOMM_CHANNEL="${VSLE_EV3_BT_RFCOMM_CHANNEL:-1}"
 
 sudo_cmd=(sudo)
 if [ "$(id -u)" -eq 0 ]; then
@@ -37,24 +40,43 @@ backup_if_present() {
   fi
 }
 
-write_env_file_if_missing() {
-  if [ -e "${ENV_FILE}" ]; then
-    chmod 600 "${ENV_FILE}"
-    return
-  fi
+ensure_env_key() {
+  local key="$1"
+  local value="$2"
+  local tmp_file
+  tmp_file="$(mktemp)"
 
+  if grep -q "^${key}=" "${ENV_FILE}"; then
+    awk -v key="${key}" -v value="${value}" '
+      BEGIN { prefix = key "=" }
+      index($0, prefix) == 1 { $0 = key "=" value }
+      { print }
+    ' "${ENV_FILE}" >"${tmp_file}"
+    cat "${tmp_file}" >"${ENV_FILE}"
+  else
+    echo "${key}=${value}" >>"${ENV_FILE}"
+  fi
+  rm -f "${tmp_file}"
+}
+
+write_env_file() {
   mkdir -p "${CONFIG_DIR}"
   umask 077
-  local token
-  token="$(
-    python3 -c 'import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode("ascii").rstrip("="))'
-  )"
-  {
-    echo "WEISILE_PAIRING_TOKEN=${token}"
-    echo "EV3_WS_PORT=8765"
-    echo "MAX_COLLECTED_POINTS=10000"
-    echo "LOG_LEVEL=INFO"
-  } >"${ENV_FILE}"
+  if [ ! -e "${ENV_FILE}" ]; then
+    local token
+    token="$(
+      python3 -c 'import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode("ascii").rstrip("="))'
+    )"
+    {
+      echo "WEISILE_PAIRING_TOKEN=${token}"
+    } >"${ENV_FILE}"
+  fi
+  ensure_env_key "EV3_WS_PORT" "8765"
+  ensure_env_key "MAX_COLLECTED_POINTS" "10000"
+  ensure_env_key "LOG_LEVEL" "INFO"
+  ensure_env_key "EV3_ENABLE_BLUETOOTH" "${EV3_ENABLE_BLUETOOTH}"
+  ensure_env_key "EV3_BT_ADDRESS" "${EV3_BT_ADDRESS}"
+  ensure_env_key "EV3_BT_RFCOMM_CHANNEL" "${EV3_BT_RFCOMM_CHANNEL}"
   chmod 600 "${ENV_FILE}"
 }
 
@@ -69,7 +91,7 @@ backup_dir="${BACKUP_ROOT}/${timestamp}"
 backup_if_present "${SERVER_DST}" "${backup_dir}"
 backup_if_present "${SERVICE_DST}" "${backup_dir}"
 
-write_env_file_if_missing
+write_env_file
 
 if [ "${SKIP_PIP_INSTALL}" != "1" ]; then
   python3 -m pip install --user --upgrade websockets ev3dev2

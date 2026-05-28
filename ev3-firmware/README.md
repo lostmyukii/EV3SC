@@ -23,7 +23,7 @@ does not alter the running service.
 scp -r ev3-firmware robot@ev3dev.local:~/vsle-ev3-firmware
 ssh robot@ev3dev.local
 cd ~/vsle-ev3-firmware
-./scripts/install_ev3_autostart.sh
+./scripts/install.sh
 ```
 
 ## Rollback
@@ -36,22 +36,31 @@ cd ~/vsle-ev3-firmware
 
 Full SD card and network preparation steps are in `docs/EV3DEV_SETUP.md`.
 
-## Optional Bluetooth fallback
+## Full VSLE Bluetooth
 
-WiFi remains the classroom default. To enable the EV3-side Bluetooth Classic
-fallback server on ev3dev, set this in `/home/robot/.config/vsle/ev3.env`:
+Full VSLE Bluetooth requires ev3dev and `vsle_ev3_server.py`; it is not official firmware compatibility mode. Enable it only after the EV3 is paired and classroom safety is checked.
+
+WiFi remains the classroom default. The systemd unit and installer keep
+Bluetooth disabled unless explicitly enabled:
 
 ```bash
-EV3_ENABLE_BLUETOOTH=1
+EV3_ENABLE_BLUETOOTH=0
 EV3_BT_RFCOMM_CHANNEL=1
 ```
 
-Then restart:
+From a repo checkout, enable the EV3-side full VSLE Bluetooth RFCOMM listener
+with:
 
 ```bash
-sudo systemctl restart vsle-ev3-server
+VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./ev3-firmware/scripts/install.sh
 ```
 
-The fallback uses Python stdlib `socket.AF_BLUETOOTH` with RFCOMM and keeps the
+On the EV3 after copying the firmware directory, use the same environment
+variables with `./scripts/install.sh`.
+
+The ScratchAI website must select `vsle-bluetooth` for full module coverage.
+Official firmware compatibility remains `official-bluetooth` and does not
+cover AI Quest, PID, 50Hz raw streaming, or full display behavior. Full VSLE
+Bluetooth uses Python stdlib `socket.AF_BLUETOOTH` with RFCOMM and keeps the
 same pairing token, JSON command envelopes, ack envelopes, sensor payloads, and
-motor-stop-on-disconnect safety behavior as the WiFi server.
+motor-stop-on-disconnect safety behavior as WiFi.
