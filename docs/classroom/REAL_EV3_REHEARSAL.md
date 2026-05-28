@@ -68,6 +68,7 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 - `docs/classroom/real_ev3_smoke_evidence.json`
 - `docs/classroom/evidence/real_ev3_smoke_transcript.json`
 - `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`
+- `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 
 ## Operator Notes
 
@@ -89,4 +90,4 @@ Use `docs/classroom/vsle_bluetooth_full_module_smoke.template.json` as the start
 
 ## Next Action
 
-Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal.
+Classroom pilot remains blocked until these evidence gates pass: scratchai-unified-stack, sensor-stream-freshness, aiquest-collection-training-export, multi-device-rehearsal, and accepted real full VSLE Bluetooth smoke evidence in `docs/classroom/vsle_bluetooth_full_module_smoke.json`.
