@@ -3132,6 +3132,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/tests/test_json_rpc_server.py`
 - **Next step**: Execute Task 6 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: update EV3 setup assets and docs for the full VSLE Bluetooth listener, keeping Bluetooth disabled by default until explicitly enabled and documented.
 
+### [2026-05-28] Full VSLE Bluetooth EV3 setup
+- **Status**: ✅ Completed
+- **Commit**: `80b25c8`
+- **What was done**: Updated EV3 systemd and installer assets so the full VSLE Bluetooth RFCOMM listener is disabled by default and only enabled through explicit `VSLE_EV3_ENABLE_BLUETOOTH` install-time configuration. Added the `install.sh` entrypoint, ensured generated EV3 env files contain Bluetooth keys, documented the `vsle-bluetooth` ev3dev-only setup path, and verified the Bluetooth endpoint reuses the same auth and command handler path as WiFi.
+- **Files created/modified**: `ev3-firmware/systemd/vsle-ev3-server.service`, `ev3-firmware/scripts/install.sh`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `docs/EV3DEV_SETUP.md`, `ev3-firmware/README.md`, `tests/test_ev3_autostart_assets.py`, `tests/test_ev3_server.py`
+- **Next step**: Execute Task 7 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: update the Scratch connection modal and extension transport parameters so the website offers WiFi Full VSLE, Bluetooth Full VSLE, and Official Firmware Bluetooth Compatibility without changing Scratch visual design.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
