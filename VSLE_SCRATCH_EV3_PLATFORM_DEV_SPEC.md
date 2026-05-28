@@ -3139,6 +3139,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/systemd/vsle-ev3-server.service`, `ev3-firmware/scripts/install.sh`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `docs/EV3DEV_SETUP.md`, `ev3-firmware/README.md`, `tests/test_ev3_autostart_assets.py`, `tests/test_ev3_server.py`
 - **Next step**: Execute Task 7 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: update the Scratch connection modal and extension transport parameters so the website offers WiFi Full VSLE, Bluetooth Full VSLE, and Official Firmware Bluetooth Compatibility without changing Scratch visual design.
 
+### [2026-05-28] Extension Bluetooth connection mode
+- **Status**: ✅ Completed
+- **Commit**: `bb13d1d`
+- **What was done**: Updated the additive Scratch-style EV3 connection modal to expose WiFi Full VSLE, Bluetooth Full VSLE, and Official Firmware Bluetooth Compatibility as separate transport choices without changing Scratch GUI files. The extension now normalizes legacy `bluetooth` to `vsle-bluetooth`, sends `ev3_bt` for full VSLE Bluetooth, and sends `ev3_official_bt` for official-firmware compatibility.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_connection_modal.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/README.md`
+- **Next step**: Execute Task 8 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add the full VSLE Bluetooth smoke evidence gate so real and fake evidence can distinguish full ev3dev Bluetooth from official-firmware compatibility.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
