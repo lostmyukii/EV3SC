@@ -3181,6 +3181,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Continue Phase 2 in `README.md`: flash the ev3dev EV3 image to the microSD card with Etcher, eject cleanly, and boot the EV3 from the card.
 
+### [2026-05-28] Classroom download cache prepared
+- **Status**: ✅ Completed
+- **Commit**: `9d34562`
+- **What was done**: Confirmed the EV3 ev3dev image was already present under the local EV3SC download cache and downloaded official Balena Etcher v1.17.0 installers for both macOS and Windows. Updated the teaching README with exact local paths, official source links, SHA-256 values, and basic verification results while ignoring the large local binary cache in git.
+- **Files created/modified**: `README.md`, `.gitignore`, local ignored cache files under `downloads/ev3dev/` and `downloads/tools/`
+- **Next step**: Continue Phase 2 in `README.md`: flash `ev3dev-stretch-ev3-generic-2020-04-10.zip` to the microSD card with Etcher, eject cleanly, and boot the EV3 from the card.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
