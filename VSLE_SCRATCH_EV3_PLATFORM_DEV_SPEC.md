@@ -3111,6 +3111,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/runtime/degradation.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/observability/health.py`, `weisile-link/tests/test_transport_selector.py`, `weisile-link/tests/test_observability.py`, `weisile-link/tests/test_multi_ev3_sessions.py`
 - **Next step**: Execute Task 3 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: generalize the native byte-stream adapter boundary so full VSLE Bluetooth and official-firmware Bluetooth can share the same adapter protocol without conflating their capabilities.
 
+### [2026-05-28] Native byte-stream adapter boundary
+- **Status**: ✅ Completed
+- **Commit**: `190775a`
+- **What was done**: Added a shared native byte-stream adapter protocol and status model for Bluetooth Classic subprocess adapters. `NativeAdapterProcess` now passes channel/profile metadata and exposes adapter status, the official-firmware EV3 Bluetooth transport consumes the shared boundary, and the macOS native adapter implements a matching `status` command without claiming classroom-ready Bluetooth support.
+- **Files created/modified**: `weisile-link/weisile_link/transport/native_byte_stream.py`, `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `weisile-link/tests/test_native_adapter_process.py`
+- **Next step**: Execute Task 4 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add native-adapter-backed fake tests for the full VSLE Bluetooth JSON-line transport so `vsle-bluetooth` can share the byte-stream boundary while staying separate from official-firmware compatibility mode.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
