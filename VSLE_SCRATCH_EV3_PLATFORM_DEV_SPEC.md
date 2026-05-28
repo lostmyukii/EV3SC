@@ -3125,6 +3125,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/__init__.py`, `weisile-link/tests/test_bluetooth_transport.py`
 - **Next step**: Execute Task 5 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: wire runtime configuration, JSON-RPC transport selection, and `/api/status` metadata for `WEISILE_VSLE_BT_ADAPTER` and `vsle-bluetooth`.
 
+### [2026-05-28] VSLE Bluetooth runtime wiring
+- **Status**: ✅ Completed
+- **Commit**: `419c493`
+- **What was done**: Wired `WEISILE_VSLE_BT_ADAPTER` into packaged runtime configuration and the JSON-RPC default server factory so `WEISILE_TRANSPORT=vsle-bluetooth` selects `VSLEBluetoothTransport` with a native byte-stream adapter. `/api/status` session payload coverage now verifies full VSLE Bluetooth capability and native adapter status metadata, and the Bluetooth transport creates its write lock lazily so synchronous server factories can construct it safely.
+- **Files created/modified**: `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/json_rpc_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/tests/test_json_rpc_server.py`
+- **Next step**: Execute Task 6 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: update EV3 setup assets and docs for the full VSLE Bluetooth listener, keeping Bluetooth disabled by default until explicitly enabled and documented.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
