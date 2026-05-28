@@ -3083,6 +3083,13 @@ material into:
 - **Files created/modified**: `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
 - **Next step**: Create the implementation plan with a generated command coverage matrix, full Bluetooth transport aliasing, native byte-stream adapter generalization, EV3 setup updates, and real EV3 full-Bluetooth smoke evidence gates.
 
+### [2026-05-28] macOS native adapter Bluetooth usage metadata
+- **Status**: ✅ Completed
+- **Commit**: `968faba`
+- **What was done**: Added an Info.plist for the EV3SC-owned macOS native Bluetooth adapter, embedded the Bluetooth usage descriptions into the built adapter binary, ad-hoc signed the built adapter for local verification, and added macOS app bundle metadata coverage so release artifacts carry the required Bluetooth permission text. Verified the related desktop release packaging and native adapter tests, plus the desktop asset validator.
+- **Files created/modified**: `desktop/macos/native/WeisileEV3BluetoothAdapter-Info.plist`, `desktop/macos/native/build.sh`, `desktop/scripts/build_release_artifacts.py`, `tests/test_desktop_release_packaging.py`, `weisile-link/tests/test_native_adapter_process.py`
+- **Next step**: Create the implementation plan with a generated command coverage matrix, full Bluetooth transport aliasing, native byte-stream adapter generalization, EV3 setup updates, and real EV3 full-Bluetooth smoke evidence gates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
