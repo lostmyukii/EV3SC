@@ -123,7 +123,34 @@ Important safety rule for command-line flashing:
   `diskutil list`, identify the external removable SD card by size and
   location, and ask a second person to confirm before writing.
 
+### Phase 3: First EV3 Boot From The SD Card
+
+1. Remove the safely ejected microSD card from the teacher computer.
+2. Insert it into the EV3 SD card slot.
+3. Make sure the EV3 battery is charged.
+4. Press the EV3 power button.
+5. Confirm that the EV3 screen shows the ev3dev startup screen.
+6. For the first boot, wait patiently. It can take several minutes longer than
+   later boots because ev3dev performs first-boot initialization such as SSH
+   host identity setup and filesystem housekeeping.
+7. Do not remove the SD card or disconnect power while the EV3 is loading.
+8. If the same screen shows no change for more than 15 minutes, record the
+   screen text/photo, power the EV3 off, re-seat the SD card, and try one more
+   boot. If it still stalls, reflash the SD card before continuing.
+
+Confirmed first boot on 2026-05-28:
+
+- The EV3 screen showed the ev3dev startup screen after booting from the
+  flashed SD card.
+- First-boot loading was treated as normal while the EV3 continued startup.
+
+References:
+
+- ev3dev Getting Started:
+  `https://www.ev3dev.org/docs/getting-started/`
+- ev3dev legacy first-boot note:
+  `https://github.com/dlech/ev3dev/wiki/Getting-started-v2`
+
 ### Next Phase
 
-Phase 3 will boot the EV3 from the freshly flashed SD card and confirm the EV3
-shows the ev3dev startup screen.
+Phase 4 will connect to the booted EV3 for first-login and network setup.
