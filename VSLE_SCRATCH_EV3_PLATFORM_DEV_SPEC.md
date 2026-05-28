@@ -3097,6 +3097,13 @@ material into:
 - **Files created/modified**: `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`
 - **Next step**: Execute Task 1 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: generate the full VSLE Bluetooth command coverage matrix and commit the coverage report with tests.
 
+### [2026-05-28] VSLE Bluetooth full module coverage matrix
+- **Status**: ✅ Completed
+- **Commit**: `6c6efca`
+- **What was done**: Added a generated coverage matrix for every current VSLE-EV3 Scratch block, proving each block is full-VSLE-Bluetooth cache-backed, host-side, or EV3-dispatched. The report also keeps official-firmware Bluetooth compatibility status separate so limited Direct Command support is not presented as full module coverage.
+- **Files created/modified**: `scripts/generate_vsle_bluetooth_coverage.py`, `tests/test_vsle_bluetooth_coverage.py`, `docs/desktop/VSLE_BLUETOOTH_COMMAND_COVERAGE.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Execute Task 2 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add the explicit `vsle-bluetooth` transport alias and status metadata while preserving `bluetooth` as a backward-compatible full-VSLE alias.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
