@@ -143,11 +143,27 @@ class EV3Session:
     def status_payload(self) -> Dict[str, Any]:
         """Return per-session status for `/api/status`."""
         active_transport = self.manager.connection_state.active_transport
+        transport_label = self.manager.connection_state.transport_label
         return {
             "brick_id": self.brick_id,
             "name": self.name,
             "connected": self.manager.connection_state.connected,
-            "transport": active_transport.value if active_transport else None,
+            "transport": (
+                transport_label
+                or (active_transport.value if active_transport else None)
+            ),
+            "transport_capability": (
+                self.manager.connection_state.transport_capability
+            ),
+            "native_adapter_path": (
+                self.manager.connection_state.native_adapter_path
+            ),
+            "native_adapter_status": (
+                self.manager.connection_state.native_adapter_status
+            ),
+            "last_unsupported_capability": (
+                self.manager.connection_state.last_unsupported_capability
+            ),
             "scratch_clients": self.router.consumer_count("scratch"),
             "trainer_clients": self.router.consumer_count("trainer"),
             "collected_points": self.manager.collected_points,

@@ -5,6 +5,19 @@ from typing import Any, Optional
 from weisile_link.runtime.degradation import DegradationManager, TransportKind
 
 
+FULL_BLUETOOTH_NAMES = {"bluetooth", "vsle-bluetooth", "vsle_bluetooth"}
+
+
+def _normalize_transport_name(transport: str) -> str:
+    """Return the product-facing transport name for selector decisions."""
+    normalized = str(transport).strip().lower().replace("_", "-")
+    if normalized in {name.replace("_", "-") for name in FULL_BLUETOOTH_NAMES}:
+        return "vsle-bluetooth"
+    if normalized in {"wifi", "auto"}:
+        return normalized
+    raise ConnectionError(f"Unsupported EV3 transport: {transport}")
+
+
 class AutoTransport:
     """Select WiFi first and fall back to Bluetooth when allowed."""
 
@@ -23,17 +36,22 @@ class AutoTransport:
             "manager",
             DegradationManager(),
         )
-        self.preferred = preferred
+        self.preferred = _normalize_transport_name(preferred)
         self._active_transport: Optional[Any] = None
         self._sensor_callback = None
 
     @property
     def active_transport_name(self) -> Optional[str]:
         """Return the active transport name for status and JSON-RPC replies."""
+        if (
+            self._active_transport is not None
+            and self.manager.connection_state.transport_label
+        ):
+            return self.manager.connection_state.transport_label
         if self._active_transport is self.wifi_transport:
             return "wifi"
         if self._active_transport is self.bluetooth_transport:
-            return "bluetooth"
+            return "vsle-bluetooth"
         return None
 
     @property
@@ -60,9 +78,8 @@ class AutoTransport:
         **config: Any,
     ) -> dict:
         """Explicitly switch WiFi/Bluetooth from `vsle.setTransport`."""
-        normalized = str(transport).lower()
-        if normalized not in {"wifi", "bluetooth", "auto"}:
-            raise ConnectionError(f"Unsupported EV3 transport: {transport}")
+        original = str(transport).strip().lower().replace("_", "-")
+        normalized = _normalize_transport_name(transport)
         self._configure_endpoints(config)
 
         if self._active_transport is not None:
@@ -73,13 +90,13 @@ class AutoTransport:
             self.preferred = "wifi"
             if not await self.connect(on_sensor_data):
                 raise ConnectionError("No active BT/WiFi transport")
-            return {"transport": self.active_transport_name}
+            return self._transport_result(self.active_transport_name)
 
         target = normalized
         if not await self._connect_named(target, on_sensor_data):
             raise ConnectionError(f"EV3 {target} transport is disconnected")
         self.preferred = target
-        return {"transport": target}
+        return self._transport_result(target, original=original)
 
     async def send_command(self, command: dict) -> dict:
         """Send through the currently active transport."""
@@ -95,15 +112,15 @@ class AutoTransport:
         self._active_transport = None
 
     def _connect_order(self) -> tuple:
-        if self.preferred == "bluetooth":
-            return ("bluetooth", "wifi")
-        return ("wifi", "bluetooth")
+        if self.preferred == "vsle-bluetooth":
+            return ("vsle-bluetooth", "wifi")
+        return ("wifi", "vsle-bluetooth")
 
     async def _connect_named(self, name: str, on_sensor_data) -> bool:
         transport = self._transport_for(name)
         if transport is None:
             return False
-        if name == "bluetooth" and not self.manager.bluetooth_supported:
+        if name == "vsle-bluetooth" and not self.manager.bluetooth_supported:
             supported = bool(getattr(transport, "supported", False))
             self.manager.bluetooth_supported = supported
             if not supported:
@@ -112,14 +129,40 @@ class AutoTransport:
         connected = await transport.connect(on_sensor_data)
         if connected:
             self._active_transport = transport
+            self.manager.record_reconnected(
+                self._transport_kind_for(name),
+                label=name,
+                capability="full",
+            )
         return connected
 
     def _transport_for(self, name: str):
         if name == "wifi":
             return self.wifi_transport
-        if name == "bluetooth":
+        if name == "vsle-bluetooth":
             return self.bluetooth_transport
         return None
+
+    def _transport_kind_for(self, name: str) -> TransportKind:
+        if name == "wifi":
+            return TransportKind.WIFI
+        return TransportKind.BLUETOOTH
+
+    def _transport_result(
+        self,
+        name: Optional[str],
+        *,
+        original: Optional[str] = None,
+    ) -> dict:
+        result = {
+            "transport": name,
+            "transport_capability": (
+                self.manager.connection_state.transport_capability
+            ),
+        }
+        if original == "bluetooth" and name == "vsle-bluetooth":
+            result["transport_alias"] = "bluetooth"
+        return result
 
     def _configure_endpoints(self, config: dict) -> None:
         if not config:

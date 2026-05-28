@@ -25,6 +25,10 @@ def test_status_payload_matches_section_17_shape_when_connected():
     assert payload == {
         "ok": True,
         "transport": "wifi",
+        "transport_capability": None,
+        "native_adapter_path": None,
+        "native_adapter_status": None,
+        "last_unsupported_capability": None,
         "ev3_connected": True,
         "scratch_clients": 1,
         "trainer_clients": 1,
@@ -52,6 +56,7 @@ def test_status_payload_reports_disconnected_transport_and_alerts():
 
     assert payload["ok"] is False
     assert payload["transport"] is None
+    assert payload["transport_capability"] is None
     assert payload["ev3_connected"] is False
     assert payload["alerts"] == [
         "sensor_hz_below_45",
@@ -75,6 +80,32 @@ def test_status_payload_reports_reconnect_alert_threshold():
     assert "transport_reconnect_count_above_5" in payload["alerts"]
 
 
+def test_status_payload_reports_transport_metadata():
+    manager = DegradationManager()
+    manager.record_reconnected(
+        TransportKind.BLUETOOTH,
+        label="vsle-bluetooth",
+        capability="full",
+        native_adapter_path="/Applications/WeisileLink/native/vsle-bt",
+        native_adapter_status="connected",
+    )
+    manager.connection_state.last_unsupported_capability = "official-display"
+
+    payload = build_status_payload(
+        manager,
+        RuntimeCounters(),
+        RuntimeMetrics(sensor_hz=50, sensor_age_ms=10, memory_mb=80),
+    )
+
+    assert payload["transport"] == "vsle-bluetooth"
+    assert payload["transport_capability"] == "full"
+    assert payload["native_adapter_path"] == (
+        "/Applications/WeisileLink/native/vsle-bt"
+    )
+    assert payload["native_adapter_status"] == "connected"
+    assert payload["last_unsupported_capability"] == "official-display"
+
+
 def test_status_endpoint_handles_api_status_get_request():
     manager = DegradationManager()
     manager.record_reconnected(TransportKind.WIFI)
@@ -91,6 +122,10 @@ def test_status_endpoint_handles_api_status_get_request():
     assert json.loads(response.body) == {
         "ok": True,
         "transport": "wifi",
+        "transport_capability": None,
+        "native_adapter_path": None,
+        "native_adapter_status": None,
+        "last_unsupported_capability": None,
         "ev3_connected": True,
         "scratch_clients": 2,
         "trainer_clients": 0,

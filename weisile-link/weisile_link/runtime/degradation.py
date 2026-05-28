@@ -28,6 +28,11 @@ class ConnectionState:
 
     connected: bool = False
     active_transport: Optional[TransportKind] = None
+    transport_label: Optional[str] = None
+    transport_capability: Optional[str] = None
+    native_adapter_path: Optional[str] = None
+    native_adapter_status: Optional[str] = None
+    last_unsupported_capability: Optional[str] = None
     wifi_failed: bool = False
     bluetooth_failed: bool = False
     reconnect_count: int = 0
@@ -83,6 +88,10 @@ class DegradationManager:
 
         self.connection_state.connected = False
         self.connection_state.active_transport = None
+        self.connection_state.transport_label = None
+        self.connection_state.transport_capability = None
+        self.connection_state.native_adapter_path = None
+        self.connection_state.native_adapter_status = None
         return None
 
     def record_transport_failure(
@@ -98,15 +107,36 @@ class DegradationManager:
 
         self.connection_state.connected = False
         self.connection_state.active_transport = None
+        self.connection_state.transport_label = None
+        self.connection_state.transport_capability = None
+        self.connection_state.native_adapter_path = None
+        self.connection_state.native_adapter_status = None
         self.connection_state.last_failure_reason = reason
 
-    def record_reconnected(self, transport: TransportKind) -> Tuple[str, ...]:
+    def record_reconnected(
+        self,
+        transport: TransportKind,
+        *,
+        label: Optional[str] = None,
+        capability: Optional[str] = None,
+        native_adapter_path: Optional[str] = None,
+        native_adapter_status: Optional[str] = None,
+    ) -> Tuple[str, ...]:
         """Record a successful reconnect and clear pending command futures."""
+        was_same_connection = (
+            self.connection_state.connected
+            and self.connection_state.active_transport == transport
+        )
         cleared = tuple(self._pending_command_ids)
         self._pending_command_ids.clear()
         self.connection_state.connected = True
         self.connection_state.active_transport = transport
-        self.connection_state.reconnect_count += 1
+        self.connection_state.transport_label = label or transport.value
+        self.connection_state.transport_capability = capability
+        self.connection_state.native_adapter_path = native_adapter_path
+        self.connection_state.native_adapter_status = native_adapter_status
+        if not was_same_connection:
+            self.connection_state.reconnect_count += 1
         self.connection_state.last_failure_reason = None
         self.connection_state.sensor_cache_refresh_required = True
 

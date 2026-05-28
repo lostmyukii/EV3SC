@@ -79,7 +79,9 @@ class StatusEndpoint:
 
 def _active_transport(manager: DegradationManager) -> Any:
     transport = manager.connection_state.active_transport
-    return transport.value if transport is not None else None
+    if transport is None:
+        return None
+    return manager.connection_state.transport_label or transport.value
 
 
 def build_alerts(
@@ -118,6 +120,14 @@ def build_status_payload(
     return {
         "ok": ev3_connected,
         "transport": _active_transport(manager),
+        "transport_capability": (manager.connection_state.transport_capability),
+        "native_adapter_path": manager.connection_state.native_adapter_path,
+        "native_adapter_status": (
+            manager.connection_state.native_adapter_status
+        ),
+        "last_unsupported_capability": (
+            manager.connection_state.last_unsupported_capability
+        ),
         "ev3_connected": ev3_connected,
         "scratch_clients": counters.scratch_clients,
         "trainer_clients": counters.trainer_clients,
