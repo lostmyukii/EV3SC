@@ -1,0 +1,18 @@
+{
+  "installed_from_release_artifact": false,
+  "ev3_runs_ev3dev_server": false,
+  "transport": "vsle-bluetooth",
+  "real_ev3_full_bluetooth_ok": false,
+  "sensor_freshness_ms_max": 999999,
+  "command_groups": {
+    "motor": false,
+    "sensor": false,
+    "sound": false,
+    "display": false,
+    "system": false,
+    "data_collection": false,
+    "ai_quest": false
+  },
+  "disconnect_stop_ok": false,
+  "scratch_unsandboxed_loaded": false
+}

@@ -67,10 +67,25 @@ Automated localhost testing does not replace the real EV3 classroom rehearsal.
 
 - `docs/classroom/real_ev3_smoke_evidence.json`
 - `docs/classroom/evidence/real_ev3_smoke_transcript.json`
+- `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`
 
 ## Operator Notes
 
 1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was provided.
+
+## Full VSLE Bluetooth Smoke Gate
+
+The full-module Bluetooth path is separate from official-firmware Bluetooth compatibility. It requires ev3dev, `vsle_ev3_server.py`, `transport: "vsle-bluetooth"`, fresh sensor data, all command groups, Scratch unsandboxed loading, release-artifact install evidence, and disconnect stop evidence.
+
+Run the evidence gate after a real paired EV3 completes the full Bluetooth smoke:
+
+```bash
+.venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
+  --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_full_module_smoke.md
+```
+
+Use `docs/classroom/vsle_bluetooth_full_module_smoke.template.json` as the starting evidence shape. A missing field, false field, wrong transport, stale sensor freshness value, or missing command group keeps the report at `Classroom ready: no`.
 
 ## Next Action
 
