@@ -3209,6 +3209,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Insert the reflashed SD card into the EV3 again, boot without interrupting `Starting`, and wait for the ev3dev/Brickman main interface before continuing to first-login/network setup.
 
+### [2026-05-29] EV3 ev3dev page reached
+- **Status**: ✅ Completed
+- **Commit**: `10e0320`
+- **What was done**: Recorded the successful Phase 3 end state: after another EV3 reboot, loading finished and the brick entered the ev3dev page. The README now treats this as the confirmed point for moving from SD-card boot recovery to first-login and network setup.
+- **Files created/modified**: `README.md`
+- **Next step**: Continue Phase 4 in `README.md`: connect to the EV3 for first-login and network setup, then prepare the EV3-side VSLE server install.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
