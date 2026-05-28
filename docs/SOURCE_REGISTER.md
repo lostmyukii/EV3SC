@@ -402,6 +402,14 @@ ports. This register records the sources used for the current implementation.
 | Scratch Link macOS Bluetooth Classic session | `/Users/yukii/Desktop/scratch ai/scratch-link/scratch-link-mac/BT/MacBTSession.cs`, `/Users/yukii/Desktop/scratch ai/scratch-link/scratch-link-mac/BT/Rfcomm/RfcommChannelEventDelegate.cs` | Source-backed macOS IOBluetooth RFCOMM channel 1 open/polling behavior and data/closed callbacks adapted into the EV3SC-owned command-line native adapter |
 | macOS native adapter process bridge | `/Users/yukii/Desktop/EV3SC/desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `/Users/yukii/Desktop/EV3SC/desktop/macos/native/build.sh`, `/Users/yukii/Desktop/EV3SC/weisile-link/weisile_link/transport/native_adapter_process.py`, `/Users/yukii/Desktop/EV3SC/weisile-link/tests/test_native_adapter_process.py`, `/Users/yukii/Desktop/EV3SC/desktop/macos/weisile-link.launchd.plist` | EV3SC-owned JSON-line subprocess bridge that keeps macOS Bluetooth APIs outside Python, injects the bundled adapter through `WEISILE_OFFICIAL_BT_ADAPTER`, and verifies syntax/error/close behavior without claiming classroom readiness |
 
+## Website Bluetooth Full Module Command Coverage
+
+| Source | Local path / URL | Used for |
+|--------|------------------|----------|
+| Website Bluetooth full module design | `/Users/yukii/Desktop/EV3SC/docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md` | Requires the website Bluetooth flow to expose a full VSLE Bluetooth transport and keep official firmware Bluetooth compatibility explicitly limited |
+| Website Bluetooth full module implementation plan | `/Users/yukii/Desktop/EV3SC/docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md` | Task 1 defines the generated command coverage matrix and tests that must prove every current VSLE-EV3 block is cache-backed, host-side, or EV3-dispatched |
+| VSLE Bluetooth coverage generator and report | `/Users/yukii/Desktop/EV3SC/scripts/generate_vsle_bluetooth_coverage.py`, `/Users/yukii/Desktop/EV3SC/tests/test_vsle_bluetooth_coverage.py`, `/Users/yukii/Desktop/EV3SC/docs/desktop/VSLE_BLUETOOTH_COMMAND_COVERAGE.md` | Parses the EV3SC-owned extension, WeisileLink validators, JSON-RPC host handlers, and EV3 server dispatch to prove full VSLE Bluetooth command coverage while separating official firmware compatibility status |
+
 ## Rules
 
 - Do not invent Scratch Link, Scratch VM, EV3, ev3dev, or ev3dev2 behavior from
