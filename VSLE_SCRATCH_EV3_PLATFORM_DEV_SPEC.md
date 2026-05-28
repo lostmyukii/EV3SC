@@ -3195,6 +3195,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Insert the SD card into the EV3, power on the brick, and confirm the EV3 boots to the ev3dev startup screen before continuing to first-login/network setup.
 
+### [2026-05-28] EV3 first boot confirmed
+- **Status**: ✅ Completed
+- **Commit**: `bda3d4a`
+- **What was done**: Recorded that the EV3 screen showed the ev3dev startup screen after booting from the flashed SD card. Updated the teaching guide with first-boot waiting guidance, a 15-minute no-progress troubleshooting threshold, and ev3dev reference links for classroom reuse.
+- **Files created/modified**: `README.md`
+- **Next step**: Continue Phase 4 in `README.md`: connect to the booted EV3 for first-login and network setup.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
