@@ -3090,6 +3090,13 @@ material into:
 - **Files created/modified**: `desktop/macos/native/WeisileEV3BluetoothAdapter-Info.plist`, `desktop/macos/native/build.sh`, `desktop/scripts/build_release_artifacts.py`, `tests/test_desktop_release_packaging.py`, `weisile-link/tests/test_native_adapter_process.py`
 - **Next step**: Create the implementation plan with a generated command coverage matrix, full Bluetooth transport aliasing, native byte-stream adapter generalization, EV3 setup updates, and real EV3 full-Bluetooth smoke evidence gates.
 
+### [2026-05-28] Website Bluetooth full module implementation plan
+- **Status**: ✅ Completed
+- **Commit**: `e16d641`
+- **What was done**: Added the implementation plan for the ScratchAI website full-module Bluetooth path. The plan decomposes `vsle-bluetooth` work into generated command coverage, transport aliasing, shared native byte-stream adapter generalization, full VSLE Bluetooth fake-adapter tests, runtime/status wiring, EV3 setup updates, Scratch connection modal copy, smoke evidence gates, and final verification.
+- **Files created/modified**: `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`
+- **Next step**: Execute Task 1 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: generate the full VSLE Bluetooth command coverage matrix and commit the coverage report with tests.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
