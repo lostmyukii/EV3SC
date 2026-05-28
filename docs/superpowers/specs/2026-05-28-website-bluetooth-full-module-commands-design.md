@@ -58,7 +58,7 @@ The design therefore separates two user-visible Bluetooth choices:
 
 | Website label | Internal transport | EV3 requirement | Module coverage promise |
 |---|---|---|---|
-| Bluetooth Full VSLE | `vsle-bluetooth` | EV3 runs ev3dev and `vsle_ev3_server.py` with RFCOMM enabled | Full VSLE command surface and cache-backed reporters |
+| Bluetooth Full VSLE | `vsle-bluetooth`, with backward-compatible alias to the existing full-mode `bluetooth` transport | EV3 runs ev3dev and `vsle_ev3_server.py` with RFCOMM enabled | Full VSLE command surface and cache-backed reporters |
 | Official Firmware Bluetooth Compatibility | `official-bluetooth` | EV3 runs official LEGO firmware and is paired to the teacher computer | Explicit compatibility matrix, not full module parity |
 
 The important product change is that "Bluetooth mode supports all modules"
@@ -103,8 +103,10 @@ and emergency stop.
 
 ### 5.1 Full VSLE Bluetooth Transport
 
-Add a new transport name, `vsle-bluetooth`, instead of overloading
-`official-bluetooth`.
+Expose a clear product transport name, `vsle-bluetooth`, for the full module
+path. This should be implemented as a backward-compatible alias or rename of
+the existing full-mode JSON-line `BluetoothTransport`; it is not the same thing
+as `official-bluetooth`.
 
 Responsibilities:
 
@@ -120,6 +122,11 @@ Responsibilities:
 
 The EV3-side requirement is explicit: the EV3 must boot ev3dev and run the
 EV3SC server with its Bluetooth/RFCOMM listener enabled.
+
+This is not a request to write a new LEGO firmware image. The EV3-side work is
+to deploy and, where necessary, extend the EV3SC-owned
+`ev3-firmware/vsle_ev3_server.py` server so its existing RFCOMM JSON-line
+listener is enabled, tested, and documented for full-module Bluetooth use.
 
 ### 5.2 Official Firmware Bluetooth Compatibility
 
@@ -155,6 +162,12 @@ Protocol-specific framing belongs above this boundary:
 
 - `vsle-bluetooth`: EV3SC JSON-line protocol.
 - `official-bluetooth`: EV3 Direct Command frame protocol.
+
+The current macOS native adapter already exposes a generic byte send/receive
+shape, but its docs, environment variable names, and tests are scoped to
+official-firmware Direct Command mode. Full VSLE Bluetooth needs a generalized
+native byte-stream adapter name and tests so it can be used without implying
+official-firmware behavior.
 
 ## 6. Command Coverage Model
 
@@ -229,21 +242,28 @@ sensor freshness, not from optimistic UI state.
 
 Required changes for implementation planning:
 
-1. Extend transport selection to recognize `vsle-bluetooth` separately from
-   `bluetooth` and `official-bluetooth`.
+1. Extend transport selection to recognize `vsle-bluetooth` as the full-module
+   Bluetooth name while preserving `bluetooth` as a compatibility alias for
+   existing callers.
 2. Introduce a shared native byte-stream adapter interface that can be injected
    into both full VSLE Bluetooth and official-firmware Direct Command
    transports.
-3. Add `VSLEBluetoothTransport` as the full-mode JSON-line transport.
+3. Reuse, rename, or wrap the existing full-mode `BluetoothTransport` as
+   `VSLEBluetoothTransport` only if that improves clarity; do not duplicate the
+   JSON-line RFCOMM implementation.
 4. Keep the EV3 server command envelope unchanged so WiFi and full Bluetooth use
    the same method names, params, ack shape, validation, and sensor payloads.
-5. Extend `/api/status` with:
+5. Enable the EV3 server Bluetooth listener through setup scripts and systemd
+   environment (`EV3_ENABLE_BLUETOOTH=1`, address/channel config), then verify
+   it handles the same auth, command, ack, sensor, and shutdown behavior as
+   WiFi.
+6. Extend `/api/status` with:
    - `active_transport = "vsle-bluetooth"` or `"official-bluetooth"`;
    - `transport_capability = "full"` or `"compatibility"`;
    - native adapter path/version;
    - sensor freshness and measured update rate;
    - last unsupported capability error, when applicable.
-6. Keep `official_ev3_direct_command.py` as the only Direct Command encoder
+7. Keep `official_ev3_direct_command.py` as the only Direct Command encoder
    surface for official firmware mode.
 
 No Scratch block should branch into Bluetooth-specific behavior. Blocks remain
@@ -269,6 +289,7 @@ Implementation should prove the design with tests at these layers:
 | Layer | Required checks |
 |---|---|
 | Extension | All EV3 blocks remain exposed; reporters/booleans stay synchronous cache reads; `vsle.setTransport` sends the selected transport without Scratch visual changes |
+| Coverage matrix | Generate/maintain a matrix from `vsle-ev3-extension/index.js`, `COMMAND_VALIDATORS`, JSON-RPC host-side handlers, and EV3 server handlers showing every block as cache-backed, host-side, or EV3-dispatched |
 | JSON-RPC server | `vsle.setTransport` selects `vsle-bluetooth`; every hardware method in `COMMAND_VALIDATORS` forwards through the full Bluetooth transport with the same ack/error mapping as WiFi |
 | Full Bluetooth transport | Fake byte-stream adapter tests for connect, JSON-line send, ack resolution, sensor update routing, timeout, reconnect, and disconnect stop |
 | Native adapter | macOS/Windows adapter process tests for connect/send/recv/close and failure mapping |
