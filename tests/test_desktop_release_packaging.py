@@ -101,6 +101,10 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
     assert info["CFBundleName"] == "WeisileLink"
     assert info["CFBundleShortVersionString"] == "0.1.0-test"
+    assert "NSBluetoothAlwaysUsageDescription" in info
+    assert "official-firmware EV3 Bluetooth" in (
+        info["NSBluetoothAlwaysUsageDescription"]
+    )
 
     zip_path = output / "WeisileLink-macos-0.1.0-test-unsigned.zip"
     assert zip_path.is_file()

@@ -135,3 +135,43 @@ def test_macos_native_adapter_source_passes_syntax_check():
     )
 
     assert result.returncode == 0, result.stderr + result.stdout
+
+
+def test_macos_native_adapter_embeds_bluetooth_usage_description():
+    if sys.platform != "darwin":
+        return
+
+    result = subprocess.run(
+        ["desktop/macos/native/build.sh"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    binary = Path(result.stdout.strip())
+    assert binary.is_file()
+    strings = subprocess.run(
+        ["strings", str(binary)],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert strings.returncode == 0, strings.stderr + strings.stdout
+    assert "NSBluetoothAlwaysUsageDescription" in strings.stdout
+    assert "NSBluetoothPeripheralUsageDescription" in strings.stdout
+    assert "official-firmware EV3 Bluetooth" in strings.stdout
+
+    signature = subprocess.run(
+        ["codesign", "-dv", "--verbose=4", str(binary)],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    signature_output = signature.stderr + signature.stdout
+    assert signature.returncode == 0, signature_output
+    assert "Info.plist=not bound" not in signature_output
+    assert "Info.plist entries=" in signature_output

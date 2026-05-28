@@ -132,6 +132,10 @@ def _macos_info_plist(version: str) -> dict[str, object]:
         "CFBundleVersion": version,
         "LSBackgroundOnly": True,
         "LSMinimumSystemVersion": "11.0",
+        "NSBluetoothAlwaysUsageDescription": (
+            "WeisileLink uses the official-firmware EV3 Bluetooth "
+            "connection for classroom robot control."
+        ),
         "NSHumanReadableCopyright": "Copyright VSLE",
     }
 
