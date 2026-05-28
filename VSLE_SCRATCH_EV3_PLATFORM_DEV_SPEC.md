@@ -3188,6 +3188,13 @@ material into:
 - **Files created/modified**: `README.md`, `.gitignore`, local ignored cache files under `downloads/ev3dev/` and `downloads/tools/`
 - **Next step**: Continue Phase 2 in `README.md`: flash `ev3dev-stretch-ev3-generic-2020-04-10.zip` to the microSD card with Etcher, eject cleanly, and boot the EV3 from the card.
 
+### [2026-05-28] EV3 SD card flashed
+- **Status**: ✅ Completed
+- **Commit**: `aefda5b`
+- **What was done**: Flashed the ev3dev EV3 image to the inserted 15.8GB external SD card identified as `/dev/disk4`, confirmed the resulting `EV3DEV_BOOT` and Linux partitions, verified the Linux partition read-back hash matched the image partition hash, and ejected the card cleanly. Updated the README with the classroom Etcher flow plus the confirmed Mac-assisted flash evidence.
+- **Files created/modified**: `README.md`
+- **Next step**: Insert the SD card into the EV3, power on the brick, and confirm the EV3 boots to the ev3dev startup screen before continuing to first-login/network setup.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
