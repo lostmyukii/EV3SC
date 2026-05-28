@@ -174,6 +174,60 @@ References:
 - ev3dev legacy first-boot note:
   `https://github.com/dlech/ev3dev/wiki/Getting-started-v2`
 
+### Phase 4: First Login And Network Setup
+
+Start with Wi-Fi if a compatible EV3 Wi-Fi dongle is available:
+
+1. On the EV3, open `Wireless and Networks`.
+2. Open `Wi-Fi`.
+3. If it shows `Not Available`, the EV3 has not detected a compatible Wi-Fi
+   adapter. This is expected when no supported USB Wi-Fi dongle is plugged into
+   the EV3 USB-A host port.
+4. If Wi-Fi is available, enable `Powered`, select the classroom network, enter
+   the password, and record the EV3 IP address.
+
+If Wi-Fi is not available, use USB for first login:
+
+1. Keep the EV3 on the ev3dev/Brickman page.
+2. Connect the EV3 mini USB port to the Mac.
+3. On the Mac, check that the `EV3+ev3dev` network service appears.
+4. If `ev3dev.local` does not resolve, use the IPv6 link-local address shown by
+   Bonjour or Brickman. Include the Mac interface suffix, for example `%en10`.
+5. Log in with SSH:
+
+```bash
+ssh -6 robot@fe80::16:53ff:fe4f:4655%en10
+```
+
+Default login:
+
+```text
+username: robot
+password: maker
+```
+
+Confirmed USB login on 2026-05-29:
+
+- The EV3 appeared on macOS as network service `EV3+ev3dev`.
+- The Mac interface was `en10`.
+- `ev3dev.local` did not resolve to IPv4 on this Mac, but Bonjour returned
+  `fe80::16:53ff:fe4f:4655%en10`.
+- SSH port 22 was reachable on that IPv6 link-local address.
+- SSH login with `robot` / `maker` succeeded.
+- EV3 read-only checks reported:
+  - hostname: `ev3dev`
+  - kernel: `4.14.117-ev3dev-2.3.5-ev3`
+  - USB interface: `usb0` with `fe80::16:53ff:fe4f:4655/64`
+  - root filesystem: `/dev/mmcblk0p2`, `1.7G`, `59%` used
+
+References:
+
+- ev3dev Networking:
+  `https://www.ev3dev.org/docs/networking/`
+- ev3dev SSH:
+  `https://www.ev3dev.org/docs/tutorials/connecting-to-ev3dev-with-ssh`
+
 ### Next Phase
 
-Phase 4 will connect to the booted EV3 for first-login and network setup.
+Phase 5 will install the EV3-side VSLE server over the working USB SSH
+connection and prepare the brick for WeisileLink testing.
