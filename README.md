@@ -144,6 +144,26 @@ Confirmed first boot on 2026-05-28:
   flashed SD card.
 - First-boot loading was treated as normal while the EV3 continued startup.
 
+Troubleshooting record from 2026-05-28:
+
+- Symptom: after a long first boot, the EV3 was power-cycled and then stopped at
+  the EV3 `Starting` screen. Removing the SD card allowed the EV3 to boot into
+  the original LEGO firmware normally.
+- Evidence: when the SD card was returned to the Mac, `EV3DEV_BOOT` was present
+  and readable, and the Linux partition had expanded from the original `1.8 GB`
+  image partition to the full `15.8 GB` card size.
+- Interpretation: the EV3 had started booting ev3dev and reached first-boot
+  partition expansion, but first-boot initialization was likely interrupted.
+- Classroom action: reflash the SD card and boot again. During the next first
+  boot, wait for the ev3dev/Brickman main interface and do not power-cycle the
+  EV3 while it is still on `Starting` unless there has been no screen change for
+  more than 15 minutes.
+- Reflash result: `/dev/disk4` was reflashed, the partition layout returned to
+  `EV3DEV_BOOT` at `50.3 MB` plus `Linux` at `1.8 GB`, the Linux partition
+  read-back hash again matched
+  `55421ac90cd1d5ee7f8bb723e5b71687be33d80ded3780edb59b3b1f8b8a17ae`, and
+  the SD card was ejected cleanly.
+
 References:
 
 - ev3dev Getting Started:
