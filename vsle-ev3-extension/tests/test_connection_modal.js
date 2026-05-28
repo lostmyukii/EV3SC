@@ -40,8 +40,14 @@ const makeFakeContainer = () => {
         '[data-vsle-transport="wifi"]': {
             addEventListener: (_event, handler) => listeners.set('wifi', handler)
         },
+        '[data-vsle-transport="vsle-bluetooth"]': {
+            addEventListener: (_event, handler) => listeners.set('vsle-bluetooth', handler)
+        },
         '[data-vsle-transport="bluetooth"]': {
-            addEventListener: (_event, handler) => listeners.set('bluetooth', handler)
+            addEventListener: (_event, handler) => listeners.set('vsle-bluetooth', handler)
+        },
+        '[data-vsle-transport="official-bluetooth"]': {
+            addEventListener: (_event, handler) => listeners.set('official-bluetooth', handler)
         },
         '[data-vsle-input="wifi-ip"]': {
             addEventListener: (_event, handler) => listeners.set('wifi-ip', handler)
@@ -63,14 +69,14 @@ const makeFakeContainer = () => {
 
 test('buildConnectionModalModel normalizes WiFi and Bluetooth fields', () => {
     const model = buildConnectionModalModel({
-        transport: 'bluetooth',
+        transport: 'vsle-bluetooth',
         ev3Ip: ' 192.168.5.42 ',
         ev3Bt: ' 00:16:53:AA:BB:CC ',
         status: 'connecting',
         message: '正在连接...'
     });
 
-    assert.equal(model.transport, 'bluetooth');
+    assert.equal(model.transport, 'vsle-bluetooth');
     assert.equal(model.ev3Ip, '192.168.5.42');
     assert.equal(model.ev3Bt, '00:16:53:AA:BB:CC');
     assert.equal(model.status, 'connecting');
@@ -103,8 +109,9 @@ test('renderConnectionModal returns Scratch hardware modal style markup', () => 
     assert.match(html, /aria-modal="true"/);
     assert.match(html, /id="connectionModal"/);
     assert.match(html, /连接到 EV3/);
-    assert.match(html, /WiFi \(推荐\)/);
-    assert.match(html, /蓝牙/);
+    assert.match(html, /WiFi Full VSLE/);
+    assert.match(html, /Bluetooth Full VSLE/);
+    assert.match(html, /Official Firmware Bluetooth Compatibility/);
     assert.match(html, /EV3 IP地址/);
     assert.match(html, /192\.168\.1\.100/);
     assert.match(html, /状态: 正在连接\.\.\./);
@@ -117,7 +124,7 @@ test('renderConnectionModal returns Scratch hardware modal style markup', () => 
     assert.match(html, /font-family:\s*"Helvetica Neue", Helvetica, Arial, sans-serif/);
 });
 
-test('ConnectionModal binds WiFi, Bluetooth, help, cancel, and connect actions', async () => {
+test('ConnectionModal binds WiFi, full Bluetooth, official Bluetooth, help, cancel, and connect actions', async () => {
     const {extension, sent} = makeExtension();
     const events = [];
     const {container, listeners} = makeFakeContainer();
@@ -133,7 +140,10 @@ test('ConnectionModal binds WiFi, Bluetooth, help, cancel, and connect actions',
     listeners.get('wifi-ip')({target: {value: '10.0.0.9'}});
     await listeners.get('connect')();
 
-    listeners.get('bluetooth')();
+    listeners.get('vsle-bluetooth')();
+    listeners.get('bt-address')({target: {value: '00:16:53:AA:BB:CC'}});
+    await listeners.get('connect')();
+    listeners.get('official-bluetooth')();
     listeners.get('bt-address')({target: {value: '00:16:53:AA:BB:CC'}});
     await listeners.get('connect')();
     listeners.get('help')();
@@ -147,8 +157,15 @@ test('ConnectionModal binds WiFi, Bluetooth, help, cancel, and connect actions',
         {
             method: 'vsle.setTransport',
             params: {
-                transport: 'bluetooth',
+                transport: 'vsle-bluetooth',
                 ev3_bt: '00:16:53:AA:BB:CC'
+            }
+        },
+        {
+            method: 'vsle.setTransport',
+            params: {
+                transport: 'official-bluetooth',
+                ev3_official_bt: '00:16:53:AA:BB:CC'
             }
         }
     ]);
@@ -156,4 +173,3 @@ test('ConnectionModal binds WiFi, Bluetooth, help, cancel, and connect actions',
     assert.equal(modal.status, 'connected');
     assert.match(container.innerHTML, /状态: 已连接/);
 });
-

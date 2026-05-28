@@ -617,12 +617,16 @@
 
     const renderConnectionModal = (options = {}) => {
         const model = buildConnectionModalModel(options);
-        const wifiChecked = model.transport === 'wifi' ? ' checked' : '';
-        const bluetoothChecked = model.transport === 'bluetooth' ?
-            ' checked' :
-            '';
+        const transportOptions = [
+            ['wifi', 'WiFi Full VSLE (推荐)'],
+            ['vsle-bluetooth', 'Bluetooth Full VSLE'],
+            [
+                'official-bluetooth',
+                'Official Firmware Bluetooth Compatibility'
+            ]
+        ];
         const wifiHidden = model.transport === 'wifi' ? '' : ' hidden';
-        const btHidden = model.transport === 'bluetooth' ? '' : ' hidden';
+        const btHidden = model.transport === 'wifi' ? ' hidden' : '';
         const dotsClass = model.status === 'connected' ?
             'vsle-connection-modal__dots--success' :
             '';
@@ -643,14 +647,12 @@
             '<div class="vsle-connection-modal__body">',
             '<p class="vsle-connection-modal__label">连接方式</p>',
             '<div class="vsle-connection-modal__transport-row">',
-            '<label>',
-            `<input type="radio" name="vsle-transport" value="wifi" data-vsle-transport="wifi"${wifiChecked}>`,
-            ' WiFi (推荐)',
-            '</label>',
-            '<label>',
-            `<input type="radio" name="vsle-transport" value="bluetooth" data-vsle-transport="bluetooth"${bluetoothChecked}>`,
-            ' 蓝牙',
-            '</label>',
+            transportOptions.map(([transport, label]) => [
+                '<label>',
+                `<input type="radio" name="vsle-transport" value="${transport}" data-vsle-transport="${transport}"${model.transport === transport ? ' checked' : ''}>`,
+                ` ${label}`,
+                '</label>'
+            ].join('')).join(''),
             '</div>',
             `<label class="vsle-connection-modal__field"${wifiHidden}>`,
             '<span>EV3 IP地址:</span>',
@@ -706,7 +708,8 @@
             this._bind('cancel', () => this.onCancel());
             this._bind('help', () => this.onHelp());
             this._bindTransport('wifi');
-            this._bindTransport('bluetooth');
+            this._bindTransport('vsle-bluetooth');
+            this._bindTransport('official-bluetooth');
             this._bindInput('wifi-ip', value => {
                 this.ev3Ip = value.trim();
             });
@@ -737,10 +740,16 @@
         }
 
         _connectionParams () {
-            if (this.transport === 'bluetooth') {
+            if (this.transport === 'vsle-bluetooth') {
                 return {
-                    transport: 'bluetooth',
+                    transport: 'vsle-bluetooth',
                     ev3Bt: this.ev3Bt
+                };
+            }
+            if (this.transport === 'official-bluetooth') {
+                return {
+                    transport: 'official-bluetooth',
+                    ev3OfficialBt: this.ev3Bt
                 };
             }
             return {
@@ -1483,9 +1492,16 @@
         async setTransport (args) {
             const transport = normalizeTransport(args.TRANSPORT || args.transport);
             const params = {transport};
-            if (transport === 'bluetooth') {
+            if (transport === 'vsle-bluetooth') {
                 params.ev3_bt = trimOrDefault(
                     args.EV3_BT || args.ev3Bt || args.ev3_bt,
+                    ''
+                );
+            } else if (transport === 'official-bluetooth') {
+                params.ev3_official_bt = trimOrDefault(
+                    args.EV3_OFFICIAL_BT ||
+                        args.ev3OfficialBt ||
+                        args.ev3_official_bt,
                     ''
                 );
             } else {
@@ -2478,8 +2494,12 @@
     });
 
     const normalizeTransport = value => {
-        const transport = String(value || 'wifi').toLowerCase();
-        return transport === 'bluetooth' ? 'bluetooth' : 'wifi';
+        const transport = String(value || 'wifi').toLowerCase().replace(/_/g, '-');
+        if (transport === 'bluetooth') return 'vsle-bluetooth';
+        if (['wifi', 'vsle-bluetooth', 'official-bluetooth'].includes(transport)) {
+            return transport;
+        }
+        return 'wifi';
     };
 
     const normalizeConnectionStatus = value => {
@@ -2586,7 +2606,7 @@
         '.vsle-connection-modal__close{border:0;background:transparent;color:#fff;font-size:1.45rem;line-height:1;cursor:pointer;}',
         '.vsle-connection-modal__body{background:#fff;padding:1rem 1.25rem 0.75rem;}',
         '.vsle-connection-modal__label{font-weight:500;margin:0 0 0.5rem;}',
-        '.vsle-connection-modal__transport-row{display:flex;gap:1.5rem;margin-bottom:0.75rem;}',
+        '.vsle-connection-modal__transport-row{display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem;margin-bottom:0.75rem;}',
         '.vsle-connection-modal__transport-row label{font-weight:600;}',
         '.vsle-connection-modal__field{display:grid;grid-template-columns:6rem 1fr;align-items:center;gap:0.5rem;margin-bottom:0.75rem;}',
         '.vsle-connection-modal__field input{border:1px solid rgba(0,0,0,0.15);border-radius:0.25rem;color:#575E75;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;font-size:0.875rem;padding:0.45rem 0.5rem;}',

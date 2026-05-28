@@ -104,6 +104,36 @@ test('getInfo exposes complete EV3 and AI Quest blocks in LEGO red', () => {
     assert.deepEqual(info.menus.motorPidTerms.items, MOTOR_PID_TERMS);
 });
 
+test('setTransport sends explicit full and compatibility bluetooth params', async () => {
+    const {extension, sent} = makeExtension();
+
+    await extension.setTransport({
+        TRANSPORT: 'bluetooth',
+        EV3_BT: ' 00:16:53:AA:BB:CC '
+    });
+    await extension.setTransport({
+        TRANSPORT: 'official-bluetooth',
+        EV3_OFFICIAL_BT: ' 00:16:53:11:22:33 '
+    });
+
+    assert.deepEqual(sent, [
+        {
+            method: 'vsle.setTransport',
+            params: {
+                transport: 'vsle-bluetooth',
+                ev3_bt: '00:16:53:AA:BB:CC'
+            }
+        },
+        {
+            method: 'vsle.setTransport',
+            params: {
+                transport: 'official-bluetooth',
+                ev3_official_bt: '00:16:53:11:22:33'
+            }
+        }
+    ]);
+});
+
 test('AI Quest blocks call the server-side contract and expose sync reporters', async () => {
     const sent = [];
     const link = {

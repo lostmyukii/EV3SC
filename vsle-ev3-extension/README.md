@@ -60,9 +60,10 @@ and the full 64-block VSLE EV3 surface:
   mounts it, and exposes buttons for starting collection and uploading to the
   Trainer through the existing extension commands.
 - A Scratch-style EV3 connection modal implementation in
-  `src/ui/connection_modal.js`. It supports WiFi IP and Bluetooth address
-  selection, uses the official Scratch EV3 small icon copied into this package,
-  and calls `vsle.setTransport` without auto-inserting UI into Scratch.
+  `src/ui/connection_modal.js`. It supports WiFi Full VSLE, Bluetooth Full
+  VSLE, and official firmware Bluetooth compatibility selection, uses the
+  official Scratch EV3 small icon copied into this package, and calls
+  `vsle.setTransport` without auto-inserting UI into Scratch.
 
 The extension does not modify Scratch GUI styling or existing Scratch visual
 design.
@@ -97,6 +98,10 @@ const modal = extension.createConnectionModal({
 modal.render();
 ```
 
-Selecting WiFi sends `vsle.setTransport` with `ev3_ip`. Selecting Bluetooth
-sends `vsle.setTransport` with `ev3_bt`. The modal mirrors Scratch's hardware
-connection modal structure and does not change existing Scratch GUI files.
+Selecting WiFi Full VSLE sends `vsle.setTransport` with `transport: "wifi"` and
+`ev3_ip`. Selecting Bluetooth Full VSLE sends `transport: "vsle-bluetooth"` and
+`ev3_bt`; the legacy `bluetooth` transport name is normalized to that full VSLE
+mode. Selecting Official Firmware Bluetooth Compatibility sends
+`transport: "official-bluetooth"` and `ev3_official_bt`. The modal mirrors
+Scratch's hardware connection modal structure and does not change existing
+Scratch GUI files.
