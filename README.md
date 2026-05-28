@@ -163,6 +163,9 @@ Troubleshooting record from 2026-05-28:
   read-back hash again matched
   `55421ac90cd1d5ee7f8bb723e5b71687be33d80ded3780edb59b3b1f8b8a17ae`, and
   the SD card was ejected cleanly.
+- Final result on 2026-05-29: after rebooting the EV3 again, loading finished
+  and the EV3 entered the ev3dev page. Treat this as the confirmed successful
+  end state for Phase 3 before moving to network setup.
 
 References:
 
