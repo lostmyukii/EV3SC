@@ -3069,6 +3069,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/build_release_artifacts.py`, `desktop/scripts/validate_desktop_assets.py`, `desktop/macos/install.sh`, `desktop/macos/weisile-link.launchd.plist`, `tests/test_desktop_release_packaging.py`, `tests/test_desktop_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the macOS release artifact on a clean macOS machine with a paired official-firmware EV3 and record real install-smoke evidence, including `official_firmware_bt_real_ev3_ok: true`, before marking the compatibility mode available.
 
+### [2026-05-28] Website Bluetooth full module command design
+- **Status**: ✅ Completed
+- **Commit**: `f267fc6`
+- **What was done**: Added a design for making the ScratchAI website Bluetooth flow support the full VSLE-EV3 module command surface through a dedicated `vsle-bluetooth` full-mode transport. The design separates full ev3dev/VSLE Bluetooth from official-firmware Bluetooth compatibility so the website does not imply complete module support from the limited Direct Command mode.
+- **Files created/modified**: `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
+- **Next step**: Review the design, then create an implementation plan for the `vsle-bluetooth` full-mode transport, website connection-flow copy, tests, and real EV3 Bluetooth evidence gates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
