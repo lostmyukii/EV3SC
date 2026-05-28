@@ -90,6 +90,82 @@ Expected smoke result: `real-ev3-endpoint`,
 while the full classroom gate remains blocked until 45-minute sensor,
 AI Quest, and multi-device evidence is attached.
 
+## Full VSLE Bluetooth Smoke Evidence
+
+This is the handoff for the website Bluetooth full-module path. It is not
+official-firmware Bluetooth compatibility: the EV3 must run ev3dev and the
+EV3SC `vsle_ev3_server.py` with the RFCOMM listener explicitly enabled.
+
+On the EV3, enable the full VSLE Bluetooth listener only after pairing and
+classroom safety checks:
+
+```bash
+VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./scripts/install.sh
+systemctl restart vsle-ev3-server
+systemctl status vsle-ev3-server
+```
+
+On the teacher computer, build the native byte-stream adapter if this is a
+macOS desktop smoke:
+
+```bash
+desktop/macos/native/build.sh --check
+desktop/macos/native/build.sh
+```
+
+Start WeisileLink in full VSLE Bluetooth mode. Keep the EV3 Bluetooth address
+out of committed logs and replace the placeholder locally:
+
+```bash
+PYTHONPATH=weisile-link \
+  WEISILE_TRANSPORT=vsle-bluetooth \
+  EV3_BT=00:16:53:XX:XX:XX \
+  WEISILE_VSLE_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter \
+  .venv/bin/python -m weisile_link
+```
+
+In ScratchAI, choose `Bluetooth Full VSLE`, not
+`Official Firmware Bluetooth Compatibility`. Exercise these command groups
+against the physical brick:
+
+- motor
+- sensor
+- sound
+- display
+- system
+- data_collection
+- ai_quest
+
+After the smoke, copy the template and fill only evidence observed from the
+real EV3 run:
+
+```bash
+cp docs/classroom/vsle_bluetooth_full_module_smoke.template.json \
+  docs/classroom/vsle_bluetooth_full_module_smoke.json
+```
+
+Required pass fields:
+
+- `installed_from_release_artifact`: true only for a release artifact run.
+- `ev3_runs_ev3dev_server`: true only after confirming `vsle-ev3-server`.
+- `transport`: `vsle-bluetooth`.
+- `real_ev3_full_bluetooth_ok`: true only after a physical Bluetooth run.
+- `sensor_freshness_ms_max`: 25 or less from observed sensor freshness.
+- every `command_groups.*` value true after that group is exercised.
+- `disconnect_stop_ok`: true only after disconnect stop behavior is observed.
+- `scratch_unsandboxed_loaded`: true only for the unsandboxed ScratchAI path.
+
+Validate the evidence:
+
+```bash
+.venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
+  --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_full_module_smoke.md
+```
+
+The report must say `Classroom ready: yes` before this full Bluetooth path can
+be treated as classroom-ready. Until then, keep the existing blocker report.
+
 ## Section 13.7 Full Classroom Rehearsal
 
 After the confirmed smoke capture, collect the full evidence JSON for
