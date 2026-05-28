@@ -3167,6 +3167,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_REHEARSAL.md`
 - **Next step**: Connect a real paired ev3dev EV3 running `vsle_ev3_server.py`, perform the full `vsle-bluetooth` classroom smoke, fill `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun the smoke gate until the report is accepted.
 
+### [2026-05-28] Full VSLE Bluetooth smoke handoff
+- **Status**: ✅ Completed
+- **Commit**: `77a3a49`
+- **What was done**: Added a full VSLE Bluetooth hardware smoke handoff to the classroom real EV3 instructions, including EV3-side RFCOMM enablement, macOS native byte-stream adapter build, WeisileLink `vsle-bluetooth` launch command, ScratchAI mode selection, command-group coverage, evidence JSON fields, and final smoke gate validation. The handoff keeps Bluetooth addresses out of committed evidence and keeps classroom readiness blocked until the smoke report says `Classroom ready: yes`.
+- **Files created/modified**: `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`
+- **Next step**: Use the handoff with a physical paired ev3dev EV3, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` to replace the blocker report with accepted real full Bluetooth smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
