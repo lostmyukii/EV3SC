@@ -3153,6 +3153,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Execute Task 9 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: run the final full VSLE Bluetooth verification pass and record the final source/register/spec status.
 
+### [2026-05-28] Full VSLE Bluetooth final verification
+- **Status**: ✅ Completed
+- **Commit**: `02f4385`
+- **What was done**: Ran the final full VSLE Bluetooth verification pass: the Python matrix/transport/server suite passed 95/95, the VSLE extension JavaScript suite passed 30/30, the desktop asset validator printed `desktop assets ok`, and the smoke evidence runner kept the template evidence blocked with `Classroom ready: no`. Real full Bluetooth classroom readiness remains blocked until physical `vsle-bluetooth` smoke evidence is collected and accepted by `scripts/run_vsle_bluetooth_smoke.py`.
+- **Files created/modified**: `docs/SOURCE_REGISTER.md`
+- **Next step**: Collect real full VSLE Bluetooth smoke evidence with a paired ev3dev EV3 running `vsle_ev3_server.py`, write `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` to generate the accepted classroom smoke report.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
