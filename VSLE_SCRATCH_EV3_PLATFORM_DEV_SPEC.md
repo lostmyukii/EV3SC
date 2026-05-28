@@ -3174,6 +3174,13 @@ material into:
 - **Files created/modified**: `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`
 - **Next step**: Use the handoff with a physical paired ev3dev EV3, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` to replace the blocker report with accepted real full Bluetooth smoke evidence.
 
+### [2026-05-28] EV3 SD card install teaching guide
+- **Status**: ✅ Completed
+- **Commit**: `fd39746`
+- **What was done**: Created the root `README.md` as a step-by-step teaching entry for installing ev3dev on a new EV3 SD card before collecting full VSLE Bluetooth evidence. The guide now records confirmed Phase 0 material requirements and Phase 1 download/image-selection steps, with later phases to be appended as the install is walked through.
+- **Files created/modified**: `README.md`
+- **Next step**: Continue Phase 2 in `README.md`: flash the ev3dev EV3 image to the microSD card with Etcher, eject cleanly, and boot the EV3 from the card.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
