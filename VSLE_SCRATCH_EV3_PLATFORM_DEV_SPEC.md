@@ -3202,6 +3202,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Continue Phase 4 in `README.md`: connect to the booted EV3 for first-login and network setup.
 
+### [2026-05-28] EV3 first boot reflash recovery
+- **Status**: ✅ Completed
+- **Commit**: `5277b62`
+- **What was done**: Investigated an EV3 first-boot stall after power-cycling during a long `Starting` screen. The SD card evidence showed `EV3DEV_BOOT` was readable and the Linux partition had expanded to the full card size, so the guide now records the likely interrupted first-boot initialization and the completed reflash recovery with matching Linux partition read-back hash.
+- **Files created/modified**: `README.md`
+- **Next step**: Insert the reflashed SD card into the EV3 again, boot without interrupting `Starting`, and wait for the ev3dev/Brickman main interface before continuing to first-login/network setup.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
