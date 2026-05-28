@@ -3146,6 +3146,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_connection_modal.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/README.md`
 - **Next step**: Execute Task 8 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add the full VSLE Bluetooth smoke evidence gate so real and fake evidence can distinguish full ev3dev Bluetooth from official-firmware compatibility.
 
+### [2026-05-28] Full VSLE Bluetooth smoke gate
+- **Status**: ✅ Completed
+- **Commit**: `dedf166`
+- **What was done**: Added an evidence-driven full VSLE Bluetooth smoke gate that accepts only real `vsle-bluetooth` evidence with release-artifact install, ev3dev server runtime, fresh sensors, every command group, unsandboxed Scratch loading, and disconnect stop proof. Missing, false, stale, or official-firmware compatibility evidence keeps classroom readiness blocked.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Execute Task 9 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: run the final full VSLE Bluetooth verification pass and record the final source/register/spec status.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
