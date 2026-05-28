@@ -3160,6 +3160,13 @@ material into:
 - **Files created/modified**: `docs/SOURCE_REGISTER.md`
 - **Next step**: Collect real full VSLE Bluetooth smoke evidence with a paired ev3dev EV3 running `vsle_ev3_server.py`, write `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` to generate the accepted classroom smoke report.
 
+### [2026-05-28] Full VSLE Bluetooth smoke evidence blocker
+- **Status**: ✅ Completed
+- **Commit**: `eed4612`
+- **What was done**: Ran `scripts/run_vsle_bluetooth_smoke.py` against the expected real evidence path and generated `docs/classroom/vsle_bluetooth_full_module_smoke.md`. The report correctly remains `Classroom ready: no` because `docs/classroom/vsle_bluetooth_full_module_smoke.json` has not been collected from a physical paired ev3dev EV3.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_REHEARSAL.md`
+- **Next step**: Connect a real paired ev3dev EV3 running `vsle_ev3_server.py`, perform the full `vsle-bluetooth` classroom smoke, fill `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun the smoke gate until the report is accepted.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
