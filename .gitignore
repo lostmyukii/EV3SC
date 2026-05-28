@@ -7,6 +7,8 @@ __pycache__/
 .pyinstaller-cache/
 desktop/build/
 desktop/release/
+.preview-run/
+downloads/
 
 # ScratchAI port generated artifacts
 scratch-ai-platform/**/node_modules/
