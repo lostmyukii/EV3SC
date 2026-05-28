@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from weisile_link.transport.native_byte_stream import NativeByteStreamStatus
+
 
 class NativeAdapterProcess:
     """JSON-line subprocess adapter implementing the native BT protocol."""
@@ -30,10 +32,23 @@ class NativeAdapterProcess:
         self._lock: Optional[asyncio.Lock] = None
         self._stderr_task: Optional[asyncio.Task] = None
 
-    async def connect(self, address: str) -> None:
+    async def connect(
+        self,
+        address: str,
+        *,
+        channel: int = 1,
+        profile: str = "rfcomm",
+    ) -> None:
         """Start the native process and open a Bluetooth connection."""
         await self._ensure_process()
-        await self._request("connect", {"address": address})
+        await self._request(
+            "connect",
+            {
+                "address": address,
+                "channel": channel,
+                "profile": profile,
+            },
+        )
 
     async def send(self, payload: bytes) -> None:
         """Send one EV3 Direct Command frame."""
@@ -47,6 +62,17 @@ class NativeAdapterProcess:
         result = await self._request("recv", {})
         payload = str(result.get("payload", ""))
         return base64.b64decode(payload)
+
+    async def status(self) -> NativeByteStreamStatus:
+        """Return connection details reported by the native adapter."""
+        result = await self._request("status", {})
+        last_error = result.get("last_error")
+        return NativeByteStreamStatus(
+            connected=bool(result.get("connected")),
+            adapter_version=str(result.get("adapter_version", "")),
+            profile=str(result.get("profile", "")),
+            last_error=str(last_error) if last_error is not None else None,
+        )
 
     async def close(self) -> None:
         """Close the native connection and stop the adapter process."""

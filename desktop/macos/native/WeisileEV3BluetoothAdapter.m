@@ -72,9 +72,11 @@
 @property(nonatomic, strong) IOBluetoothRFCOMMChannel *channel;
 @property(nonatomic, strong) WeisileRFCOMMDelegate *delegate;
 @property(nonatomic, assign) BluetoothRFCOMMChannelID channelID;
+@property(nonatomic, copy) NSString *profile;
 - (NSDictionary *)connect:(NSDictionary *)params errorMessage:(NSString **)error;
 - (NSDictionary *)send:(NSDictionary *)params errorMessage:(NSString **)error;
 - (NSDictionary *)recv:(NSDictionary *)params errorMessage:(NSString **)error;
+- (NSDictionary *)status:(NSDictionary *)params errorMessage:(NSString **)error;
 - (NSDictionary *)close:(NSDictionary *)params errorMessage:(NSString **)error;
 @end
 
@@ -85,6 +87,7 @@
     self = [super init];
     if (self) {
         _channelID = 1;
+        _profile = @"rfcomm";
         _delegate = [[WeisileRFCOMMDelegate alloc] init];
     }
     return self;
@@ -101,6 +104,10 @@
     if ([channelParam respondsToSelector:@selector(unsignedCharValue)]) {
         self.channelID =
             (BluetoothRFCOMMChannelID)[channelParam unsignedCharValue];
+    }
+    NSString *profile = [params[@"profile"] description];
+    if (profile.length > 0) {
+        self.profile = profile;
     }
 
     self.device = [IOBluetoothDevice deviceWithAddressString:address];
@@ -144,7 +151,11 @@
     }
 
     self.channel = openedChannel;
-    return @{@"address": address, @"channel": @(self.channelID)};
+    return @{
+        @"address": address,
+        @"channel": @(self.channelID),
+        @"profile": self.profile ?: @"rfcomm"
+    };
 }
 
 - (NSDictionary *)send:(NSDictionary *)params errorMessage:(NSString **)error
@@ -189,6 +200,18 @@
         return nil;
     }
     return @{@"payload": [frame base64EncodedStringWithOptions:0]};
+}
+
+- (NSDictionary *)status:(NSDictionary *)params errorMessage:(NSString **)error
+{
+    (void)params;
+    (void)error;
+    BOOL connected = self.channel != nil && [self.channel isOpen];
+    return @{
+        @"connected": @(connected),
+        @"adapter_version": @"macos-iobluetooth-1",
+        @"profile": self.profile ?: @"rfcomm"
+    };
 }
 
 - (NSDictionary *)close:(NSDictionary *)params errorMessage:(NSString **)error
@@ -266,6 +289,8 @@ int main(int argc, const char *argv[])
                 result = [adapter send:params errorMessage:&errorMessage];
             } else if ([method isEqualToString:@"recv"]) {
                 result = [adapter recv:params errorMessage:&errorMessage];
+            } else if ([method isEqualToString:@"status"]) {
+                result = [adapter status:params errorMessage:&errorMessage];
             } else if ([method isEqualToString:@"close"]) {
                 result = [adapter close:params errorMessage:&errorMessage];
             } else {

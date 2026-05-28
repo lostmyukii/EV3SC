@@ -57,6 +57,29 @@ def _fake_adapter(path: Path) -> Path:
     return path
 
 
+def make_fake_adapter(path: Path, responses) -> Path:
+    path.write_text(
+        textwrap.dedent(
+            f"""\
+            #!/usr/bin/env python3
+            import json
+            import sys
+
+            responses = {list(responses)!r}
+
+            for index, raw in enumerate(sys.stdin):
+                request = json.loads(raw)
+                response = responses[index]
+                response["id"] = request["id"]
+                print(json.dumps(response), flush=True)
+            """
+        ),
+        encoding="utf-8",
+    )
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
+    return path
+
+
 def test_native_adapter_process_connect_send_recv_and_close(tmp_path):
     async def scenario():
         adapter = NativeAdapterProcess(
@@ -66,6 +89,42 @@ def test_native_adapter_process_connect_send_recv_and_close(tmp_path):
         await adapter.connect("00:16:53:12:34:56")
         await adapter.send(b"\x01\x02\x03")
         assert await adapter.recv() == b"reply"
+        await adapter.close()
+
+    asyncio.run(scenario())
+
+
+def test_native_adapter_process_connect_accepts_channel_and_reports_status(
+    tmp_path,
+):
+    async def scenario():
+        script = make_fake_adapter(
+            tmp_path / "status_adapter.py",
+            [
+                {"ok": True, "result": {"connected": True}},
+                {
+                    "ok": True,
+                    "result": {
+                        "connected": True,
+                        "adapter_version": "fake-1",
+                        "profile": "rfcomm",
+                    },
+                },
+            ],
+        )
+        adapter = NativeAdapterProcess(script)
+
+        await adapter.connect(
+            "00:16:53:AA:BB:CC",
+            channel=1,
+            profile="rfcomm",
+        )
+        status = await adapter.status()
+
+        assert status.connected is True
+        assert status.adapter_version == "fake-1"
+        assert status.profile == "rfcomm"
+        assert adapter.executable == script
         await adapter.close()
 
     asyncio.run(scenario())
@@ -135,6 +194,17 @@ def test_macos_native_adapter_source_passes_syntax_check():
     )
 
     assert result.returncode == 0, result.stderr + result.stdout
+
+
+def test_macos_native_adapter_supports_shared_status_command():
+    source = (
+        ROOT / "desktop/macos/native/WeisileEV3BluetoothAdapter.m"
+    ).read_text(encoding="utf-8")
+
+    assert "- (NSDictionary *)status:" in source
+    assert 'isEqualToString:@"status"' in source
+    assert '"adapter_version"' in source
+    assert '"profile"' in source
 
 
 def test_macos_native_adapter_embeds_bluetooth_usage_description():

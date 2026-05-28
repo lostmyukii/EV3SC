@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import time
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Protocol
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from weisile_link.protocol.errors import ErrorCode
 from weisile_link.protocol.official_ev3_direct_command import (
@@ -34,6 +34,7 @@ from weisile_link.runtime.degradation import (
     SensorSnapshot,
     TransportKind,
 )
+from weisile_link.transport.native_byte_stream import NativeByteStreamAdapter
 
 SensorCallback = Callable[[Dict[str, Any]], Optional[Awaitable[None]]]
 
@@ -58,22 +59,6 @@ _SCRATCH_SENSOR_MODES = {
 _SENSOR_CACHE_STALE_MS = 500
 
 
-class NativeBluetoothAdapterProtocol(Protocol):
-    """Native macOS/Windows adapter boundary for official EV3 firmware."""
-
-    async def connect(self, address: str) -> None:
-        """Open an OS-native Bluetooth Classic connection to the EV3."""
-
-    async def send(self, payload: bytes) -> None:
-        """Write one EV3 Direct Command frame to the native connection."""
-
-    async def recv(self) -> bytes:
-        """Read one raw EV3 reply frame from the native connection."""
-
-    async def close(self) -> None:
-        """Close the native connection."""
-
-
 class OfficialEV3BluetoothTransport:
     """Direct Command bridge for official-firmware EV3 Bluetooth mode.
 
@@ -90,7 +75,7 @@ class OfficialEV3BluetoothTransport:
         self,
         ev3_address: str,
         *,
-        adapter: Optional[NativeBluetoothAdapterProtocol] = None,
+        adapter: Optional[NativeByteStreamAdapter] = None,
         manager: Optional[DegradationManager] = None,
         auto_poll: bool = True,
         poll_interval_s: float = 0.125,
