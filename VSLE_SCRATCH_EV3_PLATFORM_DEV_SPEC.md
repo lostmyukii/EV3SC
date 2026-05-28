@@ -3216,6 +3216,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Continue Phase 4 in `README.md`: connect to the EV3 for first-login and network setup, then prepare the EV3-side VSLE server install.
 
+### [2026-05-29] EV3 USB SSH login verified
+- **Status**: ✅ Completed
+- **Commit**: `d3b7708`
+- **What was done**: Verified first login over the EV3 mini USB connection after Wi-Fi showed `Not Available`. macOS detected the brick as `EV3+ev3dev` on `en10`, SSH over the IPv6 link-local address succeeded with `robot` / `maker`, and read-only checks captured hostname, kernel, USB address, and root filesystem status.
+- **Files created/modified**: `README.md`
+- **Next step**: Continue Phase 5 in `README.md`: install the EV3-side VSLE server over the working USB SSH connection and prepare the brick for WeisileLink testing.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
