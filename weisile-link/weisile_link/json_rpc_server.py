@@ -54,7 +54,8 @@ from weisile_link.trainer_pipeline import (
     export_model_rules,
     train_decision_tree,
 )
-from weisile_link.transport.bluetooth_transport import BluetoothTransport
+from weisile_link.transport.bluetooth_transport import VSLEBluetoothTransport
+from weisile_link.transport.native_adapter_process import NativeAdapterProcess
 from weisile_link.transport.selector import AutoTransport
 from weisile_link.transport.wifi_transport import WiFiTransport
 
@@ -1485,17 +1486,28 @@ def create_default_server(
     wifi_transport = WiFiTransport(ev3_ip, manager=manager)
     bluetooth_transport = None
     if ev3_bt:
-        bluetooth_transport = BluetoothTransport(ev3_bt, manager=manager)
+        vsle_adapter_path = os.getenv("WEISILE_VSLE_BT_ADAPTER", "")
+        native_vsle_adapter = (
+            NativeAdapterProcess(vsle_adapter_path)
+            if vsle_adapter_path
+            else None
+        )
+        bluetooth_transport = VSLEBluetoothTransport(
+            ev3_bt,
+            manager=manager,
+            native_adapter=native_vsle_adapter,
+        )
         manager.bluetooth_supported = bluetooth_transport.supported
 
-    if transport_mode == "wifi" or bluetooth_transport is None:
+    normalized_transport = str(transport_mode).lower().replace("_", "-")
+    if normalized_transport == "wifi" or bluetooth_transport is None:
         transport = wifi_transport
-    elif transport_mode == "bluetooth":
+    elif normalized_transport in {"bluetooth", "vsle-bluetooth"}:
         transport = AutoTransport(
             wifi_transport,
             bluetooth_transport,
             manager=manager,
-            preferred="bluetooth",
+            preferred="vsle-bluetooth",
         )
     else:
         transport = AutoTransport(

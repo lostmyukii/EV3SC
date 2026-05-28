@@ -7,8 +7,12 @@ from weisile_link.json_rpc_server import (
     SCRATCH_BT_PATH,
     SCRATCH_LINK_PROTOCOL_VERSION,
     ScratchJsonRpcServer,
+    create_default_server,
 )
 from weisile_link.runtime.degradation import DegradationManager, TransportKind
+from weisile_link.transport.bluetooth_transport import VSLEBluetoothTransport
+from weisile_link.transport.native_adapter_process import NativeAdapterProcess
+from weisile_link.transport.selector import AutoTransport
 
 
 class FakeWebSocket:
@@ -890,6 +894,59 @@ def test_status_response_uses_observability_baseline_and_client_count():
     assert body["scratch_clients"] == 1
     assert body["transport"] is None
     assert "sensor_hz" in body
+
+
+def test_status_payload_reports_vsle_bluetooth_capability():
+    manager = DegradationManager(bluetooth_supported=True)
+    manager.record_reconnected(
+        TransportKind.BLUETOOTH,
+        label="vsle-bluetooth",
+        capability="full",
+        native_adapter_path="/Applications/WeisileLink.app/native",
+        native_adapter_status="fake-native",
+    )
+    transport = FakeTransport(manager=manager)
+    server = ScratchJsonRpcServer(transport, manager=manager)
+
+    response = server.handle_get("/api/status")
+    payload = json.loads(response.body)
+
+    assert payload["ev3_sessions"][0]["transport"] == "vsle-bluetooth"
+    assert payload["ev3_sessions"][0]["transport_capability"] == "full"
+    assert payload["ev3_sessions"][0]["native_adapter_status"] == (
+        "fake-native"
+    )
+
+
+def test_create_default_server_uses_vsle_bluetooth_native_adapter(
+    monkeypatch,
+    tmp_path,
+):
+    adapter_path = tmp_path / "vsle-native-adapter"
+    adapter_path.write_text("#!/bin/sh\n", encoding="utf-8")
+    adapter_path.chmod(0o755)
+    monkeypatch.setenv("WEISILE_VSLE_BT_ADAPTER", str(adapter_path))
+
+    server = create_default_server(
+        "192.0.2.10",
+        ev3_bt="00:16:53:AA:BB:CC",
+        transport_mode="vsle-bluetooth",
+    )
+
+    assert isinstance(server.transport, AutoTransport)
+    assert server.transport.preferred == "vsle-bluetooth"
+    assert isinstance(
+        server.transport.bluetooth_transport,
+        VSLEBluetoothTransport,
+    )
+    assert isinstance(
+        server.transport.bluetooth_transport._native_adapter,
+        NativeAdapterProcess,
+    )
+    assert (
+        server.transport.bluetooth_transport._native_adapter.executable
+        == adapter_path
+    )
 
 
 def test_run_binds_localhost_default_scratch_port_and_path_handler():

@@ -22,7 +22,7 @@ from weisile_link.json_rpc_server import (
     allowed_origins_from_env,
 )
 from weisile_link.runtime.degradation import DegradationManager
-from weisile_link.transport.bluetooth_transport import BluetoothTransport
+from weisile_link.transport.bluetooth_transport import VSLEBluetoothTransport
 from weisile_link.transport.native_adapter_process import NativeAdapterProcess
 from weisile_link.transport.official_ev3_bt_transport import (
     OfficialEV3BluetoothTransport,
@@ -42,6 +42,7 @@ class WeisileLinkRuntimeConfig:
     ev3_ws_port: int = 8765
     ev3_bt: str = ""
     ev3_official_bt: str = ""
+    vsle_bt_adapter: str = ""
     official_bt_adapter: str = ""
     transport: str = "auto"
     max_collected_points: int = 10_000
@@ -61,6 +62,10 @@ class WeisileLinkRuntimeConfig:
             ev3_official_bt=os.getenv(
                 "EV3_OFFICIAL_BT",
                 cls.ev3_official_bt,
+            ),
+            vsle_bt_adapter=os.getenv(
+                "WEISILE_VSLE_BT_ADAPTER",
+                cls.vsle_bt_adapter,
             ),
             official_bt_adapter=os.getenv(
                 "WEISILE_OFFICIAL_BT_ADAPTER",
@@ -86,12 +91,22 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
         port=config.ev3_ws_port,
         manager=manager,
     )
-    bluetooth_transport: Optional[BluetoothTransport] = None
+    bluetooth_transport: Optional[VSLEBluetoothTransport] = None
     if config.ev3_bt:
-        bluetooth_transport = BluetoothTransport(config.ev3_bt, manager=manager)
+        native_vsle_adapter = (
+            NativeAdapterProcess(config.vsle_bt_adapter)
+            if config.vsle_bt_adapter
+            else None
+        )
+        bluetooth_transport = VSLEBluetoothTransport(
+            config.ev3_bt,
+            manager=manager,
+            native_adapter=native_vsle_adapter,
+        )
         manager.bluetooth_supported = bluetooth_transport.supported
 
-    if config.transport in {"official-bluetooth", "official_ev3_bluetooth"}:
+    transport_name = str(config.transport).lower().replace("_", "-")
+    if transport_name in {"official-bluetooth", "official-ev3-bluetooth"}:
         native_adapter = (
             NativeAdapterProcess(config.official_bt_adapter)
             if config.official_bt_adapter
@@ -104,14 +119,14 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
         )
         manager.bluetooth_supported = official_transport.supported
         transport = official_transport
-    elif config.transport == "wifi" or bluetooth_transport is None:
+    elif transport_name == "wifi" or bluetooth_transport is None:
         transport = wifi_transport
-    elif config.transport == "bluetooth":
+    elif transport_name in {"bluetooth", "vsle-bluetooth"}:
         transport = AutoTransport(
             wifi_transport,
             bluetooth_transport,
             manager=manager,
-            preferred="bluetooth",
+            preferred="vsle-bluetooth",
         )
     else:
         transport = AutoTransport(

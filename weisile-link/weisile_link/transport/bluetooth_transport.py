@@ -83,7 +83,7 @@ class BluetoothTransport:
         self._pending: Dict[Any, asyncio.Future] = {}
         self._next_command_id = 0
         self._closed_by_request = False
-        self._write_lock = asyncio.Lock()
+        self._write_lock: Optional[asyncio.Lock] = None
         self._monotonic_ms = (
             monotonic_ms
             if monotonic_ms is not None
@@ -297,8 +297,13 @@ class BluetoothTransport:
             "utf-8"
         )
 
-        async with self._write_lock:
+        async with self._get_write_lock():
             await self._write_bytes(line)
+
+    def _get_write_lock(self) -> asyncio.Lock:
+        if self._write_lock is None:
+            self._write_lock = asyncio.Lock()
+        return self._write_lock
 
     async def _write_bytes(self, payload: bytes) -> None:
         if self._native_adapter is not None:

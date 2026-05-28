@@ -11,6 +11,7 @@ from weisile_link.transport.native_adapter_process import NativeAdapterProcess
 from weisile_link.transport.official_ev3_bt_transport import (
     OfficialEV3BluetoothTransport,
 )
+from weisile_link.transport.selector import AutoTransport
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -179,6 +180,34 @@ def test_build_server_uses_native_process_adapter_from_env(
     assert server.transport.supported is True
     assert isinstance(server.transport.adapter, NativeAdapterProcess)
     assert server.transport.adapter.executable == adapter_path
+
+
+def test_build_server_uses_native_process_adapter_for_vsle_bluetooth(
+    monkeypatch,
+    tmp_path,
+):
+    adapter_path = _fake_adapter(tmp_path / "fake_vsle_adapter.py")
+    monkeypatch.setenv("WEISILE_TRANSPORT", "vsle-bluetooth")
+    monkeypatch.setenv("EV3_BT", "00:16:53:AA:BB:CC")
+    monkeypatch.setenv("WEISILE_VSLE_BT_ADAPTER", str(adapter_path))
+
+    from weisile_link.transport.bluetooth_transport import (
+        VSLEBluetoothTransport,
+    )
+
+    config = WeisileLinkRuntimeConfig.from_env()
+    server = build_server(config)
+
+    assert isinstance(server.transport, AutoTransport)
+    assert isinstance(
+        server.transport.bluetooth_transport,
+        VSLEBluetoothTransport,
+    )
+    assert server.transport.bluetooth_transport._native_adapter is not None
+    assert (
+        server.transport.bluetooth_transport._native_adapter.executable
+        == adapter_path
+    )
 
 
 def test_macos_native_adapter_source_passes_syntax_check():
