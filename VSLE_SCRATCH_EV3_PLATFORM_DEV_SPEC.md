@@ -3118,6 +3118,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/native_byte_stream.py`, `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/weisile_link/transport/official_ev3_bt_transport.py`, `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `weisile-link/tests/test_native_adapter_process.py`
 - **Next step**: Execute Task 4 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add native-adapter-backed fake tests for the full VSLE Bluetooth JSON-line transport so `vsle-bluetooth` can share the byte-stream boundary while staying separate from official-firmware compatibility mode.
 
+### [2026-05-28] Full VSLE native Bluetooth adapter
+- **Status**: ✅ Completed
+- **Commit**: `f9ba4e4`
+- **What was done**: Added `VSLEBluetoothTransport` as the product-facing full-module Bluetooth transport while keeping `BluetoothTransport` import-compatible. The full VSLE transport can now use an injected native byte-stream adapter for JSON-line auth, command ack resolution, sensor cache routing, timeout handling, and best-effort `system.stopAll` before disconnect, without conflating it with official-firmware Direct Command compatibility mode.
+- **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/weisile_link/transport/__init__.py`, `weisile-link/tests/test_bluetooth_transport.py`
+- **Next step**: Execute Task 5 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: wire runtime configuration, JSON-RPC transport selection, and `/api/status` metadata for `WEISILE_VSLE_BT_ADAPTER` and `vsle-bluetooth`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
