@@ -3104,6 +3104,13 @@ material into:
 - **Files created/modified**: `scripts/generate_vsle_bluetooth_coverage.py`, `tests/test_vsle_bluetooth_coverage.py`, `docs/desktop/VSLE_BLUETOOTH_COMMAND_COVERAGE.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Execute Task 2 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: add the explicit `vsle-bluetooth` transport alias and status metadata while preserving `bluetooth` as a backward-compatible full-VSLE alias.
 
+### [2026-05-28] VSLE Bluetooth transport naming metadata
+- **Status**: ✅ Completed
+- **Commit**: `27c7bd1`
+- **What was done**: Added `vsle-bluetooth` as the canonical full-module Bluetooth transport name in the WeisileLink selector while keeping plain `bluetooth` as a backward-compatible alias. Status payloads now include transport capability, native adapter path/status, and unsupported-capability metadata so full VSLE Bluetooth remains distinct from official-firmware compatibility mode.
+- **Files created/modified**: `weisile-link/weisile_link/runtime/degradation.py`, `weisile-link/weisile_link/transport/selector.py`, `weisile-link/weisile_link/sessions.py`, `weisile-link/weisile_link/observability/health.py`, `weisile-link/tests/test_transport_selector.py`, `weisile-link/tests/test_observability.py`, `weisile-link/tests/test_multi_ev3_sessions.py`
+- **Next step**: Execute Task 3 from `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`: generalize the native byte-stream adapter boundary so full VSLE Bluetooth and official-firmware Bluetooth can share the same adapter protocol without conflating their capabilities.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
