@@ -99,9 +99,29 @@ The strict max gate is still not met. Because slow refresh no longer runs in
 `read_all()`, the remaining spikes are now isolated to the high-frequency
 sensor and motor-basic path or EV3 scheduling jitter.
 
+## High-Frequency Path Split Probe
+
+A follow-up probe split the remaining high-frequency path while keeping the EV3,
+A-port motor, and S1 touch sensor connected. The service was paused during the
+probe so no concurrent server reads interfered, and it was restarted
+immediately afterward. No motor-run commands were sent.
+
+| Component | Average | Max | Samples | Observed payload |
+|---|---:|---:|---:|---|
+| S1 sensor only | `7.025ms` | `13.653ms` | `190` | `S1 type=touch` |
+| Motor A basics only | `5.185ms` | `12.964ms` | `191` | `position`, `running`, `speed` |
+| Combined `read_all()` hot path | `12.853ms` | `19.761ms` | `191` | S1 + motor A basics + cached PID/system |
+
+This run did not implicate motor basics as the remaining source of spikes:
+sensor-only, motor-basic-only, and combined hot-path measurements all stayed
+under the `25ms` freshness budget. The earlier `59.465ms` max now looks more
+like occasional EV3 scheduling jitter or measurement-window variance than a
+consistently slow motor-basic read. A medium-frequency motor-basic cache should
+therefore wait until repeated probes show motor basics exceeding the budget.
+
 ## Next Step
 
-Profile the remaining high-frequency path with TDD-backed probes that split S1
-sensor reads from motor position/speed/running reads. If motor basics are still
-responsible for the max spikes, move them to a medium-frequency cache while
-keeping S1 sensor reads on the 50Hz path.
+Rerun the full `vsle-bluetooth` freshness evidence path now that the direct
+high-frequency hot path can stay below 25ms in isolation. If Bluetooth evidence
+still exceeds the gate, profile the bridge/native-adapter receive path and EV3
+server WebSocket broadcast loop rather than adding motor-basic caching first.
