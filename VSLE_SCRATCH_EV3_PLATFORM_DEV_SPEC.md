@@ -3514,6 +3514,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `tests/test_vsle_bluetooth_smoke.py`
 - **Next step**: Use the Mac browser full VSLE Bluetooth smoke flow to validate the server-side Scratch EV3 module path, then collect signed macOS release-artifact evidence and separate Windows evidence when the required hosts are available.
 
+### [2026-05-29] Mac browser full VSLE Bluetooth smoke gate
+- **Status**: ✅ Completed
+- **Commit**: `7b0e120`
+- **What was done**: Added a combined evidence gate for the no-Windows functional path: ScratchAI browser Unsandboxed extension evidence plus real `vsle-bluetooth` command-group evidence. The generated report validates the server-side Scratch EV3 module path while keeping classroom release readiness, 50Hz Bluetooth readiness, and Windows evidence explicitly blocked.
+- **Files created/modified**: `scripts/run_macos_browser_vsle_bluetooth_smoke.py`, `tests/test_macos_browser_vsle_bluetooth_smoke.py`, `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`, `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Produce a signed and notarized macOS WeisileLink Desktop release artifact, install it on a clean macOS machine, collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`, and use the accepted release evidence to unblock the no-WiFi Bluetooth classroom baseline.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
