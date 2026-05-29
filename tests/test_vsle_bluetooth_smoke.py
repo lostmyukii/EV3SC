@@ -71,3 +71,51 @@ def test_vsle_bluetooth_smoke_accepts_real_full_module_evidence(tmp_path):
 
     assert result.returncode == 0
     assert "Classroom ready: yes" in report.read_text(encoding="utf-8")
+
+
+def test_vsle_bluetooth_smoke_reports_diagnostic_fallback_decision(tmp_path):
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "installed_from_release_artifact": False,
+                "ev3_runs_ev3dev_server": True,
+                "transport": "vsle-bluetooth",
+                "real_ev3_full_bluetooth_ok": True,
+                "sensor_freshness_ms_max": 499.251,
+                "command_groups": {
+                    "motor": True,
+                    "sensor": True,
+                    "sound": True,
+                    "display": True,
+                    "system": True,
+                    "data_collection": True,
+                    "ai_quest": True,
+                },
+                "disconnect_stop_ok": True,
+                "scratch_unsandboxed_loaded": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = tmp_path / "report.md"
+    result = subprocess.run(
+        [
+            ".venv/bin/python",
+            str(SCRIPT),
+            "--evidence",
+            str(evidence),
+            "--report",
+            str(report),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert result.returncode == 1
+    assert "Classroom ready: no" in text
+    assert "Diagnostic fallback: yes" in text
+    assert "WiFi Full VSLE remains the classroom 50Hz path" in text

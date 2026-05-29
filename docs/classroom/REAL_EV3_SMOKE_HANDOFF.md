@@ -96,6 +96,11 @@ This is the handoff for the website Bluetooth full-module path. It is not
 official-firmware Bluetooth compatibility: the EV3 must run ev3dev and the
 EV3SC `vsle_ev3_server.py` with the RFCOMM listener explicitly enabled.
 
+Current evidence decision: `vsle-bluetooth` is a non-classroom
+diagnostic/fallback mode until fresh real-EV3 evidence satisfies the
+`sensor_freshness_ms_max <= 25` classroom gate and the run comes from a release
+artifact install. WiFi Full VSLE remains the classroom 50Hz transport path.
+
 On the EV3, enable the full VSLE Bluetooth listener only after pairing and
 classroom safety checks:
 
@@ -164,7 +169,9 @@ Validate the evidence:
 ```
 
 The report must say `Classroom ready: yes` before this full Bluetooth path can
-be treated as classroom-ready. Until then, keep the existing blocker report.
+be treated as classroom-ready. If command groups pass but freshness still fails,
+the report should say `Diagnostic fallback: yes`; keep that as the explicit
+non-classroom status rather than treating Bluetooth as the 50Hz classroom path.
 
 ## Section 13.7 Full Classroom Rehearsal
 

@@ -1,9 +1,25 @@
 # ScratchAI Website Bluetooth Full Module Command Design
 
 Date: 2026-05-28
-Status: Design for implementation planning
+Status: Implemented for command coverage; Bluetooth classroom readiness blocked
 Scope: ScratchAI website EV3 Bluetooth mode, WeisileLink Desktop transport
 selection, and full VSLE-EV3 module command coverage.
+
+## 0. 2026-05-29 Evidence Decision
+
+Real paired-ev3dev `vsle-bluetooth` evidence now confirms that all full-module
+command groups can pass through the macOS native adapter and EV3 RFCOMM listener,
+but the transport still misses the strict `sensor_freshness_ms_max <= 25` gate.
+After EV3 hot-path caching, native adapter 5ms polling, and compact RFCOMM
+sensor payloads, the remaining stream cadence clusters around the Bluetooth
+Classic / macOS IOBluetooth boundary rather than the Scratch extension or EV3
+hardware snapshot path.
+
+Decision: keep `vsle-bluetooth` as a non-classroom diagnostic/fallback mode on
+this evidence. WiFi Full VSLE remains the classroom 50Hz path. Full VSLE
+Bluetooth must not be marked classroom-ready unless a redesigned Bluetooth
+transport strategy or new real-EV3 evidence satisfies both the 25ms freshness
+gate and release-artifact install gate.
 
 ## 1. Context From The Previous Work
 
@@ -58,7 +74,7 @@ The design therefore separates two user-visible Bluetooth choices:
 
 | Website label | Internal transport | EV3 requirement | Module coverage promise |
 |---|---|---|---|
-| Bluetooth Full VSLE | `vsle-bluetooth`, with backward-compatible alias to the existing full-mode `bluetooth` transport | EV3 runs ev3dev and `vsle_ev3_server.py` with RFCOMM enabled | Full VSLE command surface and cache-backed reporters |
+| Bluetooth Full VSLE | `vsle-bluetooth`, with backward-compatible alias to the existing full-mode `bluetooth` transport | EV3 runs ev3dev and `vsle_ev3_server.py` with RFCOMM enabled | Full VSLE command surface and cache-backed reporters; non-classroom diagnostic/fallback until the 25ms freshness and release-artifact gates pass |
 | Official Firmware Bluetooth Compatibility | `official-bluetooth` | EV3 runs official LEGO firmware and is paired to the teacher computer | Explicit compatibility matrix, not full module parity |
 
 The important product change is that "Bluetooth mode supports all modules"
@@ -298,8 +314,10 @@ Implementation should prove the design with tests at these layers:
 | Real hardware | Physical ev3dev EV3 full Bluetooth smoke covering motor, sensor, sound, display, system stop, data collect, and AI Quest upload/train/export path |
 | Release evidence | Clean-machine artifact evidence for macOS and Windows before any classroom-ready claim |
 
-The full-module Bluetooth milestone is complete only when the real hardware
-smoke confirms all command groups through `vsle-bluetooth`. Official firmware
+The full-module Bluetooth command-coverage milestone is complete when the real
+hardware smoke confirms all command groups through `vsle-bluetooth`. Classroom
+readiness is a stricter milestone: it additionally requires release-artifact
+install evidence and `sensor_freshness_ms_max <= 25`. Official firmware
 compatibility evidence must remain separate.
 
 ## 11. Rollout Plan
@@ -316,6 +334,9 @@ compatibility evidence must remain separate.
 6. Collect real ev3dev EV3 Bluetooth command coverage evidence.
 7. Keep official-firmware Direct Command expansion as a separate compatibility
    track with its own matrix and evidence gates.
+8. Keep full VSLE Bluetooth in diagnostic/fallback status unless a redesigned
+   Bluetooth stream or new real-EV3 evidence satisfies the classroom freshness
+   and release-artifact gates.
 
 ## 12. Source Basis
 

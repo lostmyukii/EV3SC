@@ -2346,6 +2346,7 @@ Teacher-facing UI should translate alerts into plain recovery steps.
 | Browser | Current Chrome/Edge/Safari | Must support WebSocket and TurboWarp build |
 | Scratch runtime | TurboWarp fork | Unsandboxed Extension required |
 | Teacher computer WiFi transport | macOS, Windows, Linux | Primary supported classroom path |
+| Full VSLE Bluetooth transport | Diagnostic/fallback only on current macOS RFCOMM evidence | Real ev3dev command groups can pass through `vsle-bluetooth`, but 2026-05-29 evidence still misses the `sensor_freshness_ms_max <= 25` classroom gate; WiFi remains the 50Hz classroom path unless Bluetooth is redesigned and reverified |
 | Teacher computer Bluetooth transport | Linux only for stdlib RFCOMM | macOS/Windows require future adapter or WiFi |
 | WeisileLink Desktop macOS | Planned release artifact | Signed app/pkg, LaunchAgent, bundled runtime, localhost defaults, notarization before classroom distribution, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |
 | WeisileLink Desktop Windows | Planned release artifact | Signed installer, per-user startup or service option, bundled runtime, localhost defaults, firewall-safe behavior, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |

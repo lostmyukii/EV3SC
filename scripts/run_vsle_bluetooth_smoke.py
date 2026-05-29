@@ -43,7 +43,23 @@ def validate_evidence(payload: dict[str, Any]) -> list[str]:
     return errors
 
 
-def write_report(report: Path, errors: list[str]) -> None:
+def is_diagnostic_fallback(payload: dict[str, Any], errors: list[str]) -> bool:
+    groups = payload.get("command_groups", {})
+    command_groups_ok = all(groups.get(group) is True for group in REQUIRED_GROUPS)
+    freshness_blocked = "sensor_freshness_ms_max must be <= 25" in errors
+    return (
+        payload.get("transport") == "vsle-bluetooth"
+        and payload.get("ev3_runs_ev3dev_server") is True
+        and payload.get("real_ev3_full_bluetooth_ok") is True
+        and command_groups_ok
+        and freshness_blocked
+    )
+
+
+def write_report(
+    report: Path, errors: list[str], payload: dict[str, Any] | None = None
+) -> None:
+    payload = payload or {}
     ready = not errors
     lines = [
         "# VSLE Bluetooth Full Module Smoke Report",
@@ -55,6 +71,21 @@ def write_report(report: Path, errors: list[str]) -> None:
         lines.append("## Blocking Items")
         lines.extend(f"- {error}" for error in errors)
         lines.append("")
+    if is_diagnostic_fallback(payload, errors):
+        lines.extend(
+            [
+                "## Mode Decision",
+                "Diagnostic fallback: yes",
+                "WiFi Full VSLE remains the classroom 50Hz path.",
+                (
+                    "Full VSLE Bluetooth is retained only for non-classroom "
+                    "diagnostics or fallback on this evidence until a redesigned "
+                    "Bluetooth path or new real-EV3 evidence satisfies the 25ms "
+                    "freshness gate."
+                ),
+                "",
+            ]
+        )
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text("\n".join(lines), encoding="utf-8")
 
@@ -80,7 +111,7 @@ def main() -> int:
     payload, errors = load_evidence(args.evidence)
     if not errors:
         errors = validate_evidence(payload)
-    write_report(args.report, errors)
+    write_report(args.report, errors, payload)
     return 1 if errors else 0
 
 
