@@ -253,3 +253,5 @@ def test_macos_docs_reference_release_preflight_script():
         text = path.read_text(encoding="utf-8")
         assert "check_macos_release_preflight.py" in text
         assert "macos-release-preflight.json" in text
+        assert "auto-detect" in text
+        assert "desktop/build/macos/WeisileLink" in text

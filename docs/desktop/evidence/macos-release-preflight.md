@@ -9,8 +9,8 @@ Ready: no
 - tool:xcrun: pass - /usr/bin/xcrun
 - tool:pkgbuild: pass - /usr/bin/pkgbuild
 - tool:productbuild: pass - /usr/bin/productbuild
-- executable_path: fail - executable_path was not provided
-- native_adapter_path: fail - native_adapter_path was not provided
+- executable_path: pass - /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink
+- native_adapter_path: pass - /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter
 - app_sign_identity: fail - app_sign_identity was not provided
 - installer_sign_identity: fail - installer_sign_identity was not provided
 - notary_keychain_profile: fail - notary_keychain_profile was not provided
@@ -18,7 +18,7 @@ Ready: no
 ## Release Commands
 
 ```bash
-./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable <path-to-self-contained-WeisileLink> --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity "Developer ID Application: WeisileEDU"
+./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity "Developer ID Application: WeisileEDU"
 ```
 
 ```bash

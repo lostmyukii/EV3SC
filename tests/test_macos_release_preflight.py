@@ -1,3 +1,5 @@
+import argparse
+import importlib.util
 import json
 from pathlib import Path
 import stat
@@ -9,7 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "desktop/scripts/check_macos_release_preflight.py"
 
 
+def _load_preflight_module():
+    spec = importlib.util.spec_from_file_location("macos_release_preflight", SCRIPT)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
 def _fake_executable(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
@@ -76,12 +88,44 @@ def test_macos_release_preflight_reports_missing_inputs(tmp_path):
     assert result.returncode == 1
     payload = json.loads(json_report.read_text(encoding="utf-8"))
     assert payload["ready"] is False
-    assert "executable_path" in payload["missing_inputs"]
     assert "app_sign_identity" in payload["missing_inputs"]
     assert "notary_keychain_profile" in payload["missing_inputs"]
     markdown = md_report.read_text(encoding="utf-8")
     assert "Ready: no" in markdown
-    assert "executable_path was not provided" in markdown
+
+
+def test_macos_release_preflight_autodetects_default_build_outputs(tmp_path):
+    executable = _fake_executable(tmp_path / "desktop/build/macos/WeisileLink")
+    native_adapter = _fake_native_adapter_app(
+        tmp_path / "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app"
+    )
+    module = _load_preflight_module()
+    module.DEFAULT_EXECUTABLE = executable
+    module.DEFAULT_NATIVE_ADAPTER = native_adapter
+    module._tool_path = lambda name: f"/fake/{name}"
+
+    args = argparse.Namespace(
+        executable=None,
+        native_adapter=None,
+        app_sign_identity=None,
+        installer_sign_identity=None,
+        notary_keychain_profile=None,
+    )
+
+    payload = module.build_payload(
+        args,
+        lambda *_, **__: subprocess.CompletedProcess(
+            args=["security"], returncode=0, stdout="", stderr=""
+        ),
+    )
+
+    assert "executable_path" not in payload["missing_inputs"]
+    assert "native_adapter_path" not in payload["missing_inputs"]
+    checks = {check["name"]: check for check in payload["checks"]}
+    assert checks["executable_path"]["ok"] is True
+    assert checks["executable_path"]["detail"] == str(executable)
+    assert checks["native_adapter_path"]["ok"] is True
+    assert checks["native_adapter_path"]["detail"] == str(native_adapter)
 
 
 def test_macos_release_preflight_passes_with_fake_tools_and_inputs(tmp_path):

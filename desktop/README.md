@@ -62,12 +62,14 @@ Classroom release status still requires signed artifacts, macOS notarization,
 and clean-machine install smoke evidence from the generated artifact.
 
 Before running the real macOS release flow, check local prerequisites without
-writing release artifacts or credentials into git:
+writing release artifacts or credentials into git. After running
+`desktop/macos/native/build.sh` and building the WeisileLink binary, the
+preflight can auto-detect `desktop/build/macos/WeisileLink` and
+`desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter`;
+pass `--executable` or `--native-adapter` only when using a nonstandard path:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \
-  --executable path/to/WeisileLink \
-  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
   --app-sign-identity "Developer ID Application: WeisileEDU" \
   --installer-sign-identity "Developer ID Installer: WeisileEDU" \
   --notary-keychain-profile VSLE_NOTARY \

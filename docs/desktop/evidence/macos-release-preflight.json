@@ -26,14 +26,14 @@
       "ok": true
     },
     {
-      "detail": "executable_path was not provided",
+      "detail": "/Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink",
       "name": "executable_path",
-      "ok": false
+      "ok": true
     },
     {
-      "detail": "native_adapter_path was not provided",
+      "detail": "/Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter",
       "name": "native_adapter_path",
-      "ok": false
+      "ok": true
     },
     {
       "detail": "app_sign_identity was not provided",
@@ -52,15 +52,13 @@
     }
   ],
   "missing_inputs": [
-    "executable_path",
-    "native_adapter_path",
     "app_sign_identity",
     "installer_sign_identity",
     "notary_keychain_profile"
   ],
   "ready": false,
   "release_commands": [
-    "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable <path-to-self-contained-WeisileLink> --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity \"Developer ID Application: WeisileEDU\"",
+    "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity \"Developer ID Application: WeisileEDU\"",
     "./.venv/bin/python desktop/scripts/notarize_macos_release.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --keychain-profile VSLE_NOTARY",
     "./.venv/bin/python desktop/scripts/build_macos_pkg.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --sign-identity \"Developer ID Installer: WeisileEDU\""
   ],

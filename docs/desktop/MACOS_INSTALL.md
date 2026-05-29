@@ -56,12 +56,14 @@ before non-developer distribution.
 Run the local prerequisite preflight before producing a real classroom
 artifact. This checks the self-contained executable path, native adapter app,
 Developer ID Application identity, Developer ID Installer identity, Apple
-notarytool keychain profile, and required macOS packaging tools:
+notarytool keychain profile, and required macOS packaging tools. After running
+`desktop/macos/native/build.sh` and building the WeisileLink binary, it can
+auto-detect `desktop/build/macos/WeisileLink` and
+`desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter`;
+pass `--executable` or `--native-adapter` only for nonstandard paths:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \
-  --executable path/to/WeisileLink \
-  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
   --app-sign-identity "Developer ID Application: WeisileEDU" \
   --installer-sign-identity "Developer ID Installer: WeisileEDU" \
   --notary-keychain-profile VSLE_NOTARY \

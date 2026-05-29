@@ -16,6 +16,12 @@ from typing import Callable, List, Tuple
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_JSON_REPORT = ROOT / "docs/desktop/evidence/macos-release-preflight.json"
 DEFAULT_MARKDOWN_REPORT = ROOT / "docs/desktop/evidence/macos-release-preflight.md"
+DEFAULT_EXECUTABLE = ROOT / "desktop/build/macos/WeisileLink"
+DEFAULT_NATIVE_ADAPTER = (
+    ROOT
+    / "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app"
+    / "Contents/MacOS/WeisileEV3BluetoothAdapter"
+)
 REQUIRED_TOOLS = (
     "codesign",
     "security",
@@ -28,8 +34,13 @@ REQUIRED_TOOLS = (
 CommandRunner = Callable[..., subprocess.CompletedProcess]
 
 
-def _resolve_optional_path(raw: str | None) -> Path | None:
+def _resolve_optional_path(
+    raw: str | None,
+    default_path: Path | None = None,
+) -> Path | None:
     if raw is None or not raw.strip():
+        if default_path is not None and default_path.is_file():
+            return default_path.resolve()
         return None
     return Path(raw).expanduser().resolve()
 
@@ -241,8 +252,8 @@ def _check_notary_profile(
 
 
 def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, object]:
-    executable = _resolve_optional_path(args.executable)
-    native_adapter = _resolve_optional_path(args.native_adapter)
+    executable = _resolve_optional_path(args.executable, DEFAULT_EXECUTABLE)
+    native_adapter = _resolve_optional_path(args.native_adapter, DEFAULT_NATIVE_ADAPTER)
 
     checks: List[dict[str, object]] = [_check_tool(name) for name in REQUIRED_TOOLS]
     checks.append(_check_executable(executable))
@@ -287,15 +298,24 @@ def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, 
         "target": "macos",
         "checks": checks,
         "missing_inputs": missing_inputs,
-        "release_commands": _release_commands(args),
+        "release_commands": _release_commands(args, executable, native_adapter),
     }
 
 
-def _release_commands(args: argparse.Namespace) -> List[str]:
-    executable = args.executable or "<path-to-self-contained-WeisileLink>"
+def _release_commands(
+    args: argparse.Namespace,
+    executable_path: Path | None,
+    native_adapter_path: Path | None,
+) -> List[str]:
+    executable = (
+        str(executable_path)
+        if executable_path
+        else "<path-to-self-contained-WeisileLink>"
+    )
     native_adapter = (
-        args.native_adapter
-        or "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter"
+        str(native_adapter_path)
+        if native_adapter_path
+        else str(DEFAULT_NATIVE_ADAPTER.relative_to(ROOT))
     )
     app_identity = args.app_sign_identity or "Developer ID Application: WeisileEDU"
     installer_identity = (
