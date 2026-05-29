@@ -3385,6 +3385,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/notarize_macos_release.py`, `tests/test_macos_notarization.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the real macOS release flow with a Developer ID signing identity and Apple notarytool keychain profile: build the signed artifact, run `desktop/scripts/notarize_macos_release.py --keychain-profile <profile>`, confirm the manifest records `signed: true` and `notarized: true`, then install it on a clean macOS machine for `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] macOS signed installer package helper
+- **Status**: ✅ Completed
+- **Commit**: `63b6462`
+- **What was done**: Added `desktop/scripts/build_macos_pkg.py` so a signed and notarized macOS WeisileLink app can be wrapped into a signed classroom `.pkg` with `pkgbuild` and `productbuild`. The desktop install smoke gate now rejects macOS release-artifact evidence unless the manifest records a signed installer package and SHA-256 hash.
+- **Files created/modified**: `desktop/scripts/build_macos_pkg.py`, `tests/test_macos_pkg_packaging.py`, `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the real macOS release flow with a Developer ID Application identity, Apple notarytool keychain profile, and Developer ID Installer identity: build the signed app artifact, notarize it, build the signed `.pkg`, then install that package on a clean macOS machine for `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
