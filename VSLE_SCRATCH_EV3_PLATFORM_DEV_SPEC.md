@@ -3455,6 +3455,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/build_weisilelink_executable.py`, `tests/test_desktop_executable_build.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run `desktop/scripts/build_weisilelink_executable.py --target windows --output desktop/build/windows --clean` on a Windows build host to produce `desktop/build/windows/WeisileLink.exe`, provide `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL`, rerun the Windows preflight until `Ready: yes`, then execute the guarded Windows release flow and collect clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Windows build-host handoff preflight
+- **Status**: ✅ Completed
+- **Commit**: `0341779`
+- **What was done**: Updated the Windows release preflight so blocked reports now include an "Executable Build Commands" section with the exact target-host PyInstaller command for producing `desktop/build/windows/WeisileLink.exe`. Refreshed the blocked Windows preflight evidence and documentation so the next Windows build host can follow the report directly without treating macOS developer state as release evidence.
+- **Files created/modified**: `desktop/scripts/check_windows_release_preflight.py`, `tests/test_windows_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Move to a real Windows build host, run the preflight report's executable build command to generate `desktop/build/windows/WeisileLink.exe`, configure `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL`, rerun the Windows preflight until `Ready: yes`, then run `desktop/scripts/run_windows_release_flow.py`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
