@@ -3392,6 +3392,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/build_macos_pkg.py`, `tests/test_macos_pkg_packaging.py`, `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run the real macOS release flow with a Developer ID Application identity, Apple notarytool keychain profile, and Developer ID Installer identity: build the signed app artifact, notarize it, build the signed `.pkg`, then install that package on a clean macOS machine for `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] macOS release preflight gate
+- **Status**: ✅ Completed
+- **Commit**: `6a7cd0b`
+- **What was done**: Added a local macOS release preflight gate that checks the self-contained WeisileLink executable path, native adapter app, Developer ID Application identity, Developer ID Installer identity, Apple notarytool keychain profile, and required macOS packaging tools before running the real classroom release flow. The current evidence report is blocked because release input paths, signing identities, and the notarytool profile were not provided, while the required macOS tools are present.
+- **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-release-preflight.json`, `docs/desktop/evidence/macos-release-preflight.md`
+- **Next step**: Provide the self-contained WeisileLink executable, built native adapter app, Developer ID Application identity, Developer ID Installer identity, and notarytool keychain profile; rerun `desktop/scripts/check_macos_release_preflight.py` until it reports `Ready: yes`, then execute the signed app, notarization, signed `.pkg`, and clean-machine `vsle-bluetooth` install-smoke evidence flow.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
