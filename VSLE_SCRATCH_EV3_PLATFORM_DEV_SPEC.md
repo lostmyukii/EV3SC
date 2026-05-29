@@ -3343,6 +3343,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Collect clean release-artifact install evidence for WeisileLink Desktop and proceed with WiFi Full VSLE classroom readiness gates, or start a new Bluetooth transport redesign task before trying to make `vsle-bluetooth` meet the 25ms classroom freshness gate.
 
+### [2026-05-29] No-WiFi Bluetooth classroom direction
+- **Status**: ✅ Completed
+- **Commit**: `fb9eb25`
+- **What was done**: Updated the overall Bluetooth full-module design and project agent rules to match the no-WiFi classroom requirement: when compatible EV3 WiFi dongles are unavailable, `vsle-bluetooth` is the primary full-module classroom path, not a diagnostic-only fallback. The acceptance model is now split into a Bluetooth full-module classroom baseline with measured sampling and a separate 50Hz/high-speed freshness gate.
+- **Files created/modified**: `AGENTS.md`, `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
+- **Next step**: Update the smoke evidence gate, reports, and classroom handoff docs so `vsle-bluetooth` can produce a baseline classroom verdict separate from the 25ms high-speed gate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
