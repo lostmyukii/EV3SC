@@ -3371,6 +3371,13 @@ material into:
 - **Files created/modified**: `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `tests/test_desktop_install_smoke.py`
 - **Next step**: On a clean macOS machine, install the signed/notarized WeisileLink Desktop release artifact, copy `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json` to `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`, fill only observed release-artifact and real ev3dev `vsle-bluetooth` evidence, rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`, then use the accepted report to set `installed_from_release_artifact: true` in the full VSLE Bluetooth classroom smoke JSON.
 
+### [2026-05-29] Desktop release manifest evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `379b11e`
+- **What was done**: Strengthened `scripts/run_desktop_install_smoke.py` so `installed_from_release_artifact: true` now requires a real release artifact manifest. The gate rejects evidence without a manifest, unsigned artifacts, and macOS artifacts that are not notarized; a temporary check against the current unsigned macOS manifest correctly reported `Classroom ready: no`.
+- **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Produce a signed and notarized macOS WeisileLink Desktop release artifact, ensure its generated manifest records `signed: true` and `notarized: true`, install that artifact on a clean macOS machine, then collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json` with real `vsle-bluetooth` EV3 evidence and rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
