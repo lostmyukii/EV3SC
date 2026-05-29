@@ -3434,6 +3434,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/macos-release-flow.json`, `docs/desktop/evidence/macos-release-flow.md`
 - **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/run_macos_release_flow.py` until the release-flow report is `release-flow-complete`, then install the signed package on a clean macOS machine and collect `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Windows release flow blocked evidence
+- **Status**: ✅ Completed
+- **Commit**: `d502412`
+- **What was done**: Added a Windows release preflight and guarded release-flow runner that write JSON and Markdown reports, refuse to execute release commands unless the preflight reports `Ready: yes`, and currently block because this Mac is not a Windows SignTool host and Windows signing is not wired into the packager yet. Added TDD coverage for the blocked and ready-runner paths plus desktop docs that keep unsigned Windows zip artifacts out of classroom-ready evidence.
+- **Files created/modified**: `desktop/scripts/check_windows_release_preflight.py`, `desktop/scripts/run_windows_release_flow.py`, `desktop/scripts/build_release_artifacts.py`, `tests/test_windows_release_preflight.py`, `tests/test_windows_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`, `docs/desktop/evidence/windows-release-flow.json`, `docs/desktop/evidence/windows-release-flow.md`
+- **Next step**: Wire real Windows SignTool signing into `desktop/scripts/build_release_artifacts.py`, produce a self-contained `WeisileLink.exe` on a Windows build host, rerun `desktop/scripts/check_windows_release_preflight.py` until `Ready: yes`, then execute the guarded Windows release flow and collect clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
