@@ -3462,6 +3462,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/check_windows_release_preflight.py`, `tests/test_windows_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Move to a real Windows build host, run the preflight report's executable build command to generate `desktop/build/windows/WeisileLink.exe`, configure `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL`, rerun the Windows preflight until `Ready: yes`, then run `desktop/scripts/run_windows_release_flow.py`.
 
+### [2026-05-29] Windows release handoff script
+- **Status**: ✅ Completed
+- **Commit**: `1a0f4ad`
+- **What was done**: Added `desktop/windows/build_release.ps1`, a Windows-only PowerShell wrapper that runs the target-OS executable build, Windows release preflight, and guarded signed release flow in sequence. The script requires `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL` or matching parameters, refuses non-Windows hosts, and never uses `--allow-unsigned`.
+- **Files created/modified**: `desktop/windows/build_release.ps1`, `tests/test_windows_release_handoff.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run `desktop/windows/build_release.ps1` on a real Windows build host with `signtool`, `WEISILE_WINDOWS_SIGN_IDENTITY`, and `WEISILE_WINDOWS_TIMESTAMP_URL` configured, then use the resulting signed release manifest for clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
