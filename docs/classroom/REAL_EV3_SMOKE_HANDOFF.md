@@ -199,6 +199,21 @@ That report may say `Self-use unsigned ready: yes` for local functional
 regression, but it does not replace signed/notarized release evidence when a
 distribution gate is needed.
 
+Record real hardware sensor and motor coverage separately. Copy the template,
+fill only ports and sensor types observed from a physical run, then validate it:
+
+```bash
+cp docs/classroom/vsle_bluetooth_sensor_port_matrix.template.json \
+  docs/classroom/vsle_bluetooth_sensor_port_matrix.json
+.venv/bin/python scripts/run_vsle_bluetooth_sensor_port_matrix.py \
+  --evidence docs/classroom/vsle_bluetooth_sensor_port_matrix.json \
+  --report docs/classroom/vsle_bluetooth_sensor_port_matrix.md
+```
+
+The matrix report must list untested sensor and motor ports. Do not mark a
+sensor type covered unless the evidence includes a real latest payload for that
+declared type.
+
 Then validate the Mac browser functional path by combining ScratchAI browser
 Unsandboxed evidence with the full Bluetooth command-group evidence:
 

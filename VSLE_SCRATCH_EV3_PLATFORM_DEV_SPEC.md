@@ -2066,6 +2066,10 @@ Required evidence:
   `docs/classroom/vsle_bluetooth_self_use_unsigned.md` and accept the same real
   command-group evidence without requiring
   `installed_from_release_artifact: true`.
+- `scripts/run_vsle_bluetooth_sensor_port_matrix.py` validates declared real
+  EV3 sensor and motor port combinations from
+  `docs/classroom/vsle_bluetooth_sensor_port_matrix.json` and writes
+  `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`.
 - Bluetooth classroom baseline does not require release-artifact evidence.
   Release-artifact evidence remains a separate distribution gate reported by
   `Release-artifact evidence ready`.

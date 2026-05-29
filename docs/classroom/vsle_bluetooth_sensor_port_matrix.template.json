@@ -1,0 +1,6 @@
+{
+  "evidence_kind": "vsle_bluetooth_sensor_port_matrix",
+  "transport": "vsle-bluetooth",
+  "real_ev3_full_bluetooth_ok": false,
+  "runs": []
+}

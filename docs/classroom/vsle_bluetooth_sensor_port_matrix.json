@@ -1,0 +1,35 @@
+{
+  "evidence_kind": "vsle_bluetooth_sensor_port_matrix",
+  "transport": "vsle-bluetooth",
+  "real_ev3_full_bluetooth_ok": true,
+  "runs": [
+    {
+      "id": "mac-s1-touch-a-motor-20260529",
+      "source_evidence": "docs/classroom/vsle_bluetooth_full_module_smoke.json",
+      "sensor_updates_observed": 86,
+      "sensor_freshness_ms_max": 499.251,
+      "sensor_freshness_ms_avg_observed": 106.065,
+      "sensor_freshness_ms_p95_observed": 246.559,
+      "sensors": {
+        "S1": {
+          "expected_type": "touch",
+          "observed_type": "touch",
+          "latest": {
+            "type": "touch",
+            "pressed": 0
+          }
+        }
+      },
+      "motors": {
+        "A": {
+          "observed": true,
+          "latest": {
+            "position": 24,
+            "speed": 0,
+            "running": false
+          }
+        }
+      }
+    }
+  ]
+}

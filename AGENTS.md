@@ -282,6 +282,12 @@ Rules for this mode:
   notarization, and Windows evidence remain separate distribution gates. The
   smoke report must keep this separate as `Release-artifact evidence ready`,
   added only when external classroom distribution is needed.
+- Track real hardware sensor and motor coverage through
+  `scripts/run_vsle_bluetooth_sensor_port_matrix.py`, using
+  `docs/classroom/vsle_bluetooth_sensor_port_matrix.json` as evidence and
+  `docs/classroom/vsle_bluetooth_sensor_port_matrix.md` as the report. A port
+  or sensor type is covered only when the evidence includes a real latest
+  payload for that declared hardware.
 - Acceptance is split into two milestones:
   - Bluetooth full-module classroom baseline: all module command groups pass,
     reporter and Boolean blocks are cache-backed, Bluetooth sampling/freshness
@@ -564,6 +570,9 @@ cd ..
   --self-use-unsigned \
   --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
   --report docs/classroom/vsle_bluetooth_self_use_unsigned.md
+.venv/bin/python scripts/run_vsle_bluetooth_sensor_port_matrix.py \
+  --evidence docs/classroom/vsle_bluetooth_sensor_port_matrix.json \
+  --report docs/classroom/vsle_bluetooth_sensor_port_matrix.md
 .venv/bin/python scripts/run_macos_browser_vsle_bluetooth_smoke.py \
   --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json \
   --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
