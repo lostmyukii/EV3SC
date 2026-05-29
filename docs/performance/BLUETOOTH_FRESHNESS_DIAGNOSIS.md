@@ -51,14 +51,34 @@ macOS native Bluetooth adapter. The current 50Hz loop attempts to read sensors,
 motors, motor PID, battery, and buttons every tick. On real ev3dev hardware,
 motor PID and button reads alone can exceed the entire 25ms freshness budget.
 
+## Post-Fix Deployment Probe
+
+After deploying commit `39229ff` to `/home/robot/vsle_ev3_server.py` and
+restarting `vsle-ev3-server.service`, an EV3-local direct `read_all()` probe was
+run with the service paused so the hardware path could be measured without
+WebSocket, Bluetooth, or concurrent service reads. The EV3, A-port motor, and S1
+touch sensor remained connected and no motor-run commands were sent.
+
+The tiered snapshot cache improved the steady-state path substantially:
+
+| Metric | Before cache | After cache |
+|---|---:|---:|
+| Direct `read_all()` average | `89.566ms` | `14.009ms` |
+| Direct `read_all()` max | `160.133ms` | `76.289ms` |
+| Reads over timed probe | `40` samples | `272` reads over `6.0s` |
+
+Observed post-fix topology stayed correct: `S1` reported `type=touch`, motor
+`A` stayed present, cached PID remained present in motor `A`, and cached
+`battery_pct` plus `buttons` remained present in `system`.
+
+The remaining max spike indicates that slow snapshot refresh still happens
+inline inside `read_all()` once the low-frequency cache expires. That is much
+better than reading slow fields every tick, but it can still violate the strict
+`sensor_freshness_ms_max <= 25` gate during a refresh tick.
+
 ## Next Step
 
-Implement a cache-tiered EV3 snapshot path:
-
-- Keep sensor reads on the high-frequency path.
-- Keep motor position/speed/running on a medium-frequency path if needed.
-- Move motor PID, battery, and EV3 button reads to low-frequency cached paths.
-- Keep outgoing payload shape stable by merging cached slow fields into each
-  broadcast.
-- Add tests proving the high-frequency snapshot path avoids slow PID/button
-  reads while preserving reporter-visible cache keys.
+Move slow snapshot refresh fully out of the high-frequency `read_all()` path.
+The next TDD slice should refresh motor PID, battery, and EV3 button caches from
+a separate low-frequency task or explicit non-hot-path method, while `read_all()`
+only merges the latest completed slow cache into each broadcast.
