@@ -71,14 +71,37 @@ Observed post-fix topology stayed correct: `S1` reported `type=touch`, motor
 `A` stayed present, cached PID remained present in motor `A`, and cached
 `battery_pct` plus `buttons` remained present in `system`.
 
-The remaining max spike indicates that slow snapshot refresh still happens
-inline inside `read_all()` once the low-frequency cache expires. That is much
-better than reading slow fields every tick, but it can still violate the strict
-`sensor_freshness_ms_max <= 25` gate during a refresh tick.
+The remaining max spike indicated that slow snapshot refresh still happened
+inline inside `read_all()` once the low-frequency cache expired. That was much
+better than reading slow fields every tick, but it could still violate the
+strict `sensor_freshness_ms_max <= 25` gate during a refresh tick.
+
+## Off-Hot-Path Slow Refresh Probe
+
+After deploying commit `39bca9e`, `read_all()` was changed to only merge the
+last completed slow cache, while `slow_snapshot_loop()` refreshes motor PID,
+battery, and EV3 button data outside the hot path. A no-motor direct hot-path
+probe was run with the service paused, one slow cache refresh completed before
+the timed loop, and then only `read_all()` measured for `6.0s`.
+
+| Metric | Inline slow refresh | Off-hot-path refresh |
+|---|---:|---:|
+| Direct `read_all()` average | `14.009ms` | `14.731ms` |
+| Direct `read_all()` max | `76.289ms` | `59.465ms` |
+| Reads over timed probe | `272` reads over `6.0s` | `268` reads over `6.0s` |
+
+The probe preserved payload shape after the completed slow cache was merged:
+`S1` reported `type=touch`, motor `A` stayed present with cached PID, and
+`system` kept cached `battery_pct` plus `buttons`. No motor-run commands were
+sent during the deployment or probe.
+
+The strict max gate is still not met. Because slow refresh no longer runs in
+`read_all()`, the remaining spikes are now isolated to the high-frequency
+sensor and motor-basic path or EV3 scheduling jitter.
 
 ## Next Step
 
-Move slow snapshot refresh fully out of the high-frequency `read_all()` path.
-The next TDD slice should refresh motor PID, battery, and EV3 button caches from
-a separate low-frequency task or explicit non-hot-path method, while `read_all()`
-only merges the latest completed slow cache into each broadcast.
+Profile the remaining high-frequency path with TDD-backed probes that split S1
+sensor reads from motor position/speed/running reads. If motor basics are still
+responsible for the max spikes, move them to a medium-frequency cache while
+keeping S1 sensor reads on the 50Hz path.
