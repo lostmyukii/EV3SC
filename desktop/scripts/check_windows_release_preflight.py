@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_JSON_REPORT = ROOT / "docs/desktop/evidence/windows-release-preflight.json"
 DEFAULT_MARKDOWN_REPORT = ROOT / "docs/desktop/evidence/windows-release-preflight.md"
 DEFAULT_EXECUTABLE = ROOT / "desktop/build/windows/WeisileLink.exe"
+BUILD_HELPER_SCRIPT = ROOT / "desktop/scripts/build_weisilelink_executable.py"
 SIGN_IDENTITY_ENV = "WEISILE_WINDOWS_SIGN_IDENTITY"
 TIMESTAMP_URL_ENV = "WEISILE_WINDOWS_TIMESTAMP_URL"
 REQUIRED_TOOLS = ("signtool",)
@@ -162,6 +163,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
         "ready": ready,
         "target": "windows",
         "checks": checks,
+        "executable_build_commands": _executable_build_commands(executable),
         "missing_inputs": missing_inputs,
         "release_commands": _release_commands(
             args,
@@ -170,6 +172,24 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
             timestamp_url,
         ),
     }
+
+
+def _executable_build_commands(executable_path: Path | None) -> List[str]:
+    output = executable_path.parent if executable_path else DEFAULT_EXECUTABLE.parent
+    return [
+        (
+            "./.venv/bin/python "
+            f"{BUILD_HELPER_SCRIPT.relative_to(ROOT)} "
+            f"--target windows --output {_display_path(output)} --clean"
+        ),
+    ]
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def _release_commands(
@@ -217,6 +237,9 @@ def _write_markdown(path: Path, payload: dict[str, object]) -> None:
     for check in payload["checks"]:
         status = "pass" if check["ok"] else "fail"
         lines.append(f"- {check['name']}: {status} - {check['detail']}")
+    lines.extend(["", "## Executable Build Commands", ""])
+    for command in payload["executable_build_commands"]:
+        lines.extend(["```bash", command, "```", ""])
     lines.extend(["", "## Release Commands", ""])
     for command in payload["release_commands"]:
         lines.extend(["```bash", command, "```", ""])

@@ -168,7 +168,10 @@ identity from `--sign-identity` or `WEISILE_WINDOWS_SIGN_IDENTITY`, records the
 timestamp server from `--timestamp-url` or `WEISILE_WINDOWS_TIMESTAMP_URL`, and
 keeps the flow blocked unless all release prerequisites are present. On a
 Windows build host, the packager runs `signtool sign` followed by
-`signtool verify` before writing a signed manifest:
+`signtool verify` before writing a signed manifest. When the executable is
+missing, the preflight report includes the exact
+`build_weisilelink_executable.py --target windows` command to run on that
+Windows host:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_windows_release_preflight.py \

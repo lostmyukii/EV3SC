@@ -80,7 +80,9 @@ signs the copied `WeisileLink/WeisileLink.exe` with `signtool sign`, verifies
 it with `signtool verify`, and writes the signing metadata into the manifest.
 The current macOS evidence remains blocked because this machine is not the
 Windows signing host and no Windows executable or signing inputs are
-configured.
+configured. The preflight Markdown includes an "Executable Build Commands"
+section with the target-host PyInstaller command to generate
+`desktop/build/windows/WeisileLink.exe` before signing.
 
 After the preflight is ready, run:
 

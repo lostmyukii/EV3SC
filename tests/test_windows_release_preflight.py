@@ -54,8 +54,16 @@ def test_windows_release_preflight_reports_missing_inputs(tmp_path):
     assert "timestamp_url" in payload["missing_inputs"]
     checks = {check["name"]: check for check in payload["checks"]}
     assert checks["windows_signing_implementation"]["ok"] is True
+    assert payload["executable_build_commands"] == [
+        (
+            "./.venv/bin/python desktop/scripts/build_weisilelink_executable.py "
+            "--target windows --output desktop/build/windows --clean"
+        )
+    ]
     markdown = md_report.read_text(encoding="utf-8")
     assert "Ready: no" in markdown
+    assert "## Executable Build Commands" in markdown
+    assert "build_weisilelink_executable.py" in markdown
     assert "build_release_artifacts.py windows" in markdown
 
 

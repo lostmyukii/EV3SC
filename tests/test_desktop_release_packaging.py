@@ -350,5 +350,7 @@ def test_windows_docs_reference_release_preflight_and_flow_scripts():
         assert "WEISILE_WINDOWS_TIMESTAMP_URL" in text
         assert "run_windows_release_flow.py" in text
         assert "windows-release-flow.json" in text
+        assert "build_weisilelink_executable.py" in text
+        assert "--target windows" in text
         assert "signtool sign" in text
         assert "signtool verify" in text

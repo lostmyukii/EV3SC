@@ -162,7 +162,9 @@ On a Windows build host, the packager signs the copied
 `signtool verify`, and records the signing metadata in the release manifest.
 The current macOS evidence is still expected to block because this machine is
 not the Windows signing host and no Windows executable or signing inputs are
-configured.
+configured. The blocked preflight report includes an "Executable Build
+Commands" section so a Windows build host can produce the missing
+`desktop/build/windows/WeisileLink.exe` without relying on out-of-band notes.
 
 Once the Windows preflight says `Ready: yes`, use the guarded runner:
 

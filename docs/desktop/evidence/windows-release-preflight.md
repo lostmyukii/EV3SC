@@ -11,6 +11,13 @@ Ready: no
 - timestamp_url: fail - timestamp_url was not provided
 - windows_signing_implementation: pass - desktop/scripts/build_release_artifacts.py runs SignTool sign and verify
 
+## Executable Build Commands
+
+```bash
+./.venv/bin/python desktop/scripts/build_weisilelink_executable.py --target windows --output desktop/build/windows --clean
+```
+
+
 ## Release Commands
 
 ```bash

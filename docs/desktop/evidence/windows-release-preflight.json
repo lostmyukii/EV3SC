@@ -31,6 +31,9 @@
       "ok": true
     }
   ],
+  "executable_build_commands": [
+    "./.venv/bin/python desktop/scripts/build_weisilelink_executable.py --target windows --output desktop/build/windows --clean"
+  ],
   "missing_inputs": [
     "executable_path",
     "windows_sign_identity",
