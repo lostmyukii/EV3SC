@@ -695,19 +695,17 @@ class EV3DevHardware:
         }
 
     def _get_slow_snapshot(self) -> Dict[str, Any]:
+        snapshot = getattr(self, "_slow_snapshot", None)
+        if snapshot is None:
+            return {"motor_pid": {}, "system": {}}
+        return snapshot
+
+    def refresh_slow_snapshot(self) -> Dict[str, Any]:
         clock = getattr(self, "_snapshot_clock", time.monotonic)
         now = clock()
-        snapshot = getattr(self, "_slow_snapshot", None)
-        snapshot_at = getattr(self, "_slow_snapshot_at", 0.0)
-        interval = getattr(
-            self,
-            "_slow_snapshot_interval",
-            SLOW_SNAPSHOT_INTERVAL,
-        )
-        if snapshot is None or now - snapshot_at >= interval:
-            snapshot = self._read_slow_snapshot()
-            self._slow_snapshot = snapshot
-            self._slow_snapshot_at = now
+        snapshot = self._read_slow_snapshot()
+        self._slow_snapshot = snapshot
+        self._slow_snapshot_at = now
         return snapshot
 
     def _read_slow_snapshot(self) -> Dict[str, Any]:
@@ -723,7 +721,6 @@ class EV3DevHardware:
         }
 
     def _invalidate_slow_snapshot(self) -> None:
-        self._slow_snapshot = None
         self._slow_snapshot_at = 0.0
 
     def _read_sensors(self) -> Dict[str, Any]:
@@ -1186,6 +1183,24 @@ class VSLEEV3Server:
                 sleep_for = 0
             await asyncio.sleep(sleep_for)
 
+    async def slow_snapshot_loop(self) -> None:
+        """Refresh slow hardware fields outside the 50Hz sensor hot path."""
+        refresh = getattr(self.hardware, "refresh_slow_snapshot", None)
+        if refresh is None:
+            return
+        loop = _get_event_loop()
+        while not self._stopping:
+            try:
+                await loop.run_in_executor(None, refresh)
+            except Exception:
+                pass
+            interval = getattr(
+                self.hardware,
+                "_slow_snapshot_interval",
+                SLOW_SNAPSHOT_INTERVAL,
+            )
+            await asyncio.sleep(max(0.0, interval))
+
     async def _broadcast(self, payload: Dict[str, Any]) -> None:
         message = json.dumps(payload)
         disconnected = set()
@@ -1227,6 +1242,7 @@ class VSLEEV3Server:
 
         self._stop_event = asyncio.Event()
         sensor_task = _create_task(self.sensor_broadcast_loop())
+        slow_snapshot_task = _create_task(self.slow_snapshot_loop())
         bluetooth_task = None
         if enable_bluetooth:
             bluetooth_task = _create_task(
@@ -1248,11 +1264,16 @@ class VSLEEV3Server:
                 server.close()
                 await server.wait_closed()
             sensor_task.cancel()
+            slow_snapshot_task.cancel()
             if bluetooth_task is not None:
                 bluetooth_task.cancel()
             self.hardware.motor_stop_all()
             try:
                 await sensor_task
+            except asyncio.CancelledError:
+                pass
+            try:
+                await slow_snapshot_task
             except asyncio.CancelledError:
                 pass
             if bluetooth_task is not None:

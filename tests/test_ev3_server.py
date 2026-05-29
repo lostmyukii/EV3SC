@@ -489,7 +489,7 @@ def test_ev3dev_motor_snapshot_includes_speed_and_position_pid_values():
     }
 
 
-def test_ev3dev_read_all_caches_slow_snapshot_fields_between_refreshes():
+def test_ev3dev_read_all_only_merges_completed_slow_snapshot_cache():
     module = load_server_module()
     now = [100.0]
     sensor_reads = []
@@ -589,6 +589,7 @@ def test_ev3dev_read_all_caches_slow_snapshot_fields_between_refreshes():
 
     hardware._read_sensors = read_sensors
 
+    hardware.refresh_slow_snapshot()
     first = hardware.read_all()
     motor.position = 91
     motor.pid_values["speed_p"] = 99
@@ -613,10 +614,21 @@ def test_ev3dev_read_all_caches_slow_snapshot_fields_between_refreshes():
     now[0] = 101.2
     third = hardware.read_all()
 
-    assert third["motors"]["A"]["pid"]["speed"]["kp"] == 99
-    assert third["system"]["battery_pct"] == 70
-    assert third["system"]["buttons"]["center"] is False
+    assert third["motors"]["A"]["pid"]["speed"]["kp"] == 11
+    assert third["system"]["battery_pct"] == 87
+    assert third["system"]["buttons"]["center"] is True
     assert len(sensor_reads) == 3
+    assert len(motor.pid_reads) == 6
+    assert len(power.reads) == 2
+    assert len(buttons.reads) == 5
+
+    hardware.refresh_slow_snapshot()
+    fourth = hardware.read_all()
+
+    assert fourth["motors"]["A"]["pid"]["speed"]["kp"] == 99
+    assert fourth["system"]["battery_pct"] == 70
+    assert fourth["system"]["buttons"]["center"] is False
+    assert len(sensor_reads) == 4
     assert len(motor.pid_reads) == 12
     assert len(power.reads) == 4
     assert len(buttons.reads) == 10
@@ -725,6 +737,35 @@ def test_auto_collect_records_on_configured_interval_only():
         "auto",
         "auto",
     ]
+
+
+def test_slow_snapshot_loop_refreshes_cache_without_calling_read_all():
+    module = load_server_module()
+
+    class RefreshingHardware(FakeHardware):
+        def __init__(self):
+            super().__init__()
+            self._slow_snapshot_interval = 0.01
+            self.refreshes = 0
+
+        def refresh_slow_snapshot(self):
+            self.refreshes += 1
+
+        def read_all(self):
+            raise AssertionError("slow refresh loop must not call read_all")
+
+    async def run_loop(server):
+        task = asyncio.ensure_future(server.slow_snapshot_loop())
+        await asyncio.sleep(0.035)
+        server.stop()
+        await asyncio.wait_for(task, timeout=1)
+
+    hardware = RefreshingHardware()
+    server = module.VSLEEV3Server(hardware, pairing_token="")
+
+    asyncio.run(run_loop(server))
+
+    assert hardware.refreshes >= 2
 
 
 def test_client_disconnect_stops_all_motors_for_safety():
