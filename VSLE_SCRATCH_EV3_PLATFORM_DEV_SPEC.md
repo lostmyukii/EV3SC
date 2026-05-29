@@ -3552,6 +3552,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: If the project remains self-use only, continue using the self-use unsigned and Mac browser gates for functional regression; if external classroom distribution resumes, configure Developer ID signing/notarization and collect clean-machine install evidence.
 
+### [2026-05-30] VSLE Bluetooth baseline release-evidence decoupling
+- **Status**: ✅ Completed
+- **Commit**: `e5c8d92`
+- **What was done**: Decoupled `Bluetooth classroom baseline ready` from `installed_from_release_artifact` so self-use and internal Bluetooth classroom baseline tests can pass without Developer ID signing or notarization. Release evidence remains visible as the separate `Release-artifact evidence ready` verdict for future external distribution.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Continue self-use regression with the Bluetooth baseline and Mac browser gates; only re-enable release-artifact install evidence as a required gate when signed external distribution is needed.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
