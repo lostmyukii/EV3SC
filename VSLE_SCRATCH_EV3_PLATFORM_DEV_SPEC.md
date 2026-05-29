@@ -3570,6 +3570,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Improve Bluetooth sampling freshness toward the separate 50Hz gate and expand physical EV3 sensor/port combination coverage.
 
+### [2026-05-30] VSLE Bluetooth sensor port matrix gate
+- **Status**: ✅ Completed
+- **Commit**: `808d5b5`
+- **What was done**: Added a real hardware sensor/motor port matrix gate for self-use `vsle-bluetooth` regression. The current matrix report accepts the observed S1 touch sensor and A motor evidence, while keeping S2-S4 and B-D visibly untested until future physical runs cover them.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_sensor_port_matrix.py`, `tests/test_vsle_bluetooth_sensor_port_matrix.py`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.template.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Run additional physical EV3 matrix captures for S2-S4 sensor types and B-D motor ports, then regenerate the matrix report before returning to the separate Bluetooth 50Hz freshness optimization.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
