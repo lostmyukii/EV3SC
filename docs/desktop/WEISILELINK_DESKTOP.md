@@ -101,6 +101,17 @@ evidence:
 The notarization helper uses `xcrun notarytool` and `xcrun stapler`; it updates
 the manifest to `notarized: true` only after stapler validation succeeds.
 
+Then build the signed macOS installer package:
+
+```bash
+./.venv/bin/python desktop/scripts/build_macos_pkg.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --sign-identity "Developer ID Installer: WeisileEDU"
+```
+
+The install smoke gate requires the resulting manifest to include the signed
+installer package fields before it accepts macOS release-artifact evidence.
+
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`

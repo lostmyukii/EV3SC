@@ -74,3 +74,16 @@ line or store them in this repository:
 The script updates the manifest to `notarized: true` only after
 `xcrun notarytool submit`, `xcrun stapler staple`, and
 `xcrun stapler validate` all succeed.
+
+Then build the signed classroom installer package from the signed and
+notarized app manifest:
+
+```bash
+./.venv/bin/python desktop/scripts/build_macos_pkg.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --sign-identity "Developer ID Installer: WeisileEDU"
+```
+
+The package helper writes `installer_pkg`, `installer_sha256`, and
+`installer_signed: true` into the manifest. The install smoke gate requires
+those fields for macOS release evidence.

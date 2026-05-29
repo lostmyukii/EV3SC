@@ -231,3 +231,14 @@ def test_macos_docs_reference_notarization_script():
         text = path.read_text(encoding="utf-8")
         assert "notarize_macos_release.py" in text
         assert "--keychain-profile" in text
+
+
+def test_macos_docs_reference_pkg_builder_script():
+    for path in (
+        ROOT / "desktop/README.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+        ROOT / "docs/desktop/MACOS_INSTALL.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "build_macos_pkg.py" in text
+        assert "--sign-identity" in text

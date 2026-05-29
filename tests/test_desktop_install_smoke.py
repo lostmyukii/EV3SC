@@ -55,6 +55,9 @@ def _release_manifest(
     if target == "macos":
         payload["notarized"] = notarized
         payload["contains_macos_native_bluetooth_adapter"] = True
+        payload["installer_pkg"] = "WeisileLink-macos-0.1.0.pkg"
+        payload["installer_sha256"] = "b" * 64
+        payload["installer_signed"] = True
     manifest.write_text(json.dumps(payload), encoding="utf-8")
     return str(manifest)
 
@@ -213,6 +216,30 @@ def test_runner_refuses_macos_vsle_bluetooth_unsigned_or_unnnotarized_manifest(
     assert "Classroom ready: no" in report
     assert "release manifest signed must be true" in report
     assert "release manifest notarized must be true for macOS" in report
+
+
+def test_runner_refuses_macos_release_without_signed_installer_pkg(tmp_path):
+    manifest = _release_manifest(tmp_path)
+    payload = json.loads(Path(manifest).read_text(encoding="utf-8"))
+    del payload["installer_pkg"]
+    payload["installer_signed"] = False
+    Path(manifest).write_text(json.dumps(payload), encoding="utf-8")
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "release_artifact_manifest": manifest,
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "release manifest installer_pkg is required for macOS" in report
+    assert "release manifest installer_signed must be true for macOS" in report
 
 
 def test_native_adapter_readmes_keep_platform_boundaries():

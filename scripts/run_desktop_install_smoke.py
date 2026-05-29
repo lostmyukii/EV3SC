@@ -150,6 +150,15 @@ def _validate_release_artifact_manifest(
                 "release manifest contains_macos_native_bluetooth_adapter "
                 "must be true for macOS"
             )
+        if not isinstance(manifest.get("installer_pkg"), str):
+            failures.append("release manifest installer_pkg is required for macOS")
+        if manifest.get("installer_signed") is not True:
+            failures.append("release manifest installer_signed must be true for macOS")
+        installer_sha = manifest.get("installer_sha256")
+        if not isinstance(installer_sha, str) or len(installer_sha) != 64:
+            failures.append(
+                "release manifest installer_sha256 must be a SHA-256 for macOS"
+            )
 
     return failures
 

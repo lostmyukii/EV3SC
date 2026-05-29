@@ -67,6 +67,19 @@ validates the app bundle with `xcrun stapler`, rezips the stapled app, and only
 then records `notarized: true` in the manifest. Do not pass Apple passwords on
 the command line or commit notarization credentials.
 
+After notarization, build the signed classroom `.pkg` installer:
+
+```bash
+./.venv/bin/python desktop/scripts/build_macos_pkg.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --sign-identity "Developer ID Installer: WeisileEDU"
+```
+
+The package helper refuses unsigned or unnotarized manifests, runs `pkgbuild`
+and `productbuild`, and records the signed installer fields in the manifest.
+The macOS install smoke gate rejects release-artifact evidence if
+`installer_pkg`, `installer_sha256`, or `installer_signed: true` is missing.
+
 ## Install Verification
 
 On a clean macOS machine with no developer tools and no custom Python:
