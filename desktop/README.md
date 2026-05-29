@@ -69,7 +69,10 @@ preflight can auto-detect `desktop/build/macos/WeisileLink` and
 it also auto-detects a unique Developer ID Application and unique Developer ID
 Installer identity from the macOS keychain. Pass `--executable`,
 `--native-adapter`, `--app-sign-identity`, or `--installer-sign-identity` only
-when using a nonstandard path or when multiple matching identities are present:
+when using a nonstandard path or when multiple matching identities are present.
+The notarytool keychain profile can be passed with `--notary-keychain-profile`
+or exported as `WEISILE_NOTARY_KEYCHAIN_PROFILE` so Apple account details stay
+outside the repository and command history:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \

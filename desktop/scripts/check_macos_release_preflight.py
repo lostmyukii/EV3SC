@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import plistlib
 import re
 import shutil
@@ -23,6 +24,7 @@ DEFAULT_NATIVE_ADAPTER = (
     / "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app"
     / "Contents/MacOS/WeisileEV3BluetoothAdapter"
 )
+NOTARY_PROFILE_ENV = "WEISILE_NOTARY_KEYCHAIN_PROFILE"
 REQUIRED_TOOLS = (
     "codesign",
     "security",
@@ -307,9 +309,19 @@ def _check_notary_profile(
     }
 
 
+def _resolve_notary_profile(raw: str | None) -> str | None:
+    if raw is not None and raw.strip():
+        return raw.strip()
+    profile = os.environ.get(NOTARY_PROFILE_ENV)
+    if profile is not None and profile.strip():
+        return profile.strip()
+    return None
+
+
 def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, object]:
     executable = _resolve_optional_path(args.executable, DEFAULT_EXECUTABLE)
     native_adapter = _resolve_optional_path(args.native_adapter, DEFAULT_NATIVE_ADAPTER)
+    notary_profile = _resolve_notary_profile(args.notary_keychain_profile)
 
     checks: List[dict[str, object]] = [_check_tool(name) for name in REQUIRED_TOOLS]
     checks.append(_check_executable(executable))
@@ -332,7 +344,7 @@ def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, 
         identity_error,
     )
     checks.append(installer_identity_check)
-    checks.append(_check_notary_profile(args.notary_keychain_profile, runner))
+    checks.append(_check_notary_profile(notary_profile, runner))
 
     missing_inputs = [
         check["name"]
@@ -360,6 +372,7 @@ def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, 
             native_adapter,
             app_identity,
             installer_identity,
+            notary_profile,
         ),
     }
 
@@ -370,6 +383,7 @@ def _release_commands(
     native_adapter_path: Path | None,
     detected_app_identity: str | None,
     detected_installer_identity: str | None,
+    resolved_notary_profile: str | None,
 ) -> List[str]:
     executable = (
         str(executable_path)
@@ -391,7 +405,7 @@ def _release_commands(
         or detected_installer_identity
         or "Developer ID Installer: WeisileEDU"
     )
-    notary_profile = args.notary_keychain_profile or "VSLE_NOTARY"
+    notary_profile = resolved_notary_profile or "VSLE_NOTARY"
     manifest = "desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json"
     return [
         (

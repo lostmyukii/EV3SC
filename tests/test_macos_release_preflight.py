@@ -177,6 +177,70 @@ def test_macos_release_preflight_autodetects_unique_developer_id_identities(
     assert '--sign-identity "Developer ID Installer: WeisileEDU (TEAMID)"' in commands
 
 
+def test_macos_release_preflight_uses_notary_profile_from_environment(
+    tmp_path,
+    monkeypatch,
+):
+    executable = _fake_executable(tmp_path / "desktop/build/macos/WeisileLink")
+    native_adapter = _fake_native_adapter_app(
+        tmp_path / "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app"
+    )
+    module = _load_preflight_module()
+    module.DEFAULT_EXECUTABLE = executable
+    module.DEFAULT_NATIVE_ADAPTER = native_adapter
+    module._tool_path = lambda name: f"/fake/{name}"
+    monkeypatch.setenv("WEISILE_NOTARY_KEYCHAIN_PROFILE", "VSLE_NOTARY")
+    history_calls = []
+
+    args = argparse.Namespace(
+        executable=None,
+        native_adapter=None,
+        app_sign_identity="Developer ID Application: WeisileEDU",
+        installer_sign_identity="Developer ID Installer: WeisileEDU",
+        notary_keychain_profile=None,
+    )
+
+    def runner(command, **_kwargs):
+        if command[0] == "security":
+            return subprocess.CompletedProcess(
+                args=command,
+                returncode=0,
+                stdout="\n".join(
+                    [
+                        '  1) ABCD "Developer ID Application: WeisileEDU"',
+                        '  2) EFGH "Developer ID Installer: WeisileEDU"',
+                    ]
+                ),
+                stderr="",
+            )
+        history_calls.append(command)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="{}",
+            stderr="",
+        )
+
+    payload = module.build_payload(args, runner)
+
+    assert "notary_keychain_profile" not in payload["missing_inputs"]
+    checks = {check["name"]: check for check in payload["checks"]}
+    assert checks["notary_keychain_profile"]["ok"] is True
+    assert checks["notary_keychain_profile"]["detail"] == "VSLE_NOTARY"
+    assert history_calls == [
+        [
+            "xcrun",
+            "notarytool",
+            "history",
+            "--keychain-profile",
+            "VSLE_NOTARY",
+            "--output-format",
+            "json",
+        ]
+    ]
+    assert "--keychain-profile VSLE_NOTARY" in "\n".join(payload["release_commands"])
+
+
 def test_macos_release_preflight_passes_with_fake_tools_and_inputs(tmp_path):
     executable = _fake_executable(tmp_path / "WeisileLink")
     native_adapter = _fake_native_adapter_app(
