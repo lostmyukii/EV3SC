@@ -3321,6 +3321,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
 - **Next step**: Profile S1 sensor reads separately from motor position/speed/running reads; if motor basics cause the remaining max spikes, move motor basics to a medium-frequency cache while keeping S1 on the high-frequency path.
 
+### [2026-05-29] EV3 hot path split probe
+- **Status**: ✅ Completed
+- **Commit**: `b468f77`
+- **What was done**: Ran a no-motor EV3-local split probe with the service paused, measuring S1 sensor reads, motor A position/speed/running reads, and combined `read_all()` separately. S1-only max was `13.653ms`, motor-basic-only max was `12.964ms`, and combined hot-path max was `19.761ms`, so motor basics were not moved to a medium-frequency cache in this step.
+- **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
+- **Next step**: Rerun the full `vsle-bluetooth` freshness evidence path; if it still exceeds the 25ms gate, profile the bridge/native-adapter receive path and EV3 WebSocket broadcast loop before adding more EV3-side caching.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
