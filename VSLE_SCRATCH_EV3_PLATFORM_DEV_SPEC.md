@@ -3427,6 +3427,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/run_macos_release_flow.py`, and after it produces a signed/notarized app plus signed `.pkg`, install the package on a clean macOS machine to collect `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] macOS release flow blocked evidence
+- **Status**: ✅ Completed
+- **Commit**: `1d5f86b`
+- **What was done**: Extended the guarded macOS release runner so every run writes JSON and Markdown status reports, including blocked preflight runs that execute zero signing, notarization, or package commands. Generated the current blocked release-flow evidence showing that this machine remains stopped at preflight because Developer ID identities and a notarytool profile are not configured.
+- **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/macos-release-flow.json`, `docs/desktop/evidence/macos-release-flow.md`
+- **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/run_macos_release_flow.py` until the release-flow report is `release-flow-complete`, then install the signed package on a clean macOS machine and collect `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
