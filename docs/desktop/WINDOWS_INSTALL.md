@@ -29,13 +29,26 @@ installer must place WeisileLink under either:
 The release must include a bundled runtime or self-contained executable. It must
 not require teacher-installed Python.
 
+Build the self-contained Windows executable on a Windows build host first:
+
+```bash
+./.venv/bin/python desktop/scripts/build_weisilelink_executable.py \
+  --target windows \
+  --output desktop/build/windows \
+  --clean
+```
+
+The expected output is `desktop/build/windows/WeisileLink.exe`. The helper
+refuses to build the Windows target from macOS or Linux so release evidence
+does not confuse a local developer binary with a Windows classroom artifact.
+
 The checked packager for the Windows zip artifact is
 `desktop/scripts/build_release_artifacts.py`. It writes the package directory,
 release zip, and manifest under `desktop/release/`:
 
 ```bash
 ./.venv/bin/python desktop/scripts/build_release_artifacts.py windows \
-  --executable path/to/WeisileLink.exe \
+  --executable desktop/build/windows/WeisileLink.exe \
   --output desktop/release/windows \
   --version 0.1.0 \
   --allow-unsigned

@@ -38,6 +38,20 @@ desktop/scripts/validate_desktop_assets.py
 folders, zip files, and manifests under `desktop/release/` from an already
 built self-contained WeisileLink executable.
 
+Build that executable on the target OS before packaging. Windows executables
+must be built on a Windows host; the helper refuses cross-target Windows builds
+from macOS or Linux:
+
+```bash
+./.venv/bin/python desktop/scripts/build_weisilelink_executable.py \
+  --target windows \
+  --output desktop/build/windows \
+  --clean
+```
+
+The expected Windows output is
+`desktop/build/windows/WeisileLink.exe`.
+
 Unsigned artifacts are blocked by default. Use `--allow-unsigned` only for
 internal smoke testing before signing, notarization, and clean-machine evidence:
 

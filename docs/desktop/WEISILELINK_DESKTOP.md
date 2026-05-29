@@ -65,6 +65,17 @@ uninstall verification on the target OS.
 The first packaging step is `desktop/scripts/build_release_artifacts.py`. It
 packages an already-built self-contained executable into the target release
 layout, writes a zip file, and records a manifest under `desktop/release/`.
+Build the self-contained executable on the target OS with
+`desktop/scripts/build_weisilelink_executable.py` before packaging; Windows
+builds must run on a Windows host and write
+`desktop/build/windows/WeisileLink.exe`:
+
+```bash
+./.venv/bin/python desktop/scripts/build_weisilelink_executable.py \
+  --target windows \
+  --output desktop/build/windows \
+  --clean
+```
 
 Example internal smoke commands:
 
