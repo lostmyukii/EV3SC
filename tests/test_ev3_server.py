@@ -10,9 +10,7 @@ SERVER_PATH = ROOT / "ev3-firmware" / "vsle_ev3_server.py"
 
 
 def load_server_module():
-    spec = importlib.util.spec_from_file_location(
-        "vsle_ev3_server", SERVER_PATH
-    )
+    spec = importlib.util.spec_from_file_location("vsle_ev3_server", SERVER_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -489,6 +487,139 @@ def test_ev3dev_motor_snapshot_includes_speed_and_position_pid_values():
             },
         }
     }
+
+
+def test_ev3dev_read_all_caches_slow_snapshot_fields_between_refreshes():
+    module = load_server_module()
+    now = [100.0]
+    sensor_reads = []
+
+    class CountingMotor:
+        def __init__(self):
+            self.position = 90
+            self.speed = 42
+            self.is_running = False
+            self.pid_values = {
+                "speed_p": 11,
+                "speed_i": 12,
+                "speed_d": 13,
+                "position_p": 21,
+                "position_i": 22,
+                "position_d": 23,
+            }
+            self.pid_reads = []
+
+        def __getattr__(self, name):
+            if name in self.pid_values:
+                self.pid_reads.append(name)
+                return self.pid_values[name]
+            raise AttributeError(name)
+
+    class CountingPower:
+        def __init__(self):
+            self.level = 87
+            self.volts = 7.5
+            self.reads = []
+
+        @property
+        def measured_battery_level(self):
+            self.reads.append("battery_pct")
+            return self.level
+
+        @property
+        def measured_volts(self):
+            self.reads.append("battery_v")
+            return self.volts
+
+    class CountingButtons:
+        def __init__(self):
+            self.states = {
+                "up": False,
+                "down": False,
+                "left": False,
+                "right": False,
+                "enter": True,
+            }
+            self.reads = []
+
+        def _read(self, name):
+            self.reads.append(name)
+            return self.states[name]
+
+        @property
+        def up(self):
+            return self._read("up")
+
+        @property
+        def down(self):
+            return self._read("down")
+
+        @property
+        def left(self):
+            return self._read("left")
+
+        @property
+        def right(self):
+            return self._read("right")
+
+        @property
+        def enter(self):
+            return self._read("enter")
+
+    motor = CountingMotor()
+    power = CountingPower()
+    buttons = CountingButtons()
+    hardware = object.__new__(module.EV3DevHardware)
+    hardware.motors = {"A": motor}
+    hardware.power = power
+    hardware.buttons = buttons
+    hardware._snapshot_clock = lambda: now[0]
+    hardware._slow_snapshot_interval = 1.0
+    hardware._slow_snapshot = None
+    hardware._slow_snapshot_at = 0.0
+
+    def read_sensors():
+        sensor_reads.append(now[0])
+        return {
+            "S1": {
+                "type": "touch",
+                "pressed": len(sensor_reads) % 2 == 1,
+            }
+        }
+
+    hardware._read_sensors = read_sensors
+
+    first = hardware.read_all()
+    motor.position = 91
+    motor.pid_values["speed_p"] = 99
+    power.level = 70
+    buttons.states["enter"] = False
+    now[0] = 100.1
+    second = hardware.read_all()
+
+    assert [first["sensors"]["S1"]["pressed"], second["sensors"]["S1"]["pressed"]] == [
+        True,
+        False,
+    ]
+    assert second["motors"]["A"]["position"] == 91
+    assert second["motors"]["A"]["pid"]["speed"]["kp"] == 11
+    assert second["system"]["battery_pct"] == 87
+    assert second["system"]["buttons"]["center"] is True
+    assert len(sensor_reads) == 2
+    assert len(motor.pid_reads) == 6
+    assert len(power.reads) == 2
+    assert len(buttons.reads) == 5
+
+    now[0] = 101.2
+    third = hardware.read_all()
+
+    assert third["motors"]["A"]["pid"]["speed"]["kp"] == 99
+    assert third["system"]["battery_pct"] == 70
+    assert third["system"]["buttons"]["center"] is False
+    assert len(sensor_reads) == 3
+    assert len(motor.pid_reads) == 12
+    assert len(power.reads) == 4
+    assert len(buttons.reads) == 10
 
 
 def test_infrared_sensor_payload_includes_beacon_and_remote_channels():

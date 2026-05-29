@@ -24,6 +24,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 WS_PORT = int(os.getenv("EV3_WS_PORT", "8765"))
 BT_RFCOMM_CHANNEL = int(os.getenv("EV3_BT_RFCOMM_CHANNEL", "1"))
 SENSOR_INTERVAL = 0.02
+SLOW_SNAPSHOT_INTERVAL = float(os.getenv("EV3_SLOW_SNAPSHOT_INTERVAL", "1.0"))
 MAX_COLLECTED_POINTS = int(os.getenv("MAX_COLLECTED_POINTS", "10000"))
 PAIRING_TOKEN = os.getenv("WEISILE_PAIRING_TOKEN", "")
 
@@ -483,6 +484,10 @@ class EV3DevHardware:
             getattr(Leds, "LEFT", "LEFT"),
             getattr(Leds, "RIGHT", "RIGHT"),
         )
+        self._snapshot_clock = time.monotonic
+        self._slow_snapshot_interval = SLOW_SNAPSHOT_INTERVAL
+        self._slow_snapshot_at = 0.0
+        self._slow_snapshot = None  # type: Optional[Dict[str, Any]]
 
     def _detect_motors(self) -> Dict[str, Any]:
         motors = {}
@@ -567,6 +572,7 @@ class EV3DevHardware:
                 {"port": port, "mode": mode, "term": term},
             )
         setattr(motor, attr, value)
+        self._invalidate_slow_snapshot()
 
     def _motor_pid_attr(self, mode: str, term: str) -> str:
         return "{}_{}".format(mode, MOTOR_PID_ATTR_SUFFIX[term])
@@ -676,11 +682,49 @@ class EV3DevHardware:
         sensor.reset()
 
     def read_all(self) -> Dict[str, Any]:
+        slow_snapshot = self._get_slow_snapshot()
+        motors = self._read_motors(include_pid=False)
+        for port, pid in slow_snapshot.get("motor_pid", {}).items():
+            motor_data = motors.get(port)
+            if isinstance(motor_data, dict) and "error" not in motor_data:
+                motor_data["pid"] = pid
         return {
             "sensors": self._read_sensors(),
-            "motors": self._read_motors(),
+            "motors": motors,
+            "system": dict(slow_snapshot.get("system", {})),
+        }
+
+    def _get_slow_snapshot(self) -> Dict[str, Any]:
+        clock = getattr(self, "_snapshot_clock", time.monotonic)
+        now = clock()
+        snapshot = getattr(self, "_slow_snapshot", None)
+        snapshot_at = getattr(self, "_slow_snapshot_at", 0.0)
+        interval = getattr(
+            self,
+            "_slow_snapshot_interval",
+            SLOW_SNAPSHOT_INTERVAL,
+        )
+        if snapshot is None or now - snapshot_at >= interval:
+            snapshot = self._read_slow_snapshot()
+            self._slow_snapshot = snapshot
+            self._slow_snapshot_at = now
+        return snapshot
+
+    def _read_slow_snapshot(self) -> Dict[str, Any]:
+        motor_pid = {}
+        for port, motor in self.motors.items():
+            try:
+                motor_pid[port] = self._read_motor_pid(motor)
+            except Exception as exc:
+                motor_pid[port] = {"error": str(exc)}
+        return {
+            "motor_pid": motor_pid,
             "system": self._read_system(),
         }
+
+    def _invalidate_slow_snapshot(self) -> None:
+        self._slow_snapshot = None
+        self._slow_snapshot_at = 0.0
 
     def _read_sensors(self) -> Dict[str, Any]:
         data = {}
@@ -765,16 +809,18 @@ class EV3DevHardware:
             data[str(channel)] = {"buttons": buttons}
         return data
 
-    def _read_motors(self) -> Dict[str, Any]:
+    def _read_motors(self, include_pid: bool = True) -> Dict[str, Any]:
         data = {}
         for port, motor in self.motors.items():
             try:
-                data[port] = {
+                snapshot = {
                     "position": motor.position,
                     "speed": motor.speed,
                     "running": motor.is_running,
-                    "pid": self._read_motor_pid(motor),
                 }
+                if include_pid:
+                    snapshot["pid"] = self._read_motor_pid(motor)
+                data[port] = snapshot
             except Exception as exc:
                 data[port] = {"error": str(exc)}
         return data
