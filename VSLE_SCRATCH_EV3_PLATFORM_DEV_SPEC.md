@@ -3265,6 +3265,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 - **Next step**: Attach the required classroom hardware to the EV3, at minimum one motor and one sensor with varied readings, then rerun the full Bluetooth smoke; after that collect ScratchAI browser Unsandboxed evidence, release-artifact install evidence, and continue the Bluetooth freshness fix until the validator reports classroom-ready.
 
+### [2026-05-29] VSLE Bluetooth native recv freshness fix
+- **Status**: ✅ Completed
+- **Commit**: `329beb3`
+- **What was done**: Fixed the macOS native adapter process path so `recv` uses a short explicit timeout instead of the adapter default 5 second blocking read, and made VSLE Bluetooth treat that short timeout as idle polling rather than a disconnect. Added regression tests for the native adapter timeout parameter, timeout mapping, and session liveness after idle native receive polling; a real EV3 probe confirmed `system.stopAll` still receives an ack after a 6 second idle window.
+- **Files created/modified**: `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/tests/test_bluetooth_transport.py`
+- **Next step**: Rerun the full `vsle-bluetooth` command-group smoke with motor A attached, regenerate `docs/classroom/vsle_bluetooth_full_module_smoke.json`, then collect ScratchAI browser Unsandboxed evidence and release-artifact install evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
