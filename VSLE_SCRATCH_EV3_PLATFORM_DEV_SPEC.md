@@ -3314,6 +3314,13 @@ material into:
 - **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
 - **Next step**: Use TDD to move slow snapshot refresh fully out of the high-frequency `read_all()` path so refresh ticks do not block the 25ms freshness gate.
 
+### [2026-05-29] EV3 slow snapshot moved off hot path
+- **Status**: ✅ Completed
+- **Commit**: `7a28c09`
+- **What was done**: Added TDD coverage proving `read_all()` only merges a completed slow cache and that `slow_snapshot_loop()` refreshes PID, battery, and EV3 button data without calling `read_all()`. Deployed commit `39bca9e` to the EV3, restarted `vsle-ev3-server.service`, and ran a no-motor hot-path probe; average direct `read_all()` was `14.731ms`, while max was still `59.465ms`.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
+- **Next step**: Profile S1 sensor reads separately from motor position/speed/running reads; if motor basics cause the remaining max spikes, move motor basics to a medium-frequency cache while keeping S1 on the high-frequency path.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
