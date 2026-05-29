@@ -3230,6 +3230,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Make the installed EV3 server reachable from WeisileLink through Wi-Fi or full VSLE Bluetooth, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` until the report is accepted.
 
+### [2026-05-29] EV3 full VSLE Bluetooth listener enabled
+- **Status**: ✅ Completed
+- **Commit**: `ebd4a1d`
+- **What was done**: Enabled the EV3-side full VSLE Bluetooth RFCOMM listener over the USB SSH recovery path. Real hardware showed that the systemd env file had to override default Bluetooth values, the listener needed the EV3 controller address `A0:E6:F8:19:58:3C`, and the controller had to be unblocked from RF-kill before `Powered`, `Discoverable`, and `Pairable` were all `yes`; the pairing token was rotated after diagnostics and remains redacted.
+- **Files created/modified**: `README.md`, `docs/EV3DEV_SETUP.md`, `ev3-firmware/README.md`, `ev3-firmware/systemd/vsle-ev3-server.service`, `tests/test_ev3_autostart_assets.py`
+- **Next step**: Pair the Mac with the discoverable ev3dev EV3, point WeisileLink at `vsle-bluetooth`, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
