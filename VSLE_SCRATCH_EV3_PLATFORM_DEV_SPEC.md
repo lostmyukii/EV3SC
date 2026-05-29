@@ -3503,6 +3503,13 @@ material into:
 - **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Add or run the real Windows installer build step on a Windows build host so the signed release manifest records `windows_installer`, `windows_installer_type`, `windows_installer_signed`, and `windows_installer_sha256`, then collect clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Mac browser full VSLE Bluetooth smoke priority
+- **Status**: ✅ Completed
+- **Commit**: `0789c31`
+- **What was done**: Updated the development rules so a Mac browser full VSLE Bluetooth smoke is the first functional test path when Windows hardware is unavailable. The docs now require ScratchAI browser unsandboxed loading, local WeisileLink Desktop, real `vsle-bluetooth` command-group evidence, and a clear boundary that Mac smoke does not replace signed release-artifact or Windows evidence.
+- **Files created/modified**: `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `tests/test_vsle_bluetooth_smoke.py`
+- **Next step**: Use the Mac browser full VSLE Bluetooth smoke flow to validate the server-side Scratch EV3 module path, then collect signed macOS release-artifact evidence and separate Windows evidence when the required hosts are available.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
