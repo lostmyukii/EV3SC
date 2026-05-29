@@ -3300,6 +3300,13 @@ material into:
 - **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
 - **Next step**: Implement a cache-tiered EV3 snapshot path that keeps sensors high-frequency while moving motor PID, battery, and EV3 button reads to lower-frequency cached fields, then rerun the no-motor freshness diagnostic and full `vsle-bluetooth` smoke.
 
+### [2026-05-29] EV3 tiered snapshot cache
+- **Status**: ✅ Completed
+- **Commit**: `39229ff`
+- **What was done**: Added a TDD regression test for the EV3 hardware snapshot path and changed `read_all()` so S1 sensor data and motor position/speed/running stay high-frequency while motor PID, battery, and EV3 button fields are refreshed from a lower-frequency cache. The slow snapshot is invalidated after `motor.setPID` so Scratch-visible PID data updates after PID commands.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`
+- **Next step**: Deploy the updated EV3 server to the brick, restart `vsle-ev3-server.service`, and rerun the no-motor freshness diagnostic with EV3, A-port motor, and S1 touch sensor still connected.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
