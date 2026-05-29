@@ -3413,6 +3413,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-release-preflight.json`, `docs/desktop/evidence/macos-release-preflight.md`
 - **Next step**: Install or provide the real Developer ID Application and Developer ID Installer identities plus an Apple notarytool keychain profile, rerun `desktop/scripts/check_macos_release_preflight.py` until `Ready: yes`, then run the signed app, notarization, signed `.pkg`, and clean-machine `vsle-bluetooth` install-smoke evidence flow.
 
+### [2026-05-29] macOS notary profile environment
+- **Status**: ✅ Completed
+- **Commit**: `371679a`
+- **What was done**: Added `WEISILE_NOTARY_KEYCHAIN_PROFILE` support to the macOS release preflight so the Apple notarytool keychain profile can be supplied through the local environment instead of command-line flags or committed files. The preflight still requires `xcrun notarytool history` to succeed before it marks the profile check as passing, and this machine remains blocked because no real profile is configured.
+- **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/check_macos_release_preflight.py` until `Ready: yes`, then execute signed app packaging, notarization, signed `.pkg`, and clean-machine `vsle-bluetooth` install-smoke evidence collection.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
