@@ -3364,6 +3364,13 @@ material into:
 - **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.md`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.md`
 - **Next step**: Produce or install a signed/notarized WeisileLink Desktop release artifact on a clean macOS machine, collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json` with `vsle_bluetooth_real_ev3_ok: true`, rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`, then use the accepted report to set `installed_from_release_artifact: true` in the full VSLE Bluetooth classroom smoke JSON.
 
+### [2026-05-29] VSLE Bluetooth install evidence templates
+- **Status**: ✅ Completed
+- **Commit**: `eeac73b`
+- **What was done**: Added macOS and Windows `vsle-bluetooth` desktop install smoke evidence templates that are blocked by default, plus tests proving the templates cannot approve classroom readiness until real clean-machine release-artifact evidence is filled. Updated desktop install docs and the source register so the evidence collection path starts from platform-specific templates without treating placeholders as proof.
+- **Files created/modified**: `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `tests/test_desktop_install_smoke.py`
+- **Next step**: On a clean macOS machine, install the signed/notarized WeisileLink Desktop release artifact, copy `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json` to `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`, fill only observed release-artifact and real ev3dev `vsle-bluetooth` evidence, rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`, then use the accepted report to set `installed_from_release_artifact: true` in the full VSLE Bluetooth classroom smoke JSON.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
