@@ -7,4 +7,6 @@ Classroom ready: no
 - real_ev3_full_bluetooth_ok must be true
 - scratch_unsandboxed_loaded must be true
 - sensor_freshness_ms_max must be <= 25
+- command_groups.motor must be true
+- command_groups.sensor must be true
 - command_groups.ai_quest must be true

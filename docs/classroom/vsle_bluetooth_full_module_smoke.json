@@ -1,21 +1,21 @@
 {
-  "evidence_kind": "real_hardware_safe_command_group_preflight",
-  "recorded_at": "2026-05-29",
+  "evidence_kind": "real_hardware_full_command_group_smoke_attempt",
+  "recorded_at": "2026-05-29T03:39:16+00:00",
   "installed_from_release_artifact": false,
   "ev3_runs_ev3dev_server": true,
   "transport": "vsle-bluetooth",
   "real_ev3_full_bluetooth_ok": false,
-  "sensor_freshness_ms_max": 2369.593,
-  "sensor_freshness_ms_avg_observed": 80.561,
-  "sensor_updates_observed": 118,
+  "sensor_freshness_ms_max": 391.316,
+  "sensor_freshness_ms_avg_observed": 95.913,
+  "sensor_updates_observed": 59,
   "sensor_roots_observed": [
     "motors",
     "sensors",
     "system"
   ],
   "command_groups": {
-    "motor": true,
-    "sensor": true,
+    "motor": false,
+    "sensor": false,
     "sound": true,
     "display": true,
     "system": true,
@@ -24,9 +24,190 @@
   },
   "disconnect_stop_ok": true,
   "scratch_unsandboxed_loaded": false,
+  "smoke_summary": {
+    "connect_ok": true,
+    "hardware_topology": {
+      "motor_ports_observed": [],
+      "sensor_ports_observed": [],
+      "sensor_types_observed": {}
+    },
+    "command_count": 19,
+    "command_results": [
+      {
+        "group": "system",
+        "method": "system.stopAll",
+        "ok": true,
+        "elapsed_ms": 138.622
+      },
+      {
+        "group": "display",
+        "method": "display.clear",
+        "ok": true,
+        "elapsed_ms": 140.228
+      },
+      {
+        "group": "display",
+        "method": "display.text",
+        "ok": true,
+        "elapsed_ms": 210.885
+      },
+      {
+        "group": "display",
+        "method": "display.drawLine",
+        "ok": true,
+        "elapsed_ms": 173.143
+      },
+      {
+        "group": "display",
+        "method": "display.drawCircle",
+        "ok": true,
+        "elapsed_ms": 239.227
+      },
+      {
+        "group": "display",
+        "method": "display.update",
+        "ok": true,
+        "elapsed_ms": 272.414
+      },
+      {
+        "group": "sound",
+        "method": "sound.setVolume",
+        "ok": true,
+        "elapsed_ms": 292.759
+      },
+      {
+        "group": "sound",
+        "method": "sound.playTone",
+        "ok": true,
+        "elapsed_ms": 420.892
+      },
+      {
+        "group": "sound",
+        "method": "sound.stop",
+        "ok": true,
+        "elapsed_ms": 208.626
+      },
+      {
+        "group": "motor",
+        "method": "motor.stopAll",
+        "ok": true,
+        "elapsed_ms": 96.217
+      },
+      {
+        "group": "data_collection",
+        "method": "data.clear",
+        "ok": true,
+        "elapsed_ms": 164.258
+      },
+      {
+        "group": "data_collection",
+        "method": "data.startCollect",
+        "ok": true,
+        "elapsed_ms": 150.651
+      },
+      {
+        "group": "data_collection",
+        "method": "data.startCollect",
+        "ok": true,
+        "elapsed_ms": 163.22
+      },
+      {
+        "group": "data_collection",
+        "method": "data.addPoint",
+        "ok": true,
+        "elapsed_ms": 224.501
+      },
+      {
+        "group": "data_collection",
+        "method": "data.stopCollect",
+        "ok": true,
+        "elapsed_ms": 72.151
+      },
+      {
+        "group": "data_collection",
+        "method": "data.getAll",
+        "ok": true,
+        "elapsed_ms": 300.622
+      },
+      {
+        "group": "data_collection",
+        "method": "data.exportCSV",
+        "ok": true,
+        "elapsed_ms": 296.583
+      },
+      {
+        "group": "system",
+        "method": "system.stopAll",
+        "ok": true,
+        "elapsed_ms": 94.048
+      },
+      {
+        "group": "display",
+        "method": "display.clear",
+        "ok": true,
+        "elapsed_ms": 198.439
+      }
+    ],
+    "command_failures": [
+      {
+        "group": "sensor",
+        "method": "sensor_stream",
+        "error": "no sensor ports observed in real EV3 payload",
+        "required": true
+      },
+      {
+        "group": "motor",
+        "method": "motor_port_detection",
+        "error": "no motor ports observed; low-speed movement was not attempted",
+        "required": true
+      },
+      {
+        "group": "ai_quest",
+        "method": "upload_train_predict_export",
+        "error": "{\"code\": \"TRAINER_INSUFFICIENT_DATA\", \"data\": {\"label_count\": 2, \"retryable\": false, \"row_count\": 21}, \"message\": \"Training requires at least one varying numeric feature\"}",
+        "required": true
+      }
+    ],
+    "data_rows_collected": 21,
+    "ai_quest": {
+      "error": "{\"code\": \"TRAINER_INSUFFICIENT_DATA\", \"data\": {\"label_count\": 2, \"retryable\": false, \"row_count\": 21}, \"message\": \"Training requires at least one varying numeric feature\"}",
+      "rows_available": 21,
+      "feature_rows_preview": [
+        {
+          "features": {
+            "color_reflected": 0,
+            "ultrasonic_cm": 0,
+            "gyro_angle": 0,
+            "touch_pressed": 0,
+            "motor_a_pos": 0
+          },
+          "label": "baseline",
+          "timestamp": 1586556339192
+        },
+        {
+          "features": {
+            "color_reflected": 0,
+            "ultrasonic_cm": 0,
+            "gyro_angle": 0,
+            "touch_pressed": 0,
+            "motor_a_pos": 0
+          },
+          "label": "baseline",
+          "timestamp": 1586556339260
+        }
+      ]
+    },
+    "native_adapter": "macos-iobluetooth-app-bundle",
+    "release_artifact_run": false,
+    "scratch_browser_rehearsal_run": false
+  },
   "blocking_notes": [
-    "This is a real paired ev3dev EV3 safe command-group preflight, not a clean-machine release-artifact classroom approval.",
-    "Sensor freshness exceeded the full smoke gate threshold of 25ms during command execution.",
-    "AI Quest upload/train/export and ScratchAI browser Unsandboxed extension evidence were not collected in this step."
+    "This run used the repository checkout and built native adapter, not a clean-machine installed release artifact.",
+    "ScratchAI browser Unsandboxed extension evidence was not collected in this hardware command run.",
+    "No connected motor ports were observed, so the motor command group could not be physically exercised beyond stopAll.",
+    "No connected sensor ports were observed in real EV3 payloads, so sensor command group evidence is incomplete.",
+    "Sensor freshness exceeded the full smoke gate threshold of 25ms during the real Bluetooth run.",
+    "AI Quest upload/train/predict/export did not complete from a varied real Bluetooth data buffer.",
+    "One or more required command-group checks failed; see smoke_summary.command_failures."
   ]
 }
