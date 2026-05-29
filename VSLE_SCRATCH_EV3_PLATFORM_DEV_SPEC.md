@@ -3307,6 +3307,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`
 - **Next step**: Deploy the updated EV3 server to the brick, restart `vsle-ev3-server.service`, and rerun the no-motor freshness diagnostic with EV3, A-port motor, and S1 touch sensor still connected.
 
+### [2026-05-29] EV3 tiered snapshot cache deployed
+- **Status**: ✅ Completed
+- **Commit**: `e970777`
+- **What was done**: Uploaded the tiered-cache EV3 server to `/home/robot/vsle_ev3_server.py`, restarted `vsle-ev3-server.service`, and ran a no-motor direct `read_all()` probe with the EV3, A-port motor, and S1 touch sensor still connected. The average direct read dropped from `89.566ms` to `14.009ms`, but the max read was still `76.289ms` because slow-cache refresh still happens inline when the cache expires.
+- **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
+- **Next step**: Use TDD to move slow snapshot refresh fully out of the high-frequency `read_all()` path so refresh ticks do not block the 25ms freshness gate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
