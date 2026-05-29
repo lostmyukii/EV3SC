@@ -74,6 +74,7 @@ for official-firmware Bluetooth compatibility must include:
 
 ```json
 {
+  "release_artifact_manifest": "desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json",
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
@@ -109,6 +110,12 @@ cp docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json \
   "vsle_bluetooth_real_ev3_ok": true
 }
 ```
+
+The `release_artifact_manifest` file must be the manifest generated for the
+installed artifact. For macOS, `scripts/run_desktop_install_smoke.py` requires
+that manifest to record `signed: true`, `notarized: true`, a bundled
+self-contained executable, and the bundled native Bluetooth adapter before the
+release-artifact evidence can pass.
 
 Run:
 

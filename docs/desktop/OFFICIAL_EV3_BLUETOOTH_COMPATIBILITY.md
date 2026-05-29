@@ -86,12 +86,19 @@ after the installed release artifact produces evidence with these fields:
 
 ```json
 {
+  "release_artifact_manifest": "desktop/release/<os>/WeisileLink-<os>-0.1.0-manifest.json",
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
   "official_firmware_bt_real_ev3_ok": true
 }
 ```
+
+The `release_artifact_manifest` must be the manifest generated for the
+installed artifact. macOS manifests must record `signed: true` and
+`notarized: true`; Windows manifests must record `signed: true`. All manifests
+must record a bundled self-contained executable before the install smoke gate
+can accept release-artifact evidence.
 
 Run:
 

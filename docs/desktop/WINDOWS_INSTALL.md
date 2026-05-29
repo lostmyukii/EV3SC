@@ -76,6 +76,7 @@ for official-firmware Bluetooth compatibility must include:
 
 ```json
 {
+  "release_artifact_manifest": "desktop/release/windows/WeisileLink-windows-0.1.0-manifest.json",
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
@@ -111,6 +112,11 @@ Copy-Item docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.js
   "vsle_bluetooth_real_ev3_ok": true
 }
 ```
+
+The `release_artifact_manifest` file must be the manifest generated for the
+installed artifact. For Windows, `scripts/run_desktop_install_smoke.py`
+requires that manifest to record `signed: true` and a bundled self-contained
+executable before the release-artifact evidence can pass.
 
 Run:
 

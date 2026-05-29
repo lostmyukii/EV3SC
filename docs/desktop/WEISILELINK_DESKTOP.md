@@ -99,6 +99,12 @@ Use the platform-specific templates under `docs/desktop/evidence/`:
 - `macos-vsle-bluetooth-install-smoke.template.json`
 - `windows-vsle-bluetooth-install-smoke.template.json`
 
+The copied evidence JSON must set `release_artifact_manifest` to the manifest
+for the installed release artifact. macOS manifests must be signed and
+notarized; Windows manifests must be signed. In both cases, the manifest must
+record a bundled self-contained executable before the install smoke gate can
+accept `installed_from_release_artifact: true`.
+
 ```bash
 python scripts/run_desktop_install_smoke.py \
   --mode vsle-bluetooth \

@@ -36,6 +36,29 @@ def _run_smoke(tmp_path, evidence, mode=None):
     return result, report
 
 
+def _release_manifest(
+    tmp_path,
+    *,
+    target="macos",
+    signed=True,
+    notarized=True,
+):
+    manifest = tmp_path / f"{target}-manifest.json"
+    payload = {
+        "target": target,
+        "artifact_zip": f"WeisileLink-{target}-0.1.0-signed.zip",
+        "artifact_sha256": "a" * 64,
+        "signed": signed,
+        "contains_self_contained_executable": True,
+        "requires_clean_machine_evidence": True,
+    }
+    if target == "macos":
+        payload["notarized"] = notarized
+        payload["contains_macos_native_bluetooth_adapter"] = True
+    manifest.write_text(json.dumps(payload), encoding="utf-8")
+    return str(manifest)
+
+
 def test_runner_refuses_missing_evidence_json(tmp_path):
     report_path = tmp_path / "missing-report.md"
     result = subprocess.run(
@@ -98,6 +121,7 @@ def test_runner_passes_with_release_reboot_endpoint_and_real_ev3(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
@@ -115,6 +139,7 @@ def test_runner_passes_vsle_bluetooth_release_artifact_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
@@ -134,6 +159,7 @@ def test_runner_refuses_vsle_bluetooth_without_real_ev3_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
@@ -145,6 +171,48 @@ def test_runner_refuses_vsle_bluetooth_without_real_ev3_evidence(tmp_path):
     assert result.returncode == 1
     assert "Classroom ready: no" in report
     assert "vsle_bluetooth_real_ev3_ok must be true" in report
+
+
+def test_runner_refuses_release_artifact_without_manifest(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "release_artifact_manifest must point to a release manifest" in report
+
+
+def test_runner_refuses_macos_vsle_bluetooth_unsigned_or_unnnotarized_manifest(
+    tmp_path,
+):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "release_artifact_manifest": _release_manifest(
+                tmp_path,
+                signed=False,
+                notarized=False,
+            ),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "release manifest signed must be true" in report
+    assert "release manifest notarized must be true for macOS" in report
 
 
 def test_native_adapter_readmes_keep_platform_boundaries():
@@ -173,6 +241,7 @@ def test_desktop_docs_reference_install_smoke_gate():
         text = path.read_text(encoding="utf-8")
         assert "run_desktop_install_smoke.py" in text
         assert "installed_from_release_artifact" in text
+        assert "release_artifact_manifest" in text
         assert "official_firmware_bt_real_ev3_ok" in text
 
 
@@ -196,6 +265,9 @@ def test_vsle_bluetooth_install_evidence_templates_are_blocked_by_default(
     ):
         template = ROOT / "docs/desktop/evidence" / name
         report = tmp_path / f"{name}.md"
+        payload = json.loads(template.read_text(encoding="utf-8"))
+        assert payload["release_artifact_manifest"] == ""
+        assert payload["installed_from_release_artifact"] is False
         result = subprocess.run(
             [
                 sys.executable,
@@ -236,3 +308,4 @@ def test_desktop_docs_point_to_vsle_bluetooth_evidence_templates():
         text = path.read_text(encoding="utf-8")
         assert template_name in text
         assert template_name.replace(".template", "") in text
+        assert "release_artifact_manifest" in text

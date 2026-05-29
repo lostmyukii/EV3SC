@@ -1,4 +1,5 @@
 {
+  "release_artifact_manifest": "",
   "installed_from_release_artifact": false,
   "started_after_reboot": false,
   "scratch_link_endpoint_ok": false,
