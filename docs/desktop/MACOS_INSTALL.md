@@ -80,6 +80,19 @@ outside the repository and command history:
 Do not proceed to classroom artifact signing unless
 `docs/desktop/evidence/macos-release-preflight.md` says `Ready: yes`.
 
+After the preflight is ready, run the guarded release chain:
+
+```bash
+./.venv/bin/python desktop/scripts/run_macos_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/macos-release-preflight.json \
+  --preflight-report docs/desktop/evidence/macos-release-preflight.md \
+  --output desktop/release/macos \
+  --version 0.1.0
+```
+
+The runner stops before signing if `check_macos_release_preflight.py` does not
+report `Ready: yes`.
+
 After building a signed macOS release artifact, run the checked notarization
 helper with an Apple notarytool keychain profile:
 

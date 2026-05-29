@@ -114,6 +114,20 @@ outside the repository and command history:
 The preflight must pass before signing, notarization, package creation, or
 clean-machine install smoke evidence collection.
 
+Once the preflight says `Ready: yes`, use the guarded runner to execute the
+signed app build, notarization, and signed package steps in order:
+
+```bash
+./.venv/bin/python desktop/scripts/run_macos_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/macos-release-preflight.json \
+  --preflight-report docs/desktop/evidence/macos-release-preflight.md \
+  --output desktop/release/macos \
+  --version 0.1.0
+```
+
+The runner refuses to call signing or notarization tools unless
+`check_macos_release_preflight.py` reports `Ready: yes`.
+
 ```bash
 ./.venv/bin/python desktop/scripts/notarize_macos_release.py \
   --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \

@@ -86,6 +86,19 @@ outside the repository and command history:
 The preflight report must say `Ready: yes` before attempting the signed app,
 notarization, and signed installer package chain.
 
+When the preflight is ready, run the guarded macOS release chain with:
+
+```bash
+./.venv/bin/python desktop/scripts/run_macos_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/macos-release-preflight.json \
+  --preflight-report docs/desktop/evidence/macos-release-preflight.md \
+  --output desktop/release/macos \
+  --version 0.1.0
+```
+
+The runner stops before signing if `check_macos_release_preflight.py` does not
+report `Ready: yes`.
+
 After building a signed macOS artifact, notarize and staple it with an Apple
 notarytool keychain profile. Do not pass Apple ID passwords on the command
 line or store them in this repository:
