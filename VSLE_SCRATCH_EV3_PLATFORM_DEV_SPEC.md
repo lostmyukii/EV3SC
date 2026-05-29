@@ -3244,6 +3244,13 @@ material into:
 - **Files created/modified**: `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `desktop/macos/native/build.sh`, `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `desktop/scripts/build_release_artifacts.py`, `desktop/scripts/validate_desktop_assets.py`, `desktop/macos/weisile-link.launchd.plist`, `desktop/macos/install.sh`, `desktop/macos/native/README.md`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `tests/test_desktop_packaging.py`, `tests/test_desktop_release_packaging.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/tests/test_json_rpc_server.py`
 - **Next step**: Pair the Mac with the discoverable ev3dev EV3, start WeisileLink with `WEISILE_TRANSPORT=vsle-bluetooth` and the bundled adapter executable path, then collect and validate `docs/classroom/vsle_bluetooth_full_module_smoke.json`.
 
+### [2026-05-29] VSLE Bluetooth non-invasive hardware smoke
+- **Status**: ✅ Completed
+- **Commit**: `f1f87f7`
+- **What was done**: Confirmed the paired macOS teacher computer can reach the ev3dev EV3 through the app-bundled native adapter and `VSLEBluetoothTransport` without running motors. The smoke completed token pairing, received a real sensor update containing `motors`, `sensors`, and `system`, and disconnected cleanly while keeping the pairing token out of committed logs.
+- **Files created/modified**: `README.md`
+- **Next step**: Run the full `vsle-bluetooth` classroom smoke with safe command-group coverage, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
