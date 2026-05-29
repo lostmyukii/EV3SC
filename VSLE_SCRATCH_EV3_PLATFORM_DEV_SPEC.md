@@ -3286,6 +3286,13 @@ material into:
 - **Files created/modified**: `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json`, `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 - **Next step**: Attach at least one real EV3 sensor, rerun the full `vsle-bluetooth` smoke while continuing the freshness investigation until `sensor_freshness_ms_max <= 25`, and collect release-artifact install evidence before claiming classroom readiness.
 
+### [2026-05-29] Full Bluetooth smoke with S1 touch sensor
+- **Status**: ✅ Completed
+- **Commit**: `b7ba724`
+- **What was done**: Verified the attached S1 touch sensor at the ev3dev sysfs layer, restarted the EV3 server so it rescanned hardware, confirmed `S1` appears as `type: touch` in the VSLE data stream, and reran the real `vsle-bluetooth` command-group smoke. Motor, sensor, sound, display, system, data collection, and AI Quest command groups now all pass; the report remains `Classroom ready: no` because the run was not from a release artifact and `sensor_freshness_ms_max` is still `2549.83`.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
+- **Next step**: Investigate the remaining Bluetooth sensor freshness gap until `sensor_freshness_ms_max <= 25`, then collect clean release-artifact install evidence before claiming classroom readiness.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
