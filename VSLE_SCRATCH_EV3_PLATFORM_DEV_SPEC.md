@@ -3328,6 +3328,13 @@ material into:
 - **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
 - **Next step**: Rerun the full `vsle-bluetooth` freshness evidence path; if it still exceeds the 25ms gate, profile the bridge/native-adapter receive path and EV3 WebSocket broadcast loop before adding more EV3-side caching.
 
+### [2026-05-29] Bluetooth RFCOMM boundary probe
+- **Status**: ✅ Completed
+- **Commit**: `4b3a75d`
+- **What was done**: Reduced the macOS native adapter receive poll interval from `50ms` to `5ms`, added compact high-frequency EV3 Bluetooth sensor payloads for RFCOMM clients, and reran the real full `vsle-bluetooth` evidence path. The compact stream removed PID, battery, and button fields from Bluetooth frames while keeping WiFi/WebSocket clients on the full payload, but real EV3 evidence still missed the 25ms classroom freshness gate, pointing to an EV3 RFCOMM/macOS IOBluetooth cadence limit rather than the Python hardware snapshot path.
+- **Files created/modified**: `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/tests/test_native_adapter_process.py`, `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`
+- **Next step**: Decide whether full VSLE Bluetooth remains a non-classroom diagnostic/fallback mode with lower freshness expectations, or redesign the Bluetooth stream around a different native adapter/protocol strategy and collect new real-EV3 evidence; clean release-artifact install evidence is still required before any classroom-ready claim.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
