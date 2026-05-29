@@ -3441,6 +3441,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/check_windows_release_preflight.py`, `desktop/scripts/run_windows_release_flow.py`, `desktop/scripts/build_release_artifacts.py`, `tests/test_windows_release_preflight.py`, `tests/test_windows_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`, `docs/desktop/evidence/windows-release-flow.json`, `docs/desktop/evidence/windows-release-flow.md`
 - **Next step**: Wire real Windows SignTool signing into `desktop/scripts/build_release_artifacts.py`, produce a self-contained `WeisileLink.exe` on a Windows build host, rerun `desktop/scripts/check_windows_release_preflight.py` until `Ready: yes`, then execute the guarded Windows release flow and collect clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Windows SignTool signing path
+- **Status**: ✅ Completed
+- **Commit**: `dbdbfb2`
+- **What was done**: Wired Windows SignTool signing into the desktop release packager: on a Windows build host it now signs the copied `WeisileLink/WeisileLink.exe`, verifies the signature, emits a signed zip name, and records signing metadata in the manifest. Updated the Windows preflight and current evidence so the signing implementation passes while this Mac remains blocked because it is not a Windows SignTool host and lacks a Windows executable plus signing inputs.
+- **Files created/modified**: `desktop/scripts/build_release_artifacts.py`, `desktop/scripts/check_windows_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `tests/test_windows_release_preflight.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`
+- **Next step**: Produce a self-contained `WeisileLink.exe` on a Windows build host with `signtool` available, provide `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL` or equivalent flags, rerun `desktop/scripts/check_windows_release_preflight.py` until `Ready: yes`, then execute `desktop/scripts/run_windows_release_flow.py` and collect clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
