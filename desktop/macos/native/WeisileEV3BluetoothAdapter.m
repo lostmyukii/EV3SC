@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+static const NSTimeInterval kRFCOMMFramePollIntervalSeconds = 0.005;
+
 // Source basis:
 // - Scratch Link MacBTSession uses IOBluetooth and RFCOMM channel 1 for
 //   Bluetooth Classic serial peripherals.
@@ -64,7 +66,9 @@
         }
         [[NSRunLoop currentRunLoop]
             runMode:NSDefaultRunLoopMode
-         beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+         beforeDate:[NSDate
+                        dateWithTimeIntervalSinceNow:
+                            kRFCOMMFramePollIntervalSeconds]];
     }
     return nil;
 }

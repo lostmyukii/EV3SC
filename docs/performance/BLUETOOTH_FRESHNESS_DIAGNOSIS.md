@@ -125,3 +125,68 @@ Rerun the full `vsle-bluetooth` freshness evidence path now that the direct
 high-frequency hot path can stay below 25ms in isolation. If Bluetooth evidence
 still exceeds the gate, profile the bridge/native-adapter receive path and EV3
 server WebSocket broadcast loop rather than adding motor-basic caching first.
+
+## Full Bluetooth Rerun and RFCOMM Boundary Probe
+
+The full command-group smoke was rerun after the hot-path split probe. The
+current evidence improved from the earlier multi-second outliers, and all real
+command groups still passed with the A-port motor and S1 touch sensor attached,
+but the strict classroom freshness gate remained blocked:
+
+| Metric | Observed |
+|---|---:|
+| `sensor_freshness_ms_max` | `499.251ms` |
+| `sensor_freshness_ms_avg_observed` | `106.065ms` |
+| `sensor_freshness_ms_p95_observed` | `246.559ms` |
+| `sensor_updates_observed` | `86` |
+| `ev3_payload_gap_ms_max` | `506.438ms` |
+| `ev3_payload_gap_ms_avg` | `106.202ms` |
+| `ev3_payload_gap_ms_p95` | `227.281ms` |
+
+Two focused fixes were then tested against the real paired EV3:
+
+1. The macOS native adapter receive poll interval was reduced from `50ms` to
+   `5ms`. This removes a host-side latency floor in the IOBluetooth adapter
+   loop.
+2. EV3 Bluetooth broadcasts now use a compact high-frequency payload that keeps
+   `sensors`, motor `position` / `speed` / `running`, and an empty `system`
+   root while omitting low-frequency PID, battery, and button fields from every
+   RFCOMM frame. WiFi/WebSocket clients still receive the full payload.
+
+After rebuilding the macOS adapter bundle, deploying the compact EV3 server to
+the brick, restarting `vsle-ev3-server`, and sampling the workspace
+WeisileLink on a private `20211` port for 6 seconds, the decoded Bluetooth
+payloads were compact (`S1` touch plus motor A basics, no PID/system slow
+fields), but the real link still did not meet the 25ms gate:
+
+| Metric | Observed |
+|---|---:|
+| Sensor notifications | `87` |
+| Local receive gap average | `68.754ms` |
+| Local receive gap max | `193.083ms` |
+| Local receive gap p95 | `119.641ms` |
+| EV3 payload timestamp gap average | `68.543ms` |
+| EV3 payload timestamp gap max | `176.675ms` |
+| EV3 payload timestamp gap p95 | `101.696ms` |
+
+The compact payload result is important: the stream no longer includes the
+previously slow PID, battery, or button fields, yet both local receive gaps and
+EV3 payload timestamp gaps remain clustered around a roughly `60ms` cadence.
+That points to the EV3 RFCOMM send / macOS IOBluetooth delivery boundary rather
+than the Python hardware snapshot path.
+
+## Current Decision Point
+
+The 25ms full-Bluetooth freshness gate remains unmet. After multiple EV3-side
+cache fixes, native-adapter polling reduction, and compact RFCOMM payloads, the
+remaining behavior looks like a transport cadence limit for this EV3/macOS
+Bluetooth Classic path.
+
+Do not mark full VSLE Bluetooth classroom-ready from this evidence. The WiFi
+path remains the intended 50Hz classroom transport. Before more Bluetooth fixes,
+decide whether to:
+
+- keep full VSLE Bluetooth as a non-classroom diagnostic/fallback mode with an
+  explicit lower freshness expectation; or
+- redesign the Bluetooth stream around a different native adapter/protocol
+  strategy and collect new real-EV3 evidence.

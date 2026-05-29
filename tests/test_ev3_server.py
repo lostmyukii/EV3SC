@@ -459,6 +459,88 @@ def test_sensor_payload_includes_timestamp_and_fake_hardware_snapshot():
     }
 
 
+def test_bluetooth_broadcast_uses_compact_high_frequency_payload():
+    module = load_server_module()
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="")
+    fake_socket = FakeBluetoothSocket()
+    endpoint = module.BluetoothLineEndpoint(fake_socket)
+    payload = {
+        "type": "sensor_update",
+        "timestamp": 123.456,
+        "sensors": {"S1": {"type": "touch", "pressed": 0}},
+        "motors": {
+            "A": {
+                "position": 90,
+                "speed": 0,
+                "running": False,
+                "pid": {
+                    "speed": {"kp": 1000, "ki": 60, "kd": 0},
+                    "position": {"kp": 80000, "ki": 0, "kd": 0},
+                },
+            }
+        },
+        "system": {
+            "battery_pct": 87,
+            "battery_v": 7.5,
+            "buttons": {"up": False, "center": True},
+            "collected_points": 0,
+            "collecting": False,
+            "collect_label": "",
+        },
+    }
+
+    server.clients.add(endpoint)
+    asyncio.run(server._broadcast(payload))
+
+    assert len(fake_socket.sent) == 1
+    raw = fake_socket.sent[0]
+    sent = json.loads(raw)
+    assert b", " not in raw
+    assert sent == {
+        "type": "sensor_update",
+        "timestamp": 123.456,
+        "sensors": {"S1": {"type": "touch", "pressed": 0}},
+        "motors": {"A": {"position": 90, "speed": 0, "running": False}},
+        "system": {},
+    }
+    assert len(raw) <= 190
+
+
+def test_websocket_broadcast_keeps_full_sensor_payload():
+    module = load_server_module()
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="")
+    websocket = FakeWebSocket()
+    payload = {
+        "type": "sensor_update",
+        "timestamp": 123.456,
+        "sensors": {"S1": {"type": "touch", "pressed": 0}},
+        "motors": {
+            "A": {
+                "position": 90,
+                "speed": 0,
+                "running": False,
+                "pid": {
+                    "speed": {"kp": 1000, "ki": 60, "kd": 0},
+                    "position": {"kp": 80000, "ki": 0, "kd": 0},
+                },
+            }
+        },
+        "system": {
+            "battery_pct": 87,
+            "battery_v": 7.5,
+            "buttons": {"up": False, "center": True},
+            "collected_points": 0,
+            "collecting": False,
+            "collect_label": "",
+        },
+    }
+
+    server.clients.add(websocket)
+    asyncio.run(server._broadcast(payload))
+
+    assert websocket.sent == [payload]
+
+
 def test_ev3dev_motor_snapshot_includes_speed_and_position_pid_values():
     module = load_server_module()
 
@@ -598,7 +680,10 @@ def test_ev3dev_read_all_only_merges_completed_slow_snapshot_cache():
     now[0] = 100.1
     second = hardware.read_all()
 
-    assert [first["sensors"]["S1"]["pressed"], second["sensors"]["S1"]["pressed"]] == [
+    assert [
+        first["sensors"]["S1"]["pressed"],
+        second["sensors"]["S1"]["pressed"],
+    ] == [
         True,
         False,
     ]

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import stat
 import subprocess
 import sys
@@ -414,6 +415,20 @@ def test_macos_native_adapter_supports_shared_status_command():
     assert '"profile"' in source
     assert '"--host"' in source
     assert '"--port"' in source
+
+
+def test_macos_native_adapter_recv_poll_interval_is_low_latency():
+    source = (
+        ROOT / "desktop/macos/native/WeisileEV3BluetoothAdapter.m"
+    ).read_text(encoding="utf-8")
+
+    assert "kRFCOMMFramePollIntervalSeconds" in source
+    assert "0.005" in source
+    assert re.search(
+        r"dateWithTimeIntervalSinceNow:\s*kRFCOMMFramePollIntervalSeconds",
+        source,
+    )
+    assert "dateWithTimeIntervalSinceNow:0.05" not in source
 
 
 def test_macos_native_adapter_embeds_bluetooth_usage_description():

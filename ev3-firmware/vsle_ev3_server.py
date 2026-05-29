@@ -1202,14 +1202,49 @@ class VSLEEV3Server:
             await asyncio.sleep(max(0.0, interval))
 
     async def _broadcast(self, payload: Dict[str, Any]) -> None:
-        message = json.dumps(payload)
+        full_message = json.dumps(payload)
+        bluetooth_message = None
         disconnected = set()
         for websocket in set(self.clients):
             try:
+                message = full_message
+                if isinstance(websocket, BluetoothLineEndpoint):
+                    if bluetooth_message is None:
+                        bluetooth_message = json.dumps(
+                            self._compact_bluetooth_sensor_update(payload),
+                            separators=(",", ":"),
+                        )
+                    message = bluetooth_message
                 await websocket.send(message)
             except Exception:
                 disconnected.add(websocket)
         self.clients -= disconnected
+
+    def _compact_bluetooth_sensor_update(
+        self,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Return a small high-frequency payload for RFCOMM sensor streams."""
+        if payload.get("type") != "sensor_update":
+            return payload
+
+        motors = {}
+        for port, values in payload.get("motors", {}).items():
+            if not isinstance(values, dict):
+                continue
+            compact_motor = {}
+            for key in ("position", "speed", "running"):
+                if key in values:
+                    compact_motor[key] = values[key]
+            motors[port] = compact_motor
+
+        return {
+            "type": "sensor_update",
+            "timestamp": payload.get("timestamp"),
+            "sensors": payload.get("sensors", {}),
+            "motors": motors,
+            "system": {},
+        }
 
     async def _send_json(self, websocket: Any, payload: Dict[str, Any]) -> None:
         await websocket.send(json.dumps(payload))

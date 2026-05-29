@@ -1,13 +1,14 @@
 {
   "evidence_kind": "real_hardware_full_command_group_smoke_attempt",
-  "recorded_at": "2026-05-29T06:54:26+00:00",
+  "recorded_at": "2026-05-29T08:33:22.409797Z",
   "installed_from_release_artifact": false,
   "ev3_runs_ev3dev_server": true,
   "transport": "vsle-bluetooth",
   "real_ev3_full_bluetooth_ok": true,
-  "sensor_freshness_ms_max": 2549.83,
-  "sensor_freshness_ms_avg_observed": 182.515,
-  "sensor_updates_observed": 72,
+  "sensor_freshness_ms_max": 499.251,
+  "sensor_freshness_ms_avg_observed": 106.065,
+  "sensor_freshness_ms_p95_observed": 246.559,
+  "sensor_updates_observed": 86,
   "sensor_roots_observed": [
     "motors",
     "sensors",
@@ -15,16 +16,21 @@
   ],
   "command_groups": {
     "motor": true,
-    "sensor": true,
     "sound": true,
     "display": true,
     "system": true,
     "data_collection": true,
+    "sensor": true,
     "ai_quest": true
   },
   "disconnect_stop_ok": true,
   "scratch_unsandboxed_loaded": true,
   "smoke_summary": {
+    "connect_response": {
+      "jsonrpc": "2.0",
+      "id": "smoke-1",
+      "result": null
+    },
     "connect_ok": true,
     "hardware_topology": {
       "motor_ports_observed": [
@@ -41,25 +47,25 @@
         "type": "touch"
       },
       "latest_motor_a": {
+        "position": 24,
         "speed": 0,
-        "running": false,
-        "position": 48,
         "pid": {
-          "speed": {
-            "kp": 1000,
-            "ki": 60,
+          "position": {
+            "ki": 0,
+            "kp": 80000,
             "kd": 0
           },
-          "position": {
-            "kp": 80000,
-            "ki": 0,
+          "speed": {
+            "ki": 60,
+            "kp": 1000,
             "kd": 0
           }
-        }
+        },
+        "running": false
       },
-      "motor_position_delta": 49
+      "motor_position_delta": 24
     },
-    "command_count": 23,
+    "command_count": 25,
     "command_results": [
       {
         "group": "system",
@@ -67,10 +73,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-1",
+          "id": "smoke-3",
           "result": {
-            "id": "smoke-1",
             "ok": true,
+            "id": "smoke-3",
             "type": "ack"
           }
         },
@@ -82,10 +88,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-2",
+          "id": "smoke-4",
           "result": {
-            "id": "smoke-2",
             "ok": true,
+            "id": "smoke-4",
             "type": "ack"
           }
         },
@@ -97,10 +103,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-3",
+          "id": "smoke-5",
           "result": {
-            "id": "smoke-3",
             "ok": true,
+            "id": "smoke-5",
             "type": "ack"
           }
         },
@@ -112,10 +118,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-4",
+          "id": "smoke-6",
           "result": {
-            "id": "smoke-4",
             "ok": true,
+            "id": "smoke-6",
             "type": "ack"
           }
         },
@@ -127,10 +133,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-5",
+          "id": "smoke-7",
           "result": {
-            "id": "smoke-5",
             "ok": true,
+            "id": "smoke-7",
             "type": "ack"
           }
         },
@@ -142,10 +148,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-6",
+          "id": "smoke-8",
           "result": {
-            "id": "smoke-6",
             "ok": true,
+            "id": "smoke-8",
             "type": "ack"
           }
         },
@@ -157,10 +163,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-7",
+          "id": "smoke-9",
           "result": {
-            "id": "smoke-7",
             "ok": true,
+            "id": "smoke-9",
             "type": "ack"
           }
         },
@@ -172,10 +178,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-8",
+          "id": "smoke-10",
           "result": {
-            "id": "smoke-8",
             "ok": true,
+            "id": "smoke-10",
             "type": "ack"
           }
         },
@@ -187,10 +193,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-9",
+          "id": "smoke-11",
           "result": {
-            "id": "smoke-9",
             "ok": true,
+            "id": "smoke-11",
             "type": "ack"
           }
         },
@@ -202,10 +208,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-10",
+          "id": "smoke-12",
           "result": {
-            "id": "smoke-10",
             "ok": true,
+            "id": "smoke-12",
             "type": "ack"
           }
         },
@@ -217,10 +223,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-11",
+          "id": "smoke-13",
           "result": {
-            "id": "smoke-11",
             "ok": true,
+            "id": "smoke-13",
             "type": "ack"
           }
         },
@@ -232,10 +238,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-12",
+          "id": "smoke-14",
           "result": {
-            "id": "smoke-12",
             "ok": true,
+            "id": "smoke-14",
             "type": "ack"
           }
         },
@@ -247,10 +253,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-13",
+          "id": "smoke-15",
           "result": {
-            "id": "smoke-13",
             "ok": true,
+            "id": "smoke-15",
             "type": "ack"
           }
         },
@@ -262,40 +268,10 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-14",
-          "result": {
-            "id": "smoke-14",
-            "ok": true,
-            "type": "ack"
-          }
-        },
-        "required": true
-      },
-      {
-        "group": "data_collection",
-        "method": "data.startCollect",
-        "ok": true,
-        "response": {
-          "jsonrpc": "2.0",
-          "id": "smoke-15",
-          "result": {
-            "id": "smoke-15",
-            "ok": true,
-            "type": "ack"
-          }
-        },
-        "required": true
-      },
-      {
-        "group": "data_collection",
-        "method": "data.stopCollect",
-        "ok": true,
-        "response": {
-          "jsonrpc": "2.0",
           "id": "smoke-16",
           "result": {
-            "id": "smoke-16",
             "ok": true,
+            "id": "smoke-16",
             "type": "ack"
           }
         },
@@ -309,53 +285,8 @@
           "jsonrpc": "2.0",
           "id": "smoke-17",
           "result": {
+            "ok": true,
             "id": "smoke-17",
-            "ok": true,
-            "type": "ack"
-          }
-        },
-        "required": true
-      },
-      {
-        "group": "motor",
-        "method": "motor.runTimed",
-        "ok": true,
-        "response": {
-          "jsonrpc": "2.0",
-          "id": "smoke-18",
-          "result": {
-            "id": "smoke-18",
-            "ok": true,
-            "type": "ack"
-          }
-        },
-        "required": true
-      },
-      {
-        "group": "data_collection",
-        "method": "data.addPoint",
-        "ok": true,
-        "response": {
-          "jsonrpc": "2.0",
-          "id": "smoke-19",
-          "result": {
-            "id": "smoke-19",
-            "ok": true,
-            "type": "ack"
-          }
-        },
-        "required": true
-      },
-      {
-        "group": "motor",
-        "method": "motor.stop",
-        "ok": true,
-        "response": {
-          "jsonrpc": "2.0",
-          "id": "smoke-20",
-          "result": {
-            "id": "smoke-20",
-            "ok": true,
             "type": "ack"
           }
         },
@@ -367,10 +298,85 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
+          "id": "smoke-18",
+          "result": {
+            "ok": true,
+            "id": "smoke-18",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "data_collection",
+        "method": "data.startCollect",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-19",
+          "result": {
+            "ok": true,
+            "id": "smoke-19",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "motor",
+        "method": "motor.runTimed",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-20",
+          "result": {
+            "ok": true,
+            "id": "smoke-20",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "data_collection",
+        "method": "data.addPoint",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
           "id": "smoke-21",
           "result": {
-            "id": "smoke-21",
             "ok": true,
+            "id": "smoke-21",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "motor",
+        "method": "motor.stop",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-22",
+          "result": {
+            "ok": true,
+            "id": "smoke-22",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "data_collection",
+        "method": "data.stopCollect",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-23",
+          "result": {
+            "ok": true,
+            "id": "smoke-23",
             "type": "ack"
           }
         },
@@ -382,717 +388,893 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-22",
+          "id": "smoke-24",
           "result": {
+            "ok": true,
             "data": [
               {
-                "motors": {
-                  "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 0,
-                    "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
-                        "kd": 0
-                      },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
-                        "kd": 0
-                      }
-                    }
-                  }
-                },
-                "label": "rest",
-                "timestamp": 1586568044.5540905,
-                "sensors": {
-                  "S1": {
-                    "pressed": 0,
-                    "type": "touch"
-                  }
-                },
+                "timestamp": 1586573981.1552396,
                 "system": {
+                  "battery_v": 7.8168,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 0,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "rest",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
                     "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "rest",
-                "timestamp": 1586568044.6844256,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.2425728,
                 "system": {
+                  "battery_v": 7.8168,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 1,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "rest",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
                     "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "rest",
-                "timestamp": 1586568044.8147275,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.3145835,
                 "system": {
+                  "battery_v": 7.8168,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 2,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "rest",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
                     "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.1564858,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.4293833,
                 "system": {
+                  "battery_v": 7.8168,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 3,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
                     "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.3127398,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.5304873,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 4,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
                     "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.4426363,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.6081133,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "obstacle",
                   "collected_points": 5,
-                  "battery_pct": 0,
-                  "battery_v": 8.032466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 24,
-                    "running": true,
-                    "position": 1,
+                    "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.636312,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "obstacle"
+              },
+              {
+                "timestamp": 1586573981.8374856,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 6,
-                  "battery_pct": 0,
-                  "battery_v": 7.841666,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 238,
-                    "running": true,
-                    "position": 36,
+                    "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.7947025,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573981.9275577,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 7,
-                  "battery_pct": 0,
-                  "battery_v": 7.973133,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": -51,
-                    "running": false,
-                    "position": 52,
+                    "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568045.925611,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.0094652,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 8,
-                  "battery_pct": 0,
-                  "battery_v": 7.955466,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 28,
-                    "running": false,
-                    "position": 48,
+                    "position": 0,
+                    "speed": 0,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.0555925,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.1463761,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 9,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 48,
+                    "position": 2,
+                    "speed": 44,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": true
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.1930907,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.2184381,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 10,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 2,
-                    "running": false,
-                    "position": 48,
+                    "position": 11,
+                    "speed": 120,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": true
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.3263273,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.2925966,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 11,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 48,
+                    "position": 20,
+                    "speed": 110,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": true
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.4699,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.3644238,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 12,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 48,
+                    "position": 26,
+                    "speed": 90,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.5583904,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.436229,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 13,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 48,
+                    "position": 24,
+                    "speed": -54,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.7470803,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.5075328,
                 "system": {
+                  "battery_v": 7.856466,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
                   "collected_points": 14,
-                  "battery_pct": 0,
-                  "battery_v": 8.0028,
-                  "buttons": {
-                    "down": false,
-                    "left": false,
-                    "right": false,
-                    "up": false,
-                    "center": false
-                  },
-                  "collect_label": "move",
                   "collecting": true
                 },
-                "type": "sensor_update"
-              },
-              {
                 "motors": {
                   "A": {
-                    "speed": 0,
-                    "running": false,
-                    "position": 48,
+                    "position": 24,
+                    "speed": -12,
                     "pid": {
-                      "speed": {
-                        "kp": 1000,
-                        "ki": 60,
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
                         "kd": 0
                       },
-                      "position": {
-                        "kp": 80000,
-                        "ki": 0,
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
                         "kd": 0
                       }
-                    }
+                    },
+                    "running": false
                   }
                 },
-                "label": "move",
-                "timestamp": 1586568046.9199662,
+                "type": "sensor_update",
                 "sensors": {
                   "S1": {
                     "pressed": 0,
                     "type": "touch"
                   }
                 },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.641525,
                 "system": {
-                  "collected_points": 15,
+                  "battery_v": 7.856466,
                   "battery_pct": 0,
-                  "battery_v": 7.983133,
                   "buttons": {
-                    "down": false,
+                    "up": false,
                     "left": false,
                     "right": false,
-                    "up": false,
-                    "center": false
+                    "center": false,
+                    "down": false
                   },
-                  "collect_label": "move",
+                  "collect_label": "safe",
+                  "collected_points": 15,
                   "collecting": true
                 },
-                "type": "sensor_update"
+                "motors": {
+                  "A": {
+                    "position": 24,
+                    "speed": 0,
+                    "pid": {
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
+                        "kd": 0
+                      },
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
+                        "kd": 0
+                      }
+                    },
+                    "running": false
+                  }
+                },
+                "type": "sensor_update",
+                "sensors": {
+                  "S1": {
+                    "pressed": 0,
+                    "type": "touch"
+                  }
+                },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.8147342,
+                "system": {
+                  "battery_v": 7.8268,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
+                  "collected_points": 16,
+                  "collecting": true
+                },
+                "motors": {
+                  "A": {
+                    "position": 24,
+                    "speed": 0,
+                    "pid": {
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
+                        "kd": 0
+                      },
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
+                        "kd": 0
+                      }
+                    },
+                    "running": false
+                  }
+                },
+                "type": "sensor_update",
+                "sensors": {
+                  "S1": {
+                    "pressed": 0,
+                    "type": "touch"
+                  }
+                },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573982.9067805,
+                "system": {
+                  "battery_v": 7.8268,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
+                  "collected_points": 17,
+                  "collecting": true
+                },
+                "motors": {
+                  "A": {
+                    "position": 24,
+                    "speed": 0,
+                    "pid": {
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
+                        "kd": 0
+                      },
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
+                        "kd": 0
+                      }
+                    },
+                    "running": false
+                  }
+                },
+                "type": "sensor_update",
+                "sensors": {
+                  "S1": {
+                    "pressed": 0,
+                    "type": "touch"
+                  }
+                },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573983.055667,
+                "system": {
+                  "battery_v": 7.8268,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
+                  "collected_points": 18,
+                  "collecting": true
+                },
+                "motors": {
+                  "A": {
+                    "position": 24,
+                    "speed": 0,
+                    "pid": {
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
+                        "kd": 0
+                      },
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
+                        "kd": 0
+                      }
+                    },
+                    "running": false
+                  }
+                },
+                "type": "sensor_update",
+                "sensors": {
+                  "S1": {
+                    "pressed": 0,
+                    "type": "touch"
+                  }
+                },
+                "label": "safe"
+              },
+              {
+                "timestamp": 1586573983.149466,
+                "system": {
+                  "battery_v": 7.8268,
+                  "battery_pct": 0,
+                  "buttons": {
+                    "up": false,
+                    "left": false,
+                    "right": false,
+                    "center": false,
+                    "down": false
+                  },
+                  "collect_label": "safe",
+                  "collected_points": 19,
+                  "collecting": true
+                },
+                "motors": {
+                  "A": {
+                    "position": 24,
+                    "speed": 0,
+                    "pid": {
+                      "position": {
+                        "ki": 0,
+                        "kp": 80000,
+                        "kd": 0
+                      },
+                      "speed": {
+                        "ki": 60,
+                        "kp": 1000,
+                        "kd": 0
+                      }
+                    },
+                    "running": false
+                  }
+                },
+                "type": "sensor_update",
+                "sensors": {
+                  "S1": {
+                    "pressed": 0,
+                    "type": "touch"
+                  }
+                },
+                "label": "safe"
               }
             ],
-            "id": "smoke-22",
-            "type": "ack",
-            "ok": true
+            "id": "smoke-24",
+            "type": "ack"
           }
         },
         "required": true
@@ -1103,160 +1285,161 @@
         "ok": true,
         "response": {
           "jsonrpc": "2.0",
-          "id": "smoke-23",
+          "id": "smoke-25",
           "result": {
+            "csv": "label,motors.A.pid.position.kd,motors.A.pid.position.ki,motors.A.pid.position.kp,motors.A.pid.speed.kd,motors.A.pid.speed.ki,motors.A.pid.speed.kp,motors.A.position,motors.A.running,motors.A.speed,sensors.S1.pressed,sensors.S1.type,system.battery_pct,system.battery_v,system.buttons.center,system.buttons.down,system.buttons.left,system.buttons.right,system.buttons.up,system.collect_label,system.collected_points,system.collecting,timestamp,type\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.8168,False,False,False,False,False,obstacle,0,True,1586573981.1552396,sensor_update\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.8168,False,False,False,False,False,obstacle,1,True,1586573981.2425728,sensor_update\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.8168,False,False,False,False,False,obstacle,2,True,1586573981.3145835,sensor_update\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.8168,False,False,False,False,False,obstacle,3,True,1586573981.4293833,sensor_update\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.856466,False,False,False,False,False,obstacle,4,True,1586573981.5304873,sensor_update\r\nobstacle,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.856466,False,False,False,False,False,obstacle,5,True,1586573981.6081133,sensor_update\r\nsafe,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.856466,False,False,False,False,False,safe,6,True,1586573981.8374856,sensor_update\r\nsafe,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.856466,False,False,False,False,False,safe,7,True,1586573981.9275577,sensor_update\r\nsafe,0,0,80000,0,60,1000,0,False,0,0,touch,0,7.856466,False,False,False,False,False,safe,8,True,1586573982.0094652,sensor_update\r\nsafe,0,0,80000,0,60,1000,2,True,44,0,touch,0,7.856466,False,False,False,False,False,safe,9,True,1586573982.1463761,sensor_update\r\nsafe,0,0,80000,0,60,1000,11,True,120,0,touch,0,7.856466,False,False,False,False,False,safe,10,True,1586573982.2184381,sensor_update\r\nsafe,0,0,80000,0,60,1000,20,True,110,0,touch,0,7.856466,False,False,False,False,False,safe,11,True,1586573982.2925966,sensor_update\r\nsafe,0,0,80000,0,60,1000,26,False,90,0,touch,0,7.856466,False,False,False,False,False,safe,12,True,1586573982.3644238,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,-54,0,touch,0,7.856466,False,False,False,False,False,safe,13,True,1586573982.436229,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,-12,0,touch,0,7.856466,False,False,False,False,False,safe,14,True,1586573982.5075328,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,0,0,touch,0,7.856466,False,False,False,False,False,safe,15,True,1586573982.641525,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,0,0,touch,0,7.8268,False,False,False,False,False,safe,16,True,1586573982.8147342,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,0,0,touch,0,7.8268,False,False,False,False,False,safe,17,True,1586573982.9067805,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,0,0,touch,0,7.8268,False,False,False,False,False,safe,18,True,1586573983.055667,sensor_update\r\nsafe,0,0,80000,0,60,1000,24,False,0,0,touch,0,7.8268,False,False,False,False,False,safe,19,True,1586573983.149466,sensor_update\r\n",
+            "ok": true,
             "filename": "vsle_ev3_data.csv",
-            "id": "smoke-23",
-            "type": "ack",
-            "csv": "label,motors.A.pid.position.kd,motors.A.pid.position.ki,motors.A.pid.position.kp,motors.A.pid.speed.kd,motors.A.pid.speed.ki,motors.A.pid.speed.kp,motors.A.position,motors.A.running,motors.A.speed,sensors.S1.pressed,sensors.S1.type,system.battery_pct,system.battery_v,system.buttons.center,system.buttons.down,system.buttons.left,system.buttons.right,system.buttons.up,system.collect_label,system.collected_points,system.collecting,timestamp,type\r\nrest,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,rest,0,True,1586568044.5540905,sensor_update\r\nrest,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,rest,1,True,1586568044.6844256,sensor_update\r\nrest,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,rest,2,True,1586568044.8147275,sensor_update\r\nmove,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,move,3,True,1586568045.1564858,sensor_update\r\nmove,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,move,4,True,1586568045.3127398,sensor_update\r\nmove,0,0,80000,0,60,1000,0,False,0,0,touch,0,8.032466,False,False,False,False,False,move,5,True,1586568045.4426363,sensor_update\r\nmove,0,0,80000,0,60,1000,1,True,24,0,touch,0,7.841666,False,False,False,False,False,move,6,True,1586568045.636312,sensor_update\r\nmove,0,0,80000,0,60,1000,36,True,238,0,touch,0,7.973133,False,False,False,False,False,move,7,True,1586568045.7947025,sensor_update\r\nmove,0,0,80000,0,60,1000,52,False,-51,0,touch,0,7.955466,False,False,False,False,False,move,8,True,1586568045.925611,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,28,0,touch,0,8.0028,False,False,False,False,False,move,9,True,1586568046.0555925,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,0,0,touch,0,8.0028,False,False,False,False,False,move,10,True,1586568046.1930907,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,2,0,touch,0,8.0028,False,False,False,False,False,move,11,True,1586568046.3263273,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,0,0,touch,0,8.0028,False,False,False,False,False,move,12,True,1586568046.4699,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,0,0,touch,0,8.0028,False,False,False,False,False,move,13,True,1586568046.5583904,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,0,0,touch,0,8.0028,False,False,False,False,False,move,14,True,1586568046.7470803,sensor_update\r\nmove,0,0,80000,0,60,1000,48,False,0,0,touch,0,7.983133,False,False,False,False,False,move,15,True,1586568046.9199662,sensor_update\r\n",
-            "ok": true
+            "id": "smoke-25",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "system",
+        "method": "system.stopAll",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-31",
+          "result": {
+            "ok": true,
+            "id": "smoke-31",
+            "type": "ack"
+          }
+        },
+        "required": true
+      },
+      {
+        "group": "motor",
+        "method": "motor.stopAll",
+        "ok": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": "smoke-32",
+          "result": {
+            "ok": true,
+            "id": "smoke-32",
+            "type": "ack"
           }
         },
         "required": true
       }
     ],
-    "command_failures": [],
-    "data_rows_collected": 16,
-    "native_adapter": {
-      "path": "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter",
-      "mode": "macos-native-byte-stream"
-    },
-    "release_artifact_run": false,
-    "scratch_browser_rehearsal_run": true,
-    "scratch_browser_evidence": {
-      "json": "docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json",
-      "screenshot": "docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png",
-      "result": "pass",
-      "basis": "ScratchAI browser EV3 tile inserted VSLE-EV3 as a main-thread script resource; no extension-worker resource loaded."
+    "data_collection": {
+      "rows": 20,
+      "export_filename": "vsle_ev3_data.csv"
     },
     "ai_quest": {
-      "rows_available": 28,
-      "labels_observed": [
-        "move",
-        "rest"
-      ],
-      "motor_a_pos_min": -1,
-      "motor_a_pos_max": 70,
-      "feature_rows_preview": [
-        {
-          "features": {
-            "color_reflected": 0,
-            "ultrasonic_cm": 0,
-            "gyro_angle": 0,
-            "touch_pressed": 0,
-            "motor_a_pos": 70
-          },
-          "label": "rest",
-          "timestamp": 1586558938274
-        },
-        {
-          "features": {
-            "color_reflected": 0,
-            "ultrasonic_cm": 0,
-            "gyro_angle": 0,
-            "touch_pressed": 0,
-            "motor_a_pos": 70
-          },
-          "label": "rest",
-          "timestamp": 1586558938393
-        },
-        {
-          "features": {
-            "color_reflected": 0,
-            "ultrasonic_cm": 0,
-            "gyro_angle": 0,
-            "touch_pressed": 0,
-            "motor_a_pos": 70
-          },
-          "label": "rest",
-          "timestamp": 1586558938507
-        },
-        {
-          "features": {
-            "color_reflected": 0,
-            "ultrasonic_cm": 0,
-            "gyro_angle": 0,
-            "touch_pressed": 0,
-            "motor_a_pos": 70
-          },
-          "label": "rest",
-          "timestamp": 1586558938619
-        },
-        {
-          "features": {
-            "color_reflected": 0,
-            "ultrasonic_cm": 0,
-            "gyro_angle": 0,
-            "touch_pressed": 0,
-            "motor_a_pos": 70
-          },
-          "label": "rest",
-          "timestamp": 1586558938738
-        }
-      ],
       "upload": {
         "jsonrpc": "2.0",
-        "id": "ai-upload",
+        "id": "smoke-26",
         "result": {
           "dataset_id": "mock-dataset-1",
           "status": "ready",
-          "uploaded_samples": 28,
+          "uploaded_samples": 19,
           "audit": {
             "provider": "mock",
             "audit_id": "mock-audit-1"
           },
           "scope": {
             "type": "project",
-            "id": "scratch-project"
+            "id": "vsle-bluetooth-smoke"
           },
           "safe_reference": {
             "dataset_id": "mock-dataset-1",
             "scope": {
               "type": "project",
-              "id": "scratch-project"
+              "id": "vsle-bluetooth-smoke"
             }
           },
           "data_boundary": {
-            "allowed_sample_count": 28,
+            "allowed_sample_count": 19,
             "raw_scratch_project_included": false,
             "provider_credentials_included": false
           },
-          "uploaded_at": "2026-05-29T04:22:37.803396Z"
+          "uploaded_at": "2026-05-29T08:33:20.948413Z"
         }
       },
       "train": {
         "jsonrpc": "2.0",
-        "id": "ai-train",
+        "id": "smoke-27",
         "result": {
           "job_id": "mock-job-1",
           "status": "succeeded",
           "model_id": "mock-model-1",
           "metrics": {
-            "accuracy": 0.9286
+            "accuracy": 0.8421
           }
+        }
+      },
+      "status": {
+        "jsonrpc": "2.0",
+        "id": "smoke-28",
+        "result": {
+          "job_id": "mock-job-1",
+          "status": "succeeded",
+          "model_id": "mock-model-1",
+          "metrics": {
+            "accuracy": 0.8421
+          },
+          "dataset_id": "mock-dataset-1"
         }
       },
       "predict": {
         "jsonrpc": "2.0",
-        "id": "ai-predict",
+        "id": "smoke-29",
         "result": {
-          "label": "move",
-          "confidence": 0.9286,
+          "label": "safe",
+          "confidence": 0.8421,
           "mode": "cloud",
           "model_id": "mock-model-1"
         }
       },
       "export": {
         "jsonrpc": "2.0",
-        "id": "ai-export",
+        "id": "smoke-30",
         "result": {
           "filename": "ai_quest_model_report.json",
-          "json": "{\n  \"features\": [\n    \"color_reflected\",\n    \"ultrasonic_cm\",\n    \"gyro_angle\",\n    \"touch_pressed\",\n    \"motor_a_pos\"\n  ],\n  \"model\": {\n    \"accuracy\": 0.9286,\n    \"accuracyGate\": 0.7,\n    \"id\": \"mock-model-1\",\n    \"type\": \"decision_tree\"\n  },\n  \"privacy\": {\n    \"clearRoute\": \"/api/data/clear\",\n    \"localFirst\": true,\n    \"studentDataIncluded\": false\n  },\n  \"rule\": {\n    \"falseLabel\": \"rest\",\n    \"feature\": \"motor_a_pos\",\n    \"operator\": \"<=\",\n    \"threshold\": 63.5,\n    \"trueLabel\": \"move\"\n  },\n  \"schemaVersion\": \"vsle-ai-trainer-model-rules-v1\",\n  \"training\": {\n    \"labels\": [\n      \"move\",\n      \"rest\"\n    ],\n    \"rows\": 28,\n    \"trainedAt\": \"2026-05-29T04:22:37.804752Z\"\n  }\n}\n",
+          "json": "{\n  \"features\": [\n    \"color_reflected\",\n    \"ultrasonic_cm\",\n    \"gyro_angle\",\n    \"touch_pressed\",\n    \"motor_a_pos\"\n  ],\n  \"model\": {\n    \"accuracy\": 0.8421,\n    \"accuracyGate\": 0.7,\n    \"id\": \"mock-model-1\",\n    \"type\": \"decision_tree\"\n  },\n  \"privacy\": {\n    \"clearRoute\": \"/api/data/clear\",\n    \"localFirst\": true,\n    \"studentDataIncluded\": false\n  },\n  \"rule\": {\n    \"falseLabel\": \"safe\",\n    \"feature\": \"motor_a_pos\",\n    \"operator\": \"<=\",\n    \"threshold\": 2,\n    \"trueLabel\": \"obstacle\"\n  },\n  \"schemaVersion\": \"vsle-ai-trainer-model-rules-v1\",\n  \"training\": {\n    \"labels\": [\n      \"obstacle\",\n      \"safe\"\n    ],\n    \"rows\": 19,\n    \"trainedAt\": \"2026-05-29T08:33:20.950277Z\"\n  }\n}\n",
           "model_id": "mock-model-1",
           "raw_dataset_included": false,
           "provider_credentials_included": false
         }
       }
-    }
+    },
+    "freshness_metric": "max local receive inter-arrival gap for Scratch sensor notifications",
+    "freshness_sample_count": 85,
+    "freshness_first_10_ms": [
+      85.386,
+      85.83,
+      36.028,
+      59.802,
+      58.764,
+      59.461,
+      86.087,
+      34.245,
+      60.442,
+      53.333
+    ],
+    "freshness_last_10_ms": [
+      57.859,
+      59.65,
+      61.681,
+      83.44,
+      35.971,
+      60.212,
+      59.186,
+      140.69,
+      32.958,
+      57.285
+    ],
+    "ev3_payload_gap_ms_max": 506.438,
+    "ev3_payload_gap_ms_avg": 106.202,
+    "ev3_payload_gap_ms_p95": 227.281,
+    "ev3_clock_skew_ms_avg_observed": 193469616705.977,
+    "evidence_port": 20211,
+    "disconnect_stop_basis": "final system.stopAll and motor.stopAll acknowledgements before closing the smoke client"
   }
 }
