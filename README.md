@@ -500,8 +500,6 @@ An EV3 self-connection to its own RFCOMM address may still report
 must come from the teacher computer pairing to the EV3 and connecting through
 WeisileLink `vsle-bluetooth`.
 
-### Next Phase
-
 ### Phase 7: Pair The Mac And Run A Non-Invasive Bluetooth Smoke
 
 Before running the full classroom smoke, confirm the paired Mac can reach the
@@ -529,8 +527,29 @@ pairing token, and EV3-side RFCOMM listener can complete the basic full VSLE
 Bluetooth handshake. It does not replace the full classroom smoke because it
 does not exercise all command groups or release-artifact install evidence.
 
+Confirmed safe command-group preflight on 2026-05-29:
+
+```text
+connect_ok=True
+sensor_updates=118
+sensor_roots=motors,sensors,system
+sensor_freshness_ms_max=2369.593
+sensor_freshness_ms_avg=80.561
+command_groups_passed=data_collection,display,motor,sensor,sound,system
+disconnect_ok=True
+```
+
+This preflight used only safe commands such as `motor.stopAll`,
+`system.stopAll`, display text/clear, sound beep/stop, and data collection
+start/add/stop/clear. It produced
+`docs/classroom/vsle_bluetooth_full_module_smoke.json` and refreshed
+`docs/classroom/vsle_bluetooth_full_module_smoke.md`, but the report correctly
+still says `Classroom ready: no` because release-artifact install evidence,
+ScratchAI browser evidence, AI Quest evidence, and 25ms sensor freshness remain
+unmet.
+
 ### Next Phase
 
-Run the full `vsle-bluetooth` classroom smoke with safe command-group coverage,
-collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun
-`scripts/run_vsle_bluetooth_smoke.py`.
+Investigate and fix the Bluetooth sensor freshness gap, then rerun the full
+`vsle-bluetooth` classroom smoke until `sensor_freshness_ms_max <= 25` while
+also collecting release-artifact, ScratchAI browser, and AI Quest evidence.

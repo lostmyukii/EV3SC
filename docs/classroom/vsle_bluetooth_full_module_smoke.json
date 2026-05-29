@@ -1,0 +1,32 @@
+{
+  "evidence_kind": "real_hardware_safe_command_group_preflight",
+  "recorded_at": "2026-05-29",
+  "installed_from_release_artifact": false,
+  "ev3_runs_ev3dev_server": true,
+  "transport": "vsle-bluetooth",
+  "real_ev3_full_bluetooth_ok": false,
+  "sensor_freshness_ms_max": 2369.593,
+  "sensor_freshness_ms_avg_observed": 80.561,
+  "sensor_updates_observed": 118,
+  "sensor_roots_observed": [
+    "motors",
+    "sensors",
+    "system"
+  ],
+  "command_groups": {
+    "motor": true,
+    "sensor": true,
+    "sound": true,
+    "display": true,
+    "system": true,
+    "data_collection": true,
+    "ai_quest": false
+  },
+  "disconnect_stop_ok": true,
+  "scratch_unsandboxed_loaded": false,
+  "blocking_notes": [
+    "This is a real paired ev3dev EV3 safe command-group preflight, not a clean-machine release-artifact classroom approval.",
+    "Sensor freshness exceeded the full smoke gate threshold of 25ms during command execution.",
+    "AI Quest upload/train/export and ScratchAI browser Unsandboxed extension evidence were not collected in this step."
+  ]
+}
