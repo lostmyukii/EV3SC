@@ -3251,6 +3251,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Run the full `vsle-bluetooth` classroom smoke with safe command-group coverage, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py`.
 
+### [2026-05-29] VSLE Bluetooth safe command-group preflight
+- **Status**: ✅ Completed
+- **Commit**: `6a44387`
+- **What was done**: Collected real paired-ev3dev `vsle-bluetooth` preflight evidence for safe command groups without moving motors. The EV3 accepted motor stop, system stop, display, sound, and data-collection commands, but the smoke report correctly remains `Classroom ready: no` because release-artifact install, ScratchAI browser, AI Quest evidence, and the 25ms sensor freshness gate are still unmet; measured `sensor_freshness_ms_max` was `2369.593`.
+- **Files created/modified**: `README.md`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
+- **Next step**: Investigate and fix the Bluetooth sensor freshness gap, then rerun the full `vsle-bluetooth` classroom smoke until `sensor_freshness_ms_max <= 25` while also collecting release-artifact, ScratchAI browser, and AI Quest evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
