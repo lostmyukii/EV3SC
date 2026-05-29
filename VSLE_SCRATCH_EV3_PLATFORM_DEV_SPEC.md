@@ -3272,6 +3272,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/native_adapter_process.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_native_adapter_process.py`, `weisile-link/tests/test_bluetooth_transport.py`
 - **Next step**: Rerun the full `vsle-bluetooth` command-group smoke with motor A attached, regenerate `docs/classroom/vsle_bluetooth_full_module_smoke.json`, then collect ScratchAI browser Unsandboxed evidence and release-artifact install evidence.
 
+### [2026-05-29] Full Bluetooth smoke with motor A
+- **Status**: ✅ Completed
+- **Commit**: `500bca1`
+- **What was done**: Restarted the EV3 `vsle-ev3-server` after confirming the physical A-port large motor, reran the real full `vsle-bluetooth` smoke, and regenerated `docs/classroom/vsle_bluetooth_full_module_smoke.json`. The run observed motor A and 117 sensor updates; motor, sound, display, system, data collection, and AI Quest groups passed with 28 collected rows and a trained AI Quest model, while the report correctly remains `Classroom ready: no` because no sensor port was connected, browser Unsandboxed evidence and release-artifact install evidence were not attached, and measured `sensor_freshness_ms_max` was `2385.959`.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
+- **Next step**: Collect ScratchAI browser Unsandboxed evidence, collect or document the release-artifact install evidence gate, then continue the Bluetooth freshness investigation and attach at least one real sensor for the remaining sensor command group.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
