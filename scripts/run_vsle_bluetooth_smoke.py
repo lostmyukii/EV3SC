@@ -16,6 +16,11 @@ BASELINE_REQUIRED_TRUE = (
     "disconnect_stop_ok",
     "scratch_unsandboxed_loaded",
 )
+SELF_USE_REQUIRED_TRUE = tuple(
+    key
+    for key in BASELINE_REQUIRED_TRUE
+    if key != "installed_from_release_artifact"
+)
 REQUIRED_GROUPS = (
     "motor",
     "sensor",
@@ -32,6 +37,21 @@ def validate_baseline_evidence(payload: dict[str, Any]) -> list[str]:
     for key in BASELINE_REQUIRED_TRUE:
         if payload.get(key) is not True:
             errors.append(f"{key} must be true")
+    errors.extend(_validate_common_full_module_evidence(payload))
+    return errors
+
+
+def validate_self_use_unsigned_evidence(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for key in SELF_USE_REQUIRED_TRUE:
+        if payload.get(key) is not True:
+            errors.append(f"{key} must be true")
+    errors.extend(_validate_common_full_module_evidence(payload))
+    return errors
+
+
+def _validate_common_full_module_evidence(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
     if payload.get("transport") != "vsle-bluetooth":
         errors.append("transport must be vsle-bluetooth")
     freshness = payload.get("sensor_freshness_ms_max")
@@ -72,7 +92,10 @@ def _sampling_lines(payload: dict[str, Any]) -> list[str]:
         f"- Max freshness gap: {_format_metric(max_ms, 'ms')}",
         f"- Average freshness gap: {_format_metric(avg_ms, 'ms')}",
         f"- P95 freshness gap: {_format_metric(p95_ms, 'ms')}",
-        f"- Sensor updates observed: {updates if isinstance(updates, int) else 'not recorded'}",
+        (
+            "- Sensor updates observed: "
+            f"{updates if isinstance(updates, int) else 'not recorded'}"
+        ),
     ]
     if isinstance(avg_ms, (int, float)) and avg_ms > 0:
         lines.append(f"- Estimated average sample rate: {1000 / avg_ms:.2f} Hz")
@@ -83,19 +106,49 @@ def write_report(
     report: Path,
     baseline_errors: list[str],
     high_speed_errors: list[str],
+    self_use_errors: list[str] | None = None,
+    self_use_unsigned: bool = False,
     payload: dict[str, Any] | None = None,
 ) -> None:
     payload = payload or {}
+    self_use_errors = (
+        self_use_errors if self_use_errors is not None else baseline_errors
+    )
     baseline_ready = not baseline_errors
     high_speed_ready = not high_speed_errors
+    self_use_ready = not self_use_errors
+    release_ready = payload.get("installed_from_release_artifact") is True
     lines = [
         "# VSLE Bluetooth Full Module Smoke Report",
         "",
+        f"Self-use unsigned ready: {'yes' if self_use_ready else 'no'}",
         f"Classroom ready: {'yes' if baseline_ready else 'no'}",
-        ("Bluetooth classroom baseline ready: " f"{'yes' if baseline_ready else 'no'}"),
-        ("Bluetooth high-speed 50Hz ready: " f"{'yes' if high_speed_ready else 'no'}"),
+        (
+            "Bluetooth classroom baseline ready: "
+            f"{'yes' if baseline_ready else 'no'}"
+        ),
+        (
+            "Bluetooth high-speed 50Hz ready: "
+            f"{'yes' if high_speed_ready else 'no'}"
+        ),
+        f"Release-artifact evidence ready: {'yes' if release_ready else 'no'}",
         "",
     ]
+    if self_use_unsigned:
+        lines.extend(
+            [
+                (
+                    "Self-use unsigned validation is for local/internal "
+                    "functional testing only and does not replace "
+                    "signed/notarized release evidence."
+                ),
+                "",
+            ]
+        )
+    if self_use_errors:
+        lines.append("## Self-Use Unsigned Blocking Items")
+        lines.extend(f"- {error}" for error in self_use_errors)
+        lines.append("")
     if baseline_errors:
         lines.append("## Baseline Blocking Items")
         lines.extend(f"- {error}" for error in baseline_errors)
@@ -125,6 +178,14 @@ def load_evidence(path: Path) -> tuple[dict[str, Any], list[str]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--self-use-unsigned",
+        action="store_true",
+        help=(
+            "Accept local/internal unsigned functional evidence without "
+            "marking classroom or release readiness."
+        ),
+    )
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -132,10 +193,21 @@ def main() -> int:
     payload, errors = load_evidence(args.evidence)
     if errors:
         baseline_errors = errors
+        self_use_errors = errors
     else:
         baseline_errors = validate_baseline_evidence(payload)
+        self_use_errors = validate_self_use_unsigned_evidence(payload)
     high_speed_errors = validate_high_speed_evidence(payload, baseline_errors)
-    write_report(args.report, baseline_errors, high_speed_errors, payload)
+    write_report(
+        args.report,
+        baseline_errors,
+        high_speed_errors,
+        self_use_errors,
+        args.self_use_unsigned,
+        payload,
+    )
+    if args.self_use_unsigned:
+        return 1 if self_use_errors else 0
     return 1 if baseline_errors else 0
 
 

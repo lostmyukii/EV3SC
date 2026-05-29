@@ -274,6 +274,12 @@ Rules for this mode:
   release-artifact evidence, macOS notarized install evidence, or separate
   Windows evidence. Its report is
   `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`.
+- For local/internal self-use when no Developer ID certificates are available,
+  `scripts/run_vsle_bluetooth_smoke.py --self-use-unsigned` may validate the
+  real `vsle-bluetooth` full-module command groups and write
+  `docs/classroom/vsle_bluetooth_self_use_unsigned.md`. This path is only for
+  self-use functional regression and must not be used as classroom baseline,
+  signed release-artifact, notarization, or Windows evidence.
 - Acceptance is split into two milestones:
   - Bluetooth full-module classroom baseline: all module command groups pass,
     reporter and Boolean blocks are cache-backed, Bluetooth sampling/freshness
@@ -553,6 +559,10 @@ cd ..
 .venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
   --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
   --report docs/classroom/vsle_bluetooth_full_module_smoke.md
+.venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
+  --self-use-unsigned \
+  --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_self_use_unsigned.md
 .venv/bin/python scripts/run_macos_browser_vsle_bluetooth_smoke.py \
   --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json \
   --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \

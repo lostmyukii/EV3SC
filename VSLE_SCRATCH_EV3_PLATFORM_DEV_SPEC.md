@@ -2061,14 +2061,21 @@ Required evidence:
   browser Unsandboxed evidence with the full `vsle-bluetooth` command-group
   evidence and writes
   `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`.
+- For self-use/internal validation before Developer ID signing exists,
+  `scripts/run_vsle_bluetooth_smoke.py --self-use-unsigned` can write
+  `docs/classroom/vsle_bluetooth_self_use_unsigned.md` and accept the same real
+  command-group evidence without requiring
+  `installed_from_release_artifact: true`.
 - Reporter and Boolean blocks remain cache-backed, disconnect stop behavior is
   observed, and Bluetooth sampling metrics are recorded.
 
 Mac browser full VSLE Bluetooth smoke can validate the server-side Scratch EV3
 module path before Windows evidence is available, but it does not replace signed
 release-artifact evidence, macOS notarized install evidence, or separate
-Windows evidence. Keep classroom readiness blocked if the release artifact or
-Windows evidence gates are the only missing proof.
+Windows evidence. Self-use unsigned validation is likewise only a local/internal
+functional regression gate; keep classroom readiness blocked if the release
+artifact, notarized install, or Windows evidence gates are the only missing
+proof.
 
 ### 13.7 Manual Classroom Acceptance Test
 

@@ -180,6 +180,22 @@ Validate the evidence:
   --report docs/classroom/vsle_bluetooth_full_module_smoke.md
 ```
 
+For self-use/internal testing when no Developer ID Application/Installer
+certificates or notarization profile are available, run the same evidence
+through the unsigned validation lane:
+
+```bash
+.venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
+  --self-use-unsigned \
+  --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_self_use_unsigned.md
+```
+
+That report may say `Self-use unsigned ready: yes` for local functional
+regression, but it does not replace signed/notarized release evidence. The
+classroom baseline still requires `Bluetooth classroom baseline ready: yes` from
+the normal smoke report plus accepted release-artifact install evidence.
+
 Then validate the Mac browser functional path by combining ScratchAI browser
 Unsandboxed evidence with the full Bluetooth command-group evidence:
 

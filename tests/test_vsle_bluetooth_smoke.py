@@ -181,6 +181,124 @@ def test_vsle_bluetooth_smoke_blocks_baseline_without_release_artifact(
     assert "Diagnostic fallback" not in text
 
 
+def test_self_use_unsigned_accepts_full_module_without_release_artifact(
+    tmp_path,
+):
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "installed_from_release_artifact": False,
+                "ev3_runs_ev3dev_server": True,
+                "transport": "vsle-bluetooth",
+                "real_ev3_full_bluetooth_ok": True,
+                "sensor_freshness_ms_max": 499.251,
+                "sensor_freshness_ms_avg_observed": 106.065,
+                "sensor_freshness_ms_p95_observed": 246.559,
+                "sensor_updates_observed": 86,
+                "command_groups": {
+                    "motor": True,
+                    "sensor": True,
+                    "sound": True,
+                    "display": True,
+                    "system": True,
+                    "data_collection": True,
+                    "ai_quest": True,
+                },
+                "disconnect_stop_ok": True,
+                "scratch_unsandboxed_loaded": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = tmp_path / "self-use.md"
+    result = subprocess.run(
+        [
+            ".venv/bin/python",
+            str(SCRIPT),
+            "--self-use-unsigned",
+            "--evidence",
+            str(evidence),
+            "--report",
+            str(report),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert result.returncode == 0
+    assert "Self-use unsigned ready: yes" in text
+    assert "Bluetooth classroom baseline ready: no" in text
+    assert "Release-artifact evidence ready: no" in text
+    assert "does not replace signed/notarized release evidence" in text
+
+
+def test_self_use_unsigned_rejects_missing_command_group(tmp_path):
+    evidence = tmp_path / "evidence.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "installed_from_release_artifact": False,
+                "ev3_runs_ev3dev_server": True,
+                "transport": "vsle-bluetooth",
+                "real_ev3_full_bluetooth_ok": True,
+                "sensor_freshness_ms_max": 499.251,
+                "command_groups": {
+                    "motor": True,
+                    "sensor": True,
+                    "sound": True,
+                    "display": False,
+                    "system": True,
+                    "data_collection": True,
+                    "ai_quest": True,
+                },
+                "disconnect_stop_ok": True,
+                "scratch_unsandboxed_loaded": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = tmp_path / "self-use.md"
+    result = subprocess.run(
+        [
+            ".venv/bin/python",
+            str(SCRIPT),
+            "--self-use-unsigned",
+            "--evidence",
+            str(evidence),
+            "--report",
+            str(report),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert result.returncode == 1
+    assert "Self-use unsigned ready: no" in text
+    assert "command_groups.display must be true" in text
+
+
+def test_docs_describe_self_use_unsigned_validation_path():
+    docs = [
+        ROOT / "AGENTS.md",
+        ROOT / "VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md",
+        ROOT / "docs/classroom/REAL_EV3_SMOKE_HANDOFF.md",
+        ROOT / "docs/SOURCE_REGISTER.md",
+    ]
+    for path in docs:
+        text = path.read_text(encoding="utf-8")
+        assert "--self-use-unsigned" in text, f"{path} must mention flag"
+        assert "vsle_bluetooth_self_use_unsigned.md" in text, (
+            f"{path} must mention self-use report"
+        )
+
+
 def test_docs_prioritize_macos_browser_vsle_bluetooth_when_windows_unavailable():
     root = ROOT
     agents = " ".join(
