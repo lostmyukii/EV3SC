@@ -3448,6 +3448,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/build_release_artifacts.py`, `desktop/scripts/check_windows_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `tests/test_windows_release_preflight.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/evidence/windows-release-preflight.json`, `docs/desktop/evidence/windows-release-preflight.md`
 - **Next step**: Produce a self-contained `WeisileLink.exe` on a Windows build host with `signtool` available, provide `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL` or equivalent flags, rerun `desktop/scripts/check_windows_release_preflight.py` until `Ready: yes`, then execute `desktop/scripts/run_windows_release_flow.py` and collect clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Desktop executable build helper
+- **Status**: ✅ Completed
+- **Commit**: `22554ee`
+- **What was done**: Added `desktop/scripts/build_weisilelink_executable.py` so the self-contained WeisileLink executable can be built with PyInstaller on the target OS before release packaging. The helper documents and enforces the Windows build-host boundary by refusing `--target windows` from this macOS host, preventing local developer binaries from being mistaken for Windows classroom artifacts.
+- **Files created/modified**: `desktop/scripts/build_weisilelink_executable.py`, `tests/test_desktop_executable_build.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run `desktop/scripts/build_weisilelink_executable.py --target windows --output desktop/build/windows --clean` on a Windows build host to produce `desktop/build/windows/WeisileLink.exe`, provide `WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL`, rerun the Windows preflight until `Ready: yes`, then execute the guarded Windows release flow and collect clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
