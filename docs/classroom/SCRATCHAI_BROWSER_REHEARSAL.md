@@ -90,6 +90,15 @@ Before the fix, browser diagnostics showed the EV3 URL was still routed through
 the local VSLE-EV3 URL, the extension library closes, and the `EV3` block
 category appears with motor and sensor blocks.
 
+## 2026-05-29 Browser Unsandboxed Evidence
+
+- Status: PASS for ScratchAI browser EV3 tile main-thread loading evidence
+- Browser URL: `http://127.0.0.1:8642/`
+- Evidence JSON: `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json`
+- Screenshot: `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png`
+- Result: Chrome CDP opened the EV3SC ScratchAI browser surface, confirmed WebGL and `AI思考帮手`, opened the extension library, clicked the `EV3` tile, and observed the VSLE-EV3 URL inserted as a main-thread `script` resource with no `extension-worker` resource loaded for that URL.
+- Note: The served build used the configured deployed VSLE-EV3 URL `http://101.42.92.6:18612/vsle-ev3-extension/index.js`; unit tests in `scratch-vm` continue to cover `Scratch.extensions.unsandboxed === true` for the VSLE-EV3 URL loader path.
+
 ## Next Action
 
 Use `docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md` and

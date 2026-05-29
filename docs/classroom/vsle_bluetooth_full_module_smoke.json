@@ -22,7 +22,7 @@
     "ai_quest": true
   },
   "disconnect_stop_ok": true,
-  "scratch_unsandboxed_loaded": false,
+  "scratch_unsandboxed_loaded": true,
   "smoke_summary": {
     "connect_ok": true,
     "hardware_topology": {
@@ -1688,11 +1688,16 @@
     },
     "native_adapter": "macos-iobluetooth-app-bundle",
     "release_artifact_run": false,
-    "scratch_browser_rehearsal_run": false
+    "scratch_browser_rehearsal_run": true,
+    "scratch_browser_evidence": {
+      "json": "docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json",
+      "screenshot": "docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png",
+      "result": "pass",
+      "basis": "ScratchAI browser EV3 tile inserted VSLE-EV3 as a main-thread script resource; no extension-worker resource loaded."
+    }
   },
   "blocking_notes": [
     "This run used the repository checkout and built native adapter, not a clean-machine installed release artifact.",
-    "ScratchAI browser Unsandboxed extension evidence was not collected in this hardware command run.",
     "No connected sensor ports were observed in real EV3 payloads, so sensor command group evidence is incomplete.",
     "Sensor freshness exceeded the full smoke gate threshold of 25ms during the real Bluetooth run.",
     "One or more required command-group checks failed; see smoke_summary.command_failures."

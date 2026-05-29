@@ -1,0 +1,60 @@
+{
+  "evidence_kind": "scratchai_browser_unsandboxed_extension_load",
+  "recorded_at": "2026-05-29T04:35:53+00:00",
+  "browser": "Google Chrome headless via CDP with SwiftShader WebGL",
+  "editor_url": "http://127.0.0.1:8642/",
+  "open_extension_library": {
+    "ok": true,
+    "text": "添加扩展"
+  },
+  "click_ev3_tile": {
+    "ok": true,
+    "tileText": "EV3\n\n搭建交互机器人等。\n系统需求\n合作者\nLEGO",
+    "targetText": "",
+    "rect": {
+      "x": 332,
+      "y": 91.84375,
+      "w": 300,
+      "h": 335.90625
+    }
+  },
+  "initial_state": {
+    "url": "http://127.0.0.1:8642/",
+    "title": "Scratch 3.0 GUI",
+    "readyState": "complete",
+    "webgl": true,
+    "aiHelperVisible": true
+  },
+  "post_load_state": {
+    "url": "http://127.0.0.1:8642/",
+    "title": "Scratch 3.0 GUI",
+    "scriptTags": [
+      "http://101.42.92.6:18612/vsle-ev3-extension/index.js"
+    ],
+    "extensionScriptTags": [
+      "http://101.42.92.6:18612/vsle-ev3-extension/index.js"
+    ],
+    "extensionWorkerScriptTags": [],
+    "resources": [
+      {
+        "name": "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+        "initiatorType": "script",
+        "duration": 76.4,
+        "transferSize": 0,
+        "responseEnd": 67124.5
+      }
+    ],
+    "extensionResourceLoadedAsScript": true,
+    "extensionWorkerResourceLoaded": false,
+    "modalText": [],
+    "bodyHasAIHelper": false,
+    "bodyHasEV3": false,
+    "bodyHasMotorText": false,
+    "bodyHasSensorText": false,
+    "bodyHasAIQuest": false,
+    "bodyTail": "个背景\n25\n将\n颜色\n特效增加\n0\n将\n颜色\n特效设定为\n清除图形特效\n背景\n编号\n停止所有声音\n10\n将\n音调\n音效增加\n100\n将\n音调\n音效设为\n清除音效\n-10\n将音量增加\n100\n将音量设为\n%\n音量\n当\n被点击\n当按下\n空格\n键\n10\n当\n响度\n>\n1\n等待\n秒\n10\n重复执行\n次\n重复执行\n如果\n那么\n如果\n那么\n否则\n等待\n重复执行直到\n回答\n空格\n按下\n键?\n按下鼠标?\n鼠标的x坐标\n鼠标的y坐标\n响度\n计时器\n计时器归零\n当前时间的\n年\n2000年至今的天数\nonline?\n用户名\n+\n-\n*\n/\n1\n10\n在\n和\n之间取随机数\n50\n>\n50\n<\n50\n=\n与\n或\n不成立\n除以\n的余数\n四舍五入\n绝对值\n运动\n10\n移动\n步\n15\n右转\n度\n15\n左转\n度\n随机位置\n移到\n0\n0\n移到 x:\ny:\n1\n随机位置\n在\n秒内滑行到\n1\n0\n0\n在\n秒内滑行到 x:\ny:\n90\n面向\n方向\n鼠标指针\n面向\n10\n将x坐标增加\n0\n将x坐标设为\n10\n将y坐标增加\n0\n将y坐标设为\n碰到边缘就反弹\n将旋转方式设为\n左右翻转\nx 坐标\ny 坐标\n方向\n外观\n你好！\n2\n说\n秒\n你好！\n说\n嗯……\n2\n思考\n秒\n嗯……\n思考\ncostume2\n换成\n造型\n下一个造型\nbackdrop1\n换成\n背景\n10\n将大小增加\n100\n将大小设为\n显示\n隐藏\n移到最\n前面\n1\n前移\n层\n造型\n编号\n大小\n声音\nMeow\n播放声音\n等待播完\nMeow\n播放声音\n事件\n当角色被点击\n当背景换成\nbackdrop1\n当接收到\n消息1\n消息1\n广播\n消息1\n广播\n并等待\n控制\n停止\n全部脚本\n当作为克隆体启动时\n自己\n克隆\n删除此克隆体\n侦测\n鼠标指针\n碰到\n?\n碰到颜色\n?\n颜色\n碰到\n?\n鼠标指针\n到\n的距离\n你叫什么名字？\n询问\n并等待\n将拖动模式设为\n可拖动\n舞台\n的\n背景编号\n运算\n苹果 \n香蕉\n连接\n和\n1\n苹果\n的第\n个字符\n苹果\n的字符数\n苹果\n果\n包含\n?\n变量\n建立一个变量\nmy variable\n0\n将\nmy variable\n设为\n1\n将\nmy variable\n增加\n显示变量\nmy variable\n隐藏变量\nmy variable\n建立一个列表\n自制积木\n制作新的积木\n书包\nAI\n思考帮手\n角色\nx\ny\n大小\n方向\nSprite1\n舞台\n背景\n1"
+  },
+  "pass": true,
+  "pass_basis": "EV3 tile inserted the VSLE-EV3 URL as a main-thread script resource and no extension-worker resource was loaded for that URL; unit tests cover Scratch.extensions.unsandboxed=true for this URL path.",
+  "screenshot": "docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png"
+}
