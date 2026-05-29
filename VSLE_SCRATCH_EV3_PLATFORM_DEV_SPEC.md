@@ -3469,6 +3469,13 @@ material into:
 - **Files created/modified**: `desktop/windows/build_release.ps1`, `tests/test_windows_release_handoff.py`, `desktop/README.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Run `desktop/windows/build_release.ps1` on a real Windows build host with `signtool`, `WEISILE_WINDOWS_SIGN_IDENTITY`, and `WEISILE_WINDOWS_TIMESTAMP_URL` configured, then use the resulting signed release manifest for clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-29] Windows signed installer evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `19111a9`
+- **What was done**: Strengthened `scripts/run_desktop_install_smoke.py` so Windows release-artifact evidence now requires signed installer manifest fields, not just a signed zip containing `WeisileLink.exe`. The gate rejects Windows manifests without `windows_installer`, `windows_installer_type`, `windows_installer_signed: true`, and a 64-character `windows_installer_sha256`; docs now state that a signed zip alone is not classroom evidence.
+- **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Add or run the real Windows installer build step on a Windows build host so the signed release manifest records `windows_installer`, `windows_installer_type`, `windows_installer_signed`, and `windows_installer_sha256`, then collect clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
