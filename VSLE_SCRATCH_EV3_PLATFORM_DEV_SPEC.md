@@ -3521,6 +3521,13 @@ material into:
 - **Files created/modified**: `scripts/run_macos_browser_vsle_bluetooth_smoke.py`, `tests/test_macos_browser_vsle_bluetooth_smoke.py`, `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`, `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Produce a signed and notarized macOS WeisileLink Desktop release artifact, install it on a clean macOS machine, collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`, and use the accepted release evidence to unblock the no-WiFi Bluetooth classroom baseline.
 
+### [2026-05-29] VSLE Bluetooth release evidence bridge
+- **Status**: ✅ Completed
+- **Commit**: `704635e`
+- **What was done**: Added a bridge gate that applies clean-machine `vsle-bluetooth` desktop install evidence to the full Bluetooth classroom smoke JSON only after `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth` would accept it. The current bridge report remains blocked because `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json` has not been collected from a signed/notarized clean-machine install.
+- **Files created/modified**: `scripts/apply_vsle_bluetooth_install_evidence.py`, `tests/test_vsle_bluetooth_release_evidence_bridge.py`, `docs/classroom/vsle_bluetooth_release_evidence_bridge.md`, `AGENTS.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Configure real Developer ID Application and Installer identities plus an Apple notarytool profile, run `desktop/scripts/run_macos_release_flow.py` until it produces a signed/notarized app and signed `.pkg`, then install that package on a clean macOS machine and collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
