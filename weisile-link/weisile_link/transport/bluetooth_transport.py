@@ -143,7 +143,9 @@ class BluetoothTransport:
                     return False
             else:
                 if not self.supported:
-                    self._record_failure("stdlib RFCOMM is not supported on this host")
+                    self._record_failure(
+                        "stdlib RFCOMM is not supported on this host"
+                    )
                     return False
 
                 self.sock = self._socket_module.socket(
@@ -248,7 +250,9 @@ class BluetoothTransport:
         except asyncio.TimeoutError as exc:
             self._clear_pending(command_id)
             self._record_failure("Command ack not received before timeout")
-            raise TimeoutError("Command ack not received before timeout") from exc
+            raise TimeoutError(
+                "Command ack not received before timeout"
+            ) from exc
         except Exception:
             self._clear_pending(command_id)
             raise
@@ -260,7 +264,9 @@ class BluetoothTransport:
             await self._send_safe_stop()
         self.manager.connection_state.connected = False
         self.manager.connection_state.active_transport = None
-        self._reject_pending(ConnectionError("EV3 Bluetooth transport disconnected"))
+        self._reject_pending(
+            ConnectionError("EV3 Bluetooth transport disconnected")
+        )
         await self._close_socket()
 
         if self._receive_task is not None:
@@ -292,7 +298,9 @@ class BluetoothTransport:
                 self._reject_pending(ConnectionError(failure_reason))
 
     async def _write_json_line(self, payload: Dict[str, Any]) -> None:
-        line = (json.dumps(payload, separators=(",", ":")) + "\n").encode("utf-8")
+        line = (json.dumps(payload, separators=(",", ":")) + "\n").encode(
+            "utf-8"
+        )
 
         async with self._get_write_lock():
             await self._write_bytes(line)
@@ -327,7 +335,11 @@ class BluetoothTransport:
     async def _read_bytes_line(self) -> bytes:
         if self._native_adapter is not None:
             while b"\n" not in self._native_read_buffer:
-                chunk = await self._native_adapter.recv()
+                try:
+                    chunk = await self._native_adapter.recv()
+                except TimeoutError:
+                    await asyncio.sleep(0)
+                    continue
                 if not chunk:
                     raise ConnectionError("EV3 Bluetooth RFCOMM closed")
                 self._native_read_buffer.extend(chunk)

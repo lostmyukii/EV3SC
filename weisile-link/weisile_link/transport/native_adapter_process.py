@@ -25,12 +25,14 @@ class NativeAdapterProcess:
         executable: Path,
         *,
         request_timeout_s: float = 10.0,
+        recv_timeout_s: float = 0.1,
         platform_name: Optional[str] = None,
         open_executable: Path = Path("/usr/bin/open"),
         launch_app_bundles: Optional[bool] = None,
     ) -> None:
         self.executable = Path(executable)
         self.request_timeout_s = request_timeout_s
+        self.recv_timeout_s = recv_timeout_s
         self.platform_name = platform_name or platform.system()
         self.open_executable = Path(open_executable)
         self._process: Optional[asyncio.subprocess.Process] = None
@@ -79,7 +81,15 @@ class NativeAdapterProcess:
 
     async def recv(self) -> bytes:
         """Read one EV3 reply frame from the native adapter."""
-        result = await self._request("recv", {})
+        try:
+            result = await self._request(
+                "recv",
+                {"timeout": self.recv_timeout_s},
+            )
+        except ConnectionError as exc:
+            if "read timed out" in str(exc):
+                raise TimeoutError("native adapter recv timed out") from exc
+            raise
         payload = str(result.get("payload", ""))
         return base64.b64decode(payload)
 
@@ -130,7 +140,9 @@ class NativeAdapterProcess:
         if self._process is not None and self._process.returncode is None:
             return
         if not self.executable.is_file():
-            raise FileNotFoundError(f"native adapter not found: {self.executable}")
+            raise FileNotFoundError(
+                f"native adapter not found: {self.executable}"
+            )
         if self._use_app_bundle_launcher:
             await self._ensure_app_bundle_process()
             return
@@ -141,7 +153,9 @@ class NativeAdapterProcess:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        self._stderr_task = asyncio.create_task(self._drain_stderr(self._process))
+        self._stderr_task = asyncio.create_task(
+            self._drain_stderr(self._process)
+        )
 
     async def _ensure_app_bundle_process(self) -> None:
         if self._app_bundle is None:
@@ -201,7 +215,9 @@ class NativeAdapterProcess:
             await self._cleanup_stream_bridge()
             raise
 
-    async def _request(self, method: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _request(
+        self, method: str, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         await self._ensure_process()
         assert self._process is not None
 
@@ -231,7 +247,9 @@ class NativeAdapterProcess:
             if response.get("id") != request_id:
                 raise ConnectionError("native adapter response id mismatch")
             if response.get("ok") is not True:
-                raise ConnectionError(str(response.get("error", "adapter error")))
+                raise ConnectionError(
+                    str(response.get("error", "adapter error"))
+                )
             result = response.get("result", {})
             if not isinstance(result, dict):
                 return {}

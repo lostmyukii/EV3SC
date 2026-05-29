@@ -6,6 +6,8 @@ import sys
 import textwrap
 from pathlib import Path
 
+import pytest
+
 from weisile_link.cli import WeisileLinkRuntimeConfig, build_server
 from weisile_link.transport.native_adapter_process import NativeAdapterProcess
 from weisile_link.transport.official_ev3_bt_transport import (
@@ -35,7 +37,10 @@ def _fake_adapter(path: Path) -> Path:
                     payload = base64.b64decode(request["params"]["payload"])
                     result = {"bytesWritten": len(payload)}
                 elif method == "recv":
-                    result = {"payload": base64.b64encode(b"reply").decode("ascii")}
+                    reply = json.dumps(request["params"]).encode("utf-8")
+                    result = {
+                        "payload": base64.b64encode(reply).decode("ascii")
+                    }
                 elif method == "close":
                     result = {"closed": True}
                 else:
@@ -172,11 +177,70 @@ def _fake_open_launcher(path: Path, app_executable_name: str) -> Path:
 
 def test_native_adapter_process_connect_send_recv_and_close(tmp_path):
     async def scenario():
-        adapter = NativeAdapterProcess(_fake_adapter(tmp_path / "fake_adapter.py"))
+        adapter = NativeAdapterProcess(
+            _fake_adapter(tmp_path / "fake_adapter.py")
+        )
 
         await adapter.connect("00:16:53:12:34:56")
         await adapter.send(b"\x01\x02\x03")
-        assert await adapter.recv() == b"reply"
+        payload = json.loads((await adapter.recv()).decode("utf-8"))
+        assert 0 < payload["timeout"] <= 0.1
+        await adapter.close()
+
+    asyncio.run(scenario())
+
+
+def test_native_adapter_process_allows_custom_recv_timeout(tmp_path):
+    async def scenario():
+        adapter = NativeAdapterProcess(
+            _fake_adapter(tmp_path / "fake_adapter.py"),
+            recv_timeout_s=0.25,
+        )
+
+        await adapter.connect("00:16:53:12:34:56")
+        payload = json.loads((await adapter.recv()).decode("utf-8"))
+
+        assert payload["timeout"] == 0.25
+        await adapter.close()
+
+    asyncio.run(scenario())
+
+
+def test_native_adapter_process_maps_recv_timeout_to_timeout_error(tmp_path):
+    timeout_adapter = tmp_path / "timeout_adapter.py"
+    timeout_adapter.write_text(
+        textwrap.dedent(
+            """\
+            #!/usr/bin/env python3
+            import json
+            import sys
+
+            for raw in sys.stdin:
+                request = json.loads(raw)
+                if request["method"] == "recv":
+                    print(json.dumps({
+                        "id": request["id"],
+                        "ok": False,
+                        "error": "EV3 RFCOMM read timed out",
+                    }), flush=True)
+                    continue
+                print(json.dumps({
+                    "id": request["id"],
+                    "ok": True,
+                    "result": {},
+                }), flush=True)
+            """
+        ),
+        encoding="utf-8",
+    )
+    timeout_adapter.chmod(timeout_adapter.stat().st_mode | stat.S_IXUSR)
+
+    async def scenario():
+        adapter = NativeAdapterProcess(timeout_adapter)
+
+        await adapter.connect("00:16:53:12:34:56")
+        with pytest.raises(TimeoutError):
+            await adapter.recv()
         await adapter.close()
 
     asyncio.run(scenario())
@@ -277,7 +341,9 @@ def test_native_adapter_process_maps_adapter_errors(tmp_path):
     asyncio.run(scenario())
 
 
-def test_build_server_uses_native_process_adapter_from_env(monkeypatch, tmp_path):
+def test_build_server_uses_native_process_adapter_from_env(
+    monkeypatch, tmp_path
+):
     adapter_path = _fake_adapter(tmp_path / "fake_adapter.py")
     monkeypatch.setenv("WEISILE_TRANSPORT", "official-bluetooth")
     monkeypatch.setenv("EV3_OFFICIAL_BT", "00:16:53:12:34:56")
@@ -316,7 +382,8 @@ def test_build_server_uses_native_process_adapter_for_vsle_bluetooth(
     )
     assert server.transport.bluetooth_transport._native_adapter is not None
     assert (
-        server.transport.bluetooth_transport._native_adapter.executable == adapter_path
+        server.transport.bluetooth_transport._native_adapter.executable
+        == adapter_path
     )
     assert server.transport.bluetooth_transport._pairing_token == "secret-token"
 
@@ -337,9 +404,9 @@ def test_macos_native_adapter_source_passes_syntax_check():
 
 
 def test_macos_native_adapter_supports_shared_status_command():
-    source = (ROOT / "desktop/macos/native/WeisileEV3BluetoothAdapter.m").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        ROOT / "desktop/macos/native/WeisileEV3BluetoothAdapter.m"
+    ).read_text(encoding="utf-8")
 
     assert "- (NSDictionary *)status:" in source
     assert 'isEqualToString:@"status"' in source
@@ -365,10 +432,14 @@ def test_macos_native_adapter_embeds_bluetooth_usage_description():
     binary = Path(result.stdout.strip())
     assert binary.is_file()
     assert ".app/Contents/MacOS" in str(binary)
-    app_bundle = next(parent for parent in binary.parents if parent.suffix == ".app")
+    app_bundle = next(
+        parent for parent in binary.parents if parent.suffix == ".app"
+    )
     info_plist = app_bundle / "Contents" / "Info.plist"
     assert info_plist.is_file()
-    assert "NSBluetoothAlwaysUsageDescription" in info_plist.read_text(encoding="utf-8")
+    assert "NSBluetoothAlwaysUsageDescription" in info_plist.read_text(
+        encoding="utf-8"
+    )
     strings = subprocess.run(
         ["strings", str(binary)],
         cwd=ROOT,
@@ -402,7 +473,9 @@ def test_macos_native_adapter_embeds_bluetooth_usage_description():
     )
     bundle_signature_output = bundle_signature.stderr + bundle_signature.stdout
     assert bundle_signature.returncode == 0, bundle_signature_output
-    assert "Identifier=cn.vsle.weisile-link.native-adapter" in (bundle_signature_output)
+    assert "Identifier=cn.vsle.weisile-link.native-adapter" in (
+        bundle_signature_output
+    )
 
     verify = subprocess.run(
         ["codesign", "--verify", "--deep", "--verbose=4", str(app_bundle)],

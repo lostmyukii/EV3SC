@@ -133,6 +133,19 @@ class FakeNativeByteStream:
         self.incoming.put(payload)
 
 
+class PollingNativeByteStream(FakeNativeByteStream):
+    def __init__(self):
+        super().__init__()
+        self.recv_timeouts = 0
+
+    async def recv(self):
+        try:
+            return self.incoming.get_nowait()
+        except queue.Empty as exc:
+            self.recv_timeouts += 1
+            raise TimeoutError("native adapter recv timed out") from exc
+
+
 def decoded_native_writes(adapter):
     return [json.loads(payload.decode("utf-8")) for payload in adapter.sent]
 
@@ -489,6 +502,46 @@ def test_vsle_bluetooth_native_adapter_routes_sensor_updates_to_cache():
         )
         assert cached.value == 31.5
         assert cached.stale is False
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_vsle_bluetooth_native_adapter_recv_timeout_keeps_session_alive():
+    async def scenario():
+        adapter = PollingNativeByteStream()
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = VSLEBluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            native_adapter=adapter,
+            manager=manager,
+        )
+        assert await transport.connect(lambda _payload: None) is True
+
+        await asyncio.sleep(0.01)
+        assert adapter.recv_timeouts > 0
+        assert manager.connection_state.connected is True
+        assert manager.connection_state.bluetooth_failed is False
+
+        command_task = asyncio.create_task(
+            transport.send_command(
+                {
+                    "id": "cmd-native",
+                    "method": "motor.stop",
+                    "params": {"port": "A"},
+                }
+            )
+        )
+        await asyncio.sleep(0.01)
+        adapter.feed({"type": "ack", "id": "cmd-native", "ok": True})
+
+        assert await command_task == {
+            "type": "ack",
+            "id": "cmd-native",
+            "ok": True,
+        }
+        assert manager.connection_state.connected is True
 
         await transport.disconnect()
 
