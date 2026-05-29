@@ -1,0 +1,7 @@
+{
+  "blocked_reason": "macOS release preflight did not pass",
+  "commands_executed": [],
+  "preflight_ready": false,
+  "preflight_report": "docs/desktop/evidence/macos-release-preflight.md",
+  "status": "blocked-preflight"
+}

@@ -258,3 +258,4 @@ def test_macos_docs_reference_release_preflight_script():
         assert "unique Developer ID" in text
         assert "WEISILE_NOTARY_KEYCHAIN_PROFILE" in text
         assert "run_macos_release_flow.py" in text
+        assert "macos-release-flow.json" in text

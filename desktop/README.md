@@ -92,6 +92,8 @@ When the preflight is ready, run the guarded macOS release chain with:
 ./.venv/bin/python desktop/scripts/run_macos_release_flow.py \
   --preflight-json-report docs/desktop/evidence/macos-release-preflight.json \
   --preflight-report docs/desktop/evidence/macos-release-preflight.md \
+  --json-report docs/desktop/evidence/macos-release-flow.json \
+  --report docs/desktop/evidence/macos-release-flow.md \
   --output desktop/release/macos \
   --version 0.1.0
 ```

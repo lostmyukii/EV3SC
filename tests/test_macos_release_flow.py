@@ -27,6 +27,8 @@ def _args(tmp_path: Path) -> argparse.Namespace:
         notary_keychain_profile=None,
         preflight_json_report=tmp_path / "preflight.json",
         preflight_report=tmp_path / "preflight.md",
+        json_report=tmp_path / "release-flow.json",
+        report=tmp_path / "release-flow.md",
         output=tmp_path / "release",
         version="0.1.0",
     )
@@ -77,6 +79,13 @@ def test_macos_release_flow_stops_when_preflight_is_not_ready(tmp_path):
     assert module.run_release_flow(_args(tmp_path), runner) == 2
     assert len(calls) == 1
     assert str(module.PREFLIGHT_SCRIPT) in calls[0]
+    payload = json.loads((tmp_path / "release-flow.json").read_text(encoding="utf-8"))
+    assert payload["status"] == "blocked-preflight"
+    assert payload["preflight_ready"] is False
+    assert payload["commands_executed"] == []
+    markdown = (tmp_path / "release-flow.md").read_text(encoding="utf-8")
+    assert "Status: blocked-preflight" in markdown
+    assert "Commands executed: 0" in markdown
 
 
 def test_macos_release_flow_runs_signed_chain_after_preflight(tmp_path):
@@ -130,4 +139,13 @@ def test_macos_release_flow_runs_signed_chain_after_preflight(tmp_path):
         str(manifest),
         "--sign-identity",
         "Developer ID Installer: VSLE",
+    ]
+    payload = json.loads(args.json_report.read_text(encoding="utf-8"))
+    assert payload["status"] == "release-flow-complete"
+    assert payload["preflight_ready"] is True
+    assert payload["manifest"] == str(manifest)
+    assert payload["commands_executed"] == [
+        "build_release_artifacts.py",
+        "notarize_macos_release.py",
+        "build_macos_pkg.py",
     ]

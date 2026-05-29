@@ -19,6 +19,8 @@ NOTARIZE_SCRIPT = ROOT / "desktop/scripts/notarize_macos_release.py"
 PKG_SCRIPT = ROOT / "desktop/scripts/build_macos_pkg.py"
 DEFAULT_PREFLIGHT_JSON = ROOT / "docs/desktop/evidence/macos-release-preflight.json"
 DEFAULT_PREFLIGHT_REPORT = ROOT / "docs/desktop/evidence/macos-release-preflight.md"
+DEFAULT_JSON_REPORT = ROOT / "docs/desktop/evidence/macos-release-flow.json"
+DEFAULT_MARKDOWN_REPORT = ROOT / "docs/desktop/evidence/macos-release-flow.md"
 DEFAULT_OUTPUT = ROOT / "desktop/release/macos"
 DEFAULT_VERSION = "0.1.0"
 
@@ -65,6 +67,49 @@ def _load_preflight(path: Path) -> dict[str, object]:
     if not isinstance(decoded, dict):
         raise ValueError("preflight JSON report must be an object")
     return decoded
+
+
+def _command_name(command: list[str]) -> str:
+    if len(command) < 2:
+        return "unknown"
+    return Path(command[1]).name
+
+
+def _write_json(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_markdown(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    executed = payload.get("commands_executed")
+    if not isinstance(executed, list):
+        executed = []
+    lines = [
+        "# macOS Release Flow",
+        "",
+        f"Status: {payload['status']}",
+        f"Preflight ready: {'yes' if payload['preflight_ready'] else 'no'}",
+        f"Commands executed: {len(executed)}",
+        "",
+    ]
+    if payload.get("blocked_reason"):
+        lines.append(f"Blocked reason: {payload['blocked_reason']}")
+        lines.append("")
+    if executed:
+        lines.extend(["## Commands", ""])
+        for command in executed:
+            lines.append(f"- {command}")
+        lines.append("")
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def _write_reports(args: argparse.Namespace, payload: dict[str, object]) -> None:
+    _write_json(args.json_report, payload)
+    _write_markdown(args.report, payload)
 
 
 def _check_detail(payload: dict[str, object], name: str) -> str:
@@ -133,6 +178,16 @@ def run_release_flow(
     preflight = _preflight_command(args)
     preflight_result = runner(preflight, cwd=ROOT, check=False)
     if preflight_result.returncode != 0:
+        _write_reports(
+            args,
+            {
+                "blocked_reason": "macOS release preflight did not pass",
+                "commands_executed": [],
+                "preflight_ready": False,
+                "preflight_report": str(args.preflight_report),
+                "status": "blocked-preflight",
+            },
+        )
         print(
             f"macOS release preflight did not pass; see {args.preflight_report}",
             file=sys.stderr,
@@ -145,27 +200,47 @@ def run_release_flow(
             raise ValueError("preflight JSON report is not ready")
         commands = _release_commands(args, payload)
     except ValueError as exc:
+        _write_reports(
+            args,
+            {
+                "blocked_reason": str(exc),
+                "commands_executed": [],
+                "preflight_ready": False,
+                "preflight_report": str(args.preflight_report),
+                "status": "blocked-preflight",
+            },
+        )
         print(str(exc), file=sys.stderr)
         return 2
 
+    executed: list[str] = []
     for command in commands:
         result = runner(command, cwd=ROOT, check=False)
+        executed.append(_command_name(command))
         if result.returncode != 0:
+            _write_reports(
+                args,
+                {
+                    "blocked_reason": f"release command failed: {_command_name(command)}",
+                    "commands_executed": executed,
+                    "preflight_ready": True,
+                    "preflight_report": str(args.preflight_report),
+                    "status": "failed",
+                },
+            )
             print(f"release command failed: {' '.join(command)}", file=sys.stderr)
             return result.returncode or 1
 
     manifest = args.output / f"WeisileLink-macos-{args.version}-manifest.json"
-    print(
-        json.dumps(
-            {
-                "manifest": str(manifest),
-                "preflight_report": str(args.preflight_report),
-                "status": "release-flow-complete",
-            },
-            indent=2,
-            sort_keys=True,
-        )
-    )
+    result = {
+        "commands_executed": executed,
+        "manifest": str(manifest),
+        "preflight_ready": True,
+        "preflight_report": str(args.preflight_report),
+        "status": "release-flow-complete",
+    }
+    _write_reports(args, result)
+    print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
 
@@ -193,6 +268,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--version", default=DEFAULT_VERSION)
+    parser.add_argument(
+        "--json-report",
+        type=Path,
+        default=DEFAULT_JSON_REPORT,
+    )
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=DEFAULT_MARKDOWN_REPORT,
+    )
     return run_release_flow(parser.parse_args(argv))
 
 
