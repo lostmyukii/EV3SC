@@ -3293,6 +3293,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 - **Next step**: Investigate the remaining Bluetooth sensor freshness gap until `sensor_freshness_ms_max <= 25`, then collect clean release-artifact install evidence before claiming classroom readiness.
 
+### [2026-05-29] Bluetooth freshness root-cause diagnosis
+- **Status**: ✅ Completed
+- **Commit**: `5d270b9`
+- **What was done**: Ran non-invasive freshness diagnostics without moving motors. The EV3-local WebSocket stream averaged `138.141ms`, direct `read_all()` averaged `89.566ms`, and component timing showed that motor PID reads and EV3 button polling each exceed the 25ms freshness budget on real ev3dev hardware; the issue is therefore rooted in the EV3 hardware snapshot path, not only in the macOS native Bluetooth adapter.
+- **Files created/modified**: `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`
+- **Next step**: Implement a cache-tiered EV3 snapshot path that keeps sensors high-frequency while moving motor PID, battery, and EV3 button reads to lower-frequency cached fields, then rerun the no-motor freshness diagnostic and full `vsle-bluetooth` smoke.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
