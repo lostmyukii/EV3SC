@@ -227,7 +227,185 @@ References:
 - ev3dev SSH:
   `https://www.ev3dev.org/docs/tutorials/connecting-to-ev3dev-with-ssh`
 
+### Phase 5: Install The EV3-Side VSLE Server
+
+Keep the EV3 on stable power before installing services. During this confirmed
+install, the EV3 warned `Low battery. Power off or connect a charger soon.`, so
+the safe classroom rule is: stop, connect a charger or replace batteries, and
+only continue after the power is stable.
+
+On the teacher Mac, confirm the USB SSH path is still available:
+
+```bash
+networksetup -listallhardwareports
+nc -6 -G 5 -vz 'fe80::16:53ff:fe4f:4655%en10' 22
+```
+
+Copy the EV3 firmware package and the Python 3.5-compatible `websockets`
+offline package to the brick:
+
+```bash
+ssh -6 robot@fe80::16:53ff:fe4f:4655%en10
+# password: maker
+rm -rf ~/vsle-ev3-firmware
+mkdir -p ~/vsle-ev3-firmware
+exit
+
+scp -6 -r \
+  ev3-firmware/README.md \
+  ev3-firmware/vsle_ev3_server.py \
+  ev3-firmware/scripts \
+  ev3-firmware/systemd \
+  downloads/python-packages/websockets-7.0.tar.gz \
+  'robot@[fe80::16:53ff:fe4f:4655%en10]:~/vsle-ev3-firmware/'
+```
+
+On the EV3, check the built-in dependency state:
+
+```bash
+ssh -6 robot@fe80::16:53ff:fe4f:4655%en10
+cd ~/vsle-ev3-firmware
+python3 --version
+python3 -m pip --version || true
+python3 - <<'PY'
+import sys, site
+print('python=' + sys.version.split()[0])
+print('user_site=' + site.USER_SITE)
+for name in ('ev3dev2', 'websockets'):
+    try:
+        mod = __import__(name)
+        print('%s ok version=%s file=%s' % (
+            name,
+            getattr(mod, '__version__', 'unknown'),
+            getattr(mod, '__file__', 'unknown'),
+        ))
+    except Exception as exc:
+        print('%s missing %s: %s' % (name, type(exc).__name__, exc))
+PY
+```
+
+Confirmed dependency state on 2026-05-29:
+
+- `python3 --version`: `Python 3.5.3`
+- `python3 -m pip --version`: no `pip` module
+- `ev3dev2`: installed, version `2.1.0`
+- `websockets`: initially missing
+
+Because the stock ev3dev Stretch image has no pip module, install
+`websockets==7.0` from the local offline cache:
+
+```bash
+SITE="$(python3 -c 'import site; print(site.USER_SITE)')"
+mkdir -p "$SITE"
+rm -rf /tmp/websockets-7.0
+tar -xzf websockets-7.0.tar.gz -C /tmp
+rm -rf "$SITE/websockets"
+cp -r /tmp/websockets-7.0/src/websockets "$SITE/websockets"
+python3 -c 'import websockets; print(websockets.__version__)'
+```
+
+Confirmed result:
+
+```text
+websockets=7.0
+```
+
+Before enabling autostart, compile the server and recheck imports:
+
+```bash
+python3 -m py_compile vsle_ev3_server.py
+python3 - <<'PY'
+import ev3dev2, websockets
+print('ev3dev2=' + ev3dev2.__version__)
+print('websockets=' + websockets.__version__)
+PY
+```
+
+Confirmed result:
+
+```text
+ev3dev2=2.1.0
+websockets=7.0
+```
+
+Install the VSLE server as a systemd service, skipping pip because dependencies
+were checked manually:
+
+```bash
+SKIP_PIP_INSTALL=1 ./scripts/install.sh
+```
+
+Confirmed install result on 2026-05-29:
+
+- service: `vsle-ev3-server.service`
+- server file: `/home/robot/vsle_ev3_server.py`
+- backup directory: `/home/robot/vsle-backups/20200410T190052Z`
+- `systemctl is-enabled vsle-ev3-server.service`: `enabled`
+- `systemctl is-active vsle-ev3-server.service`: `active`
+- listener: `0.0.0.0:8765`
+- env file: `/home/robot/.config/vsle/ev3.env`
+- `WEISILE_PAIRING_TOKEN` exists but must remain redacted and uncommitted
+- `EV3_ENABLE_BLUETOOTH=0` by default
+
+Run a local EV3-side WebSocket smoke check without printing the pairing token:
+
+```bash
+python3 - <<'PY'
+import asyncio
+import json
+import websockets
+
+env = {}
+with open('/home/robot/.config/vsle/ev3.env') as fh:
+    for line in fh:
+        line = line.strip()
+        if not line or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        env[key] = value
+
+async def main():
+    ws = await websockets.connect('ws://127.0.0.1:8765')
+    try:
+        await ws.send(json.dumps({
+            'id': 1,
+            'method': 'auth.pair',
+            'params': {'token': env.get('WEISILE_PAIRING_TOKEN', '')},
+        }))
+        ack = json.loads(await asyncio.wait_for(ws.recv(), timeout=5))
+        print('auth_ack_ok={0} id={1}'.format(ack.get('ok'), ack.get('id')))
+        for _ in range(10):
+            msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=5))
+            if msg.get('type') == 'sensor_update':
+                print('sensor_update_ok=True')
+                print('sensor_keys=' + ','.join(sorted(msg.get('sensors', {}).keys())))
+                print('motor_keys=' + ','.join(sorted(msg.get('motors', {}).keys())))
+                print('battery_pct=' + str(msg.get('system', {}).get('battery_pct')))
+                return
+        print('sensor_update_ok=False')
+    finally:
+        await ws.close()
+
+asyncio.get_event_loop().run_until_complete(main())
+PY
+```
+
+Confirmed smoke result:
+
+```text
+auth_ack_ok=True id=1
+sensor_update_ok=True
+sensor_keys=
+motor_keys=
+battery_pct=0
+```
+
+The empty sensor and motor key lists are acceptable for this bring-up because no
+external EV3 sensors or motors were confirmed as attached during the install.
+
 ### Next Phase
 
-Phase 5 will install the EV3-side VSLE server over the working USB SSH
-connection and prepare the brick for WeisileLink testing.
+Phase 6 will make the installed EV3 server reachable from WeisileLink for real
+hardware smoke testing. Use Wi-Fi with a supported EV3 dongle when available,
+or enable the full VSLE Bluetooth RFCOMM listener for the paired ev3dev EV3
+before collecting `docs/classroom/vsle_bluetooth_full_module_smoke.json`.
