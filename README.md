@@ -502,6 +502,35 @@ WeisileLink `vsle-bluetooth`.
 
 ### Next Phase
 
-Phase 7 will pair the Mac with the discoverable ev3dev EV3, point WeisileLink
-at `vsle-bluetooth`, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`,
-and rerun `scripts/run_vsle_bluetooth_smoke.py`.
+### Phase 7: Pair The Mac And Run A Non-Invasive Bluetooth Smoke
+
+Before running the full classroom smoke, confirm the paired Mac can reach the
+EV3 over the macOS native adapter without moving motors.
+
+Confirmed on 2026-05-29:
+
+- macOS Bluetooth showed the ev3dev EV3 as connected.
+- `desktop/macos/native/build.sh` rebuilt the adapter as:
+  `desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter`
+- The EV3 pairing token was read over the existing USB SSH recovery path and
+  was not written to committed logs.
+- A non-invasive `vsle-bluetooth` smoke through `VSLEBluetoothTransport` and
+  `NativeAdapterProcess` returned:
+
+```text
+connect_ok=True
+sensor_update_ok=True
+sensor_roots=motors,sensors,system
+disconnect_ok=True
+```
+
+This confirms the Mac adapter bundle, LaunchServices socket bridge, EV3
+pairing token, and EV3-side RFCOMM listener can complete the basic full VSLE
+Bluetooth handshake. It does not replace the full classroom smoke because it
+does not exercise all command groups or release-artifact install evidence.
+
+### Next Phase
+
+Run the full `vsle-bluetooth` classroom smoke with safe command-group coverage,
+collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun
+`scripts/run_vsle_bluetooth_smoke.py`.
