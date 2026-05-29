@@ -96,10 +96,10 @@ This is the handoff for the website Bluetooth full-module path. It is not
 official-firmware Bluetooth compatibility: the EV3 must run ev3dev and the
 EV3SC `vsle_ev3_server.py` with the RFCOMM listener explicitly enabled.
 
-Current evidence decision: `vsle-bluetooth` is a non-classroom
-diagnostic/fallback mode until fresh real-EV3 evidence satisfies the
-`sensor_freshness_ms_max <= 25` classroom gate and the run comes from a release
-artifact install. WiFi Full VSLE remains the classroom 50Hz transport path.
+Current evidence decision: `vsle-bluetooth` is the no-WiFi full-module
+classroom path when compatible EV3 WiFi dongles are unavailable. The smoke gate
+now reports two separate results: the Bluetooth classroom baseline and the
+Bluetooth high-speed 50Hz gate.
 
 On the EV3, enable the full VSLE Bluetooth listener only after pairing and
 classroom safety checks:
@@ -155,7 +155,10 @@ Required pass fields:
 - `ev3_runs_ev3dev_server`: true only after confirming `vsle-ev3-server`.
 - `transport`: `vsle-bluetooth`.
 - `real_ev3_full_bluetooth_ok`: true only after a physical Bluetooth run.
-- `sensor_freshness_ms_max`: 25 or less from observed sensor freshness.
+- `sensor_freshness_ms_max`: observed max Bluetooth sensor freshness gap.
+- `sensor_freshness_ms_avg_observed`: observed average Bluetooth freshness gap.
+- `sensor_freshness_ms_p95_observed`: observed P95 Bluetooth freshness gap.
+- `sensor_updates_observed`: number of Scratch-visible sensor updates observed.
 - every `command_groups.*` value true after that group is exercised.
 - `disconnect_stop_ok`: true only after disconnect stop behavior is observed.
 - `scratch_unsandboxed_loaded`: true only for the unsandboxed ScratchAI path.
@@ -168,10 +171,10 @@ Validate the evidence:
   --report docs/classroom/vsle_bluetooth_full_module_smoke.md
 ```
 
-The report must say `Classroom ready: yes` before this full Bluetooth path can
-be treated as classroom-ready. If command groups pass but freshness still fails,
-the report should say `Diagnostic fallback: yes`; keep that as the explicit
-non-classroom status rather than treating Bluetooth as the 50Hz classroom path.
+The report must say `Bluetooth classroom baseline ready: yes` before this full
+Bluetooth path can be treated as the no-WiFi classroom baseline. The separate
+`Bluetooth high-speed 50Hz ready` result must say `yes` before any lesson or
+release note claims 50Hz/high-speed Bluetooth streaming.
 
 ## Section 13.7 Full Classroom Rehearsal
 

@@ -4,6 +4,9 @@
   "transport": "vsle-bluetooth",
   "real_ev3_full_bluetooth_ok": false,
   "sensor_freshness_ms_max": 999999,
+  "sensor_freshness_ms_avg_observed": 999999,
+  "sensor_freshness_ms_p95_observed": 999999,
+  "sensor_updates_observed": 0,
   "command_groups": {
     "motor": false,
     "sensor": false,
