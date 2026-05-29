@@ -3528,6 +3528,13 @@ material into:
 - **Files created/modified**: `scripts/apply_vsle_bluetooth_install_evidence.py`, `tests/test_vsle_bluetooth_release_evidence_bridge.py`, `docs/classroom/vsle_bluetooth_release_evidence_bridge.md`, `AGENTS.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Configure real Developer ID Application and Installer identities plus an Apple notarytool profile, run `desktop/scripts/run_macos_release_flow.py` until it produces a signed/notarized app and signed `.pkg`, then install that package on a clean macOS machine and collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json`.
 
+### [2026-05-29] macOS release blocker report details
+- **Status**: ✅ Completed
+- **Commit**: `ae2f5bf`
+- **What was done**: Expanded the guarded macOS release-flow reports so blocked preflight runs include concrete `Preflight Blocking Checks` and the `Release Commands After Preflight Passes`. Regenerated the current macOS release-flow evidence, which now shows this machine has the local build outputs and tools but is blocked by missing Developer ID Application, Developer ID Installer, and Apple notarytool profile inputs.
+- **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `docs/desktop/evidence/macos-release-flow.json`, `docs/desktop/evidence/macos-release-flow.md`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Install or provide the real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE`, rerun `desktop/scripts/run_macos_release_flow.py` until the release-flow report is `release-flow-complete`, then collect clean-machine `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
