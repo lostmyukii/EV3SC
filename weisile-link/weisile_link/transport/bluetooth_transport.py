@@ -13,6 +13,7 @@ Sources:
 import asyncio
 import inspect
 import json
+import os
 import platform
 import socket
 import time
@@ -57,7 +58,7 @@ class BluetoothTransport:
         ev3_address: str,
         channel: int = EV3_BT_CHANNEL,
         *,
-        pairing_token: str = "",
+        pairing_token: Optional[str] = None,
         socket_module: Any = socket,
         platform_name: Optional[str] = None,
         native_adapter: Optional[NativeByteStreamAdapter] = None,
@@ -69,7 +70,11 @@ class BluetoothTransport:
         self.ev3_address = ev3_address
         self.channel = channel
         self.manager = manager or DegradationManager()
-        self._pairing_token = pairing_token
+        self._pairing_token = (
+            os.getenv("WEISILE_PAIRING_TOKEN", "")
+            if pairing_token is None
+            else pairing_token
+        )
         self._socket_module = socket_module
         self._platform_name = platform_name
         self._native_adapter = native_adapter
@@ -138,9 +143,7 @@ class BluetoothTransport:
                     return False
             else:
                 if not self.supported:
-                    self._record_failure(
-                        "stdlib RFCOMM is not supported on this host"
-                    )
+                    self._record_failure("stdlib RFCOMM is not supported on this host")
                     return False
 
                 self.sock = self._socket_module.socket(
@@ -245,9 +248,7 @@ class BluetoothTransport:
         except asyncio.TimeoutError as exc:
             self._clear_pending(command_id)
             self._record_failure("Command ack not received before timeout")
-            raise TimeoutError(
-                "Command ack not received before timeout"
-            ) from exc
+            raise TimeoutError("Command ack not received before timeout") from exc
         except Exception:
             self._clear_pending(command_id)
             raise
@@ -259,9 +260,7 @@ class BluetoothTransport:
             await self._send_safe_stop()
         self.manager.connection_state.connected = False
         self.manager.connection_state.active_transport = None
-        self._reject_pending(
-            ConnectionError("EV3 Bluetooth transport disconnected")
-        )
+        self._reject_pending(ConnectionError("EV3 Bluetooth transport disconnected"))
         await self._close_socket()
 
         if self._receive_task is not None:
@@ -293,9 +292,7 @@ class BluetoothTransport:
                 self._reject_pending(ConnectionError(failure_reason))
 
     async def _write_json_line(self, payload: Dict[str, Any]) -> None:
-        line = (json.dumps(payload, separators=(",", ":")) + "\n").encode(
-            "utf-8"
-        )
+        line = (json.dumps(payload, separators=(",", ":")) + "\n").encode("utf-8")
 
         async with self._get_write_lock():
             await self._write_bytes(line)

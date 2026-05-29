@@ -47,6 +47,41 @@ def _require_existing_executable(path: Path) -> Path:
     return resolved
 
 
+def _find_app_bundle(path: Path) -> Path | None:
+    for candidate in (path, *path.parents):
+        if candidate.suffix == ".app":
+            return candidate
+    return None
+
+
+def _require_macos_native_adapter_bundle(path: Path) -> tuple[Path, Path]:
+    resolved = path.expanduser().resolve()
+    app_bundle = _find_app_bundle(resolved)
+    if app_bundle is None:
+        raise ValueError(
+            "--native-adapter must point to the built "
+            "WeisileEV3BluetoothAdapter.app bundle or to the executable "
+            "inside that app bundle."
+        )
+    executable = app_bundle / "Contents" / "MacOS" / "WeisileEV3BluetoothAdapter"
+    if not executable.is_file():
+        raise ValueError(
+            "macOS native adapter app is missing executable: " f"{executable}"
+        )
+    info_plist = app_bundle / "Contents" / "Info.plist"
+    if not info_plist.is_file():
+        raise ValueError(
+            "macOS native adapter app is missing Info.plist: " f"{info_plist}"
+        )
+    info = plistlib.loads(info_plist.read_bytes())
+    if "NSBluetoothAlwaysUsageDescription" not in info:
+        raise ValueError(
+            "macOS native adapter app must include "
+            "NSBluetoothAlwaysUsageDescription."
+        )
+    return app_bundle, executable
+
+
 def _prepare_output(path: Path) -> Path:
     resolved = path.expanduser().resolve()
     resolved.mkdir(parents=True, exist_ok=True)
@@ -58,6 +93,17 @@ def _copy_executable(source: Path, target: Path) -> None:
     shutil.copy2(source, target)
     mode = target.stat().st_mode
     target.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
+def _copy_app_bundle(source: Path, target: Path, executable: Path) -> Path:
+    if target.exists():
+        shutil.rmtree(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(source, target)
+    target_executable = target / executable.relative_to(source)
+    mode = target_executable.stat().st_mode
+    target_executable.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return target_executable
 
 
 def _copy_asset(source: Path, target: Path, executable: bool = False) -> None:
@@ -163,9 +209,12 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
     if args.native_adapter is None:
         raise ValueError(
             "macOS release artifacts require --native-adapter pointing to "
-            "the built WeisileEV3BluetoothAdapter binary."
+            "the built WeisileEV3BluetoothAdapter.app bundle or executable "
+            "inside that app bundle."
         )
-    native_adapter = _require_existing_executable(args.native_adapter)
+    native_adapter_app, native_adapter_executable = (
+        _require_macos_native_adapter_bundle(args.native_adapter)
+    )
     output = _prepare_output(args.output)
     app = output / "WeisileLink.app"
     if app.exists():
@@ -175,9 +224,10 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
     macos_dir = contents / "MacOS"
     resources = contents / "Resources"
     _copy_executable(executable, macos_dir / "WeisileLink")
-    _copy_executable(
-        native_adapter,
-        resources / "native" / "WeisileEV3BluetoothAdapter",
+    bundled_native_adapter = _copy_app_bundle(
+        native_adapter_app,
+        resources / "native" / "WeisileEV3BluetoothAdapter.app",
+        native_adapter_executable,
     )
     _copy_asset(MACOS_ASSET_ROOT / "install.sh", resources / "install.sh", True)
     _copy_asset(MACOS_ASSET_ROOT / "uninstall.sh", resources / "uninstall.sh", True)
@@ -205,6 +255,7 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
         "classroom_ready": False,
         "contains_self_contained_executable": True,
         "contains_macos_native_bluetooth_adapter": True,
+        "macos_native_bluetooth_adapter": str(bundled_native_adapter.relative_to(app)),
         "official_firmware_bt_classroom_ready": False,
         "build_host_can_run_target": _host_can_run_target("macos"),
         "localhost_defaults": {
@@ -333,8 +384,8 @@ def parse_args(argv: list[str]) -> tuple[argparse.ArgumentParser, argparse.Names
         "--native-adapter",
         type=Path,
         help=(
-            "Path to the built WeisileEV3BluetoothAdapter binary bundled "
-            "for official-firmware Bluetooth compatibility mode."
+            "Path to the built WeisileEV3BluetoothAdapter.app bundle, or "
+            "to its Contents/MacOS/WeisileEV3BluetoothAdapter executable."
         ),
     )
     macos.set_defaults(builder=build_macos, command_parser=macos)

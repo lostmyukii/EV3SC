@@ -34,6 +34,7 @@ def main() -> int:
         return 1
     expected_adapter = (
         "/Applications/WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter.app/Contents/MacOS/"
         "WeisileEV3BluetoothAdapter"
     )
     if env.get("WEISILE_OFFICIAL_BT_ADAPTER") != expected_adapter:

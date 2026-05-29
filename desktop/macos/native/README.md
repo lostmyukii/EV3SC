@@ -20,9 +20,13 @@ Implementation rules:
 
 Current adapter slice:
 
-- `WeisileEV3BluetoothAdapter.m` is a command-line native adapter using
-  IOBluetooth.
+- `WeisileEV3BluetoothAdapter.m` is packaged as a small background `.app`
+  bundle using IOBluetooth. WeisileLink launches the app through
+  LaunchServices and bridges newline-delimited JSON over a localhost socket so
+  macOS can apply the bundle's Bluetooth usage description.
 - `build.sh --check` verifies Objective-C syntax against the macOS SDK.
+- `build.sh` writes:
+  `desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter`.
 - The adapter speaks newline-delimited JSON with Python:
   - `connect` with `address` opens RFCOMM channel `1`;
   - `send` writes a base64 EV3 Direct Command frame;
@@ -42,7 +46,7 @@ Runtime selection is explicit and remains a compatibility mode:
 ```bash
 WEISILE_TRANSPORT=official-bluetooth \
 EV3_OFFICIAL_BT=00:16:53:12:34:56 \
-WEISILE_OFFICIAL_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter \
+WEISILE_OFFICIAL_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
 /Applications/WeisileLink.app/Contents/MacOS/WeisileLink
 ```
 

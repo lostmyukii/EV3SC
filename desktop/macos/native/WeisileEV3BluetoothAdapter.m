@@ -1,5 +1,9 @@
 #import <Foundation/Foundation.h>
 #import <IOBluetooth/IOBluetooth.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 // Source basis:
 // - Scratch Link MacBTSession uses IOBluetooth and RFCOMM channel 1 for
@@ -231,21 +235,21 @@
 
 @end
 
-static void WriteJSON(NSDictionary *payload)
+static void WriteJSON(FILE *stream, NSDictionary *payload)
 {
     NSError *error = nil;
     NSData *data =
         [NSJSONSerialization dataWithJSONObject:payload options:0 error:&error];
     if (data == nil) {
         fprintf(
-            stdout,
+            stream,
             "{\"ok\":false,\"error\":\"json serialization failed\"}\n");
-        fflush(stdout);
+        fflush(stream);
         return;
     }
-    fwrite(data.bytes, 1, data.length, stdout);
-    fputc('\n', stdout);
-    fflush(stdout);
+    fwrite(data.bytes, 1, data.length, stream);
+    fputc('\n', stream);
+    fflush(stream);
 }
 
 static NSDictionary *ReadRequest(char *line)
@@ -262,17 +266,76 @@ static NSDictionary *ReadRequest(char *line)
     return value;
 }
 
+static NSString *ArgumentValue(int argc, const char *argv[], NSString *name)
+{
+    for (int index = 1; index < argc - 1; index++) {
+        NSString *argument =
+            [NSString stringWithUTF8String:argv[index] ?: ""];
+        if ([argument isEqualToString:name]) {
+            return [NSString stringWithUTF8String:argv[index + 1] ?: ""];
+        }
+    }
+    return nil;
+}
+
+static int OpenLoopbackSocket(NSString *host, NSString *portString)
+{
+    if (host.length == 0 || portString.length == 0) {
+        return -1;
+    }
+    int socketFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketFD < 0) {
+        return -1;
+    }
+
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_port = htons((uint16_t)[portString intValue]);
+    if (inet_pton(AF_INET, host.UTF8String, &address.sin_addr) != 1) {
+        close(socketFD);
+        return -1;
+    }
+    if (connect(socketFD, (struct sockaddr *)&address, sizeof(address)) != 0) {
+        close(socketFD);
+        return -1;
+    }
+    return socketFD;
+}
+
 int main(int argc, const char *argv[])
 {
-    (void)argc;
-    (void)argv;
     @autoreleasepool {
         WeisileEV3BluetoothAdapter *adapter =
             [[WeisileEV3BluetoothAdapter alloc] init];
+        NSString *inputPath = ArgumentValue(argc, argv, @"--input");
+        NSString *outputPath = ArgumentValue(argc, argv, @"--output");
+        NSString *host = ArgumentValue(argc, argv, @"--host");
+        NSString *port = ArgumentValue(argc, argv, @"--port");
+        FILE *input = stdin;
+        FILE *output = stdout;
+        int socketFD = -1;
+        if (host.length > 0 || port.length > 0) {
+            socketFD = OpenLoopbackSocket(host, port);
+            if (socketFD < 0) {
+                return 2;
+            }
+            input = fdopen(socketFD, "r");
+            output = fdopen(dup(socketFD), "w");
+        }
+        if (inputPath.length > 0) {
+            input = fopen(inputPath.UTF8String, "r");
+        }
+        if (outputPath.length > 0) {
+            output = fopen(outputPath.UTF8String, "w");
+        }
+        if (input == NULL || output == NULL) {
+            return 2;
+        }
         char *line = NULL;
         size_t length = 0;
 
-        while (getline(&line, &length, stdin) != -1) {
+        while (getline(&line, &length, input) != -1) {
             NSDictionary *request = ReadRequest(line);
             NSNumber *requestID = request[@"id"] ?: @0;
             NSString *method = [request[@"method"] description];
@@ -298,13 +361,13 @@ int main(int argc, const char *argv[])
             }
 
             if (errorMessage != nil) {
-                WriteJSON(@{
+                WriteJSON(output, @{
                     @"id": requestID,
                     @"ok": @NO,
                     @"error": errorMessage
                 });
             } else {
-                WriteJSON(@{
+                WriteJSON(output, @{
                     @"id": requestID,
                     @"ok": @YES,
                     @"result": result ?: @{}
@@ -312,6 +375,12 @@ int main(int argc, const char *argv[])
             }
         }
         free(line);
+        if (input != stdin && input != NULL) {
+            fclose(input);
+        }
+        if (output != stdout && output != NULL) {
+            fclose(output);
+        }
     }
     return 0;
 }

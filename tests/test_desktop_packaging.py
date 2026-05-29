@@ -35,6 +35,7 @@ def test_macos_launch_agent_uses_localhost_and_bundled_binary():
     assert env["WEISILE_TRANSPORT"] == "wifi"
     assert env["WEISILE_OFFICIAL_BT_ADAPTER"] == (
         "/Applications/WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter.app/Contents/MacOS/"
         "WeisileEV3BluetoothAdapter"
     )
     assert data["RunAtLoad"] is True

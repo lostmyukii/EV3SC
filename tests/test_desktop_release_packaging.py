@@ -18,6 +18,30 @@ def _fake_executable(path: Path, text: str = "#!/bin/sh\nexit 0\n") -> Path:
     return path
 
 
+def _fake_native_adapter_app(app: Path) -> Path:
+    macos = app / "Contents/MacOS"
+    macos.mkdir(parents=True)
+    executable = _fake_executable(macos / "WeisileEV3BluetoothAdapter")
+    (app / "Contents/Info.plist").write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>WeisileEV3BluetoothAdapter</string>
+  <key>CFBundleIdentifier</key>
+  <string>cn.vsle.weisile-link.native-adapter</string>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>Bluetooth is used to connect to EV3 bricks.</string>
+</dict>
+</plist>
+""",
+        encoding="utf-8",
+    )
+    return executable
+
+
 def test_macos_packager_refuses_unsigned_by_default(tmp_path):
     executable = _fake_executable(tmp_path / "WeisileLink")
     result = subprocess.run(
@@ -65,7 +89,9 @@ def test_macos_packager_requires_native_bluetooth_adapter(tmp_path):
 
 def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     executable = _fake_executable(tmp_path / "WeisileLink")
-    native_adapter = _fake_executable(tmp_path / "WeisileEV3BluetoothAdapter")
+    native_adapter = _fake_native_adapter_app(
+        tmp_path / "WeisileEV3BluetoothAdapter.app"
+    )
     output = tmp_path / "release"
     result = subprocess.run(
         [
@@ -92,9 +118,13 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     app = output / "WeisileLink.app"
     assert (app / "Contents/MacOS/WeisileLink").is_file()
     assert os.access(app / "Contents/MacOS/WeisileLink", os.X_OK)
-    adapter = app / "Contents/Resources/native/WeisileEV3BluetoothAdapter"
+    adapter_app = app / "Contents/Resources/native/WeisileEV3BluetoothAdapter.app"
+    adapter = adapter_app / "Contents/MacOS/WeisileEV3BluetoothAdapter"
     assert adapter.is_file()
     assert os.access(adapter, os.X_OK)
+    adapter_info = plistlib.loads((adapter_app / "Contents/Info.plist").read_bytes())
+    assert adapter_info["CFBundleIdentifier"] == ("cn.vsle.weisile-link.native-adapter")
+    assert "NSBluetoothAlwaysUsageDescription" in adapter_info
     assert (app / "Contents/Resources/install.sh").is_file()
     assert (app / "Contents/Resources/weisile-link.launchd.plist").is_file()
 
@@ -112,7 +142,13 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
         names = set(archive.namelist())
     assert "WeisileLink.app/Contents/MacOS/WeisileLink" in names
     assert (
-        "WeisileLink.app/Contents/Resources/native/" "WeisileEV3BluetoothAdapter"
+        "WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter.app/Contents/MacOS/"
+        "WeisileEV3BluetoothAdapter"
+    ) in names
+    assert (
+        "WeisileLink.app/Contents/Resources/native/"
+        "WeisileEV3BluetoothAdapter.app/Contents/Info.plist"
     ) in names
     assert "WeisileLink.app/Contents/Resources/install.sh" in names
 

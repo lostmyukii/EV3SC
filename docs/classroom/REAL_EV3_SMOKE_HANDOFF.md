@@ -120,7 +120,7 @@ out of committed logs and replace the placeholder locally:
 PYTHONPATH=weisile-link \
   WEISILE_TRANSPORT=vsle-bluetooth \
   EV3_BT=00:16:53:XX:XX:XX \
-  WEISILE_VSLE_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter \
+  WEISILE_VSLE_BT_ADAPTER=desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
   .venv/bin/python -m weisile_link
 ```
 

@@ -70,9 +70,7 @@ class FakeTransport:
         if self.connect_result:
             self.manager.record_reconnected(TransportKind.WIFI)
         else:
-            self.manager.record_transport_failure(
-                TransportKind.WIFI, "connect refused"
-            )
+            self.manager.record_transport_failure(TransportKind.WIFI, "connect refused")
         return self.connect_result
 
     async def send_command(self, command):
@@ -628,9 +626,7 @@ def test_upload_to_trainer_reports_unavailable_without_trainer_client():
                 "id": "upload-1",
                 "error": {
                     "code": "TRAINER_UNAVAILABLE",
-                    "message": (
-                        "WeisileAI Trainer subscription/upload unavailable"
-                    ),
+                    "message": ("WeisileAI Trainer subscription/upload unavailable"),
                     "data": {"retryable": True},
                 },
             }
@@ -725,9 +721,7 @@ def test_internal_trainer_rest_routes_use_common_envelope():
         cleared = json.loads((await server.handle_post("/api/data/clear")).body)
 
         assert sensors["ok"] is True
-        assert sensors["data"] == {
-            "S2": {"type": "ultrasonic", "distance_cm": 9.5}
-        }
+        assert sensors["data"] == {"S2": {"type": "ultrasonic", "distance_cm": 9.5}}
         assert motors["data"] == {"B": {"position": -180}}
         assert collected["data"]["count"] == 1
         assert collected["data"]["rows"][0]["label"] == "near"
@@ -795,9 +789,7 @@ def test_trainer_rest_train_and_export_complete_ai_quest_pipeline():
                 )
             ).body
         )
-        exported = json.loads(
-            (await server.handle_post("/api/trainer/export")).body
-        )
+        exported = json.loads((await server.handle_post("/api/trainer/export")).body)
         model_rules = json.loads(exported["data"]["json"])
 
         assert websocket.sent[0]["result"] == {
@@ -825,9 +817,7 @@ def test_trainer_rest_export_requires_trained_model():
     async def scenario():
         server = ScratchJsonRpcServer(FakeTransport())
 
-        response = json.loads(
-            (await server.handle_post("/api/trainer/export")).body
-        )
+        response = json.loads((await server.handle_post("/api/trainer/export")).body)
 
         assert response["ok"] is False
         assert response["error"] == {
@@ -913,9 +903,7 @@ def test_status_payload_reports_vsle_bluetooth_capability():
 
     assert payload["ev3_sessions"][0]["transport"] == "vsle-bluetooth"
     assert payload["ev3_sessions"][0]["transport_capability"] == "full"
-    assert payload["ev3_sessions"][0]["native_adapter_status"] == (
-        "fake-native"
-    )
+    assert payload["ev3_sessions"][0]["native_adapter_status"] == ("fake-native")
 
 
 def test_create_default_server_uses_vsle_bluetooth_native_adapter(
@@ -926,6 +914,7 @@ def test_create_default_server_uses_vsle_bluetooth_native_adapter(
     adapter_path.write_text("#!/bin/sh\n", encoding="utf-8")
     adapter_path.chmod(0o755)
     monkeypatch.setenv("WEISILE_VSLE_BT_ADAPTER", str(adapter_path))
+    monkeypatch.setenv("WEISILE_PAIRING_TOKEN", "secret-token")
 
     server = create_default_server(
         "192.0.2.10",
@@ -944,9 +933,9 @@ def test_create_default_server_uses_vsle_bluetooth_native_adapter(
         NativeAdapterProcess,
     )
     assert (
-        server.transport.bluetooth_transport._native_adapter.executable
-        == adapter_path
+        server.transport.bluetooth_transport._native_adapter.executable == adapter_path
     )
+    assert server.transport.bluetooth_transport._pairing_token == "secret-token"
 
 
 def test_run_binds_localhost_default_scratch_port_and_path_handler():
