@@ -3223,6 +3223,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Continue Phase 5 in `README.md`: install the EV3-side VSLE server over the working USB SSH connection and prepare the brick for WeisileLink testing.
 
+### [2026-05-29] EV3 VSLE server installed
+- **Status**: ✅ Completed
+- **Commit**: `3d082d1`
+- **What was done**: Installed the EV3-side `vsle_ev3_server.py` over the working USB SSH connection and enabled `vsle-ev3-server.service` with `SKIP_PIP_INSTALL=1` after checking dependencies. The brick already had `ev3dev2 2.1.0`, lacked `pip`, received offline `websockets 7.0`, listened on `0.0.0.0:8765`, and passed a local token-redacted WebSocket pairing plus `sensor_update` smoke check.
+- **Files created/modified**: `README.md`
+- **Next step**: Make the installed EV3 server reachable from WeisileLink through Wi-Fi or full VSLE Bluetooth, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`, and rerun `scripts/run_vsle_bluetooth_smoke.py` until the report is accepted.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
