@@ -62,8 +62,12 @@ repository root. The signing identity can be passed with `--sign-identity` or
 ```
 
 The report must say `Ready: yes` before the signed Windows artifact chain can
-run. The current report is expected to stay blocked until Windows SignTool
-signing is wired into `desktop/scripts/build_release_artifacts.py`.
+run. On a Windows build host, `desktop/scripts/build_release_artifacts.py`
+signs the copied `WeisileLink/WeisileLink.exe` with `signtool sign`, verifies
+it with `signtool verify`, and writes the signing metadata into the manifest.
+The current macOS evidence remains blocked because this machine is not the
+Windows signing host and no Windows executable or signing inputs are
+configured.
 
 After the preflight is ready, run:
 

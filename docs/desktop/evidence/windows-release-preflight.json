@@ -26,9 +26,9 @@
       "ok": false
     },
     {
-      "detail": "Windows SignTool signing is not wired in desktop/scripts/build_release_artifacts.py yet",
+      "detail": "desktop/scripts/build_release_artifacts.py runs SignTool sign and verify",
       "name": "windows_signing_implementation",
-      "ok": false
+      "ok": true
     }
   ],
   "missing_inputs": [

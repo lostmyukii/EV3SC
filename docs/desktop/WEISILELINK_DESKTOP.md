@@ -155,7 +155,9 @@ evidence. The preflight checks the self-contained `WeisileLink.exe`, confirms
 the release host and `signtool` availability, records the Windows signing
 identity from `--sign-identity` or `WEISILE_WINDOWS_SIGN_IDENTITY`, records the
 timestamp server from `--timestamp-url` or `WEISILE_WINDOWS_TIMESTAMP_URL`, and
-keeps the flow blocked while SignTool signing is not wired into the packager:
+keeps the flow blocked unless all release prerequisites are present. On a
+Windows build host, the packager runs `signtool sign` followed by
+`signtool verify` before writing a signed manifest:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_windows_release_preflight.py \

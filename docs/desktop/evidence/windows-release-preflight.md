@@ -9,7 +9,7 @@ Ready: no
 - executable_path: fail - executable_path was not provided
 - windows_sign_identity: fail - windows_sign_identity was not provided
 - timestamp_url: fail - timestamp_url was not provided
-- windows_signing_implementation: fail - Windows SignTool signing is not wired in desktop/scripts/build_release_artifacts.py yet
+- windows_signing_implementation: pass - desktop/scripts/build_release_artifacts.py runs SignTool sign and verify
 
 ## Release Commands
 

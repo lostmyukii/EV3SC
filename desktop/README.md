@@ -143,9 +143,12 @@ code-signing identity with `--sign-identity` or
   --report docs/desktop/evidence/windows-release-preflight.md
 ```
 
-The current preflight is expected to block because Windows SignTool signing is
-not wired into `build_release_artifacts.py` yet. This prevents an unsigned zip
-from being mistaken for a classroom release artifact.
+On a Windows build host, the packager signs the copied
+`WeisileLink/WeisileLink.exe` with `signtool sign`, verifies it with
+`signtool verify`, and records the signing metadata in the release manifest.
+The current macOS evidence is still expected to block because this machine is
+not the Windows signing host and no Windows executable or signing inputs are
+configured.
 
 Once the Windows preflight says `Ready: yes`, use the guarded runner:
 

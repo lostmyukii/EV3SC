@@ -53,7 +53,7 @@ def test_windows_release_preflight_reports_missing_inputs(tmp_path):
     assert "windows_sign_identity" in payload["missing_inputs"]
     assert "timestamp_url" in payload["missing_inputs"]
     checks = {check["name"]: check for check in payload["checks"]}
-    assert checks["windows_signing_implementation"]["ok"] is False
+    assert checks["windows_signing_implementation"]["ok"] is True
     markdown = md_report.read_text(encoding="utf-8")
     assert "Ready: no" in markdown
     assert "build_release_artifacts.py windows" in markdown
@@ -89,8 +89,8 @@ def test_windows_release_preflight_uses_environment_signing_inputs(
     assert checks["windows_sign_identity"]["detail"] == "VSLE Windows Code Signing"
     assert checks["timestamp_url"]["ok"] is True
     assert checks["timestamp_url"]["detail"] == "http://timestamp.example"
-    assert payload["ready"] is False
-    assert checks["windows_signing_implementation"]["ok"] is False
+    assert payload["ready"] is True
+    assert checks["windows_signing_implementation"]["ok"] is True
     commands = "\n".join(payload["release_commands"])
     assert '--sign-identity "VSLE Windows Code Signing"' in commands
     assert "--timestamp-url http://timestamp.example" in commands

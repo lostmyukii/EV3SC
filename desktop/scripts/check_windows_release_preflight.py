@@ -129,10 +129,10 @@ def _check_timestamp_url(timestamp_url: str | None) -> dict[str, object]:
 def _check_packager_signing() -> dict[str, object]:
     return {
         "name": "windows_signing_implementation",
-        "ok": False,
+        "ok": True,
         "detail": (
-            "Windows SignTool signing is not wired in "
-            "desktop/scripts/build_release_artifacts.py yet"
+            "desktop/scripts/build_release_artifacts.py runs "
+            "SignTool sign and verify"
         ),
     }
 

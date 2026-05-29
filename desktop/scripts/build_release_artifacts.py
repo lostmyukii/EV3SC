@@ -274,12 +274,44 @@ def build_macos(args: argparse.Namespace) -> dict[str, object]:
     return {"manifest": str(manifest_path), "zip": str(zip_path)}
 
 
-def _windows_signed(args: argparse.Namespace) -> bool:
+def _windows_signed(args: argparse.Namespace, executable: Path) -> bool:
     if not args.sign_identity:
         return False
     if platform.system().lower() != "windows":
         raise ValueError("Windows signing must run on Windows with SignTool.")
-    raise ValueError("Windows SignTool signing is not wired in this packager yet.")
+    if not args.timestamp_url:
+        raise ValueError("Windows signing requires --timestamp-url.")
+    signtool = shutil.which("signtool")
+    if signtool is None:
+        raise ValueError("Windows SignTool was not found on PATH.")
+
+    subprocess.run(
+        [
+            signtool,
+            "sign",
+            "/fd",
+            "SHA256",
+            "/tr",
+            args.timestamp_url,
+            "/td",
+            "SHA256",
+            "/n",
+            args.sign_identity,
+            str(executable),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            signtool,
+            "verify",
+            "/pa",
+            "/v",
+            str(executable),
+        ],
+        check=True,
+    )
+    return True
 
 
 def build_windows(args: argparse.Namespace) -> dict[str, object]:
@@ -289,7 +321,8 @@ def build_windows(args: argparse.Namespace) -> dict[str, object]:
     if package_root.exists():
         shutil.rmtree(package_root)
 
-    _copy_executable(executable, package_root / "WeisileLink.exe")
+    packaged_executable = package_root / "WeisileLink.exe"
+    _copy_executable(executable, packaged_executable)
     _copy_asset(WINDOWS_ASSET_ROOT / "install.ps1", package_root / "install.ps1")
     _copy_asset(WINDOWS_ASSET_ROOT / "uninstall.ps1", package_root / "uninstall.ps1")
     _copy_asset(
@@ -311,7 +344,7 @@ def build_windows(args: argparse.Namespace) -> dict[str, object]:
         encoding="utf-8",
     )
 
-    signed = _windows_signed(args)
+    signed = _windows_signed(args, packaged_executable)
     suffix = _unsigned_suffix(signed)
     zip_path = output / f"WeisileLink-windows-{args.version}-{suffix}.zip"
     _zip_directory(package_root, zip_path, "WeisileLink")
@@ -339,6 +372,16 @@ def build_windows(args: argparse.Namespace) -> dict[str, object]:
             "evidence."
         ),
     }
+    if signed:
+        manifest.update(
+            {
+                "signed_executable": str(
+                    packaged_executable.relative_to(package_root.parent)
+                ),
+                "windows_signing_tool": "signtool",
+                "windows_timestamp_url": args.timestamp_url,
+            }
+        )
     _write_json(manifest_path, manifest)
     return {"manifest": str(manifest_path), "zip": str(zip_path)}
 

@@ -1,3 +1,5 @@
+import argparse
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,15 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "desktop/scripts/build_release_artifacts.py"
+
+
+def _load_packager_module():
+    spec = importlib.util.spec_from_file_location("desktop_packager", PACKAGER)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 def _fake_executable(path: Path, text: str = "#!/bin/sh\nexit 0\n") -> Path:
@@ -210,6 +221,71 @@ def test_windows_packager_creates_zip_and_metadata(tmp_path):
     assert metadata["build_host_can_run_target"] is False
 
 
+def test_windows_packager_signs_executable_with_signtool(tmp_path, monkeypatch):
+    module = _load_packager_module()
+    executable = _fake_executable(
+        tmp_path / "WeisileLink.exe",
+        text="@echo off\r\nexit /b 0\r\n",
+    )
+    commands = []
+
+    def fake_run(command, **_kwargs):
+        commands.append(command)
+        return subprocess.CompletedProcess(args=command, returncode=0)
+
+    monkeypatch.setattr(module.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(
+        module.shutil,
+        "which",
+        lambda name: "C:/Windows Kits/signtool.exe" if name == "signtool" else None,
+    )
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    args = argparse.Namespace(
+        executable=executable,
+        output=tmp_path / "release",
+        version="0.1.0-test",
+        sign_identity="VSLE Windows Code Signing",
+        timestamp_url="https://timestamp.example",
+        allow_unsigned=False,
+    )
+
+    result = module.build_windows(args)
+
+    signed_executable = tmp_path / "release/WeisileLink/WeisileLink.exe"
+    assert commands == [
+        [
+            "C:/Windows Kits/signtool.exe",
+            "sign",
+            "/fd",
+            "SHA256",
+            "/tr",
+            "https://timestamp.example",
+            "/td",
+            "SHA256",
+            "/n",
+            "VSLE Windows Code Signing",
+            str(signed_executable),
+        ],
+        [
+            "C:/Windows Kits/signtool.exe",
+            "verify",
+            "/pa",
+            "/v",
+            str(signed_executable),
+        ],
+    ]
+    assert result["zip"].endswith("WeisileLink-windows-0.1.0-test-signed.zip")
+    metadata = json.loads(
+        (tmp_path / "release/WeisileLink-windows-0.1.0-test-manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert metadata["signed"] is True
+    assert metadata["windows_signing_tool"] == "signtool"
+    assert metadata["windows_timestamp_url"] == "https://timestamp.example"
+    assert metadata["signed_executable"] == "WeisileLink/WeisileLink.exe"
+
+
 def test_desktop_docs_reference_release_artifact_packager():
     for path in (
         ROOT / "desktop/README.md",
@@ -274,3 +350,5 @@ def test_windows_docs_reference_release_preflight_and_flow_scripts():
         assert "WEISILE_WINDOWS_TIMESTAMP_URL" in text
         assert "run_windows_release_flow.py" in text
         assert "windows-release-flow.json" in text
+        assert "signtool sign" in text
+        assert "signtool verify" in text
