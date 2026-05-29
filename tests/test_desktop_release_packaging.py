@@ -242,3 +242,14 @@ def test_macos_docs_reference_pkg_builder_script():
         text = path.read_text(encoding="utf-8")
         assert "build_macos_pkg.py" in text
         assert "--sign-identity" in text
+
+
+def test_macos_docs_reference_release_preflight_script():
+    for path in (
+        ROOT / "desktop/README.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+        ROOT / "docs/desktop/MACOS_INSTALL.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "check_macos_release_preflight.py" in text
+        assert "macos-release-preflight.json" in text

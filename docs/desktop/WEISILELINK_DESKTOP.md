@@ -93,6 +93,20 @@ For macOS, notarize the signed artifact before collecting clean-machine
 evidence:
 
 ```bash
+./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \
+  --executable path/to/WeisileLink \
+  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
+  --app-sign-identity "Developer ID Application: WeisileEDU" \
+  --installer-sign-identity "Developer ID Installer: WeisileEDU" \
+  --notary-keychain-profile VSLE_NOTARY \
+  --json-report docs/desktop/evidence/macos-release-preflight.json \
+  --report docs/desktop/evidence/macos-release-preflight.md
+```
+
+The preflight must pass before signing, notarization, package creation, or
+clean-machine install smoke evidence collection.
+
+```bash
 ./.venv/bin/python desktop/scripts/notarize_macos_release.py \
   --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
   --keychain-profile VSLE_NOTARY

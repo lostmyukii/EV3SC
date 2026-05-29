@@ -53,6 +53,25 @@ Every executable, helper, app bundle, and package must be signed before
 external classroom distribution. macOS classroom packages must be notarized
 before non-developer distribution.
 
+Run the local prerequisite preflight before producing a real classroom
+artifact. This checks the self-contained executable path, native adapter app,
+Developer ID Application identity, Developer ID Installer identity, Apple
+notarytool keychain profile, and required macOS packaging tools:
+
+```bash
+./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \
+  --executable path/to/WeisileLink \
+  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
+  --app-sign-identity "Developer ID Application: WeisileEDU" \
+  --installer-sign-identity "Developer ID Installer: WeisileEDU" \
+  --notary-keychain-profile VSLE_NOTARY \
+  --json-report docs/desktop/evidence/macos-release-preflight.json \
+  --report docs/desktop/evidence/macos-release-preflight.md
+```
+
+Do not proceed to classroom artifact signing unless
+`docs/desktop/evidence/macos-release-preflight.md` says `Ready: yes`.
+
 After building a signed macOS release artifact, run the checked notarization
 helper with an Apple notarytool keychain profile:
 

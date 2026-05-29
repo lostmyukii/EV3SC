@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "detail": "/usr/bin/codesign",
+      "name": "tool:codesign",
+      "ok": true
+    },
+    {
+      "detail": "/usr/bin/security",
+      "name": "tool:security",
+      "ok": true
+    },
+    {
+      "detail": "/usr/bin/xcrun",
+      "name": "tool:xcrun",
+      "ok": true
+    },
+    {
+      "detail": "/usr/bin/pkgbuild",
+      "name": "tool:pkgbuild",
+      "ok": true
+    },
+    {
+      "detail": "/usr/bin/productbuild",
+      "name": "tool:productbuild",
+      "ok": true
+    },
+    {
+      "detail": "executable_path was not provided",
+      "name": "executable_path",
+      "ok": false
+    },
+    {
+      "detail": "native_adapter_path was not provided",
+      "name": "native_adapter_path",
+      "ok": false
+    },
+    {
+      "detail": "app_sign_identity was not provided",
+      "name": "app_sign_identity",
+      "ok": false
+    },
+    {
+      "detail": "installer_sign_identity was not provided",
+      "name": "installer_sign_identity",
+      "ok": false
+    },
+    {
+      "detail": "notary_keychain_profile was not provided",
+      "name": "notary_keychain_profile",
+      "ok": false
+    }
+  ],
+  "missing_inputs": [
+    "executable_path",
+    "native_adapter_path",
+    "app_sign_identity",
+    "installer_sign_identity",
+    "notary_keychain_profile"
+  ],
+  "ready": false,
+  "release_commands": [
+    "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable <path-to-self-contained-WeisileLink> --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity \"Developer ID Application: WeisileEDU\"",
+    "./.venv/bin/python desktop/scripts/notarize_macos_release.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --keychain-profile VSLE_NOTARY",
+    "./.venv/bin/python desktop/scripts/build_macos_pkg.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --sign-identity \"Developer ID Installer: WeisileEDU\""
+  ],
+  "target": "macos"
+}

@@ -61,6 +61,23 @@ desktop/macos/native/build.sh
 Classroom release status still requires signed artifacts, macOS notarization,
 and clean-machine install smoke evidence from the generated artifact.
 
+Before running the real macOS release flow, check local prerequisites without
+writing release artifacts or credentials into git:
+
+```bash
+./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \
+  --executable path/to/WeisileLink \
+  --native-adapter desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
+  --app-sign-identity "Developer ID Application: WeisileEDU" \
+  --installer-sign-identity "Developer ID Installer: WeisileEDU" \
+  --notary-keychain-profile VSLE_NOTARY \
+  --json-report docs/desktop/evidence/macos-release-preflight.json \
+  --report docs/desktop/evidence/macos-release-preflight.md
+```
+
+The preflight report must say `Ready: yes` before attempting the signed app,
+notarization, and signed installer package chain.
+
 After building a signed macOS artifact, notarize and staple it with an Apple
 notarytool keychain profile. Do not pass Apple ID passwords on the command
 line or store them in this repository:
