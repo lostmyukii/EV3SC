@@ -88,6 +88,12 @@ def _write_markdown(path: Path, payload: dict[str, object]) -> None:
     executed = payload.get("commands_executed")
     if not isinstance(executed, list):
         executed = []
+    failures = payload.get("preflight_failures")
+    if not isinstance(failures, list):
+        failures = []
+    release_commands = payload.get("release_commands_after_preflight")
+    if not isinstance(release_commands, list):
+        release_commands = []
     lines = [
         "# macOS Release Flow",
         "",
@@ -99,6 +105,17 @@ def _write_markdown(path: Path, payload: dict[str, object]) -> None:
     if payload.get("blocked_reason"):
         lines.append(f"Blocked reason: {payload['blocked_reason']}")
         lines.append("")
+    if failures:
+        lines.extend(["## Preflight Blocking Checks", ""])
+        for failure in failures:
+            if not isinstance(failure, dict):
+                continue
+            lines.append(f"- {failure.get('name')}: {failure.get('detail')}")
+        lines.append("")
+    if release_commands:
+        lines.extend(["## Release Commands After Preflight Passes", ""])
+        for command in release_commands:
+            lines.extend(["```bash", str(command), "```", ""])
     if executed:
         lines.extend(["## Commands", ""])
         for command in executed:
@@ -110,6 +127,39 @@ def _write_markdown(path: Path, payload: dict[str, object]) -> None:
 def _write_reports(args: argparse.Namespace, payload: dict[str, object]) -> None:
     _write_json(args.json_report, payload)
     _write_markdown(args.report, payload)
+
+
+def _blocked_preflight_details(path: Path) -> dict[str, object]:
+    try:
+        payload = _load_preflight(path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return {
+            "preflight_failures": [],
+            "release_commands_after_preflight": [],
+        }
+
+    failures: list[dict[str, object]] = []
+    checks = payload.get("checks")
+    if isinstance(checks, list):
+        for check in checks:
+            if not isinstance(check, dict):
+                continue
+            if check.get("ok") is False:
+                failures.append(
+                    {
+                        "name": check.get("name", "unknown"),
+                        "detail": check.get("detail", "not recorded"),
+                    }
+                )
+
+    release_commands = payload.get("release_commands")
+    if not isinstance(release_commands, list):
+        release_commands = []
+
+    return {
+        "preflight_failures": failures,
+        "release_commands_after_preflight": release_commands,
+    }
 
 
 def _check_detail(payload: dict[str, object], name: str) -> str:
@@ -178,6 +228,7 @@ def run_release_flow(
     preflight = _preflight_command(args)
     preflight_result = runner(preflight, cwd=ROOT, check=False)
     if preflight_result.returncode != 0:
+        details = _blocked_preflight_details(args.preflight_json_report)
         _write_reports(
             args,
             {
@@ -186,6 +237,7 @@ def run_release_flow(
                 "preflight_ready": False,
                 "preflight_report": str(args.preflight_report),
                 "status": "blocked-preflight",
+                **details,
             },
         )
         print(

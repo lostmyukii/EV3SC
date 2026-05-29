@@ -1,7 +1,26 @@
 {
   "blocked_reason": "macOS release preflight did not pass",
   "commands_executed": [],
+  "preflight_failures": [
+    {
+      "detail": "app_sign_identity was not provided and no Developer ID Application: identity was found",
+      "name": "app_sign_identity"
+    },
+    {
+      "detail": "installer_sign_identity was not provided and no Developer ID Installer: identity was found",
+      "name": "installer_sign_identity"
+    },
+    {
+      "detail": "notary_keychain_profile was not provided",
+      "name": "notary_keychain_profile"
+    }
+  ],
   "preflight_ready": false,
-  "preflight_report": "docs/desktop/evidence/macos-release-preflight.md",
+  "preflight_report": "/Users/yukii/Desktop/EV3SC/docs/desktop/evidence/macos-release-preflight.md",
+  "release_commands_after_preflight": [
+    "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity \"Developer ID Application: WeisileEDU\"",
+    "./.venv/bin/python desktop/scripts/notarize_macos_release.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --keychain-profile VSLE_NOTARY",
+    "./.venv/bin/python desktop/scripts/build_macos_pkg.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --sign-identity \"Developer ID Installer: WeisileEDU\""
+  ],
   "status": "blocked-preflight"
 }

@@ -139,7 +139,10 @@ signed app build, notarization, and signed package steps in order:
 ```
 
 The runner refuses to call signing or notarization tools unless
-`check_macos_release_preflight.py` reports `Ready: yes`.
+`check_macos_release_preflight.py` reports `Ready: yes`. If blocked, the
+release-flow report includes `Preflight Blocking Checks` and
+`Release Commands After Preflight Passes` sections for the next signing
+operator.
 
 ```bash
 ./.venv/bin/python desktop/scripts/notarize_macos_release.py \

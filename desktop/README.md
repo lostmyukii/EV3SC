@@ -113,7 +113,11 @@ When the preflight is ready, run the guarded macOS release chain with:
 ```
 
 The runner stops before signing if `check_macos_release_preflight.py` does not
-report `Ready: yes`.
+report `Ready: yes`. A blocked run writes `Preflight Blocking Checks` and
+`Release Commands After Preflight Passes` sections to
+`docs/desktop/evidence/macos-release-flow.md`, so the next operator can see the
+missing Developer ID/notary inputs and the exact commands that will run once
+preflight passes.
 
 After building a signed macOS artifact, notarize and staple it with an Apple
 notarytool keychain profile. Do not pass Apple ID passwords on the command

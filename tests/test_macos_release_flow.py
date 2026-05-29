@@ -67,11 +67,29 @@ def _ready_preflight_payload(tmp_path: Path) -> dict[str, object]:
 def test_macos_release_flow_stops_when_preflight_is_not_ready(tmp_path):
     module = _load_release_flow_module()
     calls = []
+    preflight_payload = {
+        "ready": False,
+        "checks": [
+            {
+                "name": "app_sign_identity",
+                "ok": False,
+                "detail": "Developer ID Application identity missing",
+            },
+            {
+                "name": "notary_keychain_profile",
+                "ok": False,
+                "detail": "notarytool profile missing",
+            },
+        ],
+        "release_commands": [
+            "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos",
+        ],
+    }
 
     def runner(command, **_kwargs):
         calls.append(command)
         _args(tmp_path).preflight_json_report.write_text(
-            json.dumps({"ready": False, "checks": []}),
+            json.dumps(preflight_payload),
             encoding="utf-8",
         )
         return subprocess.CompletedProcess(args=command, returncode=1)
@@ -83,9 +101,24 @@ def test_macos_release_flow_stops_when_preflight_is_not_ready(tmp_path):
     assert payload["status"] == "blocked-preflight"
     assert payload["preflight_ready"] is False
     assert payload["commands_executed"] == []
+    assert payload["preflight_failures"] == [
+        {
+            "name": "app_sign_identity",
+            "detail": "Developer ID Application identity missing",
+        },
+        {
+            "name": "notary_keychain_profile",
+            "detail": "notarytool profile missing",
+        },
+    ]
     markdown = (tmp_path / "release-flow.md").read_text(encoding="utf-8")
     assert "Status: blocked-preflight" in markdown
     assert "Commands executed: 0" in markdown
+    assert "## Preflight Blocking Checks" in markdown
+    assert "app_sign_identity" in markdown
+    assert "Developer ID Application identity missing" in markdown
+    assert "## Release Commands After Preflight Passes" in markdown
+    assert "build_release_artifacts.py macos" in markdown
 
 
 def test_macos_release_flow_runs_signed_chain_after_preflight(tmp_path):
@@ -149,3 +182,19 @@ def test_macos_release_flow_runs_signed_chain_after_preflight(tmp_path):
         "notarize_macos_release.py",
         "build_macos_pkg.py",
     ]
+
+
+def test_docs_describe_blocked_macos_release_flow_details():
+    expected = "Preflight Blocking Checks"
+    command_section = "Release Commands After Preflight Passes"
+    docs = [
+        ROOT / "desktop/README.md",
+        ROOT / "docs/desktop/MACOS_INSTALL.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+        ROOT / "docs/SOURCE_REGISTER.md",
+    ]
+
+    for path in docs:
+        text = path.read_text(encoding="utf-8")
+        assert expected in text, f"{path} must mention {expected}"
+        assert command_section in text, f"{path} must mention {command_section}"
