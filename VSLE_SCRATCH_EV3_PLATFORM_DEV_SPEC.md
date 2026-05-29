@@ -3406,6 +3406,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-release-preflight.json`, `docs/desktop/evidence/macos-release-preflight.md`
 - **Next step**: Provide the real Developer ID Application identity, Developer ID Installer identity, and notarytool keychain profile; rerun `desktop/scripts/check_macos_release_preflight.py` until it reports `Ready: yes`, then build the signed app, notarize it, build the signed `.pkg`, and collect clean-machine `vsle-bluetooth` install-smoke evidence from the release artifact.
 
+### [2026-05-29] macOS signing identity autodetect
+- **Status**: ✅ Completed
+- **Commit**: `17192a0`
+- **What was done**: Extended the macOS release preflight so it auto-detects a unique Developer ID Application identity and a unique Developer ID Installer identity from the local keychain when they exist, while still requiring explicit flags if identities are missing or ambiguous. Regenerated the preflight evidence; this machine still has no matching Developer ID identities and no notarytool profile, so release/classroom readiness remains blocked.
+- **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-release-preflight.json`, `docs/desktop/evidence/macos-release-preflight.md`
+- **Next step**: Install or provide the real Developer ID Application and Developer ID Installer identities plus an Apple notarytool keychain profile, rerun `desktop/scripts/check_macos_release_preflight.py` until `Ready: yes`, then run the signed app, notarization, signed `.pkg`, and clean-machine `vsle-bluetooth` install-smoke evidence flow.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
