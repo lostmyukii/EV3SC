@@ -179,3 +179,28 @@ def test_vsle_bluetooth_smoke_blocks_baseline_without_release_artifact(
     assert "Bluetooth high-speed 50Hz ready: no" in text
     assert "installed_from_release_artifact must be true" in text
     assert "Diagnostic fallback" not in text
+
+
+def test_docs_prioritize_macos_browser_vsle_bluetooth_when_windows_unavailable():
+    root = ROOT
+    agents = " ".join(
+        (root / "AGENTS.md").read_text(encoding="utf-8").split()
+    )
+    spec = " ".join(
+        (root / "VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md")
+        .read_text(encoding="utf-8")
+        .split()
+    )
+    handoff = " ".join(
+        (root / "docs/classroom/REAL_EV3_SMOKE_HANDOFF.md")
+        .read_text(encoding="utf-8")
+        .split()
+    )
+
+    for text in (agents, spec, handoff):
+        assert "Mac browser full VSLE Bluetooth smoke" in text
+        assert "Windows evidence" in text
+        assert "does not replace signed release-artifact evidence" in text
+
+    assert "ScratchAI browser -> WeisileLink Desktop -> vsle-bluetooth" in spec
+    assert "browser code must not open direct Bluetooth connections" in agents

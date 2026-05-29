@@ -101,6 +101,14 @@ classroom path when compatible EV3 WiFi dongles are unavailable. The smoke gate
 now reports two separate results: the Bluetooth classroom baseline and the
 Bluetooth high-speed 50Hz gate.
 
+Mac browser full VSLE Bluetooth smoke is the first functional test path when a
+Windows computer is not available. Use the ScratchAI browser surface on the Mac
+to load the Unsandboxed EV3 extension, select `Bluetooth Full VSLE`, and then
+validate the server-side Scratch EV3 module command groups through local
+WeisileLink Desktop and the real `vsle-bluetooth` transport. This does not
+replace signed release-artifact evidence, macOS notarized install evidence, or
+separate Windows evidence.
+
 On the EV3, enable the full VSLE Bluetooth listener only after pairing and
 classroom safety checks:
 
