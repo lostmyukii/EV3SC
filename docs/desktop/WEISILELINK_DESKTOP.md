@@ -88,3 +88,19 @@ desktop/macos/native/build.sh
 The `--allow-unsigned` path is not classroom ready. External distribution still
 requires signed artifacts, macOS notarization, and clean-machine install smoke
 reports generated from the same artifact.
+
+For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
+install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
+`vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`
+and must pass the desktop gate in VSLE mode:
+
+```bash
+python scripts/run_desktop_install_smoke.py \
+  --mode vsle-bluetooth \
+  --evidence docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.json \
+  --report docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.md
+```
+
+Only accepted `--mode vsle-bluetooth` release evidence may be used to set
+`installed_from_release_artifact: true` in the full VSLE Bluetooth classroom
+smoke JSON.

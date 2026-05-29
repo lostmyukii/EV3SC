@@ -8,25 +8,31 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "scripts/run_desktop_install_smoke.py"
 
 
-def _run_smoke(tmp_path, evidence):
+def _run_smoke(tmp_path, evidence, mode=None):
     evidence_path = tmp_path / "evidence.json"
     report_path = tmp_path / "report.md"
     evidence_path.write_text(json.dumps(evidence), encoding="utf-8")
+    command = [
+        sys.executable,
+        str(RUNNER),
+        "--evidence",
+        str(evidence_path),
+        "--report",
+        str(report_path),
+    ]
+    if mode is not None:
+        command.extend(["--mode", mode])
     result = subprocess.run(
-        [
-            sys.executable,
-            str(RUNNER),
-            "--evidence",
-            str(evidence_path),
-            "--report",
-            str(report_path),
-        ],
+        command,
         cwd=ROOT,
         check=False,
         capture_output=True,
         text=True,
     )
-    report = report_path.read_text(encoding="utf-8")
+    if report_path.is_file():
+        report = report_path.read_text(encoding="utf-8")
+    else:
+        report = result.stderr + result.stdout
     return result, report
 
 
@@ -105,6 +111,42 @@ def test_runner_passes_with_release_reboot_endpoint_and_real_ev3(tmp_path):
     assert "official_firmware_bt_real_ev3_ok: pass" in report
 
 
+def test_runner_passes_vsle_bluetooth_release_artifact_evidence(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "Mode: `vsle-bluetooth`" in report
+    assert "Classroom ready: yes" in report
+    assert "vsle_bluetooth_real_ev3_ok: pass" in report
+    assert "official_firmware_bt_real_ev3_ok" not in report
+
+
+def test_runner_refuses_vsle_bluetooth_without_real_ev3_evidence(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": False,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "vsle_bluetooth_real_ev3_ok must be true" in report
+
+
 def test_native_adapter_readmes_keep_platform_boundaries():
     expected = (
         "This adapter is the only supported path for official LEGO firmware "
@@ -132,3 +174,14 @@ def test_desktop_docs_reference_install_smoke_gate():
         assert "run_desktop_install_smoke.py" in text
         assert "installed_from_release_artifact" in text
         assert "official_firmware_bt_real_ev3_ok" in text
+
+
+def test_desktop_docs_reference_vsle_bluetooth_install_smoke_mode():
+    for path in (
+        ROOT / "docs/desktop/MACOS_INSTALL.md",
+        ROOT / "docs/desktop/WINDOWS_INSTALL.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "--mode vsle-bluetooth" in text
+        assert "vsle_bluetooth_real_ev3_ok" in text

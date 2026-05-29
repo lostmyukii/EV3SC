@@ -15,12 +15,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 
-REQUIRED_TRUE_FIELDS = (
+COMMON_REQUIRED_TRUE_FIELDS = (
     "installed_from_release_artifact",
     "started_after_reboot",
     "scratch_link_endpoint_ok",
-    "official_firmware_bt_real_ev3_ok",
 )
+MODE_REQUIRED_TRUE_FIELDS = {
+    "official-bluetooth": ("official_firmware_bt_real_ev3_ok",),
+    "vsle-bluetooth": ("vsle_bluetooth_real_ev3_ok",),
+}
 
 BLOCKING_TRUE_FIELDS = {
     "developer_checkout_run": (
@@ -38,6 +41,12 @@ def main(argv: List[str] | None = None) -> int:
     )
     parser.add_argument("--evidence", required=True, help="Evidence JSON path")
     parser.add_argument("--report", required=True, help="Markdown report path")
+    parser.add_argument(
+        "--mode",
+        choices=sorted(MODE_REQUIRED_TRUE_FIELDS),
+        default="official-bluetooth",
+        help="Desktop release mode to validate.",
+    )
     args = parser.parse_args(argv)
 
     evidence_path = Path(args.evidence)
@@ -46,10 +55,17 @@ def main(argv: List[str] | None = None) -> int:
     failures = list(load_errors)
 
     if evidence is not None:
-        failures.extend(_validate_evidence(evidence))
+        failures.extend(_validate_evidence(evidence, args.mode))
 
     ready = not failures
-    _write_report(report_path, evidence_path, evidence or {}, failures, ready)
+    _write_report(
+        report_path,
+        evidence_path,
+        evidence or {},
+        failures,
+        ready,
+        args.mode,
+    )
 
     if ready:
         print(f"desktop install smoke ok: {report_path}")
@@ -75,10 +91,10 @@ def _load_evidence(path: Path) -> Tuple[Dict[str, Any] | None, List[str]]:
     return decoded, []
 
 
-def _validate_evidence(evidence: Dict[str, Any]) -> List[str]:
+def _validate_evidence(evidence: Dict[str, Any], mode: str) -> List[str]:
     failures: List[str] = []
 
-    for field in REQUIRED_TRUE_FIELDS:
+    for field in (*COMMON_REQUIRED_TRUE_FIELDS, *MODE_REQUIRED_TRUE_FIELDS[mode]):
         if evidence.get(field) is not True:
             failures.append(f"{field} must be true")
 
@@ -95,19 +111,21 @@ def _write_report(
     evidence: Dict[str, Any],
     failures: List[str],
     ready: bool,
+    mode: str,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# WeisileLink Desktop Install Smoke Report",
         "",
         f"Evidence: `{evidence_path}`",
+        f"Mode: `{mode}`",
         f"Classroom ready: {'yes' if ready else 'no'}",
         "",
         "## Required Checks",
         "",
     ]
 
-    for field in REQUIRED_TRUE_FIELDS:
+    for field in (*COMMON_REQUIRED_TRUE_FIELDS, *MODE_REQUIRED_TRUE_FIELDS[mode]):
         status = "pass" if evidence.get(field) is True else "fail"
         lines.append(f"- {field}: {status}")
 

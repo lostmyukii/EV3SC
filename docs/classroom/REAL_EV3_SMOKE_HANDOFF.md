@@ -151,7 +151,8 @@ cp docs/classroom/vsle_bluetooth_full_module_smoke.template.json \
 
 Required pass fields:
 
-- `installed_from_release_artifact`: true only for a release artifact run.
+- `installed_from_release_artifact`: true only after the installed release
+  artifact passes `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`.
 - `ev3_runs_ev3dev_server`: true only after confirming `vsle-ev3-server`.
 - `transport`: `vsle-bluetooth`.
 - `real_ev3_full_bluetooth_ok`: true only after a physical Bluetooth run.
@@ -175,6 +176,16 @@ The report must say `Bluetooth classroom baseline ready: yes` before this full
 Bluetooth path can be treated as the no-WiFi classroom baseline. The separate
 `Bluetooth high-speed 50Hz ready` result must say `yes` before any lesson or
 release note claims 50Hz/high-speed Bluetooth streaming.
+
+Validate the release-artifact portion separately before setting
+`installed_from_release_artifact: true` in the full Bluetooth smoke JSON:
+
+```bash
+python scripts/run_desktop_install_smoke.py \
+  --mode vsle-bluetooth \
+  --evidence docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.json \
+  --report docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.md
+```
 
 ## Section 13.7 Full Classroom Rehearsal
 

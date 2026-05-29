@@ -70,7 +70,7 @@ On a clean macOS machine with no developer tools and no custom Python:
 
 Before macOS support can be marked classroom ready, collect evidence from the
 installed release artifact, not from a developer checkout. The evidence JSON
-must include:
+for official-firmware Bluetooth compatibility must include:
 
 ```json
 {
@@ -91,6 +91,31 @@ python scripts/run_desktop_install_smoke.py \
 
 The report must say `Classroom ready: yes` before macOS official firmware
 Bluetooth compatibility can be shown as available to teachers.
+
+For the no-WiFi full VSLE Bluetooth classroom path, collect release-artifact
+evidence from the same clean-machine install with an ev3dev EV3 running
+`vsle_ev3_server.py` over `vsle-bluetooth`:
+
+```json
+{
+  "installed_from_release_artifact": true,
+  "started_after_reboot": true,
+  "scratch_link_endpoint_ok": true,
+  "vsle_bluetooth_real_ev3_ok": true
+}
+```
+
+Run:
+
+```bash
+python scripts/run_desktop_install_smoke.py \
+  --mode vsle-bluetooth \
+  --evidence docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json \
+  --report docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.md
+```
+
+Only after this gate passes may the full VSLE Bluetooth smoke evidence set
+`installed_from_release_artifact: true`.
 
 ## Official Firmware Bluetooth
 
