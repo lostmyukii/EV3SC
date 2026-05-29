@@ -3420,6 +3420,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/check_macos_release_preflight.py`, `tests/test_macos_release_preflight.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/check_macos_release_preflight.py` until `Ready: yes`, then execute signed app packaging, notarization, signed `.pkg`, and clean-machine `vsle-bluetooth` install-smoke evidence collection.
 
+### [2026-05-29] Guarded macOS release flow runner
+- **Status**: ✅ Completed
+- **Commit**: `8325350`
+- **What was done**: Added `desktop/scripts/run_macos_release_flow.py`, a guarded runner that first runs the macOS release preflight and refuses to execute signing, notarization, or package creation unless the preflight report is `Ready: yes`. The runner then passes the verified executable path, native adapter path, Developer ID identities, and notarytool profile into the existing signed app, notarization, and signed `.pkg` scripts in order.
+- **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Configure real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE` or `--notary-keychain-profile`, rerun `desktop/scripts/run_macos_release_flow.py`, and after it produces a signed/notarized app plus signed `.pkg`, install the package on a clean macOS machine to collect `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
