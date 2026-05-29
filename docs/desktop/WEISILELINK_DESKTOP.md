@@ -243,3 +243,14 @@ python scripts/run_desktop_install_smoke.py \
 Only accepted `--mode vsle-bluetooth` release evidence may be used to set
 `installed_from_release_artifact: true` in the full VSLE Bluetooth classroom
 smoke JSON.
+
+Apply accepted release evidence with the bridge script so the classroom smoke
+JSON is only updated after the install smoke validator passes:
+
+```bash
+python scripts/apply_vsle_bluetooth_install_evidence.py \
+  --install-evidence docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.json \
+  --classroom-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --output docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_release_evidence_bridge.md
+```

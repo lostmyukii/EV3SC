@@ -557,6 +557,11 @@ cd ..
   --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json \
   --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
   --report docs/classroom/macos_browser_vsle_bluetooth_smoke.md
+.venv/bin/python scripts/apply_vsle_bluetooth_install_evidence.py \
+  --install-evidence docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json \
+  --classroom-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --output docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_release_evidence_bridge.md
 
 # Build for production
 cd scratch-ai-platform/scratch-editor && npm run build

@@ -198,6 +198,17 @@ python scripts/run_desktop_install_smoke.py \
 Only after this gate passes may the full VSLE Bluetooth smoke evidence set
 `installed_from_release_artifact: true`.
 
+Use the bridge script to apply the accepted install evidence to the full
+Bluetooth classroom smoke JSON instead of editing that field by hand:
+
+```bash
+python scripts/apply_vsle_bluetooth_install_evidence.py \
+  --install-evidence docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json \
+  --classroom-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --output docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_release_evidence_bridge.md
+```
+
 ## Official Firmware Bluetooth
 
 macOS official firmware Bluetooth compatibility must use Apple-supported

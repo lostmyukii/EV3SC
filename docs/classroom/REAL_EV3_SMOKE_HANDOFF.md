@@ -205,6 +205,18 @@ python scripts/run_desktop_install_smoke.py \
   --report docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.md
 ```
 
+After that report says `Classroom ready: yes`, apply it to the classroom smoke
+JSON through the bridge script rather than manually flipping
+`installed_from_release_artifact`:
+
+```bash
+python scripts/apply_vsle_bluetooth_install_evidence.py \
+  --install-evidence docs/desktop/evidence/<os>-vsle-bluetooth-install-smoke.json \
+  --classroom-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --output docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/vsle_bluetooth_release_evidence_bridge.md
+```
+
 ## Section 13.7 Full Classroom Rehearsal
 
 After the confirmed smoke capture, collect the full evidence JSON for
