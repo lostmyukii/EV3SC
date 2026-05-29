@@ -3378,6 +3378,13 @@ material into:
 - **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Produce a signed and notarized macOS WeisileLink Desktop release artifact, ensure its generated manifest records `signed: true` and `notarized: true`, install that artifact on a clean macOS machine, then collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json` with real `vsle-bluetooth` EV3 evidence and rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`.
 
+### [2026-05-29] macOS release notarization helper
+- **Status**: ✅ Completed
+- **Commit**: `aab07dc`
+- **What was done**: Added `desktop/scripts/notarize_macos_release.py` so a signed macOS WeisileLink artifact can be submitted with `xcrun notarytool`, stapled and validated with `xcrun stapler`, rezipped, and recorded as `notarized: true` only after tool validation succeeds. Added regression tests with a fake `xcrun`, docs that require `--keychain-profile` instead of command-line Apple passwords, and source register coverage.
+- **Files created/modified**: `desktop/scripts/notarize_macos_release.py`, `tests/test_macos_notarization.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Run the real macOS release flow with a Developer ID signing identity and Apple notarytool keychain profile: build the signed artifact, run `desktop/scripts/notarize_macos_release.py --keychain-profile <profile>`, confirm the manifest records `signed: true` and `notarized: true`, then install it on a clean macOS machine for `vsle-bluetooth` install-smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
