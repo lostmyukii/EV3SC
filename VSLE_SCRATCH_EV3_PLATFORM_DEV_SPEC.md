@@ -3336,6 +3336,13 @@ material into:
 - **Files created/modified**: `desktop/macos/native/WeisileEV3BluetoothAdapter.m`, `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/tests/test_native_adapter_process.py`, `docs/performance/BLUETOOTH_FRESHNESS_DIAGNOSIS.md`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`
 - **Next step**: Decide whether full VSLE Bluetooth remains a non-classroom diagnostic/fallback mode with lower freshness expectations, or redesign the Bluetooth stream around a different native adapter/protocol strategy and collect new real-EV3 evidence; clean release-artifact install evidence is still required before any classroom-ready claim.
 
+### [2026-05-29] VSLE Bluetooth fallback decision
+- **Status**: ✅ Completed
+- **Commit**: `b939311`
+- **What was done**: Recorded the evidence-driven decision that `vsle-bluetooth` remains a non-classroom diagnostic/fallback mode on current macOS RFCOMM evidence, while WiFi Full VSLE remains the 50Hz classroom path. Updated the smoke report generator so command-group-passing but freshness-blocked evidence explicitly reports `Diagnostic fallback: yes` instead of being confused with classroom readiness.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Collect clean release-artifact install evidence for WeisileLink Desktop and proceed with WiFi Full VSLE classroom readiness gates, or start a new Bluetooth transport redesign task before trying to make `vsle-bluetooth` meet the 25ms classroom freshness gate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
