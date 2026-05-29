@@ -3279,6 +3279,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 - **Next step**: Collect ScratchAI browser Unsandboxed evidence, collect or document the release-artifact install evidence gate, then continue the Bluetooth freshness investigation and attach at least one real sensor for the remaining sensor command group.
 
+### [2026-05-29] ScratchAI browser Unsandboxed evidence
+- **Status**: ✅ Completed
+- **Commit**: `fa45bd8`
+- **What was done**: Collected ScratchAI browser rehearsal evidence showing the EV3 extension URL loaded as a main-thread script resource with no extension-worker resource for that URL. The full Bluetooth smoke evidence now records `scratch_unsandboxed_loaded: true`, while classroom readiness remains blocked by release-artifact install evidence, the missing real sensor command group, and the Bluetooth sensor freshness target.
+- **Files created/modified**: `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json`, `docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.png`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
+- **Next step**: Attach at least one real EV3 sensor, rerun the full `vsle-bluetooth` smoke while continuing the freshness investigation until `sensor_freshness_ms_max <= 25`, and collect release-artifact install evidence before claiming classroom readiness.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
