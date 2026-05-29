@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "detail": "signtool was not found on PATH",
+      "name": "tool:signtool",
+      "ok": false
+    },
+    {
+      "detail": "Darwin",
+      "name": "host_os_windows",
+      "ok": false
+    },
+    {
+      "detail": "executable_path was not provided",
+      "name": "executable_path",
+      "ok": false
+    },
+    {
+      "detail": "windows_sign_identity was not provided",
+      "name": "windows_sign_identity",
+      "ok": false
+    },
+    {
+      "detail": "timestamp_url was not provided",
+      "name": "timestamp_url",
+      "ok": false
+    },
+    {
+      "detail": "Windows SignTool signing is not wired in desktop/scripts/build_release_artifacts.py yet",
+      "name": "windows_signing_implementation",
+      "ok": false
+    }
+  ],
+  "missing_inputs": [
+    "executable_path",
+    "windows_sign_identity",
+    "timestamp_url"
+  ],
+  "ready": false,
+  "release_commands": [
+    "./.venv/bin/python desktop/scripts/build_release_artifacts.py windows --executable desktop/build/windows/WeisileLink.exe --output desktop/release/windows --version 0.1.0 --sign-identity \"VSLE Windows Code Signing\" --timestamp-url https://timestamp.digicert.com"
+  ],
+  "target": "windows"
+}

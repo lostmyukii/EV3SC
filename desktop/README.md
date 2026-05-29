@@ -127,3 +127,37 @@ notarized app manifest:
 The package helper writes `installer_pkg`, `installer_sha256`, and
 `installer_signed: true` into the manifest. The install smoke gate requires
 those fields for macOS release evidence.
+
+For Windows, run the prerequisite preflight before collecting clean-machine
+evidence. After building a self-contained `WeisileLink.exe`, pass the Windows
+code-signing identity with `--sign-identity` or
+`WEISILE_WINDOWS_SIGN_IDENTITY`, and pass the RFC3161 timestamp server with
+`--timestamp-url` or `WEISILE_WINDOWS_TIMESTAMP_URL`:
+
+```bash
+./.venv/bin/python desktop/scripts/check_windows_release_preflight.py \
+  --executable desktop/build/windows/WeisileLink.exe \
+  --sign-identity "VSLE Windows Code Signing" \
+  --timestamp-url https://timestamp.digicert.com \
+  --json-report docs/desktop/evidence/windows-release-preflight.json \
+  --report docs/desktop/evidence/windows-release-preflight.md
+```
+
+The current preflight is expected to block because Windows SignTool signing is
+not wired into `build_release_artifacts.py` yet. This prevents an unsigned zip
+from being mistaken for a classroom release artifact.
+
+Once the Windows preflight says `Ready: yes`, use the guarded runner:
+
+```bash
+./.venv/bin/python desktop/scripts/run_windows_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/windows-release-preflight.json \
+  --preflight-report docs/desktop/evidence/windows-release-preflight.md \
+  --json-report docs/desktop/evidence/windows-release-flow.json \
+  --report docs/desktop/evidence/windows-release-flow.md \
+  --output desktop/release/windows \
+  --version 0.1.0
+```
+
+The runner refuses to call the Windows packager unless
+`check_windows_release_preflight.py` reports `Ready: yes`.

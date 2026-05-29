@@ -259,3 +259,18 @@ def test_macos_docs_reference_release_preflight_script():
         assert "WEISILE_NOTARY_KEYCHAIN_PROFILE" in text
         assert "run_macos_release_flow.py" in text
         assert "macos-release-flow.json" in text
+
+
+def test_windows_docs_reference_release_preflight_and_flow_scripts():
+    for path in (
+        ROOT / "desktop/README.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+        ROOT / "docs/desktop/WINDOWS_INSTALL.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "check_windows_release_preflight.py" in text
+        assert "windows-release-preflight.json" in text
+        assert "WEISILE_WINDOWS_SIGN_IDENTITY" in text
+        assert "WEISILE_WINDOWS_TIMESTAMP_URL" in text
+        assert "run_windows_release_flow.py" in text
+        assert "windows-release-flow.json" in text

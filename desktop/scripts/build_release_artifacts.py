@@ -366,6 +366,10 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
         help="Signing identity. macOS uses codesign; Windows signing is gated.",
     )
     parser.add_argument(
+        "--timestamp-url",
+        help="Windows RFC3161 timestamp URL for future SignTool signing.",
+    )
+    parser.add_argument(
         "--allow-unsigned",
         action="store_true",
         help="Allow unsigned internal smoke artifacts. Not for classrooms.",

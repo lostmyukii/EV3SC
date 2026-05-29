@@ -150,6 +150,38 @@ Then build the signed macOS installer package:
 The install smoke gate requires the resulting manifest to include the signed
 installer package fields before it accepts macOS release-artifact evidence.
 
+For Windows, run the release preflight before collecting clean-machine
+evidence. The preflight checks the self-contained `WeisileLink.exe`, confirms
+the release host and `signtool` availability, records the Windows signing
+identity from `--sign-identity` or `WEISILE_WINDOWS_SIGN_IDENTITY`, records the
+timestamp server from `--timestamp-url` or `WEISILE_WINDOWS_TIMESTAMP_URL`, and
+keeps the flow blocked while SignTool signing is not wired into the packager:
+
+```bash
+./.venv/bin/python desktop/scripts/check_windows_release_preflight.py \
+  --executable desktop/build/windows/WeisileLink.exe \
+  --sign-identity "VSLE Windows Code Signing" \
+  --timestamp-url https://timestamp.digicert.com \
+  --json-report docs/desktop/evidence/windows-release-preflight.json \
+  --report docs/desktop/evidence/windows-release-preflight.md
+```
+
+When that report says `Ready: yes`, run the guarded Windows release flow:
+
+```bash
+./.venv/bin/python desktop/scripts/run_windows_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/windows-release-preflight.json \
+  --preflight-report docs/desktop/evidence/windows-release-preflight.md \
+  --json-report docs/desktop/evidence/windows-release-flow.json \
+  --report docs/desktop/evidence/windows-release-flow.md \
+  --output desktop/release/windows \
+  --version 0.1.0
+```
+
+The runner writes `windows-release-flow.json` and
+`windows-release-flow.md`; until the preflight is ready it records
+`blocked-preflight` and executes no release commands.
+
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`

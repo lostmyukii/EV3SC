@@ -1,0 +1,7 @@
+{
+  "blocked_reason": "Windows release preflight did not pass",
+  "commands_executed": [],
+  "preflight_ready": false,
+  "preflight_report": "docs/desktop/evidence/windows-release-preflight.md",
+  "status": "blocked-preflight"
+}

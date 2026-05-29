@@ -45,6 +45,43 @@ release zip, and manifest under `desktop/release/`:
 artifact must be signed, wrapped in the approved installer shape, and then
 verified on a clean machine.
 
+## Release Preflight
+
+Before Windows release evidence is collected, run the guarded preflight from the
+repository root. The signing identity can be passed with `--sign-identity` or
+`WEISILE_WINDOWS_SIGN_IDENTITY`; the RFC3161 timestamp server can be passed with
+`--timestamp-url` or `WEISILE_WINDOWS_TIMESTAMP_URL`:
+
+```bash
+./.venv/bin/python desktop/scripts/check_windows_release_preflight.py \
+  --executable desktop/build/windows/WeisileLink.exe \
+  --sign-identity "VSLE Windows Code Signing" \
+  --timestamp-url https://timestamp.digicert.com \
+  --json-report docs/desktop/evidence/windows-release-preflight.json \
+  --report docs/desktop/evidence/windows-release-preflight.md
+```
+
+The report must say `Ready: yes` before the signed Windows artifact chain can
+run. The current report is expected to stay blocked until Windows SignTool
+signing is wired into `desktop/scripts/build_release_artifacts.py`.
+
+After the preflight is ready, run:
+
+```bash
+./.venv/bin/python desktop/scripts/run_windows_release_flow.py \
+  --preflight-json-report docs/desktop/evidence/windows-release-preflight.json \
+  --preflight-report docs/desktop/evidence/windows-release-preflight.md \
+  --json-report docs/desktop/evidence/windows-release-flow.json \
+  --report docs/desktop/evidence/windows-release-flow.md \
+  --output desktop/release/windows \
+  --version 0.1.0
+```
+
+The runner writes `windows-release-flow.json` and
+`windows-release-flow.md`. It records `blocked-preflight` and executes no
+release commands unless `check_windows_release_preflight.py` reports
+`Ready: yes`.
+
 ## Startup and Firewall Defaults
 
 The first classroom release should support per-user startup because admin rights
