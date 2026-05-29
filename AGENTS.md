@@ -249,10 +249,36 @@ Required desktop-release scope:
 - Never mark a desktop installer complete if it only works from a developer
   checkout.
 
-### 9. Official EV3 firmware Bluetooth compatibility is a limited mode
+### 9. No-WiFi classroom Full VSLE Bluetooth is a primary path
+
+When a classroom cannot obtain a compatible EV3 WiFi USB dongle,
+`vsle-bluetooth` is the required full-module classroom path. Do not demote it to
+diagnostic-only or fallback-only status in plans, docs, tests, or UI copy.
+
+Rules for this mode:
+- The EV3 still runs ev3dev and the EV3SC-owned `vsle_ev3_server.py` with its
+  RFCOMM listener enabled.
+- ScratchAI still talks only to WeisileLink Desktop over JSON-RPC; browser code
+  must not open direct Bluetooth connections to the EV3.
+- `vsle-bluetooth` must preserve the same command contract, cache-backed
+  reporters, safety validation, AI Quest routing, and diagnostics model as WiFi
+  Full VSLE.
+- Acceptance is split into two milestones:
+  - Bluetooth full-module classroom baseline: all module command groups pass,
+    reporter and Boolean blocks are cache-backed, Bluetooth sampling/freshness
+    is measured and documented, disconnect uses the safest available stop, AI
+    Quest/data collection records the actual sample rate, and release-artifact
+    evidence is attached.
+  - Bluetooth high-speed 50Hz gate: `sensor_freshness_ms_max <= 25` remains a
+    separate optimization target. Do not block basic no-WiFi classroom use on
+    this gate unless the lesson explicitly requires 50Hz raw streaming.
+- Official-firmware Bluetooth remains a separate limited compatibility mode and
+  must never be presented as full module parity.
+
+### 10. Official EV3 firmware Bluetooth compatibility is a limited mode
 
 The no-ev3dev Bluetooth mode is for fast trials and basic non-AI classroom
-projects. It does not replace the full ev3dev/WiFi VSLE mode.
+projects. It does not replace the full ev3dev VSLE mode.
 
 Rules for this mode:
 - Use EV3 Direct Command behavior from the EV3 Developer Kit and the
@@ -310,10 +336,10 @@ Rules for this mode:
 [Extension sends JSON-RPC to WeisileLink]
         ↓ ws://localhost:20111/scratch/bt
 [WeisileLink translates to EV3 command]
-        ↓ WiFi WebSocket to EV3 IP
+        ↓ WiFi WebSocket or vsle-bluetooth RFCOMM to EV3
 [EV3 runs vsle_ev3_server.py]
         ↓ ev3dev2 executes hardware action
-[EV3 sensor loop pushes data @50Hz]
+[EV3 sensor loop pushes data to SensorCache]
         ↑ back up the chain simultaneously
 [WeisileLink broadcasts to Scratch + Trainer]
 ```
@@ -457,13 +483,15 @@ Commands sent from Extension to WeisileLink (and forwarded to EV3):
 
 ## EV3 Setup Instructions
 
-For testing: EV3 must run ev3dev with WiFi USB dongle.
+For WiFi testing, EV3 runs ev3dev with a compatible WiFi USB dongle. For the
+no-WiFi classroom path, EV3 still runs ev3dev, but WeisileLink reaches the EV3SC
+server through `vsle-bluetooth` RFCOMM instead of WiFi.
 
 ```bash
 # 1. Flash ev3dev to SD card: https://www.ev3dev.org/docs/getting-started/
-# 2. Insert SD card + WiFi dongle into EV3
+# 2. Insert SD card into EV3; add WiFi dongle only if WiFi Full VSLE is used
 # 3. Power on EV3 — it boots ev3dev automatically
-# 4. Connect to EV3 WiFi or find its IP
+# 4. Connect to EV3 over USB SSH, WiFi, or the documented Bluetooth setup path
 ssh robot@ev3dev.local   # default password: maker
 
 # 5. Upload server file
@@ -476,7 +504,7 @@ pip3 install websockets ev3dev2
 python3 vsle_ev3_server.py
 # EV3 is now listening on port 8765
 
-# 8. Find EV3 IP address
+# 8. For WiFi, find EV3 IP address
 hostname -I
 ```
 
@@ -489,8 +517,11 @@ hostname -I
 cd weisile-link
 python weisile_link.py --transport wifi --ev3-ip 192.168.1.100
 
-# Start WeisileLink with Bluetooth
-python weisile_link.py --transport bluetooth --ev3-bt 00:16:53:XX:XX:XX
+# Start full-module no-WiFi classroom Bluetooth
+python weisile_link.py --transport vsle-bluetooth --ev3-bt 00:16:53:XX:XX:XX
+
+# Start limited official-firmware Bluetooth compatibility
+python weisile_link.py --transport official-bluetooth --ev3-official-bt 00:16:53:XX:XX:XX
 
 # Start Scratch editor (development mode)
 cd scratch-ai-platform/scratch-editor
@@ -545,6 +576,7 @@ docs(blocks): update motor block reference
 |---------|-----------|-----------------|
 | Putting `await` in reporter block | Freezes Scratch | Read from sensor cache synchronously |
 | Importing pybluez | Abandoned and unreliable on modern macOS/Python | Use stdlib RFCOMM only on verified Linux/ev3dev paths; macOS/Windows need a native adapter boundary or WiFi |
+| Treating `vsle-bluetooth` as diagnostic-only | Some classrooms cannot obtain compatible EV3 WiFi dongles | Treat `vsle-bluetooth` as the full-module no-WiFi classroom path, with measured sampling and a separate 50Hz gate |
 | Modifying scratch-gui CSS | Breaks Scratch visual identity | Add new CSS classes, don't modify existing |
 | Using sandboxed extension | 1s+ latency breaks motor control | Must use Unsandboxed extension |
 | Breaking JSON-RPC 2.0 format | Official scratch3_ev3 stops working | Test with both extensions |
@@ -572,7 +604,10 @@ docs(blocks): update motor block reference
 2. **New block needed**: Add it. More blocks = better. Follow the pattern.
 3. **Protocol change**: Check the JSON-RPC 2.0 spec. Test with both extensions.
 4. **EV3 hardware behavior**: Check ev3dev2 docs at https://ev3dev-lang.readthedocs.io/
-5. **Performance concern**: Measure first. 50Hz is the target. Don't optimize prematurely.
+5. **Performance concern**: Measure first. 50Hz is the WiFi/high-speed target.
+   For no-WiFi Bluetooth classroom baseline, document the stable measured rate
+   and keep the 25ms freshness gate as a separate optimization target unless a
+   lesson explicitly requires 50Hz raw streaming.
 
 ---
 
