@@ -94,6 +94,11 @@ install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`
 and must pass the desktop gate in VSLE mode:
 
+Use the platform-specific templates under `docs/desktop/evidence/`:
+
+- `macos-vsle-bluetooth-install-smoke.template.json`
+- `windows-vsle-bluetooth-install-smoke.template.json`
+
 ```bash
 python scripts/run_desktop_install_smoke.py \
   --mode vsle-bluetooth \

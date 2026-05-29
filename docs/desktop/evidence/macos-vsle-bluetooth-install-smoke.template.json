@@ -1,0 +1,9 @@
+{
+  "installed_from_release_artifact": false,
+  "started_after_reboot": false,
+  "scratch_link_endpoint_ok": false,
+  "vsle_bluetooth_real_ev3_ok": false,
+  "developer_checkout_run": false,
+  "localhost_only_developer_run": false,
+  "notes": "Copy this template to macos-vsle-bluetooth-install-smoke.json only on a clean macOS machine after installing the signed/notarized release artifact and testing a real ev3dev EV3 over vsle-bluetooth."
+}

@@ -185,3 +185,54 @@ def test_desktop_docs_reference_vsle_bluetooth_install_smoke_mode():
         text = path.read_text(encoding="utf-8")
         assert "--mode vsle-bluetooth" in text
         assert "vsle_bluetooth_real_ev3_ok" in text
+
+
+def test_vsle_bluetooth_install_evidence_templates_are_blocked_by_default(
+    tmp_path,
+):
+    for name in (
+        "macos-vsle-bluetooth-install-smoke.template.json",
+        "windows-vsle-bluetooth-install-smoke.template.json",
+    ):
+        template = ROOT / "docs/desktop/evidence" / name
+        report = tmp_path / f"{name}.md"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(RUNNER),
+                "--mode",
+                "vsle-bluetooth",
+                "--evidence",
+                str(template),
+                "--report",
+                str(report),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 1
+        text = report.read_text(encoding="utf-8")
+        assert "Classroom ready: no" in text
+        assert "installed_from_release_artifact must be true" in text
+        assert "started_after_reboot must be true" in text
+        assert "scratch_link_endpoint_ok must be true" in text
+        assert "vsle_bluetooth_real_ev3_ok must be true" in text
+
+
+def test_desktop_docs_point_to_vsle_bluetooth_evidence_templates():
+    for path, template_name in (
+        (
+            ROOT / "docs/desktop/MACOS_INSTALL.md",
+            "macos-vsle-bluetooth-install-smoke.template.json",
+        ),
+        (
+            ROOT / "docs/desktop/WINDOWS_INSTALL.md",
+            "windows-vsle-bluetooth-install-smoke.template.json",
+        ),
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert template_name in text
+        assert template_name.replace(".template", "") in text

@@ -96,6 +96,11 @@ For the no-WiFi full VSLE Bluetooth classroom path, collect release-artifact
 evidence from the same clean-machine install with an ev3dev EV3 running
 `vsle_ev3_server.py` over `vsle-bluetooth`:
 
+```bash
+cp docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json \
+  docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json
+```
+
 ```json
 {
   "installed_from_release_artifact": true,
