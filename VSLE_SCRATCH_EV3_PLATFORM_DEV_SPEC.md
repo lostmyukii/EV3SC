@@ -3542,6 +3542,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/run_macos_release_flow.py`, `tests/test_macos_release_flow.py`, `docs/desktop/evidence/macos-release-flow.json`, `docs/desktop/evidence/macos-release-flow.md`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Install or provide the real Developer ID Application and Developer ID Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE`, rerun `desktop/scripts/run_macos_release_flow.py` until the release-flow report is `release-flow-complete`, then collect clean-machine `vsle-bluetooth` install-smoke evidence.
 
+### [2026-05-30] VSLE Bluetooth self-use unsigned validation
+- **Status**: ✅ Completed
+- **Commit**: `82d0c49`
+- **What was done**: Added `--self-use-unsigned` to the full VSLE Bluetooth smoke runner so local/internal testing can pass on real `vsle-bluetooth` command-group evidence without Developer ID release evidence. The generated report keeps classroom readiness and release-artifact evidence blocked, making the boundary explicit.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: If the project remains self-use only, continue using the self-use unsigned and Mac browser gates for functional regression; if external classroom distribution resumes, configure Developer ID signing/notarization and collect clean-machine install evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
