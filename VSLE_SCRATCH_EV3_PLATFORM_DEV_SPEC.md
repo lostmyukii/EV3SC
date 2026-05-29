@@ -3559,6 +3559,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Continue self-use regression with the Bluetooth baseline and Mac browser gates; only re-enable release-artifact install evidence as a required gate when signed external distribution is needed.
 
+### [2026-05-30] Mac-first self-use Bluetooth regression pass
+- **Status**: ✅ Completed
+- **Commit**: `7bf0c1d`
+- **What was done**: Re-ran the self-use regression gates against the current evidence: full VSLE Bluetooth baseline, self-use unsigned Bluetooth, and Mac browser full VSLE Bluetooth all returned exit code 0. The reports remained content-stable, with Bluetooth classroom baseline ready, Mac browser server-side path validated, release-artifact evidence still separate, and Bluetooth 50Hz still not ready.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Improve Bluetooth sampling freshness toward the separate 50Hz gate and expand physical EV3 sensor/port combination coverage.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
