@@ -36,12 +36,12 @@
       "ok": true
     },
     {
-      "detail": "app_sign_identity was not provided",
+      "detail": "app_sign_identity was not provided and no Developer ID Application: identity was found",
       "name": "app_sign_identity",
       "ok": false
     },
     {
-      "detail": "installer_sign_identity was not provided",
+      "detail": "installer_sign_identity was not provided and no Developer ID Installer: identity was found",
       "name": "installer_sign_identity",
       "ok": false
     },

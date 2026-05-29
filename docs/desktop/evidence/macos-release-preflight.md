@@ -11,8 +11,8 @@ Ready: no
 - tool:productbuild: pass - /usr/bin/productbuild
 - executable_path: pass - /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink
 - native_adapter_path: pass - /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter
-- app_sign_identity: fail - app_sign_identity was not provided
-- installer_sign_identity: fail - installer_sign_identity was not provided
+- app_sign_identity: fail - app_sign_identity was not provided and no Developer ID Application: identity was found
+- installer_sign_identity: fail - installer_sign_identity was not provided and no Developer ID Installer: identity was found
 - notary_keychain_profile: fail - notary_keychain_profile was not provided
 
 ## Release Commands

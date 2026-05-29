@@ -255,3 +255,4 @@ def test_macos_docs_reference_release_preflight_script():
         assert "macos-release-preflight.json" in text
         assert "auto-detect" in text
         assert "desktop/build/macos/WeisileLink" in text
+        assert "unique Developer ID" in text

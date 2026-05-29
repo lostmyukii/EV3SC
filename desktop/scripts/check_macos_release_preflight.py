@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import plistlib
+import re
 import shutil
 import subprocess
 import sys
@@ -167,35 +168,90 @@ def _security_identities(runner: CommandRunner) -> Tuple[str, str | None]:
     return output, None
 
 
+def _quoted_identities(identities_output: str) -> List[str]:
+    return re.findall(r'"([^"]+)"', identities_output)
+
+
+def _find_unique_identity(
+    prefix: str, identities_output: str
+) -> Tuple[str | None, str]:
+    matches = sorted(
+        {
+            identity
+            for identity in _quoted_identities(identities_output)
+            if identity.startswith(prefix)
+        }
+    )
+    if len(matches) == 1:
+        return matches[0], "unique"
+    if not matches:
+        return None, "missing"
+    return None, "multiple"
+
+
 def _check_identity(
     label: str,
     identity: str | None,
+    identity_prefix: str,
     identities_output: str,
     identity_error: str | None,
-) -> dict[str, object]:
+) -> Tuple[dict[str, object], str | None]:
     if identity is None or not identity.strip():
+        if identity_error is not None:
+            return (
+                {
+                    "name": label,
+                    "ok": False,
+                    "detail": identity_error,
+                },
+                None,
+            )
+
+        detected, detection_status = _find_unique_identity(
+            identity_prefix,
+            identities_output,
+        )
+        if detected is not None:
+            return (
+                {
+                    "name": label,
+                    "ok": True,
+                    "detail": detected,
+                },
+                detected,
+            )
+        if detection_status == "multiple":
+            detail = (
+                f"{label} was not provided and multiple {identity_prefix} "
+                "identities were found; provide the exact identity"
+            )
+        else:
+            detail = (
+                f"{label} was not provided and no {identity_prefix} "
+                "identity was found"
+            )
         return {
             "name": label,
             "ok": False,
-            "detail": f"{label} was not provided",
-        }
+            "detail": detail,
+        }, None
     if identity_error is not None:
         return {
             "name": label,
             "ok": False,
             "detail": identity_error,
-        }
+        }, identity
     if identity not in identities_output:
         return {
             "name": label,
             "ok": False,
             "detail": f"{identity} was not found in keychain identities",
-        }
+        }, identity
     return {
         "name": label,
         "ok": True,
         "detail": identity,
-    }
+    }, identity
 
 
 def _check_notary_profile(
@@ -260,22 +316,22 @@ def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, 
     checks.append(_check_native_adapter(native_adapter))
 
     identities_output, identity_error = _security_identities(runner)
-    checks.append(
-        _check_identity(
-            "app_sign_identity",
-            args.app_sign_identity,
-            identities_output,
-            identity_error,
-        )
+    app_identity_check, app_identity = _check_identity(
+        "app_sign_identity",
+        args.app_sign_identity,
+        "Developer ID Application:",
+        identities_output,
+        identity_error,
     )
-    checks.append(
-        _check_identity(
-            "installer_sign_identity",
-            args.installer_sign_identity,
-            identities_output,
-            identity_error,
-        )
+    checks.append(app_identity_check)
+    installer_identity_check, installer_identity = _check_identity(
+        "installer_sign_identity",
+        args.installer_sign_identity,
+        "Developer ID Installer:",
+        identities_output,
+        identity_error,
     )
+    checks.append(installer_identity_check)
     checks.append(_check_notary_profile(args.notary_keychain_profile, runner))
 
     missing_inputs = [
@@ -298,7 +354,13 @@ def build_payload(args: argparse.Namespace, runner: CommandRunner) -> dict[str, 
         "target": "macos",
         "checks": checks,
         "missing_inputs": missing_inputs,
-        "release_commands": _release_commands(args, executable, native_adapter),
+        "release_commands": _release_commands(
+            args,
+            executable,
+            native_adapter,
+            app_identity,
+            installer_identity,
+        ),
     }
 
 
@@ -306,6 +368,8 @@ def _release_commands(
     args: argparse.Namespace,
     executable_path: Path | None,
     native_adapter_path: Path | None,
+    detected_app_identity: str | None,
+    detected_installer_identity: str | None,
 ) -> List[str]:
     executable = (
         str(executable_path)
@@ -317,9 +381,15 @@ def _release_commands(
         if native_adapter_path
         else str(DEFAULT_NATIVE_ADAPTER.relative_to(ROOT))
     )
-    app_identity = args.app_sign_identity or "Developer ID Application: WeisileEDU"
+    app_identity = (
+        args.app_sign_identity
+        or detected_app_identity
+        or "Developer ID Application: WeisileEDU"
+    )
     installer_identity = (
-        args.installer_sign_identity or "Developer ID Installer: WeisileEDU"
+        args.installer_sign_identity
+        or detected_installer_identity
+        or "Developer ID Installer: WeisileEDU"
     )
     notary_profile = args.notary_keychain_profile or "VSLE_NOTARY"
     manifest = "desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json"

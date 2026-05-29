@@ -94,7 +94,10 @@ evidence. After running `desktop/macos/native/build.sh` and building the
 WeisileLink binary, the preflight can auto-detect
 `desktop/build/macos/WeisileLink` and
 `desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter`;
-pass `--executable` or `--native-adapter` only for nonstandard paths:
+it also auto-detects a unique Developer ID Application and unique Developer ID
+Installer identity from the macOS keychain. Pass `--executable`,
+`--native-adapter`, `--app-sign-identity`, or `--installer-sign-identity` only
+for nonstandard paths or when multiple matching identities are present:
 
 ```bash
 ./.venv/bin/python desktop/scripts/check_macos_release_preflight.py \

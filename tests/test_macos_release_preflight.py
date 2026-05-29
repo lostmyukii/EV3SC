@@ -128,6 +128,55 @@ def test_macos_release_preflight_autodetects_default_build_outputs(tmp_path):
     assert checks["native_adapter_path"]["detail"] == str(native_adapter)
 
 
+def test_macos_release_preflight_autodetects_unique_developer_id_identities(
+    tmp_path,
+):
+    executable = _fake_executable(tmp_path / "desktop/build/macos/WeisileLink")
+    native_adapter = _fake_native_adapter_app(
+        tmp_path / "desktop/build/macos/native/WeisileEV3BluetoothAdapter.app"
+    )
+    module = _load_preflight_module()
+    module.DEFAULT_EXECUTABLE = executable
+    module.DEFAULT_NATIVE_ADAPTER = native_adapter
+    module._tool_path = lambda name: f"/fake/{name}"
+
+    args = argparse.Namespace(
+        executable=None,
+        native_adapter=None,
+        app_sign_identity=None,
+        installer_sign_identity=None,
+        notary_keychain_profile=None,
+    )
+
+    identities = "\n".join(
+        [
+            '  1) ABCD "Developer ID Application: WeisileEDU (TEAMID)"',
+            '  2) EFGH "Developer ID Installer: WeisileEDU (TEAMID)"',
+        ]
+    )
+    payload = module.build_payload(
+        args,
+        lambda *_, **__: subprocess.CompletedProcess(
+            args=["security"], returncode=0, stdout=identities, stderr=""
+        ),
+    )
+
+    assert "app_sign_identity" not in payload["missing_inputs"]
+    assert "installer_sign_identity" not in payload["missing_inputs"]
+    checks = {check["name"]: check for check in payload["checks"]}
+    assert checks["app_sign_identity"]["ok"] is True
+    assert checks["app_sign_identity"]["detail"] == (
+        "Developer ID Application: WeisileEDU (TEAMID)"
+    )
+    assert checks["installer_sign_identity"]["ok"] is True
+    assert checks["installer_sign_identity"]["detail"] == (
+        "Developer ID Installer: WeisileEDU (TEAMID)"
+    )
+    commands = "\n".join(payload["release_commands"])
+    assert '--sign-identity "Developer ID Application: WeisileEDU (TEAMID)"' in commands
+    assert '--sign-identity "Developer ID Installer: WeisileEDU (TEAMID)"' in commands
+
+
 def test_macos_release_preflight_passes_with_fake_tools_and_inputs(tmp_path):
     executable = _fake_executable(tmp_path / "WeisileLink")
     native_adapter = _fake_native_adapter_app(
