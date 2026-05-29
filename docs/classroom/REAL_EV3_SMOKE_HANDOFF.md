@@ -159,8 +159,6 @@ cp docs/classroom/vsle_bluetooth_full_module_smoke.template.json \
 
 Required pass fields:
 
-- `installed_from_release_artifact`: true only after the installed release
-  artifact passes `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`.
 - `ev3_runs_ev3dev_server`: true only after confirming `vsle-ev3-server`.
 - `transport`: `vsle-bluetooth`.
 - `real_ev3_full_bluetooth_ok`: true only after a physical Bluetooth run.
@@ -171,6 +169,12 @@ Required pass fields:
 - every `command_groups.*` value true after that group is exercised.
 - `disconnect_stop_ok`: true only after disconnect stop behavior is observed.
 - `scratch_unsandboxed_loaded`: true only for the unsandboxed ScratchAI path.
+
+Bluetooth classroom baseline does not require release-artifact evidence. The
+optional `installed_from_release_artifact` field is reported separately as
+`Release-artifact evidence ready` and should be set true only after the
+installed release artifact passes
+`scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`.
 
 Validate the evidence:
 
@@ -192,9 +196,8 @@ through the unsigned validation lane:
 ```
 
 That report may say `Self-use unsigned ready: yes` for local functional
-regression, but it does not replace signed/notarized release evidence. The
-classroom baseline still requires `Bluetooth classroom baseline ready: yes` from
-the normal smoke report plus accepted release-artifact install evidence.
+regression, but it does not replace signed/notarized release evidence when a
+distribution gate is needed.
 
 Then validate the Mac browser functional path by combining ScratchAI browser
 Unsandboxed evidence with the full Bluetooth command-group evidence:

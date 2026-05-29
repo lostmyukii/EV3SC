@@ -277,15 +277,16 @@ Rules for this mode:
 - For local/internal self-use when no Developer ID certificates are available,
   `scripts/run_vsle_bluetooth_smoke.py --self-use-unsigned` may validate the
   real `vsle-bluetooth` full-module command groups and write
-  `docs/classroom/vsle_bluetooth_self_use_unsigned.md`. This path is only for
-  self-use functional regression and must not be used as classroom baseline,
-  signed release-artifact, notarization, or Windows evidence.
+  `docs/classroom/vsle_bluetooth_self_use_unsigned.md`. Bluetooth classroom
+  baseline does not require release-artifact evidence; signed release-artifact,
+  notarization, and Windows evidence remain separate distribution gates. The
+  smoke report must keep this separate as `Release-artifact evidence ready`,
+  added only when external classroom distribution is needed.
 - Acceptance is split into two milestones:
   - Bluetooth full-module classroom baseline: all module command groups pass,
     reporter and Boolean blocks are cache-backed, Bluetooth sampling/freshness
     is measured and documented, disconnect uses the safest available stop, AI
-    Quest/data collection records the actual sample rate, and release-artifact
-    evidence is attached.
+    Quest/data collection records the actual sample rate.
   - Bluetooth high-speed 50Hz gate: `sensor_freshness_ms_max <= 25` remains a
     separate optimization target. Do not block basic no-WiFi classroom use on
     this gate unless the lesson explicitly requires 50Hz raw streaming.

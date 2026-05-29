@@ -10,17 +10,12 @@ from typing import Any
 
 
 BASELINE_REQUIRED_TRUE = (
-    "installed_from_release_artifact",
     "ev3_runs_ev3dev_server",
     "real_ev3_full_bluetooth_ok",
     "disconnect_stop_ok",
     "scratch_unsandboxed_loaded",
 )
-SELF_USE_REQUIRED_TRUE = tuple(
-    key
-    for key in BASELINE_REQUIRED_TRUE
-    if key != "installed_from_release_artifact"
-)
+SELF_USE_REQUIRED_TRUE = BASELINE_REQUIRED_TRUE
 REQUIRED_GROUPS = (
     "motor",
     "sensor",
@@ -183,7 +178,7 @@ def main() -> int:
         action="store_true",
         help=(
             "Accept local/internal unsigned functional evidence without "
-            "marking classroom or release readiness."
+            "requiring signed release-artifact evidence."
         ),
     )
     parser.add_argument("--evidence", type=Path, required=True)

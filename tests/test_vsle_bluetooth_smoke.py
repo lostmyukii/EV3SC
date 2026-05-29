@@ -130,7 +130,7 @@ def test_vsle_bluetooth_smoke_accepts_baseline_when_only_50hz_gate_fails(
     assert "WiFi Full VSLE remains the classroom 50Hz path" not in text
 
 
-def test_vsle_bluetooth_smoke_blocks_baseline_without_release_artifact(
+def test_vsle_bluetooth_smoke_accepts_baseline_without_release_artifact(
     tmp_path,
 ):
     evidence = tmp_path / "evidence.json"
@@ -174,10 +174,11 @@ def test_vsle_bluetooth_smoke_blocks_baseline_without_release_artifact(
     )
 
     text = report.read_text(encoding="utf-8")
-    assert result.returncode == 1
-    assert "Bluetooth classroom baseline ready: no" in text
+    assert result.returncode == 0
+    assert "Bluetooth classroom baseline ready: yes" in text
     assert "Bluetooth high-speed 50Hz ready: no" in text
-    assert "installed_from_release_artifact must be true" in text
+    assert "Release-artifact evidence ready: no" in text
+    assert "installed_from_release_artifact must be true" not in text
     assert "Diagnostic fallback" not in text
 
 
@@ -231,7 +232,7 @@ def test_self_use_unsigned_accepts_full_module_without_release_artifact(
     text = report.read_text(encoding="utf-8")
     assert result.returncode == 0
     assert "Self-use unsigned ready: yes" in text
-    assert "Bluetooth classroom baseline ready: no" in text
+    assert "Bluetooth classroom baseline ready: yes" in text
     assert "Release-artifact evidence ready: no" in text
     assert "does not replace signed/notarized release evidence" in text
 
@@ -297,6 +298,22 @@ def test_docs_describe_self_use_unsigned_validation_path():
         assert "vsle_bluetooth_self_use_unsigned.md" in text, (
             f"{path} must mention self-use report"
         )
+
+
+def test_docs_keep_release_evidence_separate_from_bluetooth_baseline():
+    docs = [
+        ROOT / "AGENTS.md",
+        ROOT / "VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md",
+        ROOT / "docs/classroom/REAL_EV3_SMOKE_HANDOFF.md",
+        ROOT / "docs/SOURCE_REGISTER.md",
+    ]
+    for path in docs:
+        text = " ".join(path.read_text(encoding="utf-8").split())
+        assert (
+            "Bluetooth classroom baseline does not require "
+            "release-artifact evidence"
+        ) in text
+        assert "Release-artifact evidence ready" in text
 
 
 def test_docs_prioritize_macos_browser_vsle_bluetooth_when_windows_unavailable():

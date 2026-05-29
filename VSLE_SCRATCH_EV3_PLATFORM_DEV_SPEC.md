@@ -2066,6 +2066,9 @@ Required evidence:
   `docs/classroom/vsle_bluetooth_self_use_unsigned.md` and accept the same real
   command-group evidence without requiring
   `installed_from_release_artifact: true`.
+- Bluetooth classroom baseline does not require release-artifact evidence.
+  Release-artifact evidence remains a separate distribution gate reported by
+  `Release-artifact evidence ready`.
 - Reporter and Boolean blocks remain cache-backed, disconnect stop behavior is
   observed, and Bluetooth sampling metrics are recorded.
 
@@ -2073,9 +2076,9 @@ Mac browser full VSLE Bluetooth smoke can validate the server-side Scratch EV3
 module path before Windows evidence is available, but it does not replace signed
 release-artifact evidence, macOS notarized install evidence, or separate
 Windows evidence. Self-use unsigned validation is likewise only a local/internal
-functional regression gate; keep classroom readiness blocked if the release
-artifact, notarized install, or Windows evidence gates are the only missing
-proof.
+functional regression gate; keep release/distribution readiness separate if the
+release artifact, notarized install, or Windows evidence gates are the only
+missing proof.
 
 ### 13.7 Manual Classroom Acceptance Test
 

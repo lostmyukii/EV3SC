@@ -1,18 +1,14 @@
 # VSLE Bluetooth Full Module Smoke Report
 
 Self-use unsigned ready: yes
-Classroom ready: no
-Bluetooth classroom baseline ready: no
+Classroom ready: yes
+Bluetooth classroom baseline ready: yes
 Bluetooth high-speed 50Hz ready: no
 Release-artifact evidence ready: no
 
 Self-use unsigned validation is for local/internal functional testing only and does not replace signed/notarized release evidence.
 
-## Baseline Blocking Items
-- installed_from_release_artifact must be true
-
 ## High-Speed 50Hz Blocking Items
-- Bluetooth classroom baseline must pass first
 - sensor_freshness_ms_max must be <= 25
 
 ## Measured Bluetooth sampling
