@@ -45,18 +45,40 @@ Bluetooth disabled unless explicitly enabled:
 
 ```bash
 EV3_ENABLE_BLUETOOTH=0
+EV3_BT_ADDRESS=
 EV3_BT_RFCOMM_CHANNEL=1
 ```
 
 From a repo checkout, enable the EV3-side full VSLE Bluetooth RFCOMM listener
-with:
+with the EV3 controller address:
 
 ```bash
-VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./ev3-firmware/scripts/install.sh
+hciconfig -a | grep "BD Address"
+VSLE_EV3_ENABLE_BLUETOOTH=1 \
+  VSLE_EV3_BT_ADDRESS=<EV3_BLUETOOTH_ADDRESS> \
+  VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
+  SKIP_PIP_INSTALL=1 \
+  ./ev3-firmware/scripts/install.sh
 ```
 
 On the EV3 after copying the firmware directory, use the same environment
-variables with `./scripts/install.sh`.
+variables with `./scripts/install.sh`, then restart the service so the new env
+file is loaded:
+
+```bash
+sudo systemctl restart vsle-ev3-server.service
+```
+
+If the controller is RF-killed, unblock it and make it visible before pairing:
+
+```bash
+for f in /sys/class/rfkill/rfkill*/soft; do
+  [ -e "$f" ] && echo 0 | sudo tee "$f"
+done
+sudo hciconfig hci0 up
+sudo hciconfig hci0 piscan
+printf 'show\nquit\n' | bluetoothctl
+```
 
 The ScratchAI website must select `vsle-bluetooth` for full module coverage.
 Official firmware compatibility remains `official-bluetooth` and does not

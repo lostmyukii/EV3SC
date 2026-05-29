@@ -84,6 +84,19 @@ def test_ev3_systemd_documents_bluetooth_disabled_by_default():
     assert "Environment=EV3_BT_RFCOMM_CHANNEL=1" in text
 
 
+def test_ev3_systemd_env_file_overrides_default_bluetooth_values():
+    lines = _read(SERVICE).splitlines()
+    env_file_index = lines.index("EnvironmentFile=-/home/robot/.config/vsle/ev3.env")
+    default_env_indexes = [
+        index
+        for index, line in enumerate(lines)
+        if line.startswith("Environment=")
+    ]
+
+    assert default_env_indexes
+    assert max(default_env_indexes) < env_file_index
+
+
 def test_install_script_can_enable_full_vsle_bluetooth_env():
     entry = _read(INSTALL_ENTRY)
     text = _read(INSTALL)
@@ -139,8 +152,11 @@ def test_ev3_setup_docs_cover_full_vsle_bluetooth_mode():
     assert "requires ev3dev and `vsle_ev3_server.py`" in combined
     assert "not official firmware compatibility mode" in combined
     assert "VSLE_EV3_ENABLE_BLUETOOTH=1" in combined
+    assert "VSLE_EV3_BT_ADDRESS" in combined
     assert "VSLE_EV3_BT_RFCOMM_CHANNEL=1" in combined
     assert "./ev3-firmware/scripts/install.sh" in combined
+    assert "hciconfig hci0 up" in combined
+    assert "Powered: yes" in combined
     assert "vsle-bluetooth" in combined
     assert "official-bluetooth" in combined
     assert "AI Quest" in combined

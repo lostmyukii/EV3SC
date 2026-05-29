@@ -403,9 +403,105 @@ battery_pct=0
 The empty sensor and motor key lists are acceptable for this bring-up because no
 external EV3 sensors or motors were confirmed as attached during the install.
 
+### Phase 6: Enable EV3-Side Full VSLE Bluetooth
+
+Keep USB SSH connected while enabling Bluetooth. USB remains the recovery path
+if Bluetooth pairing fails.
+
+On the EV3, read the Bluetooth controller address:
+
+```bash
+hciconfig -a | grep "BD Address"
+```
+
+Confirmed EV3 controller address on 2026-05-29:
+
+```text
+A0:E6:F8:19:58:3C
+```
+
+On this real EV3, an RFCOMM precheck with an empty bind address failed:
+
+```text
+rfcomm_channel_1_prebind_error=bad bluetooth address
+```
+
+Use the controller address when enabling full VSLE Bluetooth:
+
+```bash
+cd ~/vsle-ev3-firmware
+VSLE_EV3_ENABLE_BLUETOOTH=1 \
+  VSLE_EV3_BT_ADDRESS=A0:E6:F8:19:58:3C \
+  VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
+  SKIP_PIP_INSTALL=1 \
+  ./scripts/install.sh
+sudo systemctl restart vsle-ev3-server.service
+```
+
+Confirmed service environment after restart, with the token redacted:
+
+```text
+EV3_WS_PORT=8765
+MAX_COLLECTED_POINTS=10000
+LOG_LEVEL=INFO
+EV3_ENABLE_BLUETOOTH=1
+EV3_BT_ADDRESS=A0:E6:F8:19:58:3C
+EV3_BT_RFCOMM_CHANNEL=1
+WEISILE_PAIRING_TOKEN=<redacted>
+```
+
+The VSLE server stayed active and kept the Wi-Fi/USB WebSocket endpoint
+available:
+
+```text
+systemctl is-active vsle-ev3-server.service -> active
+127.0.0.1:8765 auth.pair -> websocket_auth_ack_ok=True
+```
+
+Confirm the service process owns an RFCOMM socket:
+
+```bash
+PID="$(systemctl show vsle-ev3-server.service -p MainPID --value)"
+sudo ls -l /proc/$PID/fd | grep socket
+sudo cat /proc/net/rfcomm
+```
+
+Confirmed RFCOMM evidence:
+
+```text
+PID=1060
+/proc/net/rfcomm inode=7675
+/proc/1060/fd/9 -> socket:[7675]
+```
+
+If Bluetooth still shows `Powered: no`, unblock the controller and make it
+visible for pairing:
+
+```bash
+for f in /sys/class/rfkill/rfkill*/soft; do
+  [ -e "$f" ] && echo 0 | sudo tee "$f"
+done
+sudo hciconfig hci0 up
+sudo hciconfig hci0 piscan
+printf 'show\nquit\n' | bluetoothctl
+```
+
+Confirmed Bluetooth controller evidence:
+
+```text
+hci0: UP RUNNING PSCAN ISCAN
+Powered: yes
+Discoverable: yes
+Pairable: yes
+```
+
+An EV3 self-connection to its own RFCOMM address may still report
+`No route to host`; do not use that as the final classroom proof. The next proof
+must come from the teacher computer pairing to the EV3 and connecting through
+WeisileLink `vsle-bluetooth`.
+
 ### Next Phase
 
-Phase 6 will make the installed EV3 server reachable from WeisileLink for real
-hardware smoke testing. Use Wi-Fi with a supported EV3 dongle when available,
-or enable the full VSLE Bluetooth RFCOMM listener for the paired ev3dev EV3
-before collecting `docs/classroom/vsle_bluetooth_full_module_smoke.json`.
+Phase 7 will pair the Mac with the discoverable ev3dev EV3, point WeisileLink
+at `vsle-bluetooth`, collect `docs/classroom/vsle_bluetooth_full_module_smoke.json`,
+and rerun `scripts/run_vsle_bluetooth_smoke.py`.

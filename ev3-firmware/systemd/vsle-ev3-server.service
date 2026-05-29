@@ -9,13 +9,13 @@ Type=simple
 User=robot
 Group=robot
 WorkingDirectory=/home/robot
-EnvironmentFile=-/home/robot/.config/vsle/ev3.env
 Environment=EV3_WS_PORT=8765
 Environment=MAX_COLLECTED_POINTS=10000
 Environment=LOG_LEVEL=INFO
 Environment=EV3_ENABLE_BLUETOOTH=0
 Environment=EV3_BT_ADDRESS=
 Environment=EV3_BT_RFCOMM_CHANNEL=1
+EnvironmentFile=-/home/robot/.config/vsle/ev3.env
 ExecStartPre=/usr/bin/test -r /home/robot/vsle_ev3_server.py
 ExecStart=/usr/bin/python3 /home/robot/vsle_ev3_server.py
 Restart=on-failure

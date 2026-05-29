@@ -132,18 +132,55 @@ The systemd unit and installer keep Bluetooth disabled by default:
 
 ```bash
 EV3_ENABLE_BLUETOOTH=0
+EV3_BT_ADDRESS=
 EV3_BT_RFCOMM_CHANNEL=1
 ```
 
 To enable the EV3-side full VSLE Bluetooth RFCOMM listener during install, run
-the installer with explicit environment variables:
+the installer with explicit environment variables. On real EV3 hardware, first
+read the controller address and pass it as `VSLE_EV3_BT_ADDRESS`; binding to an
+empty Bluetooth address can fail with `bad bluetooth address` on the stock
+ev3dev Stretch image.
 
 ```bash
-VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./ev3-firmware/scripts/install.sh
+hciconfig -a | grep "BD Address"
+VSLE_EV3_ENABLE_BLUETOOTH=1 \
+  VSLE_EV3_BT_ADDRESS=<EV3_BLUETOOTH_ADDRESS> \
+  VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
+  SKIP_PIP_INSTALL=1 \
+  ./ev3-firmware/scripts/install.sh
 ```
 
 If you are already inside the copied `~/vsle-ev3-firmware` directory on the
-EV3, use the same variables with `./scripts/install.sh`.
+EV3, use the same variables with `./scripts/install.sh`, then explicitly
+restart the service so the new env file is loaded by the running unit:
+
+```bash
+sudo systemctl restart vsle-ev3-server.service
+systemctl status --no-pager vsle-ev3-server.service
+```
+
+If `bluetoothctl show` reports `Powered: no` and `hciconfig hci0 up` reports
+`Operation not possible due to RF-kill`, unblock Bluetooth through sysfs and
+then make the controller page-scan/inquiry-scan visible for pairing:
+
+```bash
+for f in /sys/class/rfkill/rfkill*/soft; do
+  [ -e "$f" ] && echo 0 | sudo tee "$f"
+done
+sudo hciconfig hci0 up
+sudo hciconfig hci0 piscan
+printf 'show\nquit\n' | bluetoothctl
+```
+
+Expected controller evidence before pairing:
+
+```text
+UP RUNNING PSCAN ISCAN
+Powered: yes
+Discoverable: yes
+Pairable: yes
+```
 
 The ScratchAI website must select `vsle-bluetooth` for full module coverage.
 Official firmware compatibility remains `official-bluetooth` and does not
