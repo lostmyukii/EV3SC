@@ -89,6 +89,18 @@ The `--allow-unsigned` path is not classroom ready. External distribution still
 requires signed artifacts, macOS notarization, and clean-machine install smoke
 reports generated from the same artifact.
 
+For macOS, notarize the signed artifact before collecting clean-machine
+evidence:
+
+```bash
+./.venv/bin/python desktop/scripts/notarize_macos_release.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --keychain-profile VSLE_NOTARY
+```
+
+The notarization helper uses `xcrun notarytool` and `xcrun stapler`; it updates
+the manifest to `notarized: true` only after stapler validation succeeds.
+
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`

@@ -220,3 +220,14 @@ def test_desktop_docs_reference_release_artifact_packager():
         text = path.read_text(encoding="utf-8")
         assert "build_release_artifacts.py" in text
         assert "desktop/release/" in text
+
+
+def test_macos_docs_reference_notarization_script():
+    for path in (
+        ROOT / "desktop/README.md",
+        ROOT / "docs/desktop/WEISILELINK_DESKTOP.md",
+        ROOT / "docs/desktop/MACOS_INSTALL.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "notarize_macos_release.py" in text
+        assert "--keychain-profile" in text

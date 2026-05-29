@@ -60,3 +60,17 @@ desktop/macos/native/build.sh
 
 Classroom release status still requires signed artifacts, macOS notarization,
 and clean-machine install smoke evidence from the generated artifact.
+
+After building a signed macOS artifact, notarize and staple it with an Apple
+notarytool keychain profile. Do not pass Apple ID passwords on the command
+line or store them in this repository:
+
+```bash
+./.venv/bin/python desktop/scripts/notarize_macos_release.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --keychain-profile VSLE_NOTARY
+```
+
+The script updates the manifest to `notarized: true` only after
+`xcrun notarytool submit`, `xcrun stapler staple`, and
+`xcrun stapler validate` all succeed.

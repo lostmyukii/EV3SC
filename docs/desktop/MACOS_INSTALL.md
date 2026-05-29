@@ -53,6 +53,20 @@ Every executable, helper, app bundle, and package must be signed before
 external classroom distribution. macOS classroom packages must be notarized
 before non-developer distribution.
 
+After building a signed macOS release artifact, run the checked notarization
+helper with an Apple notarytool keychain profile:
+
+```bash
+./.venv/bin/python desktop/scripts/notarize_macos_release.py \
+  --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json \
+  --keychain-profile VSLE_NOTARY
+```
+
+The helper submits the signed artifact with `xcrun notarytool`, staples and
+validates the app bundle with `xcrun stapler`, rezips the stapled app, and only
+then records `notarized: true` in the manifest. Do not pass Apple passwords on
+the command line or commit notarization credentials.
+
 ## Install Verification
 
 On a clean macOS machine with no developer tools and no custom Python:
