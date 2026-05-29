@@ -3350,6 +3350,13 @@ material into:
 - **Files created/modified**: `AGENTS.md`, `docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md`
 - **Next step**: Update the smoke evidence gate, reports, and classroom handoff docs so `vsle-bluetooth` can produce a baseline classroom verdict separate from the 25ms high-speed gate.
 
+### [2026-05-29] VSLE Bluetooth baseline smoke gate split
+- **Status**: ✅ Completed
+- **Commit**: `bdf1ea4`
+- **What was done**: Split the full VSLE Bluetooth smoke validator into two verdicts: the no-WiFi Bluetooth classroom baseline and the separate Bluetooth high-speed 50Hz gate. The report now records measured Bluetooth sampling, the evidence template includes observed sampling fields, and the classroom handoff docs no longer describe command-group-passing Bluetooth evidence as a diagnostic-only fallback.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Collect clean WeisileLink Desktop release-artifact install evidence for `vsle-bluetooth`, set `installed_from_release_artifact` from that evidence, and rerun `scripts/run_vsle_bluetooth_smoke.py` to accept the no-WiFi Bluetooth classroom baseline while leaving the 50Hz gate separate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
