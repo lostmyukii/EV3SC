@@ -3258,6 +3258,13 @@ material into:
 - **Files created/modified**: `README.md`, `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
 - **Next step**: Investigate and fix the Bluetooth sensor freshness gap, then rerun the full `vsle-bluetooth` classroom smoke until `sensor_freshness_ms_max <= 25` while also collecting release-artifact, ScratchAI browser, and AI Quest evidence.
 
+### [2026-05-29] VSLE Bluetooth full command-group smoke attempt
+- **Status**: ✅ Completed
+- **Commit**: `5761293`
+- **What was done**: Ran a real paired-ev3dev `vsle-bluetooth` full command-group smoke attempt with safe hardware limits and regenerated `docs/classroom/vsle_bluetooth_full_module_smoke.json`. The EV3 accepted sound, display, system, and data-collection commands, but the report correctly remains `Classroom ready: no` because the current brick reported no connected motor or sensor ports, AI Quest training had no varying real features, the run was not from a clean-machine release artifact, ScratchAI browser Unsandboxed evidence was not collected, and measured `sensor_freshness_ms_max` was `391.316`.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_full_module_smoke.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`
+- **Next step**: Attach the required classroom hardware to the EV3, at minimum one motor and one sensor with varied readings, then rerun the full Bluetooth smoke; after that collect ScratchAI browser Unsandboxed evidence, release-artifact install evidence, and continue the Bluetooth freshness fix until the validator reports classroom-ready.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
