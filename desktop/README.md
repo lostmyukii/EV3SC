@@ -180,3 +180,14 @@ Once the Windows preflight says `Ready: yes`, use the guarded runner:
 
 The runner refuses to call the Windows packager unless
 `check_windows_release_preflight.py` reports `Ready: yes`.
+
+On a Windows build host, `desktop/windows/build_release.ps1` runs the target
+executable build, preflight, and guarded release flow in order. It requires
+`WEISILE_WINDOWS_SIGN_IDENTITY` and `WEISILE_WINDOWS_TIMESTAMP_URL` or matching
+parameters, and never passes `--allow-unsigned`:
+
+```powershell
+$env:WEISILE_WINDOWS_SIGN_IDENTITY = "VSLE Windows Code Signing"
+$env:WEISILE_WINDOWS_TIMESTAMP_URL = "https://timestamp.digicert.com"
+.\desktop\windows\build_release.ps1
+```

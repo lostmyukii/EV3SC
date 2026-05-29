@@ -101,6 +101,19 @@ The runner writes `windows-release-flow.json` and
 release commands unless `check_windows_release_preflight.py` reports
 `Ready: yes`.
 
+On the Windows build host, the checked PowerShell handoff script
+`desktop/windows/build_release.ps1` runs the executable build, release
+preflight, and guarded release flow in one signed chain:
+
+```powershell
+$env:WEISILE_WINDOWS_SIGN_IDENTITY = "VSLE Windows Code Signing"
+$env:WEISILE_WINDOWS_TIMESTAMP_URL = "https://timestamp.digicert.com"
+.\desktop\windows\build_release.ps1
+```
+
+The script is intentionally Windows-only, refuses missing signing inputs, and
+does not use `--allow-unsigned`.
+
 ## Startup and Firewall Defaults
 
 The first classroom release should support per-user startup because admin rights

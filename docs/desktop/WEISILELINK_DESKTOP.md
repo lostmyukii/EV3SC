@@ -198,6 +198,19 @@ The runner writes `windows-release-flow.json` and
 `windows-release-flow.md`; until the preflight is ready it records
 `blocked-preflight` and executes no release commands.
 
+For the real Windows build host handoff, use the checked PowerShell wrapper
+instead of copying individual commands by hand:
+
+```powershell
+$env:WEISILE_WINDOWS_SIGN_IDENTITY = "VSLE Windows Code Signing"
+$env:WEISILE_WINDOWS_TIMESTAMP_URL = "https://timestamp.digicert.com"
+.\desktop\windows\build_release.ps1
+```
+
+`desktop/windows/build_release.ps1` runs the target-OS executable builder,
+Windows release preflight, and guarded release flow without using
+`--allow-unsigned`.
+
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`
