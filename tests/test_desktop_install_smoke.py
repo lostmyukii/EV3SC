@@ -242,6 +242,53 @@ def test_runner_refuses_macos_release_without_signed_installer_pkg(tmp_path):
     assert "release manifest installer_signed must be true for macOS" in report
 
 
+def test_runner_refuses_windows_release_without_signed_installer(tmp_path):
+    manifest = _release_manifest(tmp_path, target="windows")
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "release_artifact_manifest": manifest,
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "release manifest windows_installer is required for Windows" in report
+    assert (
+        "release manifest windows_installer_signed must be true for Windows" in report
+    )
+
+
+def test_runner_passes_windows_release_with_signed_installer(tmp_path):
+    manifest = Path(_release_manifest(tmp_path, target="windows"))
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    payload["windows_installer"] = "WeisileLink-windows-0.1.0.msi"
+    payload["windows_installer_sha256"] = "c" * 64
+    payload["windows_installer_signed"] = True
+    payload["windows_installer_type"] = "msi"
+    manifest.write_text(json.dumps(payload), encoding="utf-8")
+
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "release_artifact_manifest": str(manifest),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "Classroom ready: yes" in report
+
+
 def test_native_adapter_readmes_keep_platform_boundaries():
     expected = (
         "This adapter is the only supported path for official LEGO firmware "
@@ -270,6 +317,12 @@ def test_desktop_docs_reference_install_smoke_gate():
         assert "installed_from_release_artifact" in text
         assert "release_artifact_manifest" in text
         assert "official_firmware_bt_real_ev3_ok" in text
+    windows_text = (ROOT / "docs/desktop/WINDOWS_INSTALL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "windows_installer" in windows_text
+    assert "windows_installer_signed" in windows_text
+    assert "windows_installer_sha256" in windows_text
 
 
 def test_desktop_docs_reference_vsle_bluetooth_install_smoke_mode():

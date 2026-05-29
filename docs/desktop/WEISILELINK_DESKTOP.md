@@ -211,6 +211,12 @@ $env:WEISILE_WINDOWS_TIMESTAMP_URL = "https://timestamp.digicert.com"
 Windows release preflight, and guarded release flow without using
 `--allow-unsigned`.
 
+Windows clean-machine release evidence also requires a signed installer in the
+release manifest. `scripts/run_desktop_install_smoke.py` rejects Windows
+manifests unless they include `windows_installer`, `windows_installer_type`,
+`windows_installer_signed: true`, and a 64-character
+`windows_installer_sha256`.
+
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
 `vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`

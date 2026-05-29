@@ -160,6 +160,29 @@ def _validate_release_artifact_manifest(
                 "release manifest installer_sha256 must be a SHA-256 for macOS"
             )
 
+    if target == "windows":
+        if not isinstance(manifest.get("windows_installer"), str):
+            failures.append(
+                "release manifest windows_installer is required for Windows"
+            )
+        if manifest.get("windows_installer_signed") is not True:
+            failures.append(
+                "release manifest windows_installer_signed must be true for Windows"
+            )
+        windows_installer_sha = manifest.get("windows_installer_sha256")
+        if not (
+            isinstance(windows_installer_sha, str) and len(windows_installer_sha) == 64
+        ):
+            failures.append(
+                "release manifest windows_installer_sha256 must be a SHA-256 "
+                "for Windows"
+            )
+        if manifest.get("windows_installer_type") not in {"msi", "exe"}:
+            failures.append(
+                "release manifest windows_installer_type must be msi or exe "
+                "for Windows"
+            )
+
     return failures
 
 

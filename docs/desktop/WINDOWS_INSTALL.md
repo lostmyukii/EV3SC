@@ -184,8 +184,24 @@ Copy-Item docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.js
 
 The `release_artifact_manifest` file must be the manifest generated for the
 installed artifact. For Windows, `scripts/run_desktop_install_smoke.py`
-requires that manifest to record `signed: true` and a bundled self-contained
-executable before the release-artifact evidence can pass.
+requires that manifest to record the signed app bundle and the signed installer
+artifact before release-artifact evidence can pass:
+
+```json
+{
+  "target": "windows",
+  "signed": true,
+  "contains_self_contained_executable": true,
+  "requires_clean_machine_evidence": true,
+  "windows_installer": "WeisileLink-windows-0.1.0.msi",
+  "windows_installer_type": "msi",
+  "windows_installer_signed": true,
+  "windows_installer_sha256": "<64 hex characters>"
+}
+```
+
+`windows_installer_type` may be `msi` or `exe`. A signed zip with no signed
+installer fields is not enough for classroom evidence.
 
 Run:
 
