@@ -3357,6 +3357,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.template.json`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/REAL_EV3_REHEARSAL.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Collect clean WeisileLink Desktop release-artifact install evidence for `vsle-bluetooth`, set `installed_from_release_artifact` from that evidence, and rerun `scripts/run_vsle_bluetooth_smoke.py` to accept the no-WiFi Bluetooth classroom baseline while leaving the 50Hz gate separate.
 
+### [2026-05-29] VSLE Bluetooth desktop install smoke mode
+- **Status**: ✅ Completed
+- **Commit**: `96f79f5`
+- **What was done**: Added `--mode vsle-bluetooth` to the desktop install smoke validator so clean release-artifact evidence for the no-WiFi full VSLE Bluetooth path can be validated with `vsle_bluetooth_real_ev3_ok`, separate from official-firmware compatibility evidence. Updated macOS/Windows/Desktop docs, the real EV3 handoff, and generated blocked macOS/Windows VSLE Bluetooth install reports that correctly remain `Classroom ready: no` until clean-machine evidence JSON files exist.
+- **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.md`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.md`
+- **Next step**: Produce or install a signed/notarized WeisileLink Desktop release artifact on a clean macOS machine, collect `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.json` with `vsle_bluetooth_real_ev3_ok: true`, rerun `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth`, then use the accepted report to set `installed_from_release_artifact: true` in the full VSLE Bluetooth classroom smoke JSON.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
