@@ -180,6 +180,16 @@ Validate the evidence:
   --report docs/classroom/vsle_bluetooth_full_module_smoke.md
 ```
 
+Then validate the Mac browser functional path by combining ScratchAI browser
+Unsandboxed evidence with the full Bluetooth command-group evidence:
+
+```bash
+.venv/bin/python scripts/run_macos_browser_vsle_bluetooth_smoke.py \
+  --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json \
+  --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/macos_browser_vsle_bluetooth_smoke.md
+```
+
 The report must say `Bluetooth classroom baseline ready: yes` before this full
 Bluetooth path can be treated as the no-WiFi classroom baseline. The separate
 `Bluetooth high-speed 50Hz ready` result must say `yes` before any lesson or

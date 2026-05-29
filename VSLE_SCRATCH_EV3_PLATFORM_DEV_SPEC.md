@@ -2057,6 +2057,10 @@ Required evidence:
 - `scripts/run_vsle_bluetooth_smoke.py` records every server-side Scratch EV3
   module command group: motor, sensor, sound, display, system,
   data_collection, and ai_quest.
+- `scripts/run_macos_browser_vsle_bluetooth_smoke.py` combines the ScratchAI
+  browser Unsandboxed evidence with the full `vsle-bluetooth` command-group
+  evidence and writes
+  `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`.
 - Reporter and Boolean blocks remain cache-backed, disconnect stop behavior is
   observed, and Bluetooth sampling metrics are recorded.
 

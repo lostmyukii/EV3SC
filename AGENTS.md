@@ -267,11 +267,13 @@ Rules for this mode:
   smoke first: ScratchAI in the Mac browser must load the Unsandboxed EV3
   extension, choose `Bluetooth Full VSLE`, talk to local WeisileLink Desktop,
   and validate the real ev3dev EV3 command groups through
-  `scripts/run_vsle_bluetooth_smoke.py`.
+  `scripts/run_vsle_bluetooth_smoke.py`, then combine browser and Bluetooth
+  evidence through `scripts/run_macos_browser_vsle_bluetooth_smoke.py`.
 - Mac browser full VSLE Bluetooth smoke can validate the server-side Scratch EV3
   module path before Windows evidence exists, but it does not replace signed
   release-artifact evidence, macOS notarized install evidence, or separate
-  Windows evidence.
+  Windows evidence. Its report is
+  `docs/classroom/macos_browser_vsle_bluetooth_smoke.md`.
 - Acceptance is split into two milestones:
   - Bluetooth full-module classroom baseline: all module command groups pass,
     reporter and Boolean blocks are cache-backed, Bluetooth sampling/freshness
@@ -551,6 +553,10 @@ cd ..
 .venv/bin/python scripts/run_vsle_bluetooth_smoke.py \
   --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
   --report docs/classroom/vsle_bluetooth_full_module_smoke.md
+.venv/bin/python scripts/run_macos_browser_vsle_bluetooth_smoke.py \
+  --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json \
+  --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json \
+  --report docs/classroom/macos_browser_vsle_bluetooth_smoke.md
 
 # Build for production
 cd scratch-ai-platform/scratch-editor && npm run build
