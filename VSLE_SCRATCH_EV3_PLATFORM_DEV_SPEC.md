@@ -3577,6 +3577,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_sensor_port_matrix.py`, `tests/test_vsle_bluetooth_sensor_port_matrix.py`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.template.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`, `AGENTS.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/SOURCE_REGISTER.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Run additional physical EV3 matrix captures for S2-S4 sensor types and B-D motor ports, then regenerate the matrix report before returning to the separate Bluetooth 50Hz freshness optimization.
 
+### [2026-05-30] S2 ultrasonic USB matrix evidence
+- **Status**: ✅ Completed
+- **Commit**: `cab736f`
+- **What was done**: Used USB SSH to verify the real EV3 had `vsle-ev3-server` active and ev3dev sysfs detected an ultrasonic sensor on input 2 as `lego-ev3-us`, mode `US-DIST-CM`, with a 124.4 cm reading. Added a redacted evidence JSON, updated the matrix gate to mark USB sysfs snapshots as freshness-not-applicable instead of a fake Bluetooth freshness value, fixed the template test so it no longer overwrites the checked-in report, and regenerated the matrix report with S2 covered.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_sensor_port_matrix.py`, `tests/test_vsle_bluetooth_sensor_port_matrix.py`, `docs/classroom/vsle_bluetooth_s2_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
+- **Next step**: Connect the next real sensor to S3 or S4, or connect a real motor to output B, then capture the next matrix evidence run and regenerate the report.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
