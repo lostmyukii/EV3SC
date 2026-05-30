@@ -75,6 +75,55 @@ def test_sensor_port_matrix_accepts_observed_touch_and_motor(tmp_path):
     assert "Untested motor ports: B, C, D" in text
 
 
+def test_sensor_port_matrix_accepts_usb_sysfs_snapshot_without_freshness(
+    tmp_path,
+):
+    payload = _matrix_evidence()
+    payload["runs"].append(
+        {
+            "id": "usb-s2-ultrasonic-20260530",
+            "source_evidence": "usb-ssh ev3dev sysfs snapshot",
+            "sensor_updates_observed": 1,
+            "freshness_not_applicable_reason": "usb-ssh-sysfs-snapshot",
+            "sensors": {
+                "S2": {
+                    "expected_type": "ultrasonic",
+                    "observed_type": "ultrasonic",
+                    "latest": {
+                        "type": "ultrasonic",
+                        "distance_cm": 124.4,
+                    },
+                }
+            },
+            "motors": {},
+        }
+    )
+    evidence = tmp_path / "matrix.json"
+    evidence.write_text(json.dumps(payload), encoding="utf-8")
+    report = tmp_path / "matrix.md"
+
+    result = subprocess.run(
+        [
+            ".venv/bin/python",
+            str(SCRIPT),
+            "--evidence",
+            str(evidence),
+            "--report",
+            str(report),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert result.returncode == 0
+    assert "S2 | ultrasonic | usb-s2-ultrasonic-20260530" in text
+    assert "n/a (usb-ssh-sysfs-snapshot)" in text
+    assert "Untested sensor ports: S3, S4" in text
+
+
 def test_sensor_port_matrix_rejects_declared_sensor_without_payload(tmp_path):
     payload = _matrix_evidence()
     run = payload["runs"][0]
@@ -110,8 +159,8 @@ def test_sensor_port_matrix_rejects_declared_sensor_without_payload(tmp_path):
     assert "runs[0].sensors.S2.latest.distance_cm is required" in text
 
 
-def test_sensor_port_matrix_template_is_blocked_by_default():
-    report = ROOT / "docs/classroom/vsle_bluetooth_sensor_port_matrix.md"
+def test_sensor_port_matrix_template_is_blocked_by_default(tmp_path):
+    report = tmp_path / "matrix.md"
     result = subprocess.run(
         [
             ".venv/bin/python",

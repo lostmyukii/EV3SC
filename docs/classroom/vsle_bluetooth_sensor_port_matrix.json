@@ -30,6 +30,23 @@
           }
         }
       }
+    },
+    {
+      "id": "usb-s2-ultrasonic-20260530",
+      "source_evidence": "docs/classroom/vsle_bluetooth_s2_usb_sysfs_20260530.json",
+      "sensor_updates_observed": 1,
+      "freshness_not_applicable_reason": "usb-ssh-sysfs-snapshot",
+      "sensors": {
+        "S2": {
+          "expected_type": "ultrasonic",
+          "observed_type": "ultrasonic",
+          "latest": {
+            "type": "ultrasonic",
+            "distance_cm": 124.4
+          }
+        }
+      },
+      "motors": {}
     }
   ]
 }

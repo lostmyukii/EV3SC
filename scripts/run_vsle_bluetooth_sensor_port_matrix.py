@@ -68,8 +68,13 @@ def _validate_run(
         errors.append(f"runs[{index}].sensor_updates_observed must be > 0")
 
     freshness = run.get("sensor_freshness_ms_max")
+    freshness_na = run.get("freshness_not_applicable_reason")
     if not isinstance(freshness, (int, float)):
-        errors.append(f"runs[{index}].sensor_freshness_ms_max must be measured")
+        if not isinstance(freshness_na, str) or not freshness_na:
+            errors.append(
+                f"runs[{index}].sensor_freshness_ms_max must be measured "
+                "unless freshness_not_applicable_reason is recorded"
+            )
 
     sensors = run.get("sensors", {})
     motors = run.get("motors", {})
@@ -229,7 +234,10 @@ def _covered_sensors(runs: list[Any]) -> dict[str, list[dict[str, str]]]:
             continue
         run_id = str(run.get("id", "unnamed"))
         updates = str(run.get("sensor_updates_observed", "not recorded"))
-        freshness = _format_ms(run.get("sensor_freshness_ms_max"))
+        freshness = _format_ms(
+            run.get("sensor_freshness_ms_max"),
+            run.get("freshness_not_applicable_reason"),
+        )
         sensors = run.get("sensors", {})
         if not isinstance(sensors, dict):
             continue
@@ -262,9 +270,11 @@ def _covered_motors(runs: list[Any]) -> dict[str, list[str]]:
     return covered
 
 
-def _format_ms(value: Any) -> str:
+def _format_ms(value: Any, not_applicable_reason: Any = None) -> str:
     if isinstance(value, (int, float)):
         return f"{value:.3f}ms".rstrip("0").rstrip(".")
+    if isinstance(not_applicable_reason, str) and not_applicable_reason:
+        return f"n/a ({not_applicable_reason})"
     return "not recorded"
 
 
