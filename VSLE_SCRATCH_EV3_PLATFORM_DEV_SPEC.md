@@ -3626,6 +3626,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`
 - **Next step**: Deploy the updated `ev3-firmware/vsle_ev3_server.py` to the real EV3, restart `vsle-ev3-server`, and rerun the real `vsle-bluetooth` freshness smoke to measure whether `sensor_freshness_ms_max` moves toward the separate `<= 25ms` 50Hz gate.
 
+### [2026-05-30] Bluetooth 50Hz teaching gate clarification
+- **Status**: ✅ Completed
+- **Commit**: `3f0a1df`
+- **What was done**: Updated the full VSLE Bluetooth smoke report so `<= 25ms` freshness is treated as an optional high-speed/raw-streaming target rather than a blocker for ordinary teaching or self-use. Regenerated the baseline and self-use reports and added a regression assertion that baseline-ready evidence with a slower Bluetooth stream still reports the 50Hz items as optional.
+- **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`
+- **Next step**: Continue teaching/self-use regression on the Bluetooth classroom baseline and Mac browser gates; only deploy and retest the 50Hz optimization when a lesson explicitly needs high-speed raw streaming.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
