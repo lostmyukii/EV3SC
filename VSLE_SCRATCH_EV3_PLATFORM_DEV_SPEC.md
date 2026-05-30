@@ -3612,6 +3612,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_s3_ultrasonic_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
 - **Next step**: Move the next real sensor to S4, then capture the next matrix evidence run and regenerate the report.
 
+### [2026-05-30] S4 touch USB matrix evidence
+- **Status**: ✅ Completed
+- **Commit**: `deb0306`
+- **What was done**: Used USB SSH to verify the real EV3 still had `vsle-ev3-server` active and ev3dev sysfs detected a touch sensor on input 4 as `lego-ev3-touch`, mode `TOUCH`, with `pressed: false`. Added a redacted S4 sensor snapshot and regenerated the matrix report with S1-S4 sensor ports and A-D motor ports all covered.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_s4_touch_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
+- **Next step**: Return to the separate Bluetooth 50Hz freshness optimization, or repeat the matrix with additional sensor types such as gyro, color, and infrared.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
