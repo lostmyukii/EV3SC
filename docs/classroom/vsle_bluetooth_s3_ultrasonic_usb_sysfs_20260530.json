@@ -1,0 +1,47 @@
+{
+  "evidence_kind": "ev3_usb_sysfs_sensor_snapshot",
+  "captured_at": "2026-05-30",
+  "connection": "USB SSH to robot@ev3dev.local",
+  "redaction": "No pairing token, API key, Bluetooth address, or student data recorded.",
+  "service": {
+    "vsle_ev3_server": "active"
+  },
+  "sensors": [
+    {
+      "sysfs_id": "sensor0",
+      "address": "ev3-ports:in1",
+      "scratch_port": "S1",
+      "driver_name": "lego-ev3-touch",
+      "mode": "TOUCH",
+      "value0": 0,
+      "decimals": 0,
+      "units": ""
+    },
+    {
+      "sysfs_id": "sensor2",
+      "address": "ev3-ports:in3",
+      "scratch_port": "S3",
+      "driver_name": "lego-ev3-us",
+      "mode": "US-DIST-CM",
+      "value0": 1397,
+      "decimals": 1,
+      "units": "cm",
+      "distance_cm": 139.7
+    }
+  ],
+  "motors": [
+    {
+      "sysfs_id": "motor3",
+      "address": "ev3-ports:outD",
+      "scratch_port": "D",
+      "driver_name": "lego-ev3-l-motor",
+      "position": 0,
+      "speed": 0,
+      "state": ""
+    }
+  ],
+  "not_observed": {
+    "sensor_ports": ["S4"],
+    "motor_ports": []
+  }
+}
