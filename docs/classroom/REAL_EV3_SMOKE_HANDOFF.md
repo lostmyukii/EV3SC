@@ -231,6 +231,22 @@ release note claims 50Hz/high-speed Bluetooth streaming. Ordinary teaching and
 self-use validation may proceed when the Bluetooth classroom baseline is ready,
 even if the high-speed 50Hz result is still `no`.
 
+For the teacher-facing browser block rehearsal, copy the template and fill only
+values observed while using the ScratchAI website with a real EV3 project. This
+gate is narrower than the long Section 13.7 rehearsal: it checks that the
+browser workflow selects `Bluetooth Full VSLE`, stays on local WeisileLink
+JSON-RPC instead of direct browser Bluetooth, shows connection state from
+WeisileLink health and sensor freshness, and exercises at least one Scratch
+block from each EV3 module.
+
+```bash
+cp docs/classroom/scratchai_teacher_block_rehearsal.template.json \
+  docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json
+.venv/bin/python scripts/run_scratchai_teacher_block_rehearsal.py \
+  --evidence docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json \
+  --report docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md
+```
+
 Validate the release-artifact portion separately before setting
 `installed_from_release_artifact: true` in the full Bluetooth smoke JSON:
 

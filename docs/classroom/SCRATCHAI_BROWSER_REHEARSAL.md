@@ -99,9 +99,33 @@ category appears with motor and sensor blocks.
 - Result: Chrome CDP opened the EV3SC ScratchAI browser surface, confirmed WebGL and `AI思考帮手`, opened the extension library, clicked the `EV3` tile, and observed the VSLE-EV3 URL inserted as a main-thread `script` resource with no `extension-worker` resource loaded for that URL.
 - Note: The served build used the configured deployed VSLE-EV3 URL `http://101.42.92.6:18612/vsle-ev3-extension/index.js`; unit tests in `scratch-vm` continue to cover `Scratch.extensions.unsandboxed === true` for the VSLE-EV3 URL loader path.
 
+## Teacher-Facing Bluetooth Full VSLE Block Rehearsal
+
+After the Mac-first Bluetooth baseline passes, run one browser-guided Scratch
+project rehearsal against the real EV3. Use the evidence template to record the
+observed website path, not a direct JSON-RPC-only smoke:
+
+```bash
+cp docs/classroom/scratchai_teacher_block_rehearsal.template.json \
+  docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json
+.venv/bin/python scripts/run_scratchai_teacher_block_rehearsal.py \
+  --evidence docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json \
+  --report docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md
+```
+
+The evidence must show that ScratchAI loaded the VSLE-EV3 extension as an
+Unsandboxed main-thread script, selected `Bluetooth Full VSLE`
+(`vsle-bluetooth`), used `ws://127.0.0.1:20111/scratch/bt`, avoided direct
+browser Bluetooth, showed connection state from WeisileLink health and sensor
+freshness, and exercised at least one Scratch block from motor, sensor, sound,
+display, system, data collection, and AI Quest.
+
 ## Next Action
 
-Use `docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md` and
+Use `scripts/run_scratchai_teacher_block_rehearsal.py` with
+`docs/classroom/scratchai_teacher_block_rehearsal.template.json` for the next
+teacher-facing Scratch block rehearsal, then use
+`docs/classroom/SECTION_13_7_PREVIEW_REHEARSAL.md` and
 `docs/classroom/evidence/section13_7_preview_rehearsal_20260525.json` for the
 45-minute simulated-preview rehearsal evidence. Physical EV3 classroom approval
 remains blocked until real EV3 endpoint and real transport evidence are

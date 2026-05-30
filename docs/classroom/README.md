@@ -14,6 +14,8 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
 | `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
 | `SCRATCHAI_BROWSER_REHEARSAL.md` | QA or pilot lead | Record the ScratchAI unified-stack browser evidence before the long classroom run. |
+| `SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md` | QA or pilot lead | Record the current browser-guided Bluetooth Full VSLE block rehearsal verdict. |
+| `scratchai_teacher_block_rehearsal.template.json` | QA or pilot lead | Record the browser-guided Bluetooth Full VSLE Scratch block rehearsal evidence. |
 | `REAL_EV3_SMOKE_HANDOFF.md` | Physical EV3 operator | Run the real-brick preflight, start WeisileLink against real hardware, and capture the confirmed one-brick smoke evidence. |
 | `REAL_EV3_SMOKE_READINESS.md` | QA or pilot lead | Record the non-invasive endpoint readiness check before running `--confirm-real-ev3`. |
 | `real_ev3_rehearsal_evidence.template.json` | QA or pilot lead | Record real hardware, sensor, AI Quest, and multi-device evidence for the rehearsal runner. |
@@ -86,3 +88,12 @@ editor is served by a plain static `python -m http.server` process, rerun the
 preview with `scripts/start_scratchai_preview.py` or
 `scripts/start_unified_preview.py`; otherwise the AI assistant feature flags may
 remain disabled even though the source code exists in the bundle.
+
+After the Mac-first Bluetooth baseline passes, validate the teacher-facing
+Scratch block path with the dedicated browser rehearsal gate:
+
+```bash
+.venv/bin/python scripts/run_scratchai_teacher_block_rehearsal.py \
+  --evidence docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json \
+  --report docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md
+```
