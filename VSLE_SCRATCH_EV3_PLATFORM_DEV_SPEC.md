@@ -3633,6 +3633,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_smoke.py`, `tests/test_vsle_bluetooth_smoke.py`, `docs/classroom/vsle_bluetooth_full_module_smoke.md`, `docs/classroom/vsle_bluetooth_self_use_unsigned.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`
 - **Next step**: Continue teaching/self-use regression on the Bluetooth classroom baseline and Mac browser gates; only deploy and retest the 50Hz optimization when a lesson explicitly needs high-speed raw streaming.
 
+### [2026-05-30] Mac-first teaching self-use regression pass
+- **Status**: ✅ Completed
+- **Commit**: `102af00`
+- **What was done**: Re-ran the teaching/self-use regression gates from the Mac-first Bluetooth path: full VSLE Bluetooth baseline, self-use unsigned Bluetooth, Mac browser full VSLE Bluetooth, and the physical sensor/motor port matrix all returned exit code 0. The reports remained content-stable: Bluetooth classroom baseline and self-use unsigned are ready, Mac browser server-side Scratch EV3 module path is validated, sensor and motor matrix coverage has no untested ports, while release-artifact, Windows, and optional 50Hz high-speed evidence remain separate.
+- **Files created/modified**: `docs/classroom/evidence/macos_first_self_use_regression_20260530.json`
+- **Next step**: Use this Mac-first baseline for ordinary teaching/self-use lessons, then run one browser-guided Scratch block rehearsal with a real EV3 project to confirm the teacher-facing workflow end to end.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
