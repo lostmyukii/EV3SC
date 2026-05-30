@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-05-30T11:52:25+0800",
+  "track": "teaching-self-use-mac-first",
+  "source_documents": [
+    "docs/superpowers/specs/2026-05-28-website-bluetooth-full-module-commands-design.md",
+    "VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md",
+    "AGENTS.md"
+  ],
+  "commands": [
+    {
+      "name": "bluetooth_classroom_baseline",
+      "command": ".venv/bin/python scripts/run_vsle_bluetooth_smoke.py --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json --report docs/classroom/vsle_bluetooth_full_module_smoke.md",
+      "exit_code": 0,
+      "report": "docs/classroom/vsle_bluetooth_full_module_smoke.md",
+      "verdicts": {
+        "bluetooth_classroom_baseline_ready": true,
+        "bluetooth_high_speed_50hz_ready": false,
+        "release_artifact_evidence_ready": false
+      }
+    },
+    {
+      "name": "bluetooth_self_use_unsigned",
+      "command": ".venv/bin/python scripts/run_vsle_bluetooth_smoke.py --self-use-unsigned --evidence docs/classroom/vsle_bluetooth_full_module_smoke.json --report docs/classroom/vsle_bluetooth_self_use_unsigned.md",
+      "exit_code": 0,
+      "report": "docs/classroom/vsle_bluetooth_self_use_unsigned.md",
+      "verdicts": {
+        "self_use_unsigned_ready": true,
+        "bluetooth_classroom_baseline_ready": true,
+        "bluetooth_high_speed_50hz_ready": false,
+        "release_artifact_evidence_ready": false
+      }
+    },
+    {
+      "name": "mac_browser_full_vsle_bluetooth",
+      "command": ".venv/bin/python scripts/run_macos_browser_vsle_bluetooth_smoke.py --browser-evidence docs/classroom/evidence/scratchai_browser_unsandboxed_20260529.json --bluetooth-evidence docs/classroom/vsle_bluetooth_full_module_smoke.json --report docs/classroom/macos_browser_vsle_bluetooth_smoke.md",
+      "exit_code": 0,
+      "report": "docs/classroom/macos_browser_vsle_bluetooth_smoke.md",
+      "verdicts": {
+        "server_side_scratch_ev3_module_path_validated": true,
+        "classroom_ready": false,
+        "release_artifact_evidence_ready": false,
+        "bluetooth_high_speed_50hz_ready": false,
+        "windows_evidence_ready": false
+      }
+    },
+    {
+      "name": "bluetooth_sensor_port_matrix",
+      "command": ".venv/bin/python scripts/run_vsle_bluetooth_sensor_port_matrix.py --evidence docs/classroom/vsle_bluetooth_sensor_port_matrix.json --report docs/classroom/vsle_bluetooth_sensor_port_matrix.md",
+      "exit_code": 0,
+      "report": "docs/classroom/vsle_bluetooth_sensor_port_matrix.md",
+      "verdicts": {
+        "sensor_port_matrix_ready": true,
+        "untested_sensor_ports": [],
+        "untested_motor_ports": []
+      }
+    }
+  ],
+  "notes": [
+    "Bluetooth high-speed 50Hz remains a separate optional raw-streaming target.",
+    "Release-artifact and Windows evidence remain separate distribution gates.",
+    "No report content changed during this regression pass."
+  ]
+}
