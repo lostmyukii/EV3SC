@@ -3619,6 +3619,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_s4_touch_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
 - **Next step**: Return to the separate Bluetooth 50Hz freshness optimization, or repeat the matrix with additional sensor types such as gyro, color, and infrared.
 
+### [2026-05-30] Bluetooth sensor send backpressure optimization
+- **Status**: ✅ Completed
+- **Commit**: `062ad65`
+- **What was done**: Added an EV3-side Bluetooth latest-sensor send queue so compact `sensor_update` broadcasts no longer await a slow RFCOMM `sendall` call inside the 50Hz sampling loop. Command acknowledgements still use the regular awaited send path, while sensor updates coalesce to the newest payload if the Bluetooth link stalls.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`
+- **Next step**: Deploy the updated `ev3-firmware/vsle_ev3_server.py` to the real EV3, restart `vsle-ev3-server`, and rerun the real `vsle-bluetooth` freshness smoke to measure whether `sensor_freshness_ms_max` moves toward the separate `<= 25ms` 50Hz gate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
