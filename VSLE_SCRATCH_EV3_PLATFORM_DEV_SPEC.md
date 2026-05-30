@@ -3640,6 +3640,13 @@ material into:
 - **Files created/modified**: `docs/classroom/evidence/macos_first_self_use_regression_20260530.json`
 - **Next step**: Use this Mac-first baseline for ordinary teaching/self-use lessons, then run one browser-guided Scratch block rehearsal with a real EV3 project to confirm the teacher-facing workflow end to end.
 
+### [2026-05-30] ScratchAI teacher block rehearsal gate
+- **Status**: ✅ Completed
+- **Commit**: `4be19d4`
+- **What was done**: Added a dedicated evidence gate for the teacher-facing ScratchAI browser block rehearsal after the Mac-first Bluetooth baseline. The gate requires the website to keep the standard Scratch visual design, load VSLE-EV3 as an Unsandboxed main-thread script, select `Bluetooth Full VSLE`/`vsle-bluetooth`, avoid direct browser Bluetooth, show connection state from WeisileLink health and sensor freshness, and exercise at least one Scratch block from each EV3 module.
+- **Files created/modified**: `scripts/run_scratchai_teacher_block_rehearsal.py`, `tests/test_scratchai_teacher_block_rehearsal.py`, `docs/classroom/scratchai_teacher_block_rehearsal.template.json`, `docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/README.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Fill `docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json` from a real browser-guided Scratch project run against the EV3, run `scripts/run_scratchai_teacher_block_rehearsal.py`, and only then update the teacher-facing rehearsal report from blocked to passing evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
