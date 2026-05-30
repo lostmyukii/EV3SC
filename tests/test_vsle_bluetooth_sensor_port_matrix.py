@@ -124,6 +124,54 @@ def test_sensor_port_matrix_accepts_usb_sysfs_snapshot_without_freshness(
     assert "Untested sensor ports: S3, S4" in text
 
 
+def test_sensor_port_matrix_accepts_motor_only_hardware_snapshot(
+    tmp_path,
+):
+    payload = _matrix_evidence()
+    payload["runs"].append(
+        {
+            "id": "usb-b-motor-20260530",
+            "source_evidence": "usb-ssh ev3dev tacho-motor sysfs snapshot",
+            "hardware_snapshots_observed": 1,
+            "freshness_not_applicable_reason": "usb-ssh-sysfs-snapshot",
+            "sensors": {},
+            "motors": {
+                "B": {
+                    "observed": True,
+                    "latest": {
+                        "position": 0,
+                        "speed": 0,
+                        "running": False,
+                    },
+                }
+            },
+        }
+    )
+    evidence = tmp_path / "matrix.json"
+    evidence.write_text(json.dumps(payload), encoding="utf-8")
+    report = tmp_path / "matrix.md"
+
+    result = subprocess.run(
+        [
+            ".venv/bin/python",
+            str(SCRIPT),
+            "--evidence",
+            str(evidence),
+            "--report",
+            str(report),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert result.returncode == 0
+    assert "B | observed | usb-b-motor-20260530" in text
+    assert "Untested motor ports: C, D" in text
+
+
 def test_sensor_port_matrix_rejects_declared_sensor_without_payload(tmp_path):
     payload = _matrix_evidence()
     run = payload["runs"][0]

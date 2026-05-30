@@ -47,6 +47,23 @@
         }
       },
       "motors": {}
+    },
+    {
+      "id": "usb-b-motor-20260530",
+      "source_evidence": "docs/classroom/vsle_bluetooth_b_motor_usb_sysfs_20260530.json",
+      "hardware_snapshots_observed": 1,
+      "freshness_not_applicable_reason": "usb-ssh-sysfs-snapshot",
+      "sensors": {},
+      "motors": {
+        "B": {
+          "observed": true,
+          "latest": {
+            "position": 0,
+            "speed": 0,
+            "running": false
+          }
+        }
+      }
     }
   ]
 }

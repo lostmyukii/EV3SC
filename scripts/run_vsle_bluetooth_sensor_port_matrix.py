@@ -64,8 +64,14 @@ def _validate_run(
         errors.append(f"runs[{index}].id must be a non-empty string")
 
     updates = run.get("sensor_updates_observed")
-    if not isinstance(updates, int) or updates <= 0:
-        errors.append(f"runs[{index}].sensor_updates_observed must be > 0")
+    snapshots = run.get("hardware_snapshots_observed")
+    updates_ok = isinstance(updates, int) and updates > 0
+    snapshots_ok = isinstance(snapshots, int) and snapshots > 0
+    if not updates_ok and not snapshots_ok:
+        errors.append(
+            f"runs[{index}] must record sensor_updates_observed > 0 "
+            "or hardware_snapshots_observed > 0"
+        )
 
     freshness = run.get("sensor_freshness_ms_max")
     freshness_na = run.get("freshness_not_applicable_reason")
@@ -178,7 +184,7 @@ def write_report(
     lines.extend(
         [
             "## Sensor Coverage",
-            "| Port | Type | Run | Updates | Max Freshness |",
+            "| Port | Type | Run | Observations | Max Freshness |",
             "|---|---|---|---:|---:|",
         ]
     )
@@ -233,7 +239,7 @@ def _covered_sensors(runs: list[Any]) -> dict[str, list[dict[str, str]]]:
         if not isinstance(run, dict):
             continue
         run_id = str(run.get("id", "unnamed"))
-        updates = str(run.get("sensor_updates_observed", "not recorded"))
+        updates = _format_observations(run)
         freshness = _format_ms(
             run.get("sensor_freshness_ms_max"),
             run.get("freshness_not_applicable_reason"),
@@ -275,6 +281,16 @@ def _format_ms(value: Any, not_applicable_reason: Any = None) -> str:
         return f"{value:.3f}ms".rstrip("0").rstrip(".")
     if isinstance(not_applicable_reason, str) and not_applicable_reason:
         return f"n/a ({not_applicable_reason})"
+    return "not recorded"
+
+
+def _format_observations(run: dict[str, Any]) -> str:
+    updates = run.get("sensor_updates_observed")
+    if isinstance(updates, int) and updates > 0:
+        return str(updates)
+    snapshots = run.get("hardware_snapshots_observed")
+    if isinstance(snapshots, int) and snapshots > 0:
+        return f"{snapshots} snapshot"
     return "not recorded"
 
 
