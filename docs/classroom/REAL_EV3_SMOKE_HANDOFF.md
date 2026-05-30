@@ -227,7 +227,9 @@ Unsandboxed evidence with the full Bluetooth command-group evidence:
 The report must say `Bluetooth classroom baseline ready: yes` before this full
 Bluetooth path can be treated as the no-WiFi classroom baseline. The separate
 `Bluetooth high-speed 50Hz ready` result must say `yes` before any lesson or
-release note claims 50Hz/high-speed Bluetooth streaming.
+release note claims 50Hz/high-speed Bluetooth streaming. Ordinary teaching and
+self-use validation may proceed when the Bluetooth classroom baseline is ready,
+even if the high-speed 50Hz result is still `no`.
 
 Validate the release-artifact portion separately before setting
 `installed_from_release_artifact: true` in the full Bluetooth smoke JSON:

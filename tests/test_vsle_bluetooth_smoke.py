@@ -125,6 +125,9 @@ def test_vsle_bluetooth_smoke_accepts_baseline_when_only_50hz_gate_fails(
     assert result.returncode == 0
     assert "Bluetooth classroom baseline ready: yes" in text
     assert "Bluetooth high-speed 50Hz ready: no" in text
+    assert "Optional high-speed/raw-streaming target" in text
+    assert "does not block ordinary teaching or self-use" in text
+    assert "## Optional High-Speed 50Hz Items" in text
     assert "Measured Bluetooth sampling" in text
     assert "Diagnostic fallback" not in text
     assert "WiFi Full VSLE remains the classroom 50Hz path" not in text
@@ -295,9 +298,9 @@ def test_docs_describe_self_use_unsigned_validation_path():
     for path in docs:
         text = path.read_text(encoding="utf-8")
         assert "--self-use-unsigned" in text, f"{path} must mention flag"
-        assert "vsle_bluetooth_self_use_unsigned.md" in text, (
-            f"{path} must mention self-use report"
-        )
+        assert (
+            "vsle_bluetooth_self_use_unsigned.md" in text
+        ), f"{path} must mention self-use report"
 
 
 def test_docs_keep_release_evidence_separate_from_bluetooth_baseline():
@@ -310,17 +313,14 @@ def test_docs_keep_release_evidence_separate_from_bluetooth_baseline():
     for path in docs:
         text = " ".join(path.read_text(encoding="utf-8").split())
         assert (
-            "Bluetooth classroom baseline does not require "
-            "release-artifact evidence"
+            "Bluetooth classroom baseline does not require " "release-artifact evidence"
         ) in text
         assert "Release-artifact evidence ready" in text
 
 
 def test_docs_prioritize_macos_browser_vsle_bluetooth_when_windows_unavailable():
     root = ROOT
-    agents = " ".join(
-        (root / "AGENTS.md").read_text(encoding="utf-8").split()
-    )
+    agents = " ".join((root / "AGENTS.md").read_text(encoding="utf-8").split())
     spec = " ".join(
         (root / "VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md")
         .read_text(encoding="utf-8")

@@ -118,15 +118,16 @@ def write_report(
         "",
         f"Self-use unsigned ready: {'yes' if self_use_ready else 'no'}",
         f"Classroom ready: {'yes' if baseline_ready else 'no'}",
-        (
-            "Bluetooth classroom baseline ready: "
-            f"{'yes' if baseline_ready else 'no'}"
-        ),
-        (
-            "Bluetooth high-speed 50Hz ready: "
-            f"{'yes' if high_speed_ready else 'no'}"
-        ),
+        ("Bluetooth classroom baseline ready: " f"{'yes' if baseline_ready else 'no'}"),
+        ("Bluetooth high-speed 50Hz ready: " f"{'yes' if high_speed_ready else 'no'}"),
         f"Release-artifact evidence ready: {'yes' if release_ready else 'no'}",
+        "",
+        (
+            "Optional high-speed/raw-streaming target: Bluetooth 50Hz "
+            "freshness is only required for lessons that explicitly need "
+            "50Hz raw streaming, and it does not block ordinary teaching "
+            "or self-use when the Bluetooth classroom baseline is ready."
+        ),
         "",
     ]
     if self_use_unsigned:
@@ -149,7 +150,14 @@ def write_report(
         lines.extend(f"- {error}" for error in baseline_errors)
         lines.append("")
     if high_speed_errors:
-        lines.append("## High-Speed 50Hz Blocking Items")
+        if baseline_ready:
+            lines.append("## Optional High-Speed 50Hz Items")
+            lines.append(
+                "These items block only a high-speed/raw-streaming claim; "
+                "they do not block ordinary teaching or self-use."
+            )
+        else:
+            lines.append("## High-Speed 50Hz Blocking Items")
         lines.extend(f"- {error}" for error in high_speed_errors)
         lines.append("")
     if payload:
