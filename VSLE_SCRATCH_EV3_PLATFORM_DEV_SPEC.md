@@ -3605,6 +3605,13 @@ material into:
 - **Files created/modified**: `docs/classroom/vsle_bluetooth_d_motor_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
 - **Next step**: Move the next real sensor to S3 or S4, then capture the next matrix evidence run and regenerate the report.
 
+### [2026-05-30] S3 ultrasonic USB matrix evidence
+- **Status**: ✅ Completed
+- **Commit**: `f8fff3d`
+- **What was done**: Used USB SSH to verify the real EV3 still had `vsle-ev3-server` active and ev3dev sysfs detected an ultrasonic sensor on input 3 as `lego-ev3-us`, mode `US-DIST-CM`, with a 139.7 cm reading. Added a redacted S3 sensor snapshot and regenerated the matrix report with S1, S2, and S3 covered while keeping S4 untested.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_s3_ultrasonic_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
+- **Next step**: Move the next real sensor to S4, then capture the next matrix evidence run and regenerate the report.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
