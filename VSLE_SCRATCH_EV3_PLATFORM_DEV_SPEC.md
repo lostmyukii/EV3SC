@@ -3591,6 +3591,13 @@ material into:
 - **Files created/modified**: `scripts/run_vsle_bluetooth_sensor_port_matrix.py`, `tests/test_vsle_bluetooth_sensor_port_matrix.py`, `docs/classroom/vsle_bluetooth_b_motor_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
 - **Next step**: Connect a real motor to output C or D, or move the next sensor to S3 or S4, then capture the next matrix evidence run and regenerate the report.
 
+### [2026-05-30] C motor USB matrix evidence
+- **Status**: ✅ Completed
+- **Commit**: `4d37f9c`
+- **What was done**: Used USB SSH to verify the real EV3 still had `vsle-ev3-server` active and ev3dev sysfs detected a large motor on output C as `lego-ev3-l-motor`. Added a redacted C-port motor snapshot and regenerated the matrix report with A, B, and C covered while keeping D untested.
+- **Files created/modified**: `docs/classroom/vsle_bluetooth_c_motor_usb_sysfs_20260530.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.json`, `docs/classroom/vsle_bluetooth_sensor_port_matrix.md`
+- **Next step**: Connect a real motor to output D, or move the next sensor to S3 or S4, then capture the next matrix evidence run and regenerate the report.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
