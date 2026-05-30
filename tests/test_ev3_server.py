@@ -2,6 +2,7 @@ import asyncio
 import ast
 import importlib.util
 import json
+import time
 from pathlib import Path
 
 
@@ -181,6 +182,16 @@ class FakeBluetoothSocket:
 
     def close(self):
         self.closed = True
+
+
+class SlowBluetoothSocket(FakeBluetoothSocket):
+    def __init__(self, delay_s):
+        super().__init__()
+        self.delay_s = delay_s
+
+    def sendall(self, payload):
+        time.sleep(self.delay_s)
+        super().sendall(payload)
 
 
 class FakeBluetoothListener:
@@ -504,6 +515,33 @@ def test_bluetooth_broadcast_uses_compact_high_frequency_payload():
         "system": {},
     }
     assert len(raw) <= 190
+
+
+def test_bluetooth_sensor_broadcast_does_not_wait_for_slow_rfcomm_write():
+    module = load_server_module()
+    server = module.VSLEEV3Server(FakeHardware(), pairing_token="")
+    fake_socket = SlowBluetoothSocket(delay_s=0.05)
+    endpoint = module.BluetoothLineEndpoint(fake_socket)
+    payload = {
+        "type": "sensor_update",
+        "timestamp": 123.456,
+        "sensors": {"S1": {"type": "touch", "pressed": 0}},
+        "motors": {"A": {"position": 90, "speed": 0, "running": False}},
+        "system": {"battery_pct": 87},
+    }
+
+    async def scenario():
+        server.clients.add(endpoint)
+        await asyncio.wait_for(server._broadcast(payload), timeout=0.02)
+        for _ in range(20):
+            if fake_socket.sent:
+                break
+            await asyncio.sleep(0.005)
+        await endpoint.close()
+
+    asyncio.run(scenario())
+
+    assert fake_socket.sent
 
 
 def test_websocket_broadcast_keeps_full_sensor_payload():

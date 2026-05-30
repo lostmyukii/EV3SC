@@ -66,6 +66,10 @@ class BluetoothLineEndpoint:
         self.client_socket = client_socket
         self._buffer = b""
         self._closed = False
+        self._send_lock = None
+        self._latest_sensor_message = None
+        self._sensor_send_task = None
+        self._sensor_send_failed = False
 
     async def recv(self) -> str:
         """Read one newline-terminated UTF-8 JSON message."""
@@ -85,17 +89,61 @@ class BluetoothLineEndpoint:
 
     async def send(self, message: str) -> None:
         """Send one newline-terminated UTF-8 JSON message."""
+        await self._send_now(message)
+
+    async def send_latest_sensor(self, message: str) -> None:
+        """Queue the newest sensor payload without blocking the 50Hz loop."""
+        if self._closed:
+            return
+        if self._sensor_send_failed:
+            raise ConnectionError("Bluetooth RFCOMM sensor send failed")
+        self._latest_sensor_message = message
+        if self._sensor_send_task is None or self._sensor_send_task.done():
+            self._sensor_send_task = _create_task(
+                self._drain_latest_sensor_messages()
+            )
+
+    async def _drain_latest_sensor_messages(self) -> None:
+        while not self._closed:
+            message = self._latest_sensor_message
+            self._latest_sensor_message = None
+            if message is None:
+                return
+            try:
+                await self._send_now(message)
+            except Exception:
+                self._sensor_send_failed = True
+                return
+
+    async def _send_now(self, message: str) -> None:
         payload = message.encode("utf-8")
         if not payload.endswith(b"\n"):
             payload += b"\n"
         loop = _get_event_loop()
-        await loop.run_in_executor(None, self.client_socket.sendall, payload)
+        lock = self._get_send_lock()
+        await lock.acquire()
+        try:
+            await loop.run_in_executor(None, self.client_socket.sendall, payload)
+        finally:
+            lock.release()
+
+    def _get_send_lock(self) -> Any:
+        if self._send_lock is None:
+            self._send_lock = asyncio.Lock()
+        return self._send_lock
 
     async def close(self, code: Any = None, reason: Any = None) -> None:
         """Close the RFCOMM client socket."""
         if self._closed:
             return
         self._closed = True
+        if self._sensor_send_task is not None:
+            self._sensor_send_task.cancel()
+            try:
+                await self._sensor_send_task
+            except asyncio.CancelledError:
+                pass
+            self._sensor_send_task = None
         loop = _get_event_loop()
         await loop.run_in_executor(None, self.client_socket.close)
 
@@ -1215,7 +1263,9 @@ class VSLEEV3Server:
                             separators=(",", ":"),
                         )
                     message = bluetooth_message
-                await websocket.send(message)
+                    await websocket.send_latest_sensor(message)
+                else:
+                    await websocket.send(message)
             except Exception:
                 disconnected.add(websocket)
         self.clients -= disconnected
