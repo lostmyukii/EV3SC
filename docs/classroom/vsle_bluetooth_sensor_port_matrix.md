@@ -2,7 +2,7 @@
 
 Sensor port matrix ready: yes
 Transport: vsle-bluetooth
-Runs observed: 4
+Runs observed: 5
 
 ## Sensor Coverage
 | Port | Type | Run | Observations | Max Freshness |
@@ -18,5 +18,6 @@ Untested sensor ports: S3, S4
 | A | observed | mac-s1-touch-a-motor-20260529 |
 | B | observed | usb-b-motor-20260530 |
 | C | observed | usb-c-motor-20260530 |
+| D | observed | usb-d-motor-20260530 |
 
-Untested motor ports: D
+Untested motor ports: none
