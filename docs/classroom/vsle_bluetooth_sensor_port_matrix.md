@@ -2,7 +2,7 @@
 
 Sensor port matrix ready: yes
 Transport: vsle-bluetooth
-Runs observed: 6
+Runs observed: 7
 
 ## Sensor Coverage
 | Port | Type | Run | Observations | Max Freshness |
@@ -10,8 +10,9 @@ Runs observed: 6
 | S1 | touch | mac-s1-touch-a-motor-20260529 | 86 | 499.251ms |
 | S2 | ultrasonic | usb-s2-ultrasonic-20260530 | 1 | n/a (usb-ssh-sysfs-snapshot) |
 | S3 | ultrasonic | usb-s3-ultrasonic-20260530 | 1 | n/a (usb-ssh-sysfs-snapshot) |
+| S4 | touch | usb-s4-touch-20260530 | 1 | n/a (usb-ssh-sysfs-snapshot) |
 
-Untested sensor ports: S4
+Untested sensor ports: none
 
 ## Motor Coverage
 | Port | Status | Run |

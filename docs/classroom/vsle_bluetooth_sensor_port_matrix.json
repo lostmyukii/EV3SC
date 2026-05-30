@@ -115,6 +115,23 @@
         }
       },
       "motors": {}
+    },
+    {
+      "id": "usb-s4-touch-20260530",
+      "source_evidence": "docs/classroom/vsle_bluetooth_s4_touch_usb_sysfs_20260530.json",
+      "sensor_updates_observed": 1,
+      "freshness_not_applicable_reason": "usb-ssh-sysfs-snapshot",
+      "sensors": {
+        "S4": {
+          "expected_type": "touch",
+          "observed_type": "touch",
+          "latest": {
+            "type": "touch",
+            "pressed": false
+          }
+        }
+      },
+      "motors": {}
     }
   ]
 }
