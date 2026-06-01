@@ -298,6 +298,7 @@
                     cleanup();
                     this._ws = ws;
                     this._installHandlers(ws);
+                    this._subscribeToNotifications(ws);
                     resolve();
                 };
                 ws.onerror = event => {
@@ -336,6 +337,15 @@
                     this._pending.delete(id);
                 }
             };
+        }
+
+        _subscribeToNotifications (ws) {
+            ws.send(JSON.stringify({
+                jsonrpc: '2.0',
+                id: 'vsle-subscribe',
+                method: 'startNotifications',
+                params: {}
+            }));
         }
 
         _handleMessage (raw) {

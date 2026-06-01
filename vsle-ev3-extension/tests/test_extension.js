@@ -628,8 +628,9 @@ test('WeisileLink client sends JSON-RPC 2.0 commands to local Scratch endpoint',
         }
 
         send (raw) {
-            this.sent.push(JSON.parse(raw));
-            const id = this.sent[0].id;
+            const request = JSON.parse(raw);
+            this.sent.push(request);
+            const id = request.id;
             setImmediate(() => this.onmessage({
                 data: JSON.stringify({
                     jsonrpc: '2.0',
@@ -647,13 +648,49 @@ test('WeisileLink client sends JSON-RPC 2.0 commands to local Scratch endpoint',
     });
 
     assert.equal(socket.url, 'ws://127.0.0.1:20111/scratch/bt');
+    assert.deepEqual(socket.sent, [
+        {
+            jsonrpc: '2.0',
+            id: 'vsle-subscribe',
+            method: 'startNotifications',
+            params: {}
+        },
+        {
+            jsonrpc: '2.0',
+            id: 'vsle-1',
+            method: 'motor.stopAll',
+            params: {}
+        }
+    ]);
+    assert.deepEqual(result, {ok: true});
+});
+
+test('WeisileLink client subscribes to Scratch Link notifications after connecting', async () => {
+    let socket;
+    class FakeWebSocket {
+        static OPEN = 1;
+
+        constructor () {
+            this.readyState = FakeWebSocket.OPEN;
+            this.sent = [];
+            socket = this;
+            setImmediate(() => this.onopen());
+        }
+
+        send (raw) {
+            this.sent.push(JSON.parse(raw));
+        }
+    }
+
+    const client = new WeisileLinkClient({WebSocket: FakeWebSocket});
+    await client.connect();
+
     assert.deepEqual(socket.sent, [{
         jsonrpc: '2.0',
-        id: 'vsle-1',
-        method: 'motor.stopAll',
+        id: 'vsle-subscribe',
+        method: 'startNotifications',
         params: {}
     }]);
-    assert.deepEqual(result, {ok: true});
 });
 
 test('WeisileLink client stores Scratch Link base64 sensor notifications', async () => {

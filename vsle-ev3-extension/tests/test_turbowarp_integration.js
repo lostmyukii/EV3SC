@@ -138,6 +138,12 @@ test('TurboWarp-loaded extension drives motors and reads sensor notifications th
     assert.equal(lastSocket.url, 'ws://127.0.0.1:20111/scratch/bt');
     assert.deepEqual(lastSocket.sent[0], {
         jsonrpc: '2.0',
+        id: 'vsle-subscribe',
+        method: 'startNotifications',
+        params: {}
+    });
+    assert.deepEqual(lastSocket.sent[1], {
+        jsonrpc: '2.0',
         id: 'vsle-1',
         method: 'motor.runTimed',
         params: {port: 'A', speed: 50, time: 1.5}
