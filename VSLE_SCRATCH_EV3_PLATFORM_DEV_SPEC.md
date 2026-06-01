@@ -3647,6 +3647,13 @@ material into:
 - **Files created/modified**: `scripts/run_scratchai_teacher_block_rehearsal.py`, `tests/test_scratchai_teacher_block_rehearsal.py`, `docs/classroom/scratchai_teacher_block_rehearsal.template.json`, `docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/classroom/README.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Fill `docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json` from a real browser-guided Scratch project run against the EV3, run `scripts/run_scratchai_teacher_block_rehearsal.py`, and only then update the teacher-facing rehearsal report from blocked to passing evidence.
 
+### [2026-06-01] Real EV3 USB paired smoke evidence
+- **Status**: ✅ Completed
+- **Commit**: `de90418`
+- **What was done**: Recovered the EV3 USB endpoint after mDNS moved from `169.254.253.67` to `169.254.5.255`, identified missing pairing-token authentication as the cause of the first WeisileLink disconnect, and captured a token-paired real EV3 USB/WebSocket smoke. The paired run confirmed the real endpoint and transport, safety stop acknowledgements, and 62 sensor notifications over 10 seconds; a browser attempt also recorded that the currently served static ScratchAI build still points EV3 to the deployed public extension URL while the local-url webpack preview did not finish bundling.
+- **Files created/modified**: `docs/classroom/evidence/real_ev3_usb_smoke_readiness_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_readiness_20260601.md`, `docs/classroom/evidence/real_ev3_usb_smoke_evidence_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_report_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_report_20260601.md`, `docs/classroom/evidence/real_ev3_usb_smoke_transcript_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_evidence_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_report_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_report_20260601.md`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_transcript_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_ev3_attempt_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_ev3_attempt_20260601.png`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Fix or rebuild the ScratchAI preview so `SCRATCH_AI_VSLE_EV3_EXTENSION_URL=http://127.0.0.1:8000/vsle-ev3-extension/index.js` produces a browser-loadable bundle, then rerun local browser Unsandboxed evidence; separately continue the longer sensor freshness, AI Quest, and multi-device gates.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
