@@ -2,8 +2,8 @@
 
 Teacher-facing Scratch block rehearsal: no
 Classroom release ready: no
-Transport: vsle-bluetooth
-Transport capability: full
+Transport:
+Transport capability:
 Browser direct Bluetooth used: no
 Scratch visual design changed: no
 Connected-state source: not recorded
@@ -13,14 +13,15 @@ Sensor updates observed: 0
 This gate verifies the teacher-facing browser workflow only. It does not replace signed release-artifact evidence, Windows evidence, or the long Section 13.7 classroom rehearsal.
 
 ## Blocking Items
-- scratch_unsandboxed_loaded must be true
-- extension_loaded_as_main_thread_script must be true
 - connection_state_visible must be true
 - real_ev3_project_used must be true
 - ev3_runs_ev3dev_server must be true
 - disconnect_stop_ok must be true
-- extension_worker_loaded must be false
+- selected_transport must be vsle-bluetooth
+- transport_capability must be full
+- selected_transport_label must be Bluetooth Full VSLE
 - connected_state_source must use WeisileLink health and sensor freshness
+- command_source must be scratch_blocks
 - sensor_freshness_ms_max must be measured
 - sensor_updates_observed must be greater than 0
 - block_groups_exercised.motor must list at least one block
@@ -41,7 +42,7 @@ This gate verifies the teacher-facing browser workflow only. It does not replace
 - ai_quest: not recorded
 
 ## Evidence
-- Browser URL: http://127.0.0.1:8642/
+- Browser URL: http://127.0.0.1:8611/?ev3sc-local-preview=local
 - WeisileLink endpoint: ws://127.0.0.1:20111/scratch/bt
-- Command source: scratch_blocks
-- Notes: not recorded
+- Command source: palette_preflight_only
+- Notes: Preflight only: local ScratchAI browser loads the EV3 extension and shows EV3 blocks, but Bluetooth Full VSLE was not selected in the browser, local WeisileLink was not listening on 20111/8766, the EV3 USB address was not reachable during this probe, and no Scratch block execution evidence was collected.
