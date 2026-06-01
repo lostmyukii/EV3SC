@@ -3661,6 +3661,13 @@ material into:
 - **Files created/modified**: `scripts/prepare_scratchai_local_ev3_preview.py`, `tests/test_scratchai_local_ev3_preview.py`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.png`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Fill and validate the teacher-facing Scratch block rehearsal evidence against the real EV3 path, especially `Bluetooth Full VSLE` selection, connection state from WeisileLink health/freshness, and one Scratch block per EV3 module; current full Bluetooth evidence still needs the AI Quest/full command-group blockers resolved before the combined Mac browser gate can pass again.
 
+### [2026-06-01] Teacher block rehearsal preflight evidence
+- **Status**: ✅ Completed
+- **Commit**: `1b69249`
+- **What was done**: Captured a teacher-facing Scratch block rehearsal preflight from the live local ScratchAI browser page. The preflight confirms the local VSLE-EV3 extension remains loaded as a main-thread script and EV3 blocks are visible, while the generated gate report correctly stays blocked because `Bluetooth Full VSLE` was not selected in the browser, local WeisileLink was not listening on `20111`/`8766`, the EV3 USB endpoint was not reachable during the probe, and no Scratch block execution evidence was collected.
+- **Files created/modified**: `docs/classroom/evidence/scratchai_teacher_block_rehearsal_preflight_20260601.json`, `docs/classroom/evidence/scratchai_teacher_block_rehearsal_preflight_20260601.png`, `docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Restore a live WeisileLink + real EV3 connection, select `Bluetooth Full VSLE` from the Scratch connection flow, execute at least one Scratch block from each EV3 module, then regenerate the teacher block rehearsal evidence until `scripts/run_scratchai_teacher_block_rehearsal.py` returns exit code 0.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
