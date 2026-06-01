@@ -3668,6 +3668,13 @@ material into:
 - **Files created/modified**: `docs/classroom/evidence/scratchai_teacher_block_rehearsal_preflight_20260601.json`, `docs/classroom/evidence/scratchai_teacher_block_rehearsal_preflight_20260601.png`, `docs/classroom/SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Restore a live WeisileLink + real EV3 connection, select `Bluetooth Full VSLE` from the Scratch connection flow, execute at least one Scratch block from each EV3 module, then regenerate the teacher block rehearsal evidence until `scripts/run_scratchai_teacher_block_rehearsal.py` returns exit code 0.
 
+### [2026-06-02] Browser EV3 sensor notification subscription
+- **Status**: ✅ Completed
+- **Commit**: `23b1adb`
+- **What was done**: Fixed the VSLE-EV3 Unsandboxed browser client so it sends `startNotifications` immediately after opening the local WeisileLink WebSocket. This allows Scratch reporter and Boolean blocks to receive the EV3 sensor stream through the cache instead of staying on default values after a successful paired WeisileLink connection.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`
+- **Next step**: Refresh the local ScratchAI browser page against the updated local EV3 extension and re-check `EV3已连接?` / battery reporter values with the token-paired WeisileLink service still running.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
