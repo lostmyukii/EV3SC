@@ -99,6 +99,16 @@ category appears with motor and sensor blocks.
 - Result: Chrome CDP opened the EV3SC ScratchAI browser surface, confirmed WebGL and `AI思考帮手`, opened the extension library, clicked the `EV3` tile, and observed the VSLE-EV3 URL inserted as a main-thread `script` resource with no `extension-worker` resource loaded for that URL.
 - Note: The served build used the configured deployed VSLE-EV3 URL `http://101.42.92.6:18612/vsle-ev3-extension/index.js`; unit tests in `scratch-vm` continue to cover `Scratch.extensions.unsandboxed === true` for the VSLE-EV3 URL loader path.
 
+## 2026-06-01 Local Browser Unsandboxed Evidence
+
+- Status: PASS for ScratchAI local browser EV3 tile main-thread loading evidence
+- Browser URL: `http://127.0.0.1:8611/?ev3sc-local-preview=local`
+- Local extension URL: `http://127.0.0.1:8000/vsle-ev3-extension/index.js`
+- Evidence JSON: `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.json`
+- Screenshot: `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.png`
+- Result: The local static ScratchAI preview was prepared with `scripts/prepare_scratchai_local_ev3_preview.py`, which rewrote only ignored local build artifacts and cache-busted the HTML entry scripts. Browser verification opened the extension library, clicked the `EV3` tile, observed the local VSLE-EV3 URL as a main-thread `script` tag, found no `extension-worker` resource for that URL, found no public EV3 extension URL reference, and confirmed EV3 motor and sensor blocks in the palette.
+- Note: This covers the local browser Unsandboxed extension path only. The combined Mac browser full VSLE Bluetooth smoke still depends on current full `vsle-bluetooth` command-group evidence.
+
 ## Teacher-Facing Bluetooth Full VSLE Block Rehearsal
 
 After the Mac-first Bluetooth baseline passes, run one browser-guided Scratch
