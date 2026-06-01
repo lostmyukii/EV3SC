@@ -1,0 +1,86 @@
+{
+  "classroomApproved": false,
+  "evidenceFiles": [
+    "docs/classroom/evidence/real_ev3_usb_paired_smoke_evidence_20260601.json",
+    "docs/classroom/evidence/real_ev3_usb_paired_smoke_transcript_20260601.json"
+  ],
+  "expectedDevices": 1,
+  "expectedTransportInstances": 1,
+  "failed": 4,
+  "missingEvidence": [
+    "scratchai-unified-stack",
+    "sensor-stream-freshness",
+    "aiquest-collection-training-export",
+    "multi-device-rehearsal"
+  ],
+  "notes": "1-brick smoke capture. This does not replace the 45-minute Section 13.7 classroom rehearsal. No capture errors. Real EV3 confirmation was provided.",
+  "operator": "",
+  "passed": 3,
+  "results": [
+    {
+      "detail": "Requires `scratchai_unified_stack=true` from the rehearsal run.",
+      "evidence": "`scratchai_unified_stack=true` plus local stack health logs from the rehearsal computer.",
+      "id": "scratchai-unified-stack",
+      "label": "ScratchAI unified stack",
+      "passed": false,
+      "requirement": "ScratchAI editor, EV3 extension-library entry, WeisileLink, EV3 firmware, and AI Quest middleware run from the EV3SC-owned source tree.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires `ev3_endpoint_connected=true` from a real EV3 brick.",
+      "evidence": "`ev3_endpoint_connected=true` with EV3 IP/host evidence and WeisileLink connection logs.",
+      "id": "real-ev3-endpoint",
+      "label": "Real EV3 endpoint connected",
+      "passed": true,
+      "requirement": "At least one real ev3dev EV3 brick connects through the unified ScratchAI stack.",
+      "status": "PASS"
+    },
+    {
+      "detail": "Requires `weisilelink_real_transport=true`, not simulation.",
+      "evidence": "`weisilelink_real_transport=true` with the transport mode and bridge status output.",
+      "id": "weisilelink-real-transport",
+      "label": "WeisileLink real transport",
+      "passed": true,
+      "requirement": "WeisileLink uses a real WiFi or Bluetooth EV3 transport, not the local simulated preview transport.",
+      "status": "PASS"
+    },
+    {
+      "detail": "Requires motor command, emergency stop, and no in-class code changes.",
+      "evidence": "`motor_command_verified=true` and `emergency_stop_verified=true` with operator notes.",
+      "id": "motor-command-safety",
+      "label": "Motor command and safety",
+      "passed": true,
+      "requirement": "Scratch EV3 blocks drive motors at classroom-safe values and the emergency stop path stops motors and sound.",
+      "status": "PASS"
+    },
+    {
+      "detail": "Measured 6.20Hz for 0.2 minutes, dropped 0.000%, memory +0.0MB.",
+      "evidence": "`sensor_stream_hz>=45.0`, `sensor_stream_duration_minutes>=45.0`, `dropped_update_pct<=0.1`, and `memory_growth_mb<50.0`.",
+      "id": "sensor-stream-freshness",
+      "label": "Sensor stream freshness",
+      "passed": false,
+      "requirement": "The 45-minute student workflow streams sensor data close to the 50Hz target without excessive drops or memory growth.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Requires AI Quest collection plus training/export evidence.",
+      "evidence": "`aiquest_collection_verified=true` and `aiquest_training_export_verified=true` with export logs.",
+      "id": "aiquest-collection-training-export",
+      "label": "AI Quest collection, training, and export",
+      "passed": false,
+      "requirement": "The 45-minute student workflow collects labeled EV3 data, uploads to Trainer, trains or selects a model, and exports model rules.",
+      "status": "FAIL"
+    },
+    {
+      "detail": "Observed 1 transports and 1 real EV3 devices; max reconnect 0.0s.",
+      "evidence": "`transport_instance_count`, `device_count`, disconnect, reconnect, recovery-step, and no-code-change evidence.",
+      "id": "multi-device-rehearsal",
+      "label": "30-device classroom rehearsal",
+      "passed": false,
+      "requirement": "Start 1 WeisileLink instances or simulated EV3 transports on the classroom LAN, connect at least 1 real EV3 bricks if hardware is available, record disconnects, reconnect time, teacher recovery steps, and confirm the pilot required no code changes during class.",
+      "status": "FAIL"
+    }
+  ],
+  "runStartedAt": "2026-06-01T13:02:54.055834+00:00",
+  "status": "BLOCKED"
+}

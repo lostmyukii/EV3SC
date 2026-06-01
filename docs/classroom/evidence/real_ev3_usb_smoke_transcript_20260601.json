@@ -1,0 +1,82 @@
+{
+  "connect_ok": true,
+  "discover_ok": true,
+  "elapsed_seconds": 10.001,
+  "emergency_stop_ack": false,
+  "errors": [],
+  "evidence_files": [
+    "docs/classroom/evidence/real_ev3_usb_smoke_evidence_20260601.json",
+    "docs/classroom/evidence/real_ev3_usb_smoke_transcript_20260601.json"
+  ],
+  "messages": [
+    {
+      "id": "smoke-version",
+      "jsonrpc": "2.0",
+      "result": {
+        "implementation": "WeisileLink",
+        "protocol": "1.3"
+      }
+    },
+    {
+      "id": "smoke-discover",
+      "jsonrpc": "2.0",
+      "result": null
+    },
+    {
+      "jsonrpc": "2.0",
+      "method": "didDiscoverPeripheral",
+      "params": {
+        "name": "VSLE EV3 WiFi",
+        "peripheralId": "vsle-ev3-wifi",
+        "rssi": 0
+      }
+    },
+    {
+      "id": "smoke-connect",
+      "jsonrpc": "2.0",
+      "result": null
+    },
+    {
+      "id": "smoke-notifications",
+      "jsonrpc": "2.0",
+      "result": null
+    },
+    {
+      "error": {
+        "code": "EV3_TRANSPORT_DISCONNECTED",
+        "data": {
+          "bluetooth_failed": false,
+          "method": "motor.stopAll",
+          "retryable": true,
+          "wifi_failed": true
+        },
+        "message": "No active BT/WiFi transport"
+      },
+      "id": "smoke-stop-all",
+      "jsonrpc": "2.0"
+    },
+    {
+      "error": {
+        "code": "EV3_TRANSPORT_DISCONNECTED",
+        "data": {
+          "bluetooth_failed": false,
+          "method": "sound.stop",
+          "retryable": true,
+          "wifi_failed": true
+        },
+        "message": "No active BT/WiFi transport"
+      },
+      "id": "smoke-sound-stop",
+      "jsonrpc": "2.0"
+    }
+  ],
+  "motor_ack": false,
+  "ok": false,
+  "peripheral_id": "vsle-ev3-wifi",
+  "sensor_payloads": [],
+  "sensor_update_count": 0,
+  "sound_stop_ack": false,
+  "started_at": "2026-06-01T12:58:42.727522+00:00",
+  "version_ok": true,
+  "weisile_link_url": "ws://127.0.0.1:20111/scratch/bt"
+}
