@@ -3675,6 +3675,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_turbowarp_integration.js`
 - **Next step**: Refresh the local ScratchAI browser page against the updated local EV3 extension and re-check `EV3已连接?` / battery reporter values with the token-paired WeisileLink service still running.
 
+### [2026-06-02] Browser EV3 host freshness status
+- **Status**: ✅ Completed
+- **Commit**: `cc07d4d`
+- **What was done**: Fixed the browser-side EV3 connection reporter to use the host receive time for freshness while preserving the EV3 payload timestamp for sample metadata. This handles real ev3dev bricks whose system clock can lag behind the teacher computer, so cache-backed reporters can show real values such as battery voltage while `EV3已连接?` still reflects recently received data.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`
+- **Next step**: Refresh the local ScratchAI browser preview against the updated local extension URL and verify `EV3已连接?` now returns `true` while `EV3电池电压 (V)` continues to report the real EV3 battery value.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
