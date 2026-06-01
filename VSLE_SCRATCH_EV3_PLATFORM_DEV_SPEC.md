@@ -3682,6 +3682,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`
 - **Next step**: Refresh the local ScratchAI browser preview against the updated local extension URL and verify `EV3已连接?` now returns `true` while `EV3电池电压 (V)` continues to report the real EV3 battery value.
 
+### [2026-06-02] GitHub sync blocked for browser EV3 freshness fix
+- **Status**: ⚠️ Blocked
+- **Commit**: `b577535` local only
+- **What was done**: Attempted to push the browser EV3 host freshness fix and progress log to `origin/codex/native-adapter-process`, but GitHub HTTPS failed repeatedly with `LibreSSL SSL_connect: SSL_ERROR_SYSCALL`.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Restore GitHub network access and rerun `git push origin codex/native-adapter-process` before marking the browser EV3 freshness fix fully synchronized.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
