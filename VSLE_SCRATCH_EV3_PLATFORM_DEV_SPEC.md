@@ -3654,6 +3654,13 @@ material into:
 - **Files created/modified**: `docs/classroom/evidence/real_ev3_usb_smoke_readiness_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_readiness_20260601.md`, `docs/classroom/evidence/real_ev3_usb_smoke_evidence_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_report_20260601.json`, `docs/classroom/evidence/real_ev3_usb_smoke_report_20260601.md`, `docs/classroom/evidence/real_ev3_usb_smoke_transcript_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_evidence_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_report_20260601.json`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_report_20260601.md`, `docs/classroom/evidence/real_ev3_usb_paired_smoke_transcript_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_ev3_attempt_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_ev3_attempt_20260601.png`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Fix or rebuild the ScratchAI preview so `SCRATCH_AI_VSLE_EV3_EXTENSION_URL=http://127.0.0.1:8000/vsle-ev3-extension/index.js` produces a browser-loadable bundle, then rerun local browser Unsandboxed evidence; separately continue the longer sensor freshness, AI Quest, and multi-device gates.
 
+### [2026-06-01] Local ScratchAI browser EV3 extension evidence
+- **Status**: ✅ Completed
+- **Commit**: `f489db4`
+- **What was done**: Added a tested local preview preparation helper that rewrites only ignored Scratch GUI build artifacts from the deployed EV3 extension URL to `http://127.0.0.1:8000/vsle-ev3-extension/index.js` and cache-busts the local HTML bundle entry. Re-ran the in-app browser path at `http://127.0.0.1:8611/?ev3sc-local-preview=local`, clicked the EV3 extension tile, and captured evidence showing the local VSLE-EV3 script loaded on the main thread with no `extension-worker` or public EV3 extension URL reference.
+- **Files created/modified**: `scripts/prepare_scratchai_local_ev3_preview.py`, `tests/test_scratchai_local_ev3_preview.py`, `docs/classroom/SCRATCHAI_BROWSER_REHEARSAL.md`, `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.json`, `docs/classroom/evidence/scratchai_browser_local_unsandboxed_20260601.png`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Fill and validate the teacher-facing Scratch block rehearsal evidence against the real EV3 path, especially `Bluetooth Full VSLE` selection, connection state from WeisileLink health/freshness, and one Scratch block per EV3 module; current full Bluetooth evidence still needs the AI Quest/full command-group blockers resolved before the combined Mac browser gate can pass again.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
