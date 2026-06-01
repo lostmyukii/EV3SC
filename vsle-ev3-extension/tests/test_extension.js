@@ -335,6 +335,26 @@ test('SensorCache normalizes EV3 epoch-second timestamps to milliseconds', () =>
     assert.equal(sensorCache.get('timestamp'), 1716387600123);
 });
 
+test('connection reporter uses host receive freshness for stale EV3 clocks', () => {
+    const originalNow = Date.now;
+    Date.now = () => 1716387600500;
+    try {
+        const sensorCache = new SensorCache({clock: () => 1716387600450});
+        sensorCache.update({
+            timestamp: 1586625209.971,
+            system: {battery_v: 7.5}
+        });
+        const extension = new VSLEEV3Extension({sensorCache});
+
+        assert.equal(sensorCache.get('timestamp'), 1586625209971);
+        assert.equal(sensorCache.get('received_at_ms'), 1716387600450);
+        assert.equal(extension.getBatteryVoltage(), 7.5);
+        assert.equal(extension.isConnected(), true);
+    } finally {
+        Date.now = originalNow;
+    }
+});
+
 test('motor command blocks normalize arguments before sending to WeisileLink', async () => {
     const {extension, sent} = makeExtension();
 

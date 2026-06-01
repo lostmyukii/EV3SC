@@ -221,7 +221,8 @@
                 center: false
             }
         },
-        timestamp: 0
+        timestamp: 0,
+        received_at_ms: 0
     };
 
     class SensorCache {
@@ -392,6 +393,10 @@
             getPath(current, 'timestamp'),
             0
         );
+        const receivedAt = safeNumber(
+            getPath(current, 'received_at_ms'),
+            timestamp
+        );
         const collectionTarget = Math.max(
             1,
             safeNumber(
@@ -417,9 +422,9 @@
                 activeGreen: SENSOR_PANEL_ACTIVE_GREEN
             },
             connection: {
-                connected: timestamp > 0 &&
-                    now() - timestamp <= SENSOR_STALE_MS,
-                staleMs: timestamp > 0 ? Math.max(0, now() - timestamp) : null,
+                connected: receivedAt > 0 &&
+                    now() - receivedAt <= SENSOR_STALE_MS,
+                staleMs: receivedAt > 0 ? Math.max(0, now() - receivedAt) : null,
                 brickId: getPath(current, 'brick_id') || 'vsle-ev3-wifi',
                 brickName: getPath(current, 'brick_name') || 'VSLE EV3'
             },
@@ -1276,8 +1281,11 @@
         }
 
         isConnected () {
-            const timestamp = this._cacheNumber('timestamp', 0);
-            return timestamp > 0 && Date.now() - timestamp <= SENSOR_STALE_MS;
+            const receivedAt = this._cacheNumber(
+                'received_at_ms',
+                this._cacheNumber('timestamp', 0)
+            );
+            return receivedAt > 0 && Date.now() - receivedAt <= SENSOR_STALE_MS;
         }
 
         getBatteryVoltage () {
@@ -2661,12 +2669,14 @@
         const normalized = {...payload};
         if (normalized.timestamp === undefined) {
             normalized.timestamp = now;
+            normalized.received_at_ms = now;
             return normalized;
         }
 
         const timestamp = Number(normalized.timestamp);
         if (!Number.isFinite(timestamp)) {
             normalized.timestamp = now;
+            normalized.received_at_ms = now;
             return normalized;
         }
 
@@ -2674,6 +2684,7 @@
             timestamp < 1000000000000 ?
                 Math.round(timestamp * 1000) :
                 Math.round(timestamp);
+        normalized.received_at_ms = now;
         return normalized;
     };
 
