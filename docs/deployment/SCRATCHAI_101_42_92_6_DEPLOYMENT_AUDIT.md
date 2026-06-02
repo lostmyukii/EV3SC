@@ -133,6 +133,20 @@ Evidence files:
 - `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.json`
 - `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.md`
 
+On 2026-06-02, the public preview was advanced again to release
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260602-numeric-boolean`
+by syncing the updated EV3SC-owned `vsle-ev3-extension/` directory into
+`static/vsle-ev3-extension/` while preserving the remote Scratch GUI build and
+its public EV3 extension URL. The served extension SHA-256 now matches the local
+EV3SC extension at commit `7ca1a88` and includes the numeric EV3 Boolean
+normalization fix (`safeBoolean`) for real payload values such as S4 touch
+`pressed: 1`.
+
+Evidence files:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.md`
+
 ## API Evidence
 
 Preview readiness:

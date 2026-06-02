@@ -3731,6 +3731,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Publish the updated `vsle-ev3-extension/index.js` to the public ScratchAI route and rerun the real S4 touch block test from the browser.
 
+### [2026-06-02] Public ScratchAI numeric Boolean extension sync
+- **Status**: ✅ Completed
+- **Commit**: `7ca1a88`
+- **What was done**: Published the updated EV3SC-owned `vsle-ev3-extension/` to the public ScratchAI host as release `scratchai-18612-20260602-numeric-boolean`, preserving the existing Scratch GUI build and its public EV3 extension URL. Verified that the public extension route SHA-256 matches the local extension and includes the `safeBoolean` numeric EV3 Boolean fix for payloads such as S4 touch `pressed: 1`.
+- **Files created/modified**: `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.json`, `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
+- **Next step**: Refresh the public ScratchAI browser page, re-add the EV3 extension so the browser loads the updated script, and rerun the real S4 touch block test with local WeisileLink Bluetooth running.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
