@@ -113,6 +113,26 @@ Evidence files:
 - `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.json`
 - `docs/deployment/evidence/scratchai_101_42_92_6_ev3_blocks_loaded_20260526.png`
 
+On 2026-06-02, the public preview was advanced to release
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260602-vsle-extension-freshness`
+by syncing the EV3SC-owned `vsle-ev3-extension/` directory into
+`static/vsle-ev3-extension/` while preserving the remote Scratch GUI build and
+its public EV3 extension URL. The served extension now includes the
+`Bluetooth Full VSLE` transport label, the `vsle-bluetooth` transport value, and
+the browser-side `received_at_ms` host freshness fix.
+
+Server-side Bluetooth note: the cloud host has no detectable Bluetooth adapter,
+its `bluetooth` service is inactive, and `127.0.0.1:20111` is closed on the
+server. This is expected for the VSLE architecture: the public server hosts the
+ScratchAI website and extension, while real EV3 Bluetooth ownership remains on
+the teacher computer through local WeisileLink Desktop at
+`ws://127.0.0.1:20111/scratch/bt`.
+
+Evidence files:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.md`
+
 ## API Evidence
 
 Preview readiness:

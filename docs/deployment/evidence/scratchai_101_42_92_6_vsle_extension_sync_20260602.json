@@ -1,0 +1,56 @@
+{
+  "evidence_kind": "scratchai_101_42_92_6_vsle_extension_sync",
+  "checked_at_utc": "2026-06-02T03:44:38Z",
+  "public_url": "http://101.42.92.6:18612/",
+  "remote_host": "101.42.92.6",
+  "remote_ssh_user": "ubuntu",
+  "remote_base_dir": "/home/ubuntu/ev3sc-scratchai-18612",
+  "release": "scratchai-18612-20260602-vsle-extension-freshness",
+  "current_release": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260602-vsle-extension-freshness",
+  "synced_paths": [
+    "vsle-ev3-extension/"
+  ],
+  "preserved_remote_paths": [
+    "static/gui.js",
+    "static/index.html",
+    "preview-server/",
+    "ai-middleware/",
+    "asset-worker/",
+    "secrets/scratch-ai.env"
+  ],
+  "public_http": {
+    "root_ok": true,
+    "root_content_type": "text/html; charset=utf-8",
+    "extension_ok": true,
+    "extension_content_type": "application/javascript; charset=utf-8",
+    "extension_bytes": 101685,
+    "gui_ok": true,
+    "gui_content_type": "application/javascript; charset=utf-8",
+    "gui_bytes": 33792040
+  },
+  "extension_checks": {
+    "has_bluetooth_full_vsle_label": true,
+    "has_vsle_bluetooth_transport": true,
+    "has_received_at_ms_freshness_fix": true,
+    "served_gui_has_public_extension_url": true,
+    "served_gui_has_local_extension_url": false
+  },
+  "systemd": {
+    "ev3sc-scratchai-preview-18612.service": "active",
+    "ev3sc-scratchai-middleware-18614.service": "active",
+    "ev3sc-scratchai-asset-18615.service": "active"
+  },
+  "server_direct_bluetooth": {
+    "cloud_server_bluetooth_adapter_detected": false,
+    "bluetooth_service_active": false,
+    "local_weisilelink_20111_open_on_server": false,
+    "direct_server_bluetooth_connection_ok": false,
+    "reason": "The public server hosts ScratchAI and the VSLE-EV3 extension. Per the VSLE design, Bluetooth ownership stays on the teacher computer through local WeisileLink Desktop at ws://127.0.0.1:20111/scratch/bt; this cloud host has no Bluetooth adapter and cannot directly pair with classroom EV3 hardware."
+  },
+  "result": {
+    "server_sync_ok": true,
+    "public_extension_ready_for_bluetooth_full_vsle": true,
+    "server_direct_bluetooth_testable": false,
+    "teacher_computer_bluetooth_test_required": true
+  }
+}
