@@ -3703,6 +3703,13 @@ material into:
 - **Files created/modified**: `docs/classroom/SCRATCHAI_PUBLIC_SITE_LOCAL_BLUETOOTH_E2E.md`, `docs/classroom/public-site-local-bluetooth-readme/README.md`, `docs/classroom/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Use the guide on a teacher computer with WeisileLink Desktop and a paired ev3dev EV3 to fill `docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json`, then run `scripts/run_scratchai_teacher_block_rehearsal.py`.
 
+### [2026-06-02] Public ScratchAI USB token recovery README
+- **Status**: ✅ Completed
+- **Commit**: `0dd0549`
+- **What was done**: Updated the root README with the current public ScratchAI plus local `vsle-bluetooth` test flow, including the exact developer-checkout WeisileLink startup command, the expected EV3 extension/category check, and the distinction between Bluetooth physical connection and sensor-stream authorization. The README now states that USB is only needed for first setup, token recovery, or EV3 service troubleshooting, not for every normal Bluetooth lesson.
+- **Files created/modified**: `README.md`
+- **Next step**: Use the USB connection only to retrieve the pairing token or verify the EV3 service state, restart local WeisileLink with the token, then rerun the public ScratchAI `Bluetooth Full VSLE` sensor-stream test.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
