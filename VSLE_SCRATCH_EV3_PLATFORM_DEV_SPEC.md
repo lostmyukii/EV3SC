@@ -3691,7 +3691,7 @@ material into:
 
 ### [2026-06-02] Public ScratchAI VSLE extension sync
 - **Status**: ✅ Completed
-- **Commit**: `PENDING`
+- **Commit**: `6958e47`
 - **What was done**: Synced the current EV3SC-owned VSLE-EV3 extension to `http://101.42.92.6:18612/` as release `scratchai-18612-20260602-vsle-extension-freshness` while preserving the remote Scratch GUI build and public extension URL. Verified that the public extension route now serves `Bluetooth Full VSLE`, `vsle-bluetooth`, and the `received_at_ms` host freshness fix; also recorded that the cloud server itself cannot directly test Bluetooth because the architecture requires local WeisileLink Desktop on the teacher computer.
 - **Files created/modified**: `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.json`, `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_sync_20260602.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Open `http://101.42.92.6:18612/` from the teacher computer with WeisileLink Desktop running locally, select `Bluetooth Full VSLE`, and collect real EV3 Bluetooth/Scratch block evidence from the local machine.
