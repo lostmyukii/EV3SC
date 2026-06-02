@@ -3698,7 +3698,7 @@ material into:
 
 ### [2026-06-02] Public ScratchAI local Bluetooth teacher guide
 - **Status**: ✅ Completed
-- **Commit**: `PENDING`
+- **Commit**: `de9027b`
 - **What was done**: Added teacher-facing documentation for the public ScratchAI website plus local WeisileLink Desktop Bluetooth Full VSLE evidence flow. The guide explains the cloud/local Bluetooth boundary, safe classroom block checklist, evidence fields, validation command, and quick troubleshooting, with a separate README for fast teacher onboarding.
 - **Files created/modified**: `docs/classroom/SCRATCHAI_PUBLIC_SITE_LOCAL_BLUETOOTH_E2E.md`, `docs/classroom/public-site-local-bluetooth-readme/README.md`, `docs/classroom/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Use the guide on a teacher computer with WeisileLink Desktop and a paired ev3dev EV3 to fill `docs/classroom/evidence/scratchai_teacher_block_rehearsal_YYYYMMDD.json`, then run `scripts/run_scratchai_teacher_block_rehearsal.py`.
