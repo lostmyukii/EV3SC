@@ -3717,6 +3717,13 @@ material into:
 - **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_sensor_data_panel.js`
 - **Next step**: Sync the updated extension to the public ScratchAI route, refresh the browser page, and rerun the S4 touch block test against the real EV3.
 
+### [2026-06-02] GitHub sync blocked for numeric boolean fix
+- **Status**: ⚠️ Blocked
+- **Commit**: `7082795` local only
+- **What was done**: Attempted to push the numeric EV3 Boolean normalization fix and progress log to `origin/codex/native-adapter-process`, but GitHub HTTPS failed with `LibreSSL SSL_connect: SSL_ERROR_SYSCALL`.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Restore GitHub HTTPS network access and rerun `git push origin codex/native-adapter-process` before marking the numeric Boolean fix fully synchronized.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
