@@ -3724,6 +3724,13 @@ material into:
 - **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Restore GitHub HTTPS network access and rerun `git push origin codex/native-adapter-process` before marking the numeric Boolean fix fully synchronized.
 
+### [2026-06-02] GitHub sync restored for numeric boolean fix
+- **Status**: ✅ Completed
+- **Commit**: `0122ac9`
+- **What was done**: Rechecked GitHub HTTPS connectivity and successfully pushed the numeric EV3 Boolean normalization fix, its progress entry, and the recorded push-blocker entry to `origin/codex/native-adapter-process`.
+- **Files created/modified**: `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Publish the updated `vsle-ev3-extension/index.js` to the public ScratchAI route and rerun the real S4 touch block test from the browser.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
