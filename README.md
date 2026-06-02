@@ -548,8 +548,93 @@ still says `Classroom ready: no` because release-artifact install evidence,
 ScratchAI browser evidence, AI Quest evidence, and 25ms sensor freshness remain
 unmet.
 
+### Phase 8: Public ScratchAI Bluetooth Path With USB Token Recovery
+
+This phase records the classroom-style browser test started on 2026-06-02:
+the public ScratchAI page runs in the browser, while Bluetooth is owned by the
+teacher Mac through local WeisileLink. The public server never connects to the
+EV3 directly.
+
+Important operating rule:
+
+- USB is not required for every Bluetooth lesson.
+- USB is needed for first EV3 setup, service recovery, or reading the
+  `WEISILE_PAIRING_TOKEN` when the teacher computer does not already have it.
+- After the EV3 server is configured, Bluetooth is paired, and WeisileLink
+  Desktop has the pairing information, normal lessons should only require
+  powering on the EV3, starting WeisileLink Desktop, opening ScratchAI, and
+  choosing `Bluetooth Full VSLE`.
+
+Start the local developer-checkout bridge from a new Mac terminal. Keep this
+terminal open during the browser test:
+
+```bash
+cd /Users/yukii/Desktop/EV3SC
+
+PYTHONPATH=/Users/yukii/Desktop/EV3SC/weisile-link \
+WEISILE_TRANSPORT=vsle-bluetooth \
+EV3_BT=A0:E6:F8:19:58:3C \
+WEISILE_VSLE_BT_ADAPTER=/Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter \
+WEISILE_LINK_HOST=127.0.0.1 \
+WEISILE_LINK_PORT=20111 \
+TRAINER_WS_PORT=8766 \
+WEISILE_ALLOWED_ORIGINS="http://101.42.92.6:18612,http://127.0.0.1:8611,http://localhost:8611" \
+/Users/yukii/Desktop/EV3SC/.venv/bin/python -c "from weisile_link.cli import main; main()"
+```
+
+Expected terminal line:
+
+```text
+Starting WeisileLink on 127.0.0.1:20111 and Trainer on 127.0.0.1:8766
+```
+
+If the EV3 requires a pairing token, enter it without echoing it in the shell
+before starting the same command:
+
+```bash
+printf 'Paste EV3 pairing token, then press Enter: '
+IFS= read -rs WEISILE_PAIRING_TOKEN
+printf '\n'
+export WEISILE_PAIRING_TOKEN
+```
+
+Do not paste the token into chat, screenshots, committed files, or command
+history. If the token is unknown, keep USB connected only long enough to read it
+privately from the EV3 service env file:
+
+```bash
+ssh -6 robot@fe80::16:53ff:fe4f:4655%en10
+grep '^WEISILE_PAIRING_TOKEN=' /home/robot/.config/vsle/ev3.env
+exit
+```
+
+The interface suffix such as `%en10` can differ on another Mac. Use the current
+USB SSH address from Phase 4 instead of copying this one blindly.
+
+With WeisileLink still running, open the public ScratchAI page:
+
+```text
+http://101.42.92.6:18612/
+```
+
+Wait for ScratchAI to finish loading, click the lower-left extension button,
+choose the EV3 extension, and confirm that the red EV3 category appears in the
+block palette.
+
+Interpretation of this test:
+
+- Seeing the red EV3 category proves the public page loaded the VSLE-EV3
+  Scratch extension.
+- macOS Bluetooth showing `Connected` proves the physical Bluetooth pairing
+  path reached the EV3.
+- `sensor_updates_observed = 0` means Scratch has not received the EV3 sensor
+  stream yet. The first suspects are a missing `WEISILE_PAIRING_TOKEN`, the EV3
+  `vsle-ev3-server` service not running, or the EV3 RFCOMM listener not enabled.
+- USB is the recovery path for those checks; it is not part of the normal
+  browser-to-Bluetooth classroom flow after pairing information is saved.
+
 ### Next Phase
 
-Investigate and fix the Bluetooth sensor freshness gap, then rerun the full
-`vsle-bluetooth` classroom smoke until `sensor_freshness_ms_max <= 25` while
-also collecting release-artifact, ScratchAI browser, and AI Quest evidence.
+Use the USB recovery path only to retrieve the pairing token or verify the EV3
+service state, then restart local WeisileLink with the token and rerun the
+public ScratchAI `Bluetooth Full VSLE` sensor-stream test.
