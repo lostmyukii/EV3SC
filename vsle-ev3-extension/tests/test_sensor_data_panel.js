@@ -120,6 +120,24 @@ test('buildSensorDataPanelModel normalizes cache-backed EV3 state', () => {
     });
 });
 
+test('buildSensorDataPanelModel accepts numeric EV3 boolean values', () => {
+    const sensorCache = new SensorCache({clock: () => 1000});
+    sensorCache.update({
+        sensors: {S4: {pressed: 1}},
+        motors: {A: {running: 1}},
+        system: {collecting: 1},
+        timestamp: 1000
+    });
+
+    const model = buildSensorDataPanelModel(sensorCache, {
+        now: () => 1100
+    });
+
+    assert.equal(model.sensors.touch.pressed, true);
+    assert.equal(model.motors.A.running, true);
+    assert.equal(model.collection.collecting, true);
+});
+
 test('src ui data panel entry re-exports the runnable implementation', () => {
     assert.equal(dataPanelModule.SensorDataPanel, SensorDataPanel);
     assert.equal(dataPanelModule.renderSensorDataPanel, renderSensorDataPanel);

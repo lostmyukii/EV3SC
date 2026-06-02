@@ -454,7 +454,7 @@
                 },
                 touch: {
                     port: 'S4',
-                    pressed: getPath(current, 'sensors.S4.pressed') === true
+                    pressed: safeBoolean(getPath(current, 'sensors.S4.pressed'))
                 }
             },
             motors: MOTOR_PORTS.reduce((motors, port) => {
@@ -464,7 +464,9 @@
                         getPath(current, `motors.${port}.position`)
                     ),
                     speed: safeNumber(getPath(current, `motors.${port}.speed`)),
-                    running: getPath(current, `motors.${port}.running`) === true
+                    running: safeBoolean(
+                        getPath(current, `motors.${port}.running`)
+                    )
                 };
                 return motors;
             }, {}),
@@ -477,7 +479,7 @@
                 updateRate: safeNumber(sensorCache.updateRate)
             },
             collection: {
-                collecting: getPath(current, 'system.collecting') === true,
+                collecting: safeBoolean(getPath(current, 'system.collecting')),
                 label: getPath(current, 'system.collect_label') || '',
                 count,
                 target: collectionTarget,
@@ -1011,7 +1013,9 @@
         async waitMotorStopped (args) {
             const port = this._motorPort(args.PORT);
             const start = Date.now();
-            while (this.sensorCache.get(`motors.${port}.running`) === true) {
+            while (safeBoolean(
+                this.sensorCache.get(`motors.${port}.running`)
+            )) {
                 if (Date.now() - start >= WAIT_TIMEOUT_MS) {
                     return;
                 }
@@ -1021,7 +1025,7 @@
 
         isMotorRunning (args) {
             const port = this._motorPort(args.PORT);
-            return this.sensorCache.get(`motors.${port}.running`) === true;
+            return this._cacheBoolean(`motors.${port}.running`);
         }
 
         getColorSensorColor (args) {
@@ -1105,7 +1109,7 @@
             }
             await this._waitForCache(
                 `sensors.${port}.pressed`,
-                value => value === true
+                value => safeBoolean(value)
             );
         }
 
@@ -1116,7 +1120,7 @@
             }
             await this._waitForCache(
                 `sensors.${port}.pressed`,
-                value => value !== true
+                value => !safeBoolean(value)
             );
         }
 
@@ -1778,7 +1782,7 @@
         }
 
         _cacheBoolean (path) {
-            return this.sensorCache.get(path) === true;
+            return safeBoolean(this.sensorCache.get(path));
         }
 
         async _waitForCache (path, predicate) {
@@ -2547,6 +2551,13 @@
         const number = Number(value);
         return Number.isFinite(number) ? number : defaultValue;
     };
+
+    const safeBoolean = value => (
+        value === true ||
+        value === 1 ||
+        value === '1' ||
+        value === 'true'
+    );
 
     const normalRgb = value => {
         if (!Array.isArray(value)) {

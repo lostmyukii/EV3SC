@@ -520,6 +520,25 @@ test('sensor reporter and boolean blocks synchronously read sensor cache', () =>
     assert.deepEqual(sent, []);
 });
 
+test('sensor boolean blocks accept numeric EV3 pressed values', () => {
+    const {extension, sensorCache} = makeExtension();
+    sensorCache.update({
+        sensors: {S4: {pressed: 1}},
+        system: {buttons: {center: 1}}
+    });
+
+    assert.equal(extension.getTouchPressed({PORT: 'S4'}), true);
+    assert.equal(extension.isBrickButtonPressed({BUTTON: 'center'}), true);
+
+    sensorCache.update({
+        sensors: {S4: {pressed: 0}},
+        system: {buttons: {center: 0}}
+    });
+
+    assert.equal(extension.getTouchPressed({PORT: 'S4'}), false);
+    assert.equal(extension.isBrickButtonPressed({BUTTON: 'center'}), false);
+});
+
 test('sensor command and wait blocks use validated ports and cache polling', async () => {
     const {extension, sensorCache, sent} = makeExtension();
     sensorCache.update({sensors: {S4: {pressed: true}, S3: {angle: 18}}});
