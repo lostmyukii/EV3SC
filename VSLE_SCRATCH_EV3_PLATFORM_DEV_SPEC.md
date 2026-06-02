@@ -3710,6 +3710,13 @@ material into:
 - **Files created/modified**: `README.md`
 - **Next step**: Use the USB connection only to retrieve the pairing token or verify the EV3 service state, restart local WeisileLink with the token, then rerun the public ScratchAI `Bluetooth Full VSLE` sensor-stream test.
 
+### [2026-06-02] EV3 numeric boolean cache normalization
+- **Status**: ✅ Completed
+- **Commit**: `64f094d`
+- **What was done**: During the real Bluetooth sensor rehearsal, S4 touch hardware was confirmed to stream `0 → 1 → 0` over WeisileLink while Scratch stayed false because browser Boolean blocks only accepted strict `true`. Normalized EV3 cache-backed Boolean reads so numeric `1`/`0` values work for S4 touch, brick buttons, motor running state, wait blocks, and the sensor panel.
+- **Files created/modified**: `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `vsle-ev3-extension/tests/test_sensor_data_panel.js`
+- **Next step**: Sync the updated extension to the public ScratchAI route, refresh the browser page, and rerun the S4 touch block test against the real EV3.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
