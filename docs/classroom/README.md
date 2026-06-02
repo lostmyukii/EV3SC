@@ -15,6 +15,8 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | `REAL_EV3_REHEARSAL.md` | QA or pilot lead | Record the Section 13.7 real EV3 classroom rehearsal gate before pilot approval. |
 | `SCRATCHAI_BROWSER_REHEARSAL.md` | QA or pilot lead | Record the ScratchAI unified-stack browser evidence before the long classroom run. |
 | `SCRATCHAI_TEACHER_BLOCK_REHEARSAL.md` | QA or pilot lead | Record the current browser-guided Bluetooth Full VSLE block rehearsal verdict. |
+| `SCRATCHAI_PUBLIC_SITE_LOCAL_BLUETOOTH_E2E.md` | Teacher or pilot lead | Run the public `101.42.92.6:18612` ScratchAI website with local WeisileLink Desktop and a real EV3 over Bluetooth Full VSLE. |
+| `public-site-local-bluetooth-readme/README.md` | Teacher | Quick-start checklist for the public ScratchAI + local Bluetooth EV3 workflow. |
 | `scratchai_teacher_block_rehearsal.template.json` | QA or pilot lead | Record the browser-guided Bluetooth Full VSLE Scratch block rehearsal evidence. |
 | `REAL_EV3_SMOKE_HANDOFF.md` | Physical EV3 operator | Run the real-brick preflight, start WeisileLink against real hardware, and capture the confirmed one-brick smoke evidence. |
 | `REAL_EV3_SMOKE_READINESS.md` | QA or pilot lead | Record the non-invasive endpoint readiness check before running `--confirm-real-ev3`. |
