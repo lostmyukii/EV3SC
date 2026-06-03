@@ -66,6 +66,31 @@ token was rotated. `needs_attention` means the profile exists but the Desktop
 app should open guided diagnostics for Bluetooth, EV3 service, or sensor stream
 failure.
 
+For fleet setup, import a non-secret classroom roster before or after pairing:
+
+```bash
+python -m weisile_link desktop-roster \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  import \
+  --input classroom-roster.json
+```
+
+The roster can contain `classroom_id`, `scratchai_url`, and `devices[]` entries
+with `brick_id`, `label`, `ev3_bt`, and `expected_sensors` for `S1`-`S4`. It
+must not contain raw pairing tokens. When a paired profile matches a roster
+device, `desktop-start --check-only`, `desktop-supervise`, and
+`desktop-diagnostics` use the saved `expected_sensors` layout to require the
+expected real sensor ports before reporting `ready`.
+
+To create a non-secret roster handoff from a configured teacher computer:
+
+```bash
+python -m weisile_link desktop-roster \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  export \
+  --output classroom-roster.json
+```
+
 The packaged macOS/Windows shell should call the one-click supervisor instead
 of asking teachers to run the bridge command directly:
 
@@ -130,6 +155,7 @@ Run:
 ```bash
 ./.venv/bin/python -m pytest tests/test_desktop_packaging.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_profiles.py -v
+./.venv/bin/python -m pytest weisile-link/tests/test_desktop_roster.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_pairing.py -v
 desktop/scripts/validate_desktop_assets.py
 ```

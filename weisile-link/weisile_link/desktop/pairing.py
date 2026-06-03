@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import json
 import platform
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
@@ -32,6 +32,9 @@ class DesktopReadyCheck:
     connected: bool
     sensor_updates_observed: int
     error: str = ""
+    expected_sensors: Dict[str, str] = field(default_factory=dict)
+    observed_sensors: Dict[str, str] = field(default_factory=dict)
+    missing_expected_sensors: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -140,13 +143,22 @@ class DesktopPairingService:
             manager=DegradationManager(),
         )
         observed = 0
+        observed_sensors: Dict[str, str] = {}
+        expected_sensors = dict(profile.expected_sensors)
+        missing_expected_sensors = dict(expected_sensors)
         received = asyncio.Event()
 
         async def on_sensor_data(payload: Dict[str, Any]) -> None:
-            nonlocal observed
+            nonlocal observed, observed_sensors, missing_expected_sensors
             if payload.get("type") == "sensor_update":
                 observed += 1
-                received.set()
+                observed_sensors.update(_observed_sensor_types(payload))
+                missing_expected_sensors = _missing_expected_sensors(
+                    expected_sensors,
+                    observed_sensors,
+                )
+                if not expected_sensors or not missing_expected_sensors:
+                    received.set()
 
         try:
             connected = await transport.connect(on_sensor_data)
@@ -156,6 +168,9 @@ class DesktopPairingService:
                     connected=False,
                     sensor_updates_observed=observed,
                     error="EV3 Bluetooth connection failed",
+                    expected_sensors=expected_sensors,
+                    observed_sensors=observed_sensors,
+                    missing_expected_sensors=missing_expected_sensors,
                 )
             try:
                 await asyncio.wait_for(received.wait(), timeout=timeout_s)
@@ -164,12 +179,21 @@ class DesktopPairingService:
                     ok=False,
                     connected=True,
                     sensor_updates_observed=observed,
-                    error="No sensor update received before timeout",
+                    error=_ready_timeout_error(
+                        expected_sensors,
+                        missing_expected_sensors,
+                    ),
+                    expected_sensors=expected_sensors,
+                    observed_sensors=observed_sensors,
+                    missing_expected_sensors=missing_expected_sensors,
                 )
             return DesktopReadyCheck(
                 ok=True,
                 connected=True,
                 sensor_updates_observed=observed,
+                expected_sensors=expected_sensors,
+                observed_sensors=observed_sensors,
+                missing_expected_sensors={},
             )
         except Exception as exc:
             return DesktopReadyCheck(
@@ -177,6 +201,9 @@ class DesktopPairingService:
                 connected=False,
                 sensor_updates_observed=observed,
                 error=str(exc) or type(exc).__name__,
+                expected_sensors=expected_sensors,
+                observed_sensors=observed_sensors,
+                missing_expected_sensors=missing_expected_sensors,
             )
         finally:
             disconnect = getattr(transport, "disconnect", None)
@@ -253,3 +280,64 @@ def _safe_result(result: DesktopPairingResult) -> Dict[str, Any]:
     if "pairing_token" in encoded or "weisile_pairing_token" in encoded:
         raise DesktopProfileError("Pairing output must not include raw tokens")
     return payload
+
+
+def _observed_sensor_types(payload: Dict[str, Any]) -> Dict[str, str]:
+    sensors = payload.get("sensors")
+    if not isinstance(sensors, dict):
+        return {}
+    observed: Dict[str, str] = {}
+    for raw_port, raw_value in sensors.items():
+        port = str(raw_port or "").upper()
+        if port not in {"S1", "S2", "S3", "S4"}:
+            continue
+        if isinstance(raw_value, dict):
+            sensor_type = _sensor_type_from_payload(raw_value)
+            if sensor_type:
+                observed[port] = sensor_type
+    return observed
+
+
+def _sensor_type_from_payload(payload: Dict[str, Any]) -> str:
+    explicit = str(payload.get("type") or "").strip().lower()
+    if explicit:
+        return explicit
+    keys = set(payload)
+    if keys & {"color", "reflected", "ambient", "rgb"}:
+        return "color"
+    if keys & {"distance_cm", "distance_inch", "distance"}:
+        return "ultrasonic"
+    if keys & {"angle", "rate"}:
+        return "gyro"
+    if "pressed" in keys:
+        return "touch"
+    if keys & {"proximity", "remote", "beacon"}:
+        return "infrared"
+    return ""
+
+
+def _missing_expected_sensors(
+    expected: Dict[str, str],
+    observed: Dict[str, str],
+) -> Dict[str, str]:
+    missing: Dict[str, str] = {}
+    for port, expected_type in expected.items():
+        observed_type = observed.get(port, "")
+        if observed_type != expected_type:
+            missing[port] = expected_type
+    return missing
+
+
+def _ready_timeout_error(
+    expected: Dict[str, str],
+    missing: Dict[str, str],
+) -> str:
+    if not expected:
+        return "No sensor update received before timeout"
+    if not missing:
+        return "No sensor update received before timeout"
+    summary = ", ".join(
+        "{} {}".format(port, sensor_type)
+        for port, sensor_type in sorted(missing.items())
+    )
+    return "Expected sensors not observed before timeout: {}".format(summary)

@@ -14,6 +14,8 @@ DEFAULT_SCRATCHAI_URL = "http://101.42.92.6:18612/"
 DEFAULT_SERVICE_PREFIX = "vsle"
 KEYCHAIN_SCHEME = "keychain"
 WINDOWS_CREDENTIAL_SCHEME = "wincred"
+SENSOR_PORTS = ("S1", "S2", "S3", "S4")
+SENSOR_TYPES = ("color", "ultrasonic", "gyro", "touch", "infrared")
 
 
 class DesktopProfileError(RuntimeError):
@@ -30,6 +32,7 @@ class DesktopProfile:
     last_seen_at: str
     server_version: str = ""
     capabilities: Dict[str, Any] = field(default_factory=dict)
+    expected_sensors: Dict[str, str] = field(default_factory=dict)
 
     def to_config(self) -> Dict[str, Any]:
         payload = asdict(self)
@@ -314,12 +317,14 @@ class DesktopProfileStore:
                 "default_brick_id": "",
                 "scratchai_url": self.scratchai_url,
                 "profiles": [],
+                "roster": {"classroom_id": "", "devices": []},
             }
         with self.path.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
         payload.setdefault("scratchai_url", self.scratchai_url)
         payload.setdefault("default_brick_id", "")
         payload.setdefault("profiles", [])
+        payload.setdefault("roster", {"classroom_id": "", "devices": []})
         _assert_config_has_no_raw_token(payload)
         return payload
 
@@ -334,12 +339,23 @@ class DesktopProfileStore:
 
     def upsert_profile(self, profile: DesktopProfile) -> Dict[str, Any]:
         payload = self.load()
+        roster_device = _find_roster_device(payload, profile.brick_id)
+        expected_sensors = (
+            profile.expected_sensors
+            or (roster_device or {}).get("expected_sensors", {})
+            or {}
+        )
+        profile_payload = profile.to_config()
+        if expected_sensors:
+            profile_payload["expected_sensors"] = dict(expected_sensors)
+        if roster_device and roster_device.get("label"):
+            profile_payload["name"] = str(roster_device["label"])
         profiles = [
             item
             for item in payload.get("profiles", [])
             if item.get("brick_id") != profile.brick_id
         ]
-        profiles.append(profile.to_config())
+        profiles.append(profile_payload)
         profiles.sort(key=lambda item: item.get("brick_id", ""))
         payload["profiles"] = profiles
         payload["default_brick_id"] = profile.brick_id
@@ -363,8 +379,73 @@ class DesktopProfileStore:
                     last_seen_at=item.get("last_seen_at", ""),
                     server_version=item.get("server_version", ""),
                     capabilities=item.get("capabilities", {}),
+                    expected_sensors=_expected_sensors_for_profile(
+                        payload,
+                        item,
+                    ),
                 )
         raise DesktopProfileError("Desktop profile not found")
+
+    def import_roster(self, roster_payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Import a non-secret classroom roster package."""
+        payload = self.load()
+        roster = _normalize_roster(roster_payload)
+        if roster.get("scratchai_url"):
+            payload["scratchai_url"] = roster["scratchai_url"]
+        payload["roster"] = {
+            "classroom_id": roster.get("classroom_id", ""),
+            "devices": roster["devices"],
+        }
+        profiles = [
+            _merge_profile_roster(payload, item) for item in payload["profiles"]
+        ]
+        profiles.sort(key=lambda item: item.get("brick_id", ""))
+        payload["profiles"] = profiles
+        self.save(payload)
+        return payload
+
+    def export_roster(self) -> Dict[str, Any]:
+        """Export a non-secret roster package from profiles and roster data."""
+        payload = self.load()
+        devices_by_id: Dict[str, Dict[str, Any]] = {}
+        for device in payload.get("roster", {}).get("devices", []):
+            normalized = _normalize_roster_device(device)
+            devices_by_id[normalized["brick_id"]] = normalized
+
+        for item in payload.get("profiles", []):
+            brick_id = str(item.get("brick_id") or "")
+            if not brick_id:
+                continue
+            device = devices_by_id.get(brick_id, {})
+            exported = {
+                "brick_id": brick_id,
+                "label": str(
+                    device.get("label") or item.get("name") or brick_id
+                ),
+                "ev3_bt": str(device.get("ev3_bt") or item.get("ev3_bt") or ""),
+            }
+            expected = (
+                device.get("expected_sensors")
+                or item.get("expected_sensors")
+                or {}
+            )
+            if expected:
+                exported["expected_sensors"] = _normalize_expected_sensors(
+                    expected
+                )
+            devices_by_id[brick_id] = _normalize_roster_device(exported)
+
+        return {
+            "classroom_id": str(
+                payload.get("roster", {}).get("classroom_id") or ""
+            ),
+            "scratchai_url": str(
+                payload.get("scratchai_url") or self.scratchai_url
+            ),
+            "devices": [
+                devices_by_id[brick_id] for brick_id in sorted(devices_by_id)
+            ],
+        }
 
 
 def save_claimed_profile(
@@ -388,9 +469,12 @@ def save_claimed_profile(
         last_seen_at=current_time.astimezone(timezone.utc).isoformat(),
         server_version=str(claim_result.get("server_version") or ""),
         capabilities=dict(claim_result.get("capabilities") or {}),
+        expected_sensors=_normalize_expected_sensors(
+            claim_result.get("expected_sensors") or {}
+        ),
     )
     profile_store.upsert_profile(profile)
-    return profile
+    return profile_store.get_profile(brick_id)
 
 
 def resolve_profile_environment(
@@ -476,3 +560,105 @@ def _assert_config_has_no_raw_token(payload: Dict[str, Any]) -> None:
     forbidden = ("pairing_token", "weisile_pairing_token")
     if any(key in encoded for key in forbidden):
         raise DesktopProfileError("Desktop config must not contain raw tokens")
+
+
+def _normalize_roster(roster_payload: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(roster_payload, dict):
+        raise DesktopProfileError("Roster package must be a JSON object")
+    _assert_config_has_no_raw_token(roster_payload)
+    devices = roster_payload.get("devices")
+    if not isinstance(devices, list):
+        raise DesktopProfileError("Roster package must include devices")
+    normalized = [_normalize_roster_device(device) for device in devices]
+    brick_ids = [device["brick_id"] for device in normalized]
+    if len(set(brick_ids)) != len(brick_ids):
+        raise DesktopProfileError("Roster package contains duplicate brick_id")
+    normalized.sort(key=lambda item: item["brick_id"])
+    return {
+        "classroom_id": str(roster_payload.get("classroom_id") or ""),
+        "scratchai_url": str(
+            roster_payload.get("scratchai_url") or DEFAULT_SCRATCHAI_URL
+        ),
+        "devices": normalized,
+    }
+
+
+def _normalize_roster_device(device: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(device, dict):
+        raise DesktopProfileError("Roster device must be a JSON object")
+    brick_id = _require_non_empty(device.get("brick_id"), "brick_id")
+    payload = {
+        "brick_id": brick_id,
+        "label": str(device.get("label") or device.get("name") or brick_id),
+        "ev3_bt": str(device.get("ev3_bt") or ""),
+        "expected_sensors": _normalize_expected_sensors(
+            device.get("expected_sensors") or {}
+        ),
+    }
+    return {
+        key: value for key, value in payload.items() if value not in ("", {})
+    }
+
+
+def _normalize_expected_sensors(raw: Any) -> Dict[str, str]:
+    if raw in (None, ""):
+        return {}
+    if not isinstance(raw, dict):
+        raise DesktopProfileError("expected_sensors must be an object")
+    expected: Dict[str, str] = {}
+    for raw_port, raw_type in raw.items():
+        port = str(raw_port or "").upper()
+        sensor_type = str(raw_type or "").strip().lower()
+        if port not in SENSOR_PORTS:
+            raise DesktopProfileError("expected_sensors uses unsupported port")
+        if sensor_type not in SENSOR_TYPES:
+            raise DesktopProfileError("expected_sensors uses unsupported type")
+        expected[port] = sensor_type
+    return {port: expected[port] for port in SENSOR_PORTS if port in expected}
+
+
+def _find_roster_device(
+    payload: Dict[str, Any],
+    brick_id: str,
+) -> Optional[Dict[str, Any]]:
+    for item in payload.get("roster", {}).get("devices", []):
+        if item.get("brick_id") == brick_id:
+            return item
+    return None
+
+
+def _expected_sensors_for_profile(
+    payload: Dict[str, Any],
+    profile_item: Dict[str, Any],
+) -> Dict[str, str]:
+    roster_device = _find_roster_device(
+        payload,
+        str(profile_item.get("brick_id") or ""),
+    )
+    raw = (
+        profile_item.get("expected_sensors")
+        or (roster_device or {}).get("expected_sensors")
+        or {}
+    )
+    return _normalize_expected_sensors(raw)
+
+
+def _merge_profile_roster(
+    payload: Dict[str, Any],
+    profile_item: Dict[str, Any],
+) -> Dict[str, Any]:
+    merged = dict(profile_item)
+    roster_device = _find_roster_device(
+        payload,
+        str(profile_item.get("brick_id") or ""),
+    )
+    if not roster_device:
+        return merged
+    if roster_device.get("label"):
+        merged["name"] = roster_device["label"]
+    expected = roster_device.get("expected_sensors") or {}
+    if expected:
+        merged["expected_sensors"] = dict(expected)
+    if roster_device.get("ev3_bt") and not merged.get("ev3_bt"):
+        merged["ev3_bt"] = roster_device["ev3_bt"]
+    return merged

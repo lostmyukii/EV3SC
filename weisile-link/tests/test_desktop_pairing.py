@@ -44,12 +44,15 @@ class FakePairingTransport:
             return False
         if self.state.get("emit_sensor", True):
             await on_sensor_data(
-                {
-                    "type": "sensor_update",
-                    "sensors": {"S4": {"pressed": 1}},
-                    "motors": {},
-                    "system": {},
-                }
+                self.state.get(
+                    "sensor_payload",
+                    {
+                        "type": "sensor_update",
+                        "sensors": {"S4": {"pressed": 1}},
+                        "motors": {},
+                        "system": {},
+                    },
+                )
             )
         return True
 
@@ -135,6 +138,52 @@ def test_pairing_service_keeps_profile_when_ready_check_times_out(tmp_path):
     assert result.ready_check["sensor_updates_observed"] == 0
     assert "timeout" in result.ready_check["error"].lower()
     assert (tmp_path / "config.json").exists()
+
+
+def test_pairing_service_uses_imported_roster_ready_layout(tmp_path):
+    state = {
+        "sensor_payload": {
+            "type": "sensor_update",
+            "sensors": {"S1": {"reflected": 22}, "S4": {"pressed": 1}},
+            "motors": {},
+            "system": {},
+        }
+    }
+    credentials = MemoryCredentialBackend()
+    store = DesktopProfileStore(tmp_path / "config.json")
+    store.import_roster(
+        {
+            "devices": [
+                {
+                    "brick_id": "VSLE-EV3-583C",
+                    "label": "EV3-01",
+                    "expected_sensors": {"S1": "color", "S4": "touch"},
+                }
+            ]
+        }
+    )
+    service = DesktopPairingService(
+        credential_backend=credentials,
+        profile_store=store,
+        transport_factory=fake_transport_factory(state),
+    )
+
+    result = asyncio.run(
+        service.pair_ev3(
+            ev3_bt="A0:E6:F8:19:58:3C",
+            claim_code="12345678",
+            host_id="teacher-macbook-01",
+            ready_timeout_s=0.1,
+        )
+    )
+
+    assert result.ready is True
+    assert result.profile["name"] == "EV3-01"
+    assert result.profile["expected_sensors"] == {"S1": "color", "S4": "touch"}
+    assert result.ready_check["observed_sensors"] == {
+        "S1": "color",
+        "S4": "touch",
+    }
 
 
 def test_run_pairing_command_prints_safe_json_without_token(tmp_path, capsys):

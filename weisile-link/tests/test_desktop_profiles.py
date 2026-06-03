@@ -104,6 +104,115 @@ def test_profile_store_upserts_profiles_and_keeps_default(tmp_path):
     assert "second-secret-token-456" not in json.dumps(payload)
 
 
+def test_import_roster_stores_expected_sensors_without_tokens(tmp_path):
+    store = DesktopProfileStore(tmp_path / "config.json")
+    payload = store.import_roster(
+        {
+            "classroom_id": "school-a-room-302",
+            "scratchai_url": "http://101.42.92.6:18612/",
+            "devices": [
+                {
+                    "brick_id": "VSLE-EV3-583C",
+                    "label": "EV3-01",
+                    "ev3_bt": "A0:E6:F8:19:58:3C",
+                    "expected_sensors": {
+                        "S1": "color",
+                        "S2": "ultrasonic",
+                        "S3": "gyro",
+                        "S4": "touch",
+                    },
+                }
+            ],
+        }
+    )
+
+    encoded = json.dumps(payload)
+    assert payload["roster"]["classroom_id"] == "school-a-room-302"
+    assert payload["roster"]["devices"][0]["expected_sensors"]["S2"] == (
+        "ultrasonic"
+    )
+    assert "pairing_token" not in encoded.lower()
+
+
+def test_roster_expected_sensors_merge_into_claimed_profile(tmp_path):
+    store = DesktopProfileStore(tmp_path / "config.json")
+    credentials = MemoryCredentialBackend()
+    store.import_roster(
+        {
+            "classroom_id": "school-a-room-302",
+            "devices": [
+                {
+                    "brick_id": "VSLE-EV3-583C",
+                    "label": "EV3-01",
+                    "ev3_bt": "A0:E6:F8:19:58:3C",
+                    "expected_sensors": {"S1": "color", "S4": "touch"},
+                }
+            ],
+        }
+    )
+
+    profile = save_claimed_profile(
+        claim_result(),
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    stored = store.get_profile("VSLE-EV3-583C")
+
+    assert profile.brick_id == "VSLE-EV3-583C"
+    assert stored.name == "EV3-01"
+    assert stored.expected_sensors == {"S1": "color", "S4": "touch"}
+
+
+def test_export_roster_omits_token_refs_and_raw_tokens(tmp_path):
+    store = DesktopProfileStore(tmp_path / "config.json")
+    credentials = MemoryCredentialBackend()
+    profile = save_claimed_profile(
+        claim_result(),
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    payload = store.load()
+    payload["profiles"][0]["expected_sensors"] = {"S4": "touch"}
+    store.save(payload)
+
+    roster = store.export_roster()
+    encoded = json.dumps(roster).lower()
+
+    assert roster["devices"][0]["brick_id"] == profile.brick_id
+    assert roster["devices"][0]["expected_sensors"] == {"S4": "touch"}
+    assert "token_ref" not in encoded
+    assert "pairing_token" not in encoded
+    assert "secret-token-1234567890" not in encoded
+
+
+def test_import_roster_rejects_invalid_sensor_layout(tmp_path):
+    store = DesktopProfileStore(tmp_path / "config.json")
+
+    with pytest.raises(DesktopProfileError):
+        store.import_roster(
+            {
+                "devices": [
+                    {
+                        "brick_id": "VSLE-EV3-583C",
+                        "expected_sensors": {"S9": "touch"},
+                    }
+                ]
+            }
+        )
+
+
+def test_import_roster_rejects_raw_token_payload(tmp_path):
+    store = DesktopProfileStore(tmp_path / "config.json")
+
+    with pytest.raises(DesktopProfileError):
+        store.import_roster(
+            {
+                "devices": [{"brick_id": "VSLE-EV3-583C"}],
+                "pairing_token": "secret-token-1234567890",
+            }
+        )
+
+
 def test_profile_store_rejects_config_with_raw_token(tmp_path):
     config = tmp_path / "config.json"
     config.write_text(

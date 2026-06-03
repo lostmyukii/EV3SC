@@ -323,6 +323,7 @@ def _profile_from_plan(plan: DesktopStartupPlan) -> DesktopProfile:
         last_seen_at=str(profile.get("last_seen_at") or ""),
         server_version=str(profile.get("server_version") or ""),
         capabilities=dict(profile.get("capabilities") or {}),
+        expected_sensors=dict(profile.get("expected_sensors") or {}),
     )
 
 
@@ -334,6 +335,9 @@ def _plan_with_ready_check(
     checks["ev3_authenticated"] = check.connected
     checks["sensor_updates_observed"] = check.sensor_updates_observed
     checks["sensor_stream"] = "fresh" if check.ok else "failed"
+    checks["expected_sensors"] = dict(check.expected_sensors)
+    checks["observed_sensors"] = dict(check.observed_sensors)
+    checks["missing_expected_sensors"] = dict(check.missing_expected_sensors)
     if check.ok:
         return DesktopStartupPlan(
             **{

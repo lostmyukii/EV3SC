@@ -22,6 +22,7 @@ from weisile_link.desktop.runtime import (
     DesktopStartupPlan,
     run_desktop_start_command,
 )
+from weisile_link.desktop.roster import run_roster_command
 from weisile_link.desktop.supervisor import run_supervisor_command
 from weisile_link.json_rpc_server import (
     DEFAULT_ALLOWED_ORIGINS,
@@ -216,6 +217,8 @@ def main(argv: Optional[List[str]] = None) -> None:
                 )
             )
         )
+    if args[:1] == ["desktop-roster"]:
+        raise SystemExit(run_roster_command(args[1:]))
     if args[:1] == ["desktop-supervise"]:
         raise SystemExit(asyncio.run(run_supervisor_command(args[1:])))
 

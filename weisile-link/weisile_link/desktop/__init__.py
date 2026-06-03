@@ -38,6 +38,10 @@ from weisile_link.desktop.runtime import (
     classroom_allowed_origins,
     run_desktop_start_command,
 )
+from weisile_link.desktop.roster import (
+    build_roster_parser,
+    run_roster_command,
+)
 from weisile_link.desktop.supervisor import (
     DesktopSupervisionResult,
     DesktopSupervisorService,
@@ -71,6 +75,7 @@ __all__ = [
     "build_desktop_start_parser",
     "build_desktop_start_command",
     "build_pairing_parser",
+    "build_roster_parser",
     "build_supervisor_parser",
     "classroom_allowed_origins",
     "credential_backend_for_platform",
@@ -81,6 +86,7 @@ __all__ = [
     "run_desktop_start_command",
     "resolve_profile_environment",
     "run_pairing_command",
+    "run_roster_command",
     "run_supervisor_command",
     "sanitize_diagnostics_value",
     "save_claimed_profile",

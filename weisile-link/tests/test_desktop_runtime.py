@@ -49,12 +49,15 @@ class FakeRuntimeTransport:
             return False
         if self.state.get("emit_sensor", True):
             await on_sensor_data(
-                {
-                    "type": "sensor_update",
-                    "sensors": {"S4": {"pressed": 1}},
-                    "motors": {},
-                    "system": {"battery_v": 7.5},
-                }
+                self.state.get(
+                    "sensor_payload",
+                    {
+                        "type": "sensor_update",
+                        "sensors": {"S4": {"pressed": 1}},
+                        "motors": {},
+                        "system": {"battery_v": 7.5},
+                    },
+                )
             )
         return True
 
@@ -84,6 +87,36 @@ def runtime_service(tmp_path, *, state=None):
         state = {}
     credentials = MemoryCredentialBackend()
     store = DesktopProfileStore(tmp_path / "config.json")
+    save_claimed_profile(
+        dict(CLAIM_RESULT),
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    return DesktopRuntimeService(
+        credential_backend=credentials,
+        profile_store=store,
+        transport_factory=fake_transport_factory(state),
+    )
+
+
+def runtime_service_with_roster(tmp_path, *, state=None, expected_sensors=None):
+    if state is None:
+        state = {}
+    credentials = MemoryCredentialBackend()
+    store = DesktopProfileStore(tmp_path / "config.json")
+    store.import_roster(
+        {
+            "classroom_id": "school-a-room-302",
+            "devices": [
+                {
+                    "brick_id": "VSLE-EV3-583C",
+                    "label": "EV3-01",
+                    "ev3_bt": "A0:E6:F8:19:58:3C",
+                    "expected_sensors": expected_sensors or {"S4": "touch"},
+                }
+            ],
+        }
+    )
     save_claimed_profile(
         dict(CLAIM_RESULT),
         credential_backend=credentials,
@@ -135,6 +168,59 @@ def test_ready_status_reports_ready_after_sensor_frame(tmp_path):
     assert plan.state == DesktopHealthState.READY
     assert plan.safe_payload()["checks"]["sensor_updates_observed"] == 1
     assert state["connect_token"] == "secret-token-1234567890"
+
+
+def test_ready_status_uses_roster_expected_sensors(tmp_path):
+    state = {
+        "sensor_payload": {
+            "type": "sensor_update",
+            "sensors": {"S1": {"type": "color"}, "S4": {"pressed": 1}},
+            "motors": {},
+            "system": {"battery_v": 7.5},
+        }
+    }
+    service = runtime_service_with_roster(
+        tmp_path,
+        state=state,
+        expected_sensors={"S1": "color", "S4": "touch"},
+    )
+
+    plan = asyncio.run(service.ready_status(timeout_s=0.1))
+
+    assert plan.state == DesktopHealthState.READY
+    assert plan.safe_payload()["checks"]["expected_sensors"] == {
+        "S1": "color",
+        "S4": "touch",
+    }
+    assert plan.safe_payload()["checks"]["observed_sensors"] == {
+        "S1": "color",
+        "S4": "touch",
+    }
+    assert plan.safe_payload()["checks"]["missing_expected_sensors"] == {}
+
+
+def test_ready_status_reports_missing_roster_sensor(tmp_path):
+    state = {
+        "sensor_payload": {
+            "type": "sensor_update",
+            "sensors": {"S4": {"pressed": 1}},
+            "motors": {},
+            "system": {"battery_v": 7.5},
+        }
+    }
+    service = runtime_service_with_roster(
+        tmp_path,
+        state=state,
+        expected_sensors={"S1": "color", "S4": "touch"},
+    )
+
+    plan = asyncio.run(service.ready_status(timeout_s=0.01))
+
+    assert plan.state == DesktopHealthState.NEEDS_ATTENTION
+    assert "expected sensors not observed" in plan.message.lower()
+    assert plan.safe_payload()["checks"]["missing_expected_sensors"] == {
+        "S1": "color"
+    }
 
 
 def test_ready_status_reports_needs_attention_without_sensor_frame(tmp_path):

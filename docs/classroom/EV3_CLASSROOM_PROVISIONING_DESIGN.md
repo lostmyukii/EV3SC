@@ -417,6 +417,19 @@ The roster must not contain raw runtime tokens by default. If a school wants
 zero-entry pairing, issue an encrypted roster sealed to a teacher/admin
 passphrase or school public key.
 
+The first supported Desktop roster entry point is:
+
+```bash
+python -m weisile_link desktop-roster --config path/to/config.json import \
+  --input classroom-roster.json
+python -m weisile_link desktop-roster --config path/to/config.json export \
+  --output classroom-roster.json
+```
+
+Imported roster data is stored as non-secret config. When a roster device
+matches a paired profile, Desktop ready checks use `expected_sensors` to
+require the expected S1-S4 sensor ports before reporting `Ready`.
+
 ## Migration Workflow For Many EV3 Bricks
 
 ### Lab Prep
