@@ -3752,6 +3752,13 @@ material into:
 - **Files created/modified**: `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.json`, `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Stop any older local WeisileLink process, restart it from the updated checkout with the saved pairing token, hard-refresh `http://101.42.92.6:18612/`, re-add the EV3 extension, and rerun the real S1-S4 sensor checks without USB.
 
+### [2026-06-03] EV3 classroom provisioning design
+- **Status**: ✅ Completed
+- **Commit**: `3d7aa62`
+- **What was done**: Added a classroom provisioning design for scaling EV3SC beyond the current developer USB/token workflow. The design defines an unprovisioned EV3 golden SD image, first-boot identity and claim-code generation, Desktop pairing wizard, secure token storage, macOS package requirements, Windows MSI/native Bluetooth adapter requirements, classroom roster support, and clean-machine acceptance gates.
+- **Files created/modified**: `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/classroom/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement the first vertical slice: EV3 first-boot claim-code provisioning, `auth.claim`, Desktop profile/token storage, and a minimal pairing wizard that pairs one fresh EV3 without USB.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
