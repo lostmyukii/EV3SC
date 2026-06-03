@@ -38,6 +38,20 @@ the platform credential backend, and upserts the non-secret profile. At startup,
 `resolve_profile_environment()` reads the token from the credential backend and
 builds the runtime environment for `vsle-bluetooth`.
 
+The minimal first-run pairing command is:
+
+```bash
+python -m weisile_link desktop-pair \
+  --ev3-bt A0:E6:F8:19:58:3C \
+  --claim-code 12345678 \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter
+```
+
+It calls EV3 `auth.claim`, saves the secure profile, reconnects from the saved
+credential, and returns redacted JSON with `paired`, `ready`, and
+`ready_check` fields. A ready-check failure exits non-zero so the future UI can
+open guided diagnostics.
+
 ## Validation
 
 Run:
@@ -45,6 +59,7 @@ Run:
 ```bash
 ./.venv/bin/python -m pytest tests/test_desktop_packaging.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_profiles.py -v
+./.venv/bin/python -m pytest weisile-link/tests/test_desktop_pairing.py -v
 desktop/scripts/validate_desktop_assets.py
 ```
 

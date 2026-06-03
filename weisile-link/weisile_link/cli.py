@@ -12,9 +12,11 @@ Sources:
 import asyncio
 import logging
 import os
+import sys
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
+from weisile_link.desktop.pairing import run_pairing_command
 from weisile_link.json_rpc_server import (
     DEFAULT_ALLOWED_ORIGINS,
     ScratchJsonRpcServer,
@@ -166,8 +168,12 @@ async def run_runtime(config: WeisileLinkRuntimeConfig) -> None:
     await asyncio.gather(server.run(), server.run_trainer())
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     """Run the packaged WeisileLink service."""
+    args = list(sys.argv[1:] if argv is None else argv)
+    if args[:1] == ["desktop-pair"]:
+        raise SystemExit(asyncio.run(run_pairing_command(args[1:])))
+
     config = WeisileLinkRuntimeConfig.from_env()
     try:
         asyncio.run(run_runtime(config))
