@@ -2,6 +2,18 @@
 
 Use this folder on a Windows teacher computer or Windows build host.
 
+## Development Design
+
+The proposed Windows graphical setup wizard design is documented in:
+
+```text
+WINDOWS_SETUP_WIZARD_DEVELOPMENT.md
+```
+
+It defines the feasibility boundaries, iOS/Apple-inspired wizard UX, page flow,
+automation modules, manual confirmation steps, security rules, and staged
+implementation plan.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:
