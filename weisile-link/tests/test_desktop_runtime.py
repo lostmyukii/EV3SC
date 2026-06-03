@@ -129,6 +129,37 @@ def runtime_service_with_roster(tmp_path, *, state=None, expected_sensors=None):
     )
 
 
+def runtime_service_with_two_profiles(tmp_path, *, state=None):
+    if state is None:
+        state = {}
+    credentials = MemoryCredentialBackend()
+    store = DesktopProfileStore(tmp_path / "config.json")
+    save_claimed_profile(
+        dict(CLAIM_RESULT),
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    second_claim = dict(CLAIM_RESULT)
+    second_claim.update(
+        {
+            "brick_id": "VSLE-EV3-9999",
+            "brick_name": "Table 9 EV3",
+            "ev3_bt": "A0:E6:F8:19:59:99",
+            "pairing_token": "second-secret-token-1234567890",
+        }
+    )
+    save_claimed_profile(
+        second_claim,
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    return DesktopRuntimeService(
+        credential_backend=credentials,
+        profile_store=store,
+        transport_factory=fake_transport_factory(state),
+    )
+
+
 def test_prepare_startup_uses_saved_profile_without_safe_token_output(tmp_path):
     service = runtime_service(tmp_path)
 
@@ -145,6 +176,20 @@ def test_prepare_startup_uses_saved_profile_without_safe_token_output(tmp_path):
     assert "secret-token-1234567890" not in safe
     assert "pairing_token" not in safe.lower()
     assert plan.safe_payload()["state"] == "starting"
+
+
+def test_prepare_startup_can_select_non_default_profile_by_brick_id(tmp_path):
+    service = runtime_service_with_two_profiles(tmp_path)
+
+    plan = service.prepare_startup(brick_id="VSLE-EV3-583C")
+    default_plan = service.prepare_startup()
+
+    assert plan.profile["brick_id"] == "VSLE-EV3-583C"
+    assert plan.ev3_bt == "A0:E6:F8:19:58:3C"
+    assert plan.pairing_token == "secret-token-1234567890"
+    assert default_plan.profile["brick_id"] == "VSLE-EV3-9999"
+    assert default_plan.pairing_token == "second-secret-token-1234567890"
+    assert "secret-token" not in json.dumps(plan.safe_payload()).lower()
 
 
 def test_prepare_startup_without_profile_reports_needs_pairing(tmp_path):

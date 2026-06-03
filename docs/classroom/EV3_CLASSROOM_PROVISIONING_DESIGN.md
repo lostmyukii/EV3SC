@@ -433,6 +433,9 @@ require the expected S1-S4 sensor ports before reporting `Ready`.
 The first maintenance entry points are:
 
 ```bash
+python -m weisile_link desktop-device --config path/to/config.json list
+python -m weisile_link desktop-device --config path/to/config.json select \
+  --brick-id VSLE-EV3-4655
 python -m weisile_link desktop-device --config path/to/config.json rename \
   --brick-id VSLE-EV3-4655 --name "Table 1 EV3"
 python -m weisile_link desktop-token --config path/to/config.json rotate \
@@ -440,6 +443,12 @@ python -m weisile_link desktop-token --config path/to/config.json rotate \
 python -m weisile_link desktop-token --config path/to/config.json recover \
   --brick-id VSLE-EV3-4655 --confirm-delete-profile
 ```
+
+`desktop-device list` returns token-free paired profile summaries and marks the
+current default EV3. `desktop-device select` updates `default_brick_id`, so
+`desktop-start` and `desktop-supervise` launch the selected classroom brick
+without manual JSON editing. Both startup commands may also accept `--brick-id`
+for a one-time launch override.
 
 Lost-token recovery is intentionally guarded: Desktop cannot recover a raw
 token from config, so it preserves roster data, removes only the stale local

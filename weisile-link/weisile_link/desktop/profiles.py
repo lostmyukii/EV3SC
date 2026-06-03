@@ -36,7 +36,11 @@ class DesktopProfile:
 
     def to_config(self) -> Dict[str, Any]:
         payload = asdict(self)
-        return {key: value for key, value in payload.items() if value not in ("", {})}
+        return {
+            key: value
+            for key, value in payload.items()
+            if value not in ("", {})
+        }
 
 
 class CredentialBackend:
@@ -87,7 +91,9 @@ class MacOSKeychainBackend(CredentialBackend):
     def __init__(
         self,
         *,
-        runner: Optional[Callable[..., subprocess.CompletedProcess[str]]] = None,
+        runner: Optional[
+            Callable[..., subprocess.CompletedProcess[str]]
+        ] = None,
     ) -> None:
         self._runner = runner or subprocess.run
 
@@ -151,7 +157,9 @@ class MacOSKeychainBackend(CredentialBackend):
         )
         if result.returncode == 0 or allow_missing:
             return result
-        raise DesktopProfileError(result.stderr.strip() or "Keychain command failed")
+        raise DesktopProfileError(
+            result.stderr.strip() or "Keychain command failed"
+        )
 
 
 class WindowsCredentialManagerBackend(CredentialBackend):
@@ -192,7 +200,9 @@ class _WindowsCredentialAPI:
         from ctypes import wintypes
 
         if platform.system() != "Windows":
-            raise DesktopProfileError("Windows Credential Manager is unavailable")
+            raise DesktopProfileError(
+                "Windows Credential Manager is unavailable"
+            )
 
         class FILETIME(ctypes.Structure):
             _fields_ = [
@@ -349,7 +359,9 @@ class DesktopProfileStore:
         profiles.sort(key=lambda item: item.get("brick_id", ""))
         payload["profiles"] = profiles
         payload["default_brick_id"] = profile.brick_id
-        payload["scratchai_url"] = payload.get("scratchai_url") or self.scratchai_url
+        payload["scratchai_url"] = (
+            payload.get("scratchai_url") or self.scratchai_url
+        )
         self.save(payload)
         return payload
 
@@ -407,20 +419,32 @@ class DesktopProfileStore:
             device = devices_by_id.get(brick_id, {})
             exported = {
                 "brick_id": brick_id,
-                "label": str(device.get("label") or item.get("name") or brick_id),
+                "label": str(
+                    device.get("label") or item.get("name") or brick_id
+                ),
                 "ev3_bt": str(device.get("ev3_bt") or item.get("ev3_bt") or ""),
             }
             expected = (
-                device.get("expected_sensors") or item.get("expected_sensors") or {}
+                device.get("expected_sensors")
+                or item.get("expected_sensors")
+                or {}
             )
             if expected:
-                exported["expected_sensors"] = _normalize_expected_sensors(expected)
+                exported["expected_sensors"] = _normalize_expected_sensors(
+                    expected
+                )
             devices_by_id[brick_id] = _normalize_roster_device(exported)
 
         return {
-            "classroom_id": str(payload.get("roster", {}).get("classroom_id") or ""),
-            "scratchai_url": str(payload.get("scratchai_url") or self.scratchai_url),
-            "devices": [devices_by_id[brick_id] for brick_id in sorted(devices_by_id)],
+            "classroom_id": str(
+                payload.get("roster", {}).get("classroom_id") or ""
+            ),
+            "scratchai_url": str(
+                payload.get("scratchai_url") or self.scratchai_url
+            ),
+            "devices": [
+                devices_by_id[brick_id] for brick_id in sorted(devices_by_id)
+            ],
         }
 
     def rename_device(self, brick_id: str, name: str) -> Dict[str, Any]:
@@ -442,6 +466,58 @@ class DesktopProfileStore:
         self.save(payload)
         return payload
 
+    def list_devices(self) -> List[Dict[str, Any]]:
+        """Return token-free paired profile and roster device summaries."""
+        payload = self.load()
+        default_brick_id = str(payload.get("default_brick_id") or "")
+        devices_by_id: Dict[str, Dict[str, Any]] = {}
+
+        for item in payload.get("roster", {}).get("devices", []):
+            brick_id = str(item.get("brick_id") or "")
+            if not brick_id:
+                continue
+            summary = {
+                "brick_id": brick_id,
+                "name": str(item.get("label") or brick_id),
+                "paired": False,
+                "default": False,
+            }
+            if item.get("expected_sensors"):
+                summary["expected_sensors"] = dict(item["expected_sensors"])
+            devices_by_id[brick_id] = summary
+
+        for item in payload.get("profiles", []):
+            brick_id = str(item.get("brick_id") or "")
+            if not brick_id:
+                continue
+            summary = dict(devices_by_id.get(brick_id, {}))
+            summary.update(
+                {
+                    "brick_id": brick_id,
+                    "name": str(
+                        summary.get("name") or item.get("name") or brick_id
+                    ),
+                    "transport": str(item.get("transport") or "vsle-bluetooth"),
+                    "paired": True,
+                    "default": brick_id == default_brick_id,
+                }
+            )
+            expected = _expected_sensors_for_profile(payload, item)
+            if expected:
+                summary["expected_sensors"] = expected
+            devices_by_id[brick_id] = summary
+
+        return [devices_by_id[brick_id] for brick_id in sorted(devices_by_id)]
+
+    def set_default_profile(self, brick_id: str) -> DesktopProfile:
+        """Select a paired profile as the next Desktop startup target."""
+        target = _require_non_empty(brick_id, "brick_id")
+        profile = self.get_profile(target)
+        payload = self.load()
+        payload["default_brick_id"] = profile.brick_id
+        self.save(payload)
+        return self.get_profile(profile.brick_id)
+
     def remove_profile(self, brick_id: str) -> DesktopProfile:
         """Remove a paired profile while preserving non-secret roster data."""
         payload = self.load()
@@ -457,7 +533,9 @@ class DesktopProfileStore:
             raise DesktopProfileError("Desktop profile not found")
         payload["profiles"] = profiles
         if payload.get("default_brick_id") == target:
-            payload["default_brick_id"] = profiles[0]["brick_id"] if profiles else ""
+            payload["default_brick_id"] = (
+                profiles[0]["brick_id"] if profiles else ""
+            )
         self.save(payload)
         return DesktopProfile(
             brick_id=removed["brick_id"],
@@ -552,7 +630,9 @@ def credential_backend_for_platform(
         return MacOSKeychainBackend()
     if system == "Windows":
         return WindowsCredentialManagerBackend()
-    raise DesktopProfileError("Unsupported credential platform: {}".format(system))
+    raise DesktopProfileError(
+        "Unsupported credential platform: {}".format(system)
+    )
 
 
 def default_config_path(system_name: Optional[str] = None) -> Path:
@@ -581,7 +661,9 @@ def _credential_target(brick_id: str) -> str:
 def _target_from_ref(token_ref: str, scheme: str) -> str:
     prefix = "{}:".format(scheme)
     if not token_ref.startswith(prefix):
-        raise DesktopProfileError("Token ref does not use {} scheme".format(scheme))
+        raise DesktopProfileError(
+            "Token ref does not use {} scheme".format(scheme)
+        )
     target = token_ref[len(prefix) :]
     if not target.startswith("{}/".format(DEFAULT_SERVICE_PREFIX)):
         raise DesktopProfileError("Token ref target is outside VSLE namespace")
@@ -644,7 +726,9 @@ def _normalize_roster_device(device: Dict[str, Any]) -> Dict[str, Any]:
             device.get("expected_sensors") or {}
         ),
     }
-    return {key: value for key, value in payload.items() if value not in ("", {})}
+    return {
+        key: value for key, value in payload.items() if value not in ("", {})
+    }
 
 
 def _normalize_expected_sensors(raw: Any) -> Dict[str, str]:

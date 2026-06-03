@@ -92,6 +92,37 @@ def runtime_service(tmp_path, *, state=None, with_profile=True):
     )
 
 
+def runtime_service_with_two_profiles(tmp_path, *, state=None):
+    if state is None:
+        state = {}
+    credentials = MemoryCredentialBackend()
+    store = DesktopProfileStore(tmp_path / "config.json")
+    save_claimed_profile(
+        dict(CLAIM_RESULT),
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    second_claim = dict(CLAIM_RESULT)
+    second_claim.update(
+        {
+            "brick_id": "VSLE-EV3-9999",
+            "brick_name": "Table 9 EV3",
+            "ev3_bt": "A0:E6:F8:19:59:99",
+            "pairing_token": "second-secret-token-1234567890",
+        }
+    )
+    save_claimed_profile(
+        second_claim,
+        credential_backend=credentials,
+        profile_store=store,
+    )
+    return DesktopRuntimeService(
+        credential_backend=credentials,
+        profile_store=store,
+        transport_factory=fake_transport_factory(state),
+    )
+
+
 def test_supervisor_without_profile_routes_to_pairing_and_does_not_start(
     tmp_path,
 ):
@@ -144,6 +175,35 @@ def test_supervisor_starts_bridge_and_opens_scratchai_when_ready(tmp_path):
     assert "secret-token-1234567890" not in command_text
     assert "pairing_token" not in json.dumps(payload).lower()
     assert payload["ports"] == {"20111": True, "8766": True}
+
+
+def test_supervisor_starts_selected_profile_by_brick_id(tmp_path):
+    state = {}
+    launched = []
+    service = DesktopSupervisorService(
+        runtime_service=runtime_service_with_two_profiles(
+            tmp_path, state=state
+        ),
+        process_launcher=lambda command: launched.append(tuple(command)),
+        port_checker=lambda host, port: True,
+        python_executable="/bin/weisilelink",
+    )
+
+    result = asyncio.run(
+        service.start(
+            brick_id="VSLE-EV3-583C",
+            port_timeout_s=0.01,
+            port_interval_s=0.01,
+        )
+    )
+
+    command = list(launched[0])
+    assert result.state == DesktopHealthState.READY
+    assert result.startup["profile"]["brick_id"] == "VSLE-EV3-583C"
+    assert state["connect_token"] == "secret-token-1234567890"
+    assert "--brick-id" in command
+    assert command[command.index("--brick-id") + 1] == "VSLE-EV3-583C"
+    assert "secret-token" not in json.dumps(result.safe_payload()).lower()
 
 
 def test_supervisor_ready_check_failure_routes_to_attention(tmp_path):

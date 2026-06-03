@@ -96,6 +96,25 @@ Fleet maintenance commands keep the same safe-output rule:
 ```bash
 python -m weisile_link desktop-device \
   --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  list
+```
+
+```bash
+python -m weisile_link desktop-device \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  select \
+  --brick-id VSLE-EV3-583C
+```
+
+`desktop-device list` prints token-free paired device summaries, including
+which EV3 is the current default. `desktop-device select` changes
+`default_brick_id` so the next `desktop-start` or `desktop-supervise` launch
+uses that classroom EV3 without editing `config.json`. App shells can also pass
+`--brick-id` to `desktop-start` or `desktop-supervise` for a one-time selection.
+
+```bash
+python -m weisile_link desktop-device \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
   rename \
   --brick-id VSLE-EV3-583C \
   --name "Table 1 EV3"

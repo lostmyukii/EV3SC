@@ -53,7 +53,9 @@ class FakeRotateTransport:
 
 
 def fake_transport_factory(state):
-    def build(ev3_bt, *, pairing_token="", native_adapter_path="", manager=None):
+    def build(
+        ev3_bt, *, pairing_token="", native_adapter_path="", manager=None
+    ):
         state["native_adapter_path"] = native_adapter_path
         return FakeRotateTransport(state, ev3_bt, pairing_token)
 
@@ -102,6 +104,64 @@ def test_rename_device_updates_profile_and_roster(tmp_path):
     assert result.profile["name"] == "Table 1 EV3"
     assert payload["profiles"][0]["name"] == "Table 1 EV3"
     assert payload["roster"]["devices"][0]["label"] == "Table 1 EV3"
+
+
+def test_select_device_updates_default_profile_for_next_startup(tmp_path):
+    service, store, credentials, _state = maintenance_service(tmp_path)
+    second_claim = dict(CLAIM_RESULT)
+    second_claim.update(
+        {
+            "brick_id": "VSLE-EV3-9999",
+            "brick_name": "Table 9 EV3",
+            "ev3_bt": "A0:E6:F8:19:59:99",
+            "pairing_token": "second-secret-token-1234567890",
+        }
+    )
+    save_claimed_profile(
+        second_claim,
+        credential_backend=credentials,
+        profile_store=store,
+    )
+
+    result = service.select_device(brick_id="VSLE-EV3-583C")
+
+    payload = store.load()
+    assert result.ok is True
+    assert result.mutated is True
+    assert result.profile["brick_id"] == "VSLE-EV3-583C"
+    assert payload["default_brick_id"] == "VSLE-EV3-583C"
+    assert "second-secret-token-1234567890" not in json.dumps(result.profile)
+
+
+def test_list_devices_reports_default_and_omits_token_refs(tmp_path):
+    service, store, credentials, _state = maintenance_service(tmp_path)
+    second_claim = dict(CLAIM_RESULT)
+    second_claim.update(
+        {
+            "brick_id": "VSLE-EV3-9999",
+            "brick_name": "Table 9 EV3",
+            "ev3_bt": "A0:E6:F8:19:59:99",
+            "pairing_token": "second-secret-token-1234567890",
+        }
+    )
+    save_claimed_profile(
+        second_claim,
+        credential_backend=credentials,
+        profile_store=store,
+    )
+
+    result = service.list_devices()
+    encoded = json.dumps(result.devices).lower()
+
+    assert result.ok is True
+    assert [device["brick_id"] for device in result.devices] == [
+        "VSLE-EV3-583C",
+        "VSLE-EV3-9999",
+    ]
+    assert result.devices[1]["default"] is True
+    assert all("token_ref" not in device for device in result.devices)
+    assert "secret-token" not in encoded
+    assert "pairing_token" not in encoded
 
 
 def test_rotate_token_stores_new_token_without_safe_output_leak(tmp_path):
@@ -182,6 +242,31 @@ def test_device_and_token_commands_print_safe_json(tmp_path, capsys):
     assert json.loads(recover_output)["recovery_required"] is True
     assert "old-secret-token-1234567890" not in recover_output
     assert "pairing_token" not in recover_output.lower()
+
+
+def test_device_list_and_select_commands_print_safe_json(tmp_path, capsys):
+    service, _store, _credentials, _state = maintenance_service(tmp_path)
+
+    exit_code = run_device_command(
+        ["list"],
+        service_factory=lambda _args: service,
+    )
+    list_output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert json.loads(list_output)["devices"][0]["brick_id"] == "VSLE-EV3-583C"
+    assert "token_ref" not in list_output
+
+    exit_code = run_device_command(
+        ["select", "--brick-id", "VSLE-EV3-583C"],
+        service_factory=lambda _args: service,
+    )
+    select_output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert json.loads(select_output)["profile"]["brick_id"] == "VSLE-EV3-583C"
+    assert "old-secret-token-1234567890" not in select_output
+    assert "pairing_token" not in select_output.lower()
 
 
 def test_cli_dispatches_desktop_device_and_token(monkeypatch):

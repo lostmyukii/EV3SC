@@ -5,7 +5,7 @@ import asyncio
 import json
 import platform
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
@@ -32,6 +32,7 @@ class DesktopMaintenanceResult:
     message: str = ""
     recovery_required: bool = False
     mutated: bool = False
+    devices: list[Dict[str, Any]] = field(default_factory=list)
 
 
 class DesktopMaintenanceService:
@@ -50,7 +51,9 @@ class DesktopMaintenanceService:
         self.transport_factory = transport_factory
         self.app_version = app_version
 
-    def rename_device(self, *, brick_id: str, name: str) -> DesktopMaintenanceResult:
+    def rename_device(
+        self, *, brick_id: str, name: str
+    ) -> DesktopMaintenanceResult:
         payload = self.profile_store.rename_device(brick_id, name)
         try:
             profile = self.profile_store.get_profile(brick_id).to_config()
@@ -62,6 +65,27 @@ class DesktopMaintenanceService:
             mutated=True,
             profile=profile,
             message="Device renamed.",
+        )
+
+    def select_device(self, *, brick_id: str) -> DesktopMaintenanceResult:
+        profile = self.profile_store.set_default_profile(brick_id)
+        return DesktopMaintenanceResult(
+            action="select",
+            ok=True,
+            mutated=True,
+            profile=profile.to_config(),
+            message="Default Desktop EV3 selected.",
+        )
+
+    def list_devices(self) -> DesktopMaintenanceResult:
+        devices = self.profile_store.list_devices()
+        return DesktopMaintenanceResult(
+            action="list",
+            ok=True,
+            mutated=False,
+            profile={},
+            devices=devices,
+            message="Desktop EV3 devices listed.",
         )
 
     async def rotate_token(
@@ -150,6 +174,11 @@ def build_device_parser() -> argparse.ArgumentParser:
     rename = subparsers.add_parser("rename")
     rename.add_argument("--brick-id", required=True)
     rename.add_argument("--name", required=True)
+
+    select = subparsers.add_parser("select")
+    select.add_argument("--brick-id", required=True)
+
+    subparsers.add_parser("list")
     return parser
 
 
@@ -196,12 +225,23 @@ def run_device_command(
     )
     try:
         if args.command == "rename":
-            result = service.rename_device(brick_id=args.brick_id, name=args.name)
+            result = service.rename_device(
+                brick_id=args.brick_id, name=args.name
+            )
+        elif args.command == "select":
+            result = service.select_device(brick_id=args.brick_id)
+        elif args.command == "list":
+            result = service.list_devices()
         else:
             raise DesktopProfileError("Unsupported device command")
         print(json.dumps(_safe_result(result), indent=2, sort_keys=True))
         return 0
-    except (DesktopProfileError, PermissionError, ConnectionError, TimeoutError) as exc:
+    except (
+        DesktopProfileError,
+        PermissionError,
+        ConnectionError,
+        TimeoutError,
+    ) as exc:
         print(str(exc), file=sys.stderr)
         return 2
 
@@ -248,7 +288,12 @@ async def run_token_command(
             raise DesktopProfileError("Unsupported token command")
         print(json.dumps(_safe_result(result), indent=2, sort_keys=True))
         return 0 if result.ok else 2
-    except (DesktopProfileError, PermissionError, ConnectionError, TimeoutError) as exc:
+    except (
+        DesktopProfileError,
+        PermissionError,
+        ConnectionError,
+        TimeoutError,
+    ) as exc:
         print(str(exc), file=sys.stderr)
         return 2
 
@@ -270,5 +315,7 @@ def _safe_result(result: DesktopMaintenanceResult) -> Dict[str, Any]:
     }
     encoded = json.dumps(payload).lower()
     if "pairing_token" in encoded or "weisile_pairing_token" in encoded:
-        raise DesktopProfileError("Maintenance output must not include raw tokens")
+        raise DesktopProfileError(
+            "Maintenance output must not include raw tokens"
+        )
     return payload
