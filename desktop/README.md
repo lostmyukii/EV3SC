@@ -23,12 +23,28 @@ through diagnostics export and uninstall.
 - Use `wifi` as the default transport.
 - Do not open LAN firewall rules from default installer scripts.
 
+## Classroom Profiles And Credentials
+
+The Desktop profile layer lives in `weisile_link.desktop.profiles`. It stores
+only non-secret classroom profile fields in `config.json`: `brick_id`, display
+name, transport, Bluetooth address, `token_ref`, and last seen time. The raw EV3
+runtime token returned by `auth.claim` is stored outside the visible config:
+
+- macOS: Keychain item referenced as `keychain:vsle/<brick_id>`.
+- Windows: Credential Manager item referenced as `wincred:vsle/<brick_id>`.
+
+`save_claimed_profile()` accepts an EV3 `auth.claim` result, writes the token to
+the platform credential backend, and upserts the non-secret profile. At startup,
+`resolve_profile_environment()` reads the token from the credential backend and
+builds the runtime environment for `vsle-bluetooth`.
+
 ## Validation
 
 Run:
 
 ```bash
 ./.venv/bin/python -m pytest tests/test_desktop_packaging.py -v
+./.venv/bin/python -m pytest weisile-link/tests/test_desktop_profiles.py -v
 desktop/scripts/validate_desktop_assets.py
 ```
 
