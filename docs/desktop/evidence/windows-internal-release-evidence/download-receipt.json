@@ -1,0 +1,36 @@
+{
+  "artifact": {
+    "digest": "sha256:1853a7de52b37c683247440afa8cf66d112fe19993bc5876f4a20f1528c75fb0",
+    "id": "7382544085",
+    "name": "windows-internal-release-evidence",
+    "size_bytes": 15603467
+  },
+  "contents": [
+    "docs/desktop/evidence/internal-release.json",
+    "docs/desktop/evidence/internal-release.md",
+    "desktop/release/internal/windows/WeisileLink/README.txt",
+    "desktop/release/internal/windows/WeisileLink/WeisileLink.exe",
+    "desktop/release/internal/windows/WeisileLink/install.ps1",
+    "desktop/release/internal/windows/WeisileLink/uninstall.ps1",
+    "desktop/release/internal/windows/WeisileLink/weisile-link-service.xml",
+    "desktop/release/internal/windows/WeisileLink-windows-0.1.0-internal-manifest.json",
+    "desktop/release/internal/windows/WeisileLink-windows-0.1.0-internal-unsigned.zip"
+  ],
+  "download": {
+    "downloaded_at": "2026-06-03T19:52:00+08:00",
+    "local_path": "docs/desktop/evidence/windows-internal-release-evidence/windows-internal-release-evidence.zip",
+    "sha256": "1853a7de52b37c683247440afa8cf66d112fe19993bc5876f4a20f1528c75fb0"
+  },
+  "github": {
+    "branch": "codex/native-adapter-process",
+    "commit": "ee84e98",
+    "run_id": "26879990306",
+    "run_url": "https://github.com/lostmyukii/EV3SC/actions/runs/26879990306",
+    "workflow": "Windows Internal Release"
+  },
+  "scope": {
+    "internal_unsigned_windows_test_delivery": true,
+    "production_release_evidence": false,
+    "notes": "Unsigned Windows internal builds are for VSLE-controlled test machines only and do not clear production signing, timestamp, or publisher reputation gates."
+  }
+}
