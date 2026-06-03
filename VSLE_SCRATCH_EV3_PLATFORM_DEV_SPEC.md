@@ -3815,6 +3815,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/diagnostics.py`, `weisile-link/tests/test_desktop_diagnostics.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `docs/desktop/DIAGNOSTICS.md`
 - **Next step**: Thread the diagnostics command into clean-machine install smoke evidence so release artifacts can prove installed-from-artifact startup, localhost endpoint readiness, diagnostics export redaction, and real EV3 Bluetooth sensor readiness in one evidence JSON.
 
+### [2026-06-03] Desktop install smoke diagnostics evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `3f1627c`
+- **What was done**: Updated the clean-machine desktop install smoke gate so release evidence must include an installed `desktop-diagnostics` export, default redaction approval, and a real EV3 Bluetooth sensor-ready signal. The validator now opens the diagnostics bundle, requires `state: ready` and a passing `ev3_ready_check`, rejects unredacted tokens/API keys/Bluetooth addresses/student data, and records diagnostics metadata when applying accepted VSLE Bluetooth release evidence to classroom smoke evidence.
+- **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `scripts/apply_vsle_bluetooth_install_evidence.py`, `tests/test_vsle_bluetooth_release_evidence_bridge.py`, `docs/desktop/DIAGNOSTICS.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement fleet-facing classroom profile support: import/export a roster package, map expected S1-S4 sensors per EV3, and use the saved roster data in Desktop ready checks so teachers can prepare multiple EV3 bricks without terminal commands.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
