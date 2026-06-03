@@ -3941,6 +3941,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/InstallFileChecks.psm1`, `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
 - **Next step**: Run the same wizard on a Windows PowerShell 5.1 machine to validate WPF rendering/click flow, then collect real EV3 SSH install and Bluetooth Full VSLE pairing evidence.
 
+### [2026-06-04] Windows setup wizard WPF smoke harness
+- **Status**: ✅ Completed
+- **Commit**: `5c51d33`
+- **What was done**: Added a Windows-only WPF smoke runner and evidence template for the setup wizard. The runner blocks clearly on macOS/PowerShell Core, and on Windows PowerShell 5.1 it imports wizard modules, loads the XAML through WPF, verifies key controls and manual confirmation gates, and writes JSON evidence without marking production ready.
+- **Files created/modified**: `install/windows/run-wpf-smoke.ps1`, `install/windows/03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json`, `install/windows/README.md`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/check_install_files.sh`, `tests/test_windows_setup_wizard_wpf_smoke.py`
+- **Next step**: Run `install/windows/run-wpf-smoke.ps1` on a Windows PowerShell 5.1 machine, then collect real EV3 SSH install and Bluetooth Full VSLE pairing evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
