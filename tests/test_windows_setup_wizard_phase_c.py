@@ -51,8 +51,9 @@ def test_phase_c_module_exists_and_exports_staging_functions():
         assert entry in text
 
 
-def test_phase_c_module_does_not_auto_install_or_launch_processes():
+def test_phase_c_staging_function_does_not_auto_install_or_launch_processes():
     text = _read(ACTION_MODULE)
+    staging_text = text.split("function Test-VsleWindowsDesktopStartupCommand", 1)[0]
 
     forbidden = [
         "Start-Process",
@@ -60,6 +61,7 @@ def test_phase_c_module_does_not_auto_install_or_launch_processes():
         "Invoke-Command",
         "& $",
         "desktop-supervise",
+        "Copy-Item",
         "ssh ",
         "scp ",
         "WEISILE_PAIRING_TOKEN",
@@ -68,10 +70,10 @@ def test_phase_c_module_does_not_auto_install_or_launch_processes():
         "Set-ExecutionPolicy",
     ]
     for token in forbidden:
-        assert token not in text
+        assert token not in staging_text
 
-    assert "CallInstallScript = $false" in text
-    assert "CopyToInstallRoot = $false" in text
+    assert "CallInstallScript = $false" in staging_text
+    assert "CopyToInstallRoot = $false" in staging_text
 
 
 def test_setup_wizard_wires_step_7_to_desktop_install_preparation():

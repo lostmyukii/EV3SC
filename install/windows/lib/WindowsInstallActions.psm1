@@ -85,6 +85,86 @@ function Assert-VsleSafeWindowsStagingRoot {
     }
 }
 
+function Assert-VsleSafeWindowsTargetRoot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TargetRoot
+    )
+
+    $full = [System.IO.Path]::GetFullPath($TargetRoot)
+    $root = [System.IO.Path]::GetPathRoot($full)
+    if ($full -eq $root) {
+        throw "Refusing to use a filesystem root as an install target."
+    }
+    if ($full.Length -lt 12) {
+        throw "Refusing to use a very short install target path."
+    }
+}
+
+function Test-VsleWindowsDesktopStartupCommand {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$InstallScriptPath,
+        [Parameter(Mandatory = $true)]
+        [string]$ServiceXmlPath
+    )
+
+    $missingFiles = New-Object System.Collections.Generic.List[string]
+    foreach ($path in @($InstallScriptPath, $ServiceXmlPath)) {
+        if (-not (Test-Path -LiteralPath $path)) {
+            $missingFiles.Add($path)
+        }
+    }
+
+    if ($missingFiles.Count -gt 0) {
+        return [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            Summary = "Windows Desktop startup metadata is missing."
+            Evidence = "Missing startup metadata: $($missingFiles -join ', ')"
+            MissingTokens = @()
+        }
+    }
+
+    $startupText = @(
+        (Get-Content -LiteralPath $InstallScriptPath -Raw),
+        (Get-Content -LiteralPath $ServiceXmlPath -Raw)
+    ) -join [Environment]::NewLine
+
+    $requiredTokens = @(
+        "desktop-supervise",
+        "127.0.0.1",
+        "20111",
+        "8766",
+        "--open-scratchai"
+    )
+    $missingTokens = New-Object System.Collections.Generic.List[string]
+    foreach ($token in $requiredTokens) {
+        if ($startupText.IndexOf($token, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+            $missingTokens.Add($token)
+        }
+    }
+
+    if ($missingTokens.Count -gt 0) {
+        return [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            Summary = "Windows Desktop startup command is incomplete."
+            Evidence = "Missing startup command tokens: $($missingTokens -join ', ')"
+            MissingTokens = @($missingTokens)
+        }
+    }
+
+    [PSCustomObject]@{
+        Status = "passed"
+        Blocking = $false
+        Summary = "Windows Desktop startup command points to desktop-supervise localhost defaults."
+        Evidence = "Startup command verified: desktop-supervise on 127.0.0.1:20111 and trainer 127.0.0.1:8766 with --open-scratchai."
+        MissingTokens = @()
+    }
+}
+
 function Test-VsleWindowsDesktopInstallStaging {
     [CmdletBinding()]
     param(
@@ -112,6 +192,120 @@ function Test-VsleWindowsDesktopInstallStaging {
     }
 
     return New-VsleWindowsDesktopInstallConfirmation -Plan $Plan
+}
+
+function Invoke-VsleWindowsDesktopInstallExecution {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Plan,
+        [switch]$ConfirmInstall,
+        [switch]$RunInstallHelper,
+        [switch]$Force
+    )
+
+    if (-not $ConfirmInstall) {
+        return [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            ManualConfirmationRequired = $true
+            Summary = "Manual confirmation required before installing WeisileLink Desktop."
+            Evidence = "Click Confirm Install before copying files or running the Windows helper."
+            Plan = $Plan
+        }
+    }
+
+    $stagingResult = Test-VsleWindowsDesktopInstallStaging -Plan $Plan
+    if ($stagingResult.Status -eq "blocked") {
+        return $stagingResult
+    }
+
+    Assert-VsleSafeWindowsTargetRoot -TargetRoot $Plan.TargetRoot
+    if ((Test-Path -LiteralPath $Plan.TargetRoot) -and $Force) {
+        Remove-Item -LiteralPath $Plan.TargetRoot -Recurse -Force
+    }
+    if (-not (Test-Path -LiteralPath $Plan.TargetRoot)) {
+        [void](New-Item -ItemType Directory -Path $Plan.TargetRoot -Force)
+    }
+
+    Copy-Item -Path (Join-Path $Plan.PackageRoot "*") -Destination $Plan.TargetRoot -Recurse -Force
+
+    $targetExe = Join-Path $Plan.TargetRoot "WeisileLink.exe"
+    $targetInstallScript = Join-Path $Plan.TargetRoot "install.ps1"
+    $targetServiceXml = Join-Path $Plan.TargetRoot "weisile-link-service.xml"
+    $requiredTargetFiles = @(
+        $targetExe,
+        $targetInstallScript,
+        (Join-Path $Plan.TargetRoot "uninstall.ps1"),
+        $targetServiceXml
+    )
+
+    $missingTargetFiles = New-Object System.Collections.Generic.List[string]
+    foreach ($path in $requiredTargetFiles) {
+        if (-not (Test-Path -LiteralPath $path)) {
+            $missingTargetFiles.Add($path)
+        }
+    }
+    if ($missingTargetFiles.Count -gt 0) {
+        return [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            ManualConfirmationRequired = $true
+            Summary = "Windows Desktop install copy did not produce all required files."
+            Evidence = "Missing copied files: $($missingTargetFiles -join ', ')"
+            Plan = $Plan
+        }
+    }
+
+    $startupResult = Test-VsleWindowsDesktopStartupCommand `
+        -InstallScriptPath $targetInstallScript `
+        -ServiceXmlPath $targetServiceXml
+    if ($startupResult.Status -eq "blocked") {
+        return [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            ManualConfirmationRequired = $true
+            Summary = $startupResult.Summary
+            Evidence = $startupResult.Evidence
+            Plan = $Plan
+        }
+    }
+
+    $helperEvidence = "CallInstallScript = $false; Windows helper not run in temp-root verification mode."
+    if ($RunInstallHelper) {
+        if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+            return [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                ManualConfirmationRequired = $true
+                Summary = "Windows install helper can only run on Windows after confirmation."
+                Evidence = "CallInstallScript = $true requested, but this host is not Windows."
+                Plan = $Plan
+            }
+        }
+
+        & $targetInstallScript
+        $helperEvidence = "CallInstallScript = $true; install.ps1 ran after explicit confirmation."
+    }
+
+    $evidence = @(
+        "Target root: $($Plan.TargetRoot)",
+        "Executable copied: $targetExe",
+        "Install helper copied: $targetInstallScript",
+        "Service metadata copied: $targetServiceXml",
+        "Startup command verified: desktop-supervise on 127.0.0.1:20111 and trainer 127.0.0.1:8766.",
+        $helperEvidence,
+        "ProductionReleaseReady: false"
+    ) -join [Environment]::NewLine
+
+    [PSCustomObject]@{
+        Status = "passed"
+        Blocking = $false
+        ManualConfirmationRequired = $false
+        Summary = "Windows Desktop files were installed after confirmation and startup metadata was verified."
+        Evidence = $evidence
+        Plan = $Plan
+    }
 }
 
 function New-VsleWindowsDesktopInstallConfirmation {
@@ -177,4 +371,4 @@ function Prepare-VsleWindowsDesktopInstallStaging {
     return Test-VsleWindowsDesktopInstallStaging -Plan $plan
 }
 
-Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation
+Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand

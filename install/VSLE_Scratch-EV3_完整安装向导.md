@@ -67,8 +67,11 @@ Windows 下的 `setup-wizard.ps1` 是 Phase A 图形向导骨架，只显示步�
 `windows/lib/InstallFileChecks.psm1` 接入 `Validate Files` 步骤，用于检查哈希、
 zip 目录、JSON、XML 和必需路径。Phase C 已将
 `windows/lib/WindowsInstallActions.psm1` 接入 `Install WeisileLink Desktop`
-步骤，用于把 Windows evidence bundle 展开到临时 staging 并显示确认信息；
-它不会自动复制到 `%LocalAppData%`，也不会自动调用安装脚本。
+步骤，用于把 Windows evidence bundle 展开到临时 staging 并显示确认信息。
+老师点击 `Confirm Install` 之前，它不会复制到 `%LocalAppData%`，也不会调用
+安装脚本；确认后才复制 staged package、运行 Windows helper，并验证启动命令
+指向 `desktop-supervise` 的 localhost 默认端口 `127.0.0.1:20111` 和
+`127.0.0.1:8766`。
 
 要复制到 U 盘并把相对链接展开为真实文件：
 

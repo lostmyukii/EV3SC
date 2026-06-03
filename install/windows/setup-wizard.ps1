@@ -7,6 +7,7 @@ $ModulePath = Join-Path $ScriptRoot "lib/SetupWizard.psm1"
 $InstallChecksModulePath = Join-Path $ScriptRoot "lib/InstallFileChecks.psm1"
 $WindowsInstallActionsModulePath = Join-Path $ScriptRoot "lib/WindowsInstallActions.psm1"
 $XamlPath = Join-Path $ScriptRoot "setup-wizard.xaml"
+$Script:VlseLastDesktopInstallPlan = $null
 
 Import-Module $ModulePath -Force
 Import-Module $InstallChecksModulePath -Force
@@ -40,6 +41,21 @@ function Set-CurrentStep {
     $Window.FindName("StatusText").Text = "Status: $($Step.Status); blocking: $($Step.Blocking); next: $($Step.NextEnabledWhen)"
     $Window.FindName("EvidenceText").Text = $Step.Evidence
     $Window.FindName("ContinueButton").IsEnabled = -not ($Step.Status -eq "blocked")
+
+    $confirmInstallButton = $Window.FindName("ConfirmInstallButton")
+    if ($null -ne $confirmInstallButton) {
+        $showConfirmInstall = (
+            $Step.Id -eq "install-weisilelink-desktop" -and
+            $Step.Status -eq "needs_manual_action"
+        )
+        if ($showConfirmInstall) {
+            $confirmInstallButton.Visibility = "Visible"
+            $confirmInstallButton.IsEnabled = $true
+        } else {
+            $confirmInstallButton.Visibility = "Collapsed"
+            $confirmInstallButton.IsEnabled = $false
+        }
+    }
 }
 
 function Update-VsleValidateFilesStep {
@@ -132,6 +148,7 @@ function Run-VslePrepareDesktopInstallStep {
     try {
         $installRoot = (Resolve-Path (Join-Path $ScriptRoot "..")).Path
         $result = Prepare-VsleWindowsDesktopInstallStaging -InstallRoot $installRoot -Force
+        $Script:VlseLastDesktopInstallPlan = $result.Plan
     } catch {
         $plan = Get-VsleWindowsDesktopInstallPlan
         $result = New-VsleWindowsDesktopInstallConfirmation -Plan $plan
@@ -139,6 +156,53 @@ function Run-VslePrepareDesktopInstallStep {
         $result.Blocking = $true
         $result.Summary = "Windows Desktop staging failed before install confirmation."
         $result.Evidence = $_.Exception.Message
+        $Script:VlseLastDesktopInstallPlan = $plan
+    }
+
+    Update-VsleDesktopInstallStep -Window $Window -Result $result
+}
+
+function Run-VsleConfirmDesktopInstallStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window
+    )
+
+    $runningStep = Set-VsleSetupWizardStepResult `
+        -Id "install-weisilelink-desktop" `
+        -Status "running" `
+        -Summary "Installing WeisileLink Desktop after teacher confirmation." `
+        -Evidence "Copying the staged package, running the Windows helper, and verifying the startup command." `
+        -Blocking $true
+    $StepList = $Window.FindName("StepList")
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $runningStep
+
+    try {
+        if ($null -eq $Script:VlseLastDesktopInstallPlan) {
+            $installRoot = (Resolve-Path (Join-Path $ScriptRoot "..")).Path
+            $prepareResult = Prepare-VsleWindowsDesktopInstallStaging -InstallRoot $installRoot -Force
+            $Script:VlseLastDesktopInstallPlan = $prepareResult.Plan
+        }
+
+        $result = Invoke-VsleWindowsDesktopInstallExecution `
+            -Plan $Script:VlseLastDesktopInstallPlan `
+            -ConfirmInstall `
+            -RunInstallHelper `
+            -Force
+    } catch {
+        $plan = $Script:VlseLastDesktopInstallPlan
+        if ($null -eq $plan) {
+            $plan = Get-VsleWindowsDesktopInstallPlan
+        }
+        $result = [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            ManualConfirmationRequired = $true
+            Summary = "Windows Desktop install failed after confirmation."
+            Evidence = $_.Exception.Message
+            Plan = $plan
+        }
     }
 
     Update-VsleDesktopInstallStep -Window $Window -Result $result
@@ -180,6 +244,12 @@ function Open-VsleSetupWizard {
         }
         if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
             Run-VslePrepareDesktopInstallStep -Window $window
+        }
+    })
+
+    $window.FindName("ConfirmInstallButton").Add_Click({
+        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
+            Run-VsleConfirmDesktopInstallStep -Window $window
         }
     })
 

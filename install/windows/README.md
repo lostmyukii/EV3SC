@@ -74,6 +74,31 @@ On macOS, the repository can verify the evidence zip extraction and module
 structure. The final click-flow and Windows staging behavior still need a
 Windows PowerShell 5.1 smoke run.
 
+## Phase C Desktop Install Confirmation
+
+After staging passes, the wizard shows a dedicated `Confirm Install` control
+for the WeisileLink Desktop step. Selecting the step prepares the package only;
+clicking `Confirm Install` is the explicit teacher confirmation that copies the
+staged package into the configured Windows install root and runs the Windows
+helper on Windows.
+
+The confirmed execution path verifies that the copied helper and service
+metadata point to `desktop-supervise` with localhost defaults:
+
+```text
+127.0.0.1:20111
+127.0.0.1:8766
+```
+
+The helper still uses the unsigned internal package only, and the wizard keeps
+production release readiness set to false until signed artifacts and
+clean-machine Windows evidence are collected.
+
+On macOS, automated tests can verify the evidence bundle, copy the staged
+package into a clean temporary install root, and inspect startup metadata. The
+Windows WPF visual flow and actual helper execution still require a Windows
+PowerShell 5.1 smoke run.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:

@@ -258,6 +258,11 @@
                             Content="Export diagnostics"
                             Style="{StaticResource SecondaryButtonStyle}" />
                         <Button
+                            x:Name="ConfirmInstallButton"
+                            Content="Confirm Install"
+                            Visibility="Collapsed"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                        <Button
                             x:Name="ContinueButton"
                             Content="Continue"
                             Style="{StaticResource PrimaryButtonStyle}" />
