@@ -3738,6 +3738,13 @@ material into:
 - **Files created/modified**: `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.json`, `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_numeric_boolean_sync_20260602.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`
 - **Next step**: Refresh the public ScratchAI browser page, re-add the EV3 extension so the browser loads the updated script, and rerun the real S4 touch block test with local WeisileLink Bluetooth running.
 
+### [2026-06-03] VSLE Bluetooth reconnect and connection cadence
+- **Status**: ✅ Completed
+- **Commit**: `a17d9af`
+- **What was done**: Fixed the local `vsle-bluetooth` transport so repeated Scratch/diagnostic `connect` calls reuse the active EV3 RFCOMM session instead of reopening the native adapter stream. Also adjusted the EV3 browser connection reporter to tolerate the measured Bluetooth classroom baseline cadence while keeping reporter and Boolean blocks cache-backed.
+- **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Sync the updated VSLE extension to `http://101.42.92.6:18612/`, restart the local WeisileLink process from the updated checkout, hard-refresh ScratchAI, and rerun S1-S4 real sensor checks without USB.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
