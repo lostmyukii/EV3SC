@@ -3899,6 +3899,13 @@ material into:
 - **Files created/modified**: `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `install/windows/README.md`
 - **Next step**: Build the Phase A Windows setup wizard skeleton with a WPF stepper window and no install actions until validation modules and tests are in place.
 
+### [2026-06-03] Windows setup wizard Phase A shell
+- **Status**: ✅ Completed
+- **Commit**: `9a67956`
+- **What was done**: Added the Windows Phase A WPF setup wizard shell with a safe PowerShell entrypoint, XAML stepper layout, complete 11-step setup model, README handoff notes, install-folder manifest/audit wiring, and static regression tests. The shell only renders the guide and explicitly avoids install, copy, archive extraction, SD-card, SSH, and process-launch actions.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_a.py`
+- **Next step**: Implement Phase B file validation UI by adding a PowerShell install-file checker module and wiring Step 1 to deterministic pass/fail states without requiring Git or Unix tools on Windows.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
