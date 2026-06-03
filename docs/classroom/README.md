@@ -9,6 +9,7 @@ source-backed AI Quest sample projects in `ai-quest-samples/projects/`.
 | File | Audience | Use |
 |------|----------|-----|
 | `TEACHER_GUIDE.md` | Teacher or club facilitator | Plan, run, verify, and recover a 45-minute AI Quest robotics lesson. |
+| `EV3_CLASSROOM_PROVISIONING_DESIGN.md` | Product, IT, or release lead | Design the EV3 golden SD image, WeisileLink Desktop pairing wizard, macOS package, Windows installer, and fleet migration workflow. |
 | `WORKBOOK_OBSTACLE_AVOIDANCE.md` | Students | Collect distance and touch data for obstacle classification. |
 | `WORKBOOK_LINE_PATROL.md` | Students | Collect reflected-light data for line and floor classification. |
 | `WORKBOOK_TOUCH_STOP_SAFETY.md` | Students | Collect touch and motion data for a safety-stop classifier. |
