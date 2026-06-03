@@ -3787,6 +3787,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/pairing.py`, `weisile-link/tests/test_desktop_pairing.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Wire the saved Desktop profile into the packaged WeisileLink startup path so the app can launch/reconnect the local JSON-RPC bridge from `config.json`, surface the four teacher health states, and open ScratchAI without terminal environment variables.
 
+### [2026-06-03] Desktop saved-profile startup path
+- **Status**: ✅ Completed
+- **Commit**: `1e66ce9`
+- **What was done**: Added the Desktop runtime startup layer that resolves a saved EV3 profile from `config.json`, retrieves the raw token from the secure credential backend, converts it into a token-aware WeisileLink runtime config, and exposes `python -m weisile_link desktop-start` plus `--check-only` for the four teacher states: ready, starting, needs pairing, and needs attention. The startup payload is safe for a classroom UI and does not print pairing tokens.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/runtime.py`, `weisile-link/tests/test_desktop_runtime.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`
+- **Next step**: Add the one-click ScratchAI launch and packaged Desktop supervision wrapper so macOS/Windows app shells can start `desktop-start`, monitor `20111`/`8766`, open the public ScratchAI URL, and route failures into guided diagnostics.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
