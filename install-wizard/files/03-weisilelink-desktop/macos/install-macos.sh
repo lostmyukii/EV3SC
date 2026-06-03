@@ -1,0 +1,1 @@
+../../../../desktop/macos/install.sh
