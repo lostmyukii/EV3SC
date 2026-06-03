@@ -3913,6 +3913,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/InstallFileChecks.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_b.py`
 - **Next step**: Implement Phase C Desktop install automation for the wizard by expanding the Windows evidence bundle into a staging area, locating `WeisileLink.exe`, preparing the local install root, and proving the install action stays behind explicit user control.
 
+### [2026-06-03] Windows setup wizard Phase C desktop staging
+- **Status**: ✅ Completed
+- **Commit**: `e6bf01d`
+- **What was done**: Added a Windows Desktop install preparation module for the setup wizard. The `Install WeisileLink Desktop` step now expands the Windows internal evidence bundle into a temporary staging folder, verifies `WeisileLink.exe`, install/uninstall helpers, service metadata, manifest, and nested unsigned release zip, then shows a manual confirmation state before any copy or install action can occur.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_c.py`
+- **Next step**: Complete the remaining Phase C install execution slice by adding an explicit confirmation control that copies staged files to a temp install root, invokes the Windows helper only after confirmation, and verifies the startup command points to `desktop-supervise`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
