@@ -264,6 +264,149 @@ def test_auth_pair_rejects_bad_token_and_closes_policy_violation():
     assert ws.closed == (1008, "pairing failed")
 
 
+def test_auth_claim_returns_pairing_token_and_marks_claim_used(tmp_path):
+    module = load_server_module()
+    env_file = tmp_path / "ev3.env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "WEISILE_PAIRING_TOKEN=secret-token",
+                "VSLE_BRICK_ID=VSLE-EV3-583C",
+                "VSLE_BRICK_NAME=Class EV3 01",
+                "VSLE_CLAIM_CODE=12345678",
+                "VSLE_CLAIM_CODE_USED=0",
+                "EV3_BT_ADDRESS=A0:E6:F8:19:58:3C",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="secret-token",
+        env_file=str(env_file),
+        brick_id="VSLE-EV3-583C",
+        brick_name="Class EV3 01",
+        claim_code="12345678",
+        claim_code_used="0",
+        ev3_bt_address="A0:E6:F8:19:58:3C",
+    )
+    ws = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "claim-1",
+                    "method": "auth.claim",
+                    "params": {
+                        "claim_code": "12345678",
+                        "host_id": "teacher-macbook-01",
+                        "host_public_key": "",
+                        "app_version": "0.1.0",
+                    },
+                }
+            )
+        ]
+    )
+
+    assert asyncio.run(server.authenticate_client(ws)) is False
+
+    assert ws.closed == (1000, "claim completed")
+    assert ws.sent[0]["type"] == "ack"
+    assert ws.sent[0]["id"] == "claim-1"
+    assert ws.sent[0]["ok"] is True
+    result = ws.sent[0]["result"]
+    assert result["brick_id"] == "VSLE-EV3-583C"
+    assert result["brick_name"] == "Class EV3 01"
+    assert result["transport"] == "vsle-bluetooth"
+    assert result["ev3_bt"] == "A0:E6:F8:19:58:3C"
+    assert result["pairing_token"] == "secret-token"
+    assert "claim_code" not in json.dumps(result).lower()
+    assert server.claim_code_used is True
+    env_text = env_file.read_text(encoding="utf-8")
+    assert "VSLE_CLAIM_CODE_USED=1" in env_text
+    assert "VSLE_CLAIMED_HOST_ID=teacher-macbook-01" in env_text
+
+
+def test_auth_claim_rejects_reuse_without_leaking_token(tmp_path):
+    module = load_server_module()
+    env_file = tmp_path / "ev3.env"
+    env_file.write_text(
+        "WEISILE_PAIRING_TOKEN=secret-token\nVSLE_CLAIM_CODE_USED=1\n",
+        encoding="utf-8",
+    )
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="secret-token",
+        env_file=str(env_file),
+        claim_code="12345678",
+        claim_code_used="1",
+    )
+    ws = FakeWebSocket(
+        [
+            json.dumps(
+                {
+                    "id": "claim-used",
+                    "method": "auth.claim",
+                    "params": {
+                        "claim_code": "12345678",
+                        "host_id": "teacher-macbook-01",
+                    },
+                }
+            )
+        ]
+    )
+
+    assert asyncio.run(server.authenticate_client(ws)) is False
+
+    assert ws.sent == [
+        {
+            "type": "ack",
+            "id": "claim-used",
+            "ok": False,
+            "code": "EV3_AUTH_CLAIM_USED",
+            "error": "EV3 claim code has already been used",
+            "retryable": False,
+        }
+    ]
+    assert "secret-token" not in json.dumps(ws.sent)
+
+
+def test_auth_claim_rate_limits_bad_codes_without_token_leak(tmp_path):
+    module = load_server_module()
+    env_file = tmp_path / "ev3.env"
+    env_file.write_text(
+        "WEISILE_PAIRING_TOKEN=secret-token\nVSLE_CLAIM_CODE_USED=0\n",
+        encoding="utf-8",
+    )
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="secret-token",
+        env_file=str(env_file),
+        claim_code="12345678",
+        claim_code_used="0",
+        clock=lambda: 100.0,
+    )
+
+    responses = []
+    for index in range(module.CLAIM_ATTEMPT_LIMIT + 1):
+        responses.append(
+            server.handle_auth_claim(
+                {
+                    "id": "bad-{}".format(index),
+                    "method": "auth.claim",
+                    "params": {
+                        "claim_code": "00000000",
+                        "host_id": "teacher-macbook-01",
+                    },
+                }
+            )
+        )
+
+    assert responses[-1]["code"] == "EV3_AUTH_CLAIM_RATE_LIMITED"
+    assert responses[-1]["retryable"] is True
+    assert "secret-token" not in json.dumps(responses)
+
+
 def test_invalid_command_fails_closed_without_hardware_action():
     module = load_server_module()
     hardware = FakeHardware()

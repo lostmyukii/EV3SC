@@ -13,6 +13,7 @@ runner is used.
 
 import asyncio
 import csv
+import hmac
 import io
 import json
 import os
@@ -27,6 +28,19 @@ SENSOR_INTERVAL = 0.02
 SLOW_SNAPSHOT_INTERVAL = float(os.getenv("EV3_SLOW_SNAPSHOT_INTERVAL", "1.0"))
 MAX_COLLECTED_POINTS = int(os.getenv("MAX_COLLECTED_POINTS", "10000"))
 PAIRING_TOKEN = os.getenv("WEISILE_PAIRING_TOKEN", "")
+VSLE_CONFIG_DIR = os.getenv("VSLE_CONFIG_DIR", "/home/robot/.config/vsle")
+VSLE_ENV_FILE = os.getenv(
+    "VSLE_ENV_FILE",
+    os.path.join(VSLE_CONFIG_DIR, "ev3.env"),
+)
+VSLE_BRICK_ID = os.getenv("VSLE_BRICK_ID", "")
+VSLE_BRICK_NAME = os.getenv("VSLE_BRICK_NAME", "")
+VSLE_CLAIM_CODE = os.getenv("VSLE_CLAIM_CODE", "")
+VSLE_CLAIM_CODE_USED = os.getenv("VSLE_CLAIM_CODE_USED", "0")
+EV3_BT_ADDRESS = os.getenv("EV3_BT_ADDRESS", "")
+SERVER_VERSION = os.getenv("VSLE_EV3_SERVER_VERSION", "0.1.0")
+CLAIM_ATTEMPT_LIMIT = int(os.getenv("VSLE_CLAIM_ATTEMPT_LIMIT", "5"))
+CLAIM_RATE_WINDOW_S = float(os.getenv("VSLE_CLAIM_RATE_WINDOW_S", "60"))
 
 MOTOR_PORTS = {"A", "B", "C", "D"}
 SENSOR_PORTS = {"S1", "S2", "S3", "S4"}
@@ -40,6 +54,7 @@ MOTOR_PID_MODES = {"speed", "position"}
 MOTOR_PID_TERMS = {"kp", "ki", "kd"}
 MOTOR_PID_VALUE_MAX = 10000
 MOTOR_PID_ATTR_SUFFIX = {"kp": "p", "ki": "i", "kd": "d"}
+CLAIM_METADATA_MAX_LENGTH = 64
 
 
 class EV3CommandError(Exception):
@@ -99,9 +114,7 @@ class BluetoothLineEndpoint:
             raise ConnectionError("Bluetooth RFCOMM sensor send failed")
         self._latest_sensor_message = message
         if self._sensor_send_task is None or self._sensor_send_task.done():
-            self._sensor_send_task = _create_task(
-                self._drain_latest_sensor_messages()
-            )
+            self._sensor_send_task = _create_task(self._drain_latest_sensor_messages())
 
     async def _drain_latest_sensor_messages(self) -> None:
         while not self._closed:
@@ -287,6 +300,63 @@ def _label(params: Dict[str, Any], field: str = "label") -> str:
             {"field": field},
         )
     return value
+
+
+def _claim_metadata(value: Any, field: str) -> str:
+    text = str(value or "").strip()
+    if (
+        not text
+        or len(text) > CLAIM_METADATA_MAX_LENGTH
+        or any(ord(char) < 32 for char in text)
+    ):
+        raise EV3CommandError(
+            "EV3_INVALID_COMMAND",
+            "{} must be 1-64 printable characters".format(field),
+            False,
+            {"field": field},
+        )
+    return text
+
+
+def _optional_claim_metadata(value: Any) -> str:
+    text = str(value or "").strip()
+    if len(text) > CLAIM_METADATA_MAX_LENGTH:
+        return text[:CLAIM_METADATA_MAX_LENGTH]
+    if any(ord(char) < 32 for char in text):
+        return ""
+    return text
+
+
+def _read_env_file(path: str) -> Dict[str, str]:
+    values = {}  # type: Dict[str, str]
+    try:
+        with open(path, "r") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#") or "=" not in stripped:
+                    continue
+                key, value = stripped.split("=", 1)
+                values[key] = value
+    except IOError:
+        return values
+    return values
+
+
+def _write_env_file(path: str, values: Dict[str, str]) -> None:
+    directory = os.path.dirname(path)
+    if directory:
+        try:
+            os.makedirs(directory)
+        except OSError:
+            if not os.path.isdir(directory):
+                raise
+    keys = sorted(values)
+    content = "".join("{}={}\n".format(key, values[key]) for key in keys)
+    tmp_path = "{}.tmp".format(path)
+    with open(tmp_path, "w") as handle:
+        handle.write(content)
+    os.chmod(tmp_path, 0o600)
+    os.rename(tmp_path, path)
 
 
 def _milliseconds(
@@ -906,11 +976,25 @@ class VSLEEV3Server:
         pairing_token: str = PAIRING_TOKEN,
         max_collected_points: int = MAX_COLLECTED_POINTS,
         clock: Callable[[], float] = time.time,
+        env_file: str = VSLE_ENV_FILE,
+        brick_id: str = VSLE_BRICK_ID,
+        brick_name: str = VSLE_BRICK_NAME,
+        claim_code: str = VSLE_CLAIM_CODE,
+        claim_code_used: str = VSLE_CLAIM_CODE_USED,
+        ev3_bt_address: str = EV3_BT_ADDRESS,
+        server_version: str = SERVER_VERSION,
     ) -> None:
         self.hardware = hardware
         self.pairing_token = pairing_token
         self.max_collected_points = max_collected_points
         self.clock = clock
+        self.env_file = env_file
+        self.brick_id = brick_id or "VSLE-EV3"
+        self.brick_name = brick_name or self.brick_id
+        self.claim_code = claim_code
+        self.claim_code_used = str(claim_code_used) == "1"
+        self.ev3_bt_address = ev3_bt_address
+        self.server_version = server_version
         self.clients = set()  # type: Set[Any]
         self.collecting = False
         self.collect_label = ""
@@ -919,9 +1003,10 @@ class VSLEEV3Server:
         self.collected_data = []  # type: List[Dict[str, Any]]
         self._stopping = False
         self._stop_event = None  # type: Optional[Any]
+        self._claim_failures = []  # type: List[float]
 
     async def authenticate_client(self, websocket: Any) -> bool:
-        """Require `auth.pair` before accepting commands when token is set."""
+        """Require `auth.pair`, or serve one-shot `auth.claim`, when token is set."""
         if not self.pairing_token:
             return True
 
@@ -932,8 +1017,15 @@ class VSLEEV3Server:
             await websocket.close(code=1008, reason="pairing required")
             return False
 
+        method = message.get("method")
+        if method == "auth.claim":
+            response = self.handle_auth_claim(message)
+            await self._send_json(websocket, response)
+            await websocket.close(code=1000, reason="claim completed")
+            return False
+
         token = message.get("params", {}).get("token")
-        if message.get("method") != "auth.pair" or token != self.pairing_token:
+        if method != "auth.pair" or token != self.pairing_token:
             await websocket.close(code=1008, reason="pairing failed")
             return False
 
@@ -942,6 +1034,111 @@ class VSLEEV3Server:
             {"type": "ack", "id": message.get("id"), "ok": True},
         )
         return True
+
+    def handle_auth_claim(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        """Claim a first-boot EV3 and return the long runtime token once."""
+        request_id = message.get("id")
+        try:
+            params = message.get("params", {})
+            if not isinstance(params, dict):
+                raise EV3CommandError(
+                    "EV3_INVALID_COMMAND",
+                    "auth.claim params must be an object",
+                    False,
+                )
+            if not self.claim_code or not self.pairing_token:
+                raise EV3CommandError(
+                    "EV3_AUTH_CLAIM_UNAVAILABLE",
+                    "EV3 claim code is not provisioned",
+                    False,
+                )
+            if self.claim_code_used:
+                raise EV3CommandError(
+                    "EV3_AUTH_CLAIM_USED",
+                    "EV3 claim code has already been used",
+                    False,
+                )
+            if self._claim_rate_limited():
+                raise EV3CommandError(
+                    "EV3_AUTH_CLAIM_RATE_LIMITED",
+                    "Too many failed claim attempts; wait before retrying",
+                    True,
+                )
+
+            host_id = _claim_metadata(params.get("host_id"), "host_id")
+            supplied_code = str(params.get("claim_code", "")).strip()
+            if not hmac.compare_digest(supplied_code, self.claim_code):
+                self._record_claim_failure()
+                raise EV3CommandError(
+                    "EV3_AUTH_CLAIM_FAILED",
+                    "Invalid EV3 claim code",
+                    False,
+                )
+
+            self._mark_claim_used(
+                host_id=host_id,
+                app_version=_optional_claim_metadata(params.get("app_version")),
+            )
+            return {
+                "type": "ack",
+                "id": request_id,
+                "ok": True,
+                "result": self._claim_result(host_id),
+            }
+        except EV3CommandError as exc:
+            return self._error_ack(request_id, exc)
+
+    def _claim_rate_limited(self) -> bool:
+        now = self.clock()
+        self._claim_failures = [
+            timestamp
+            for timestamp in self._claim_failures
+            if now - timestamp < CLAIM_RATE_WINDOW_S
+        ]
+        return len(self._claim_failures) >= CLAIM_ATTEMPT_LIMIT
+
+    def _record_claim_failure(self) -> None:
+        self._claim_failures.append(self.clock())
+
+    def _mark_claim_used(self, host_id: str, app_version: str) -> None:
+        values = _read_env_file(self.env_file)
+        if not values:
+            raise EV3CommandError(
+                "EV3_AUTH_CLAIM_PERSIST_FAILED",
+                "EV3 identity env file is not available",
+                False,
+            )
+        values["VSLE_CLAIM_CODE_USED"] = "1"
+        values["VSLE_CLAIMED_HOST_ID"] = host_id
+        values["VSLE_CLAIMED_AT"] = str(self.clock())
+        if app_version:
+            values["VSLE_CLAIMED_APP_VERSION"] = app_version
+        try:
+            _write_env_file(self.env_file, values)
+        except Exception as exc:
+            raise EV3CommandError(
+                "EV3_AUTH_CLAIM_PERSIST_FAILED",
+                "EV3 claim state could not be saved",
+                False,
+                {"exception_type": type(exc).__name__},
+            )
+        self.claim_code_used = True
+
+    def _claim_result(self, host_id: str) -> Dict[str, Any]:
+        return {
+            "brick_id": self.brick_id,
+            "brick_name": self.brick_name,
+            "transport": "vsle-bluetooth",
+            "ev3_bt": self.ev3_bt_address,
+            "pairing_token": self.pairing_token,
+            "server_version": self.server_version,
+            "claimed_host_id": host_id,
+            "capabilities": {
+                "sensors": ["color", "ultrasonic", "gyro", "touch"],
+                "motors": ["A", "B", "C", "D"],
+                "ai_quest": True,
+            },
+        }
 
     async def handle_client(self, websocket: Any, _path: str = "") -> None:
         """Handle one WebSocket client and stop motors on disconnect."""

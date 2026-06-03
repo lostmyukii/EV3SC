@@ -126,10 +126,7 @@ class FakeNativeByteStream:
 
     def feed(self, payload):
         if isinstance(payload, dict):
-            payload = (
-                json.dumps(payload, separators=(",", ":")).encode("utf-8")
-                + b"\n"
-            )
+            payload = json.dumps(payload, separators=(",", ":")).encode("utf-8") + b"\n"
         self.incoming.put(payload)
 
 
@@ -186,9 +183,7 @@ def test_configure_endpoint_updates_bluetooth_address_and_channel():
 
 def test_connect_pairs_and_routes_sensor_updates_to_callback_and_cache():
     async def scenario():
-        fake_file = FakeBluetoothFile(
-            [{"type": "ack", "id": "auth.pair", "ok": True}]
-        )
+        fake_file = FakeBluetoothFile([{"type": "ack", "id": "auth.pair", "ok": True}])
         fake_socket = FakeBluetoothSocket(fake_file)
         socket_module = FakeSocketModule(fake_socket)
         manager = DegradationManager(bluetooth_supported=True)
@@ -228,9 +223,7 @@ def test_connect_pairs_and_routes_sensor_updates_to_callback_and_cache():
             }
         ]
         assert sensor_updates[0]["sensors"]["S3"]["angle"] == 17
-        assert manager.connection_state.active_transport == (
-            TransportKind.BLUETOOTH
-        )
+        assert manager.connection_state.active_transport == (TransportKind.BLUETOOTH)
         cached = manager.get_sensor_value(
             "sensors.S3.angle",
             now_ms=2_050,
@@ -240,6 +233,96 @@ def test_connect_pairs_and_routes_sensor_updates_to_callback_and_cache():
         assert cached.stale is False
 
         await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
+def test_claim_sends_claim_code_returns_token_and_closes_temp_socket():
+    async def scenario():
+        fake_file = FakeBluetoothFile(
+            [
+                {
+                    "type": "ack",
+                    "id": "auth.claim",
+                    "ok": True,
+                    "result": {
+                        "brick_id": "VSLE-EV3-583C",
+                        "brick_name": "Class EV3 01",
+                        "transport": "vsle-bluetooth",
+                        "ev3_bt": "A0:E6:F8:19:58:3C",
+                        "pairing_token": "secret-token",
+                    },
+                }
+            ]
+        )
+        fake_socket = FakeBluetoothSocket(fake_file)
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = BluetoothTransport(
+            "A0:E6:F8:19:58:3C",
+            socket_module=FakeSocketModule(fake_socket),
+            platform_name="Linux",
+            manager=manager,
+        )
+
+        result = await transport.claim(
+            claim_code="12345678",
+            host_id="teacher-macbook-01",
+            host_public_key="",
+            app_version="0.1.0",
+        )
+
+        assert result["brick_id"] == "VSLE-EV3-583C"
+        assert result["pairing_token"] == "secret-token"
+        assert transport._pairing_token == "secret-token"
+        assert fake_socket.connected_to == ("A0:E6:F8:19:58:3C", 1)
+        assert decoded_writes(fake_file) == [
+            {
+                "id": "auth.claim",
+                "method": "auth.claim",
+                "params": {
+                    "claim_code": "12345678",
+                    "host_id": "teacher-macbook-01",
+                    "host_public_key": "",
+                    "app_version": "0.1.0",
+                },
+            }
+        ]
+        assert fake_socket.closed is True
+        assert manager.connection_state.connected is False
+
+    asyncio.run(scenario())
+
+
+def test_claim_rejects_failed_ack_without_storing_token():
+    async def scenario():
+        fake_file = FakeBluetoothFile(
+            [
+                {
+                    "type": "ack",
+                    "id": "auth.claim",
+                    "ok": False,
+                    "code": "EV3_AUTH_CLAIM_FAILED",
+                    "error": "Invalid EV3 claim code",
+                    "retryable": False,
+                }
+            ]
+        )
+        fake_socket = FakeBluetoothSocket(fake_file)
+        transport = BluetoothTransport(
+            "A0:E6:F8:19:58:3C",
+            socket_module=FakeSocketModule(fake_socket),
+            platform_name="Linux",
+            pairing_token="",
+        )
+
+        with pytest.raises(PermissionError):
+            await transport.claim(
+                claim_code="00000000",
+                host_id="teacher-macbook-01",
+            )
+
+        assert transport._pairing_token == ""
+        assert fake_socket.closed is True
 
     asyncio.run(scenario())
 
@@ -301,9 +384,7 @@ def test_connect_reuses_active_bluetooth_session_without_reopening_socket():
         assert await transport.connect(sensor_updates.append) is True
         assert await transport.connect(sensor_updates.append) is True
 
-        fake_file.feed(
-            {"type": "sensor_update", "sensors": {"S4": {"pressed": 1}}}
-        )
+        fake_file.feed({"type": "sensor_update", "sensors": {"S4": {"pressed": 1}}})
         await asyncio.sleep(0.01)
 
         assert socket_module.calls == [(31, 1, 3)]
