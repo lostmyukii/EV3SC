@@ -55,6 +55,7 @@ Ignored as non-install or transient material:
 | Windows service metadata | `desktop/windows/weisile-link-service.xml` | `install/windows/02-weisilelink-desktop/` | Present |
 | Windows install evidence template | `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json` | `install/windows/03-evidence-templates/` | Present |
 | Windows setup wizard Phase A shell | `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1` | `install/windows/` | Static tests pass; no install actions |
+| Windows setup wizard Phase B validator | `install/windows/lib/InstallFileChecks.psm1` | `install/windows/lib/` | Hash, zip-entry, JSON, XML, and required-path tests pass; no install actions |
 
 The Windows internal evidence zip contains `WeisileLink.exe`,
 `WeisileLink-windows-0.1.0-internal-unsigned.zip`, a manifest, install helpers,

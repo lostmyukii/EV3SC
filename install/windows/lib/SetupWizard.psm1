@@ -220,6 +220,17 @@ $Script:VlseSetupWizardSteps = @(
     }
 )
 
+function Get-VsleSetupWizardStatuses {
+    [CmdletBinding()]
+    param()
+
+    return @(
+        [PSCustomObject]@{ Status = "passed"; Meaning = "Step passed automatically." }
+        [PSCustomObject]@{ Status = "blocked"; Meaning = "Step blocks continue until fixed." }
+        [PSCustomObject]@{ Status = "warning"; Meaning = "Step can continue only after acknowledgement." }
+    )
+}
+
 function Get-VsleSetupWizardSteps {
     [CmdletBinding()]
     param()
@@ -227,6 +238,38 @@ function Get-VsleSetupWizardSteps {
     return $Script:VlseSetupWizardSteps | ForEach-Object {
         [PSCustomObject]$_
     }
+}
+
+function Set-VsleSetupWizardStepResult {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("pending", "running", "needs_manual_action", "needs_input", "passed", "warning", "blocked", "skipped")]
+        [string]$Status,
+        [string]$Summary,
+        [string]$Evidence,
+        [object]$Blocking
+    )
+
+    $step = $Script:VlseSetupWizardSteps | Where-Object { $_.Id -eq $Id } | Select-Object -First 1
+    if ($null -eq $step) {
+        throw "Unknown setup wizard step id: $Id"
+    }
+
+    $step.Status = $Status
+    if ($PSBoundParameters.ContainsKey("Summary")) {
+        $step.Summary = $Summary
+    }
+    if ($PSBoundParameters.ContainsKey("Evidence")) {
+        $step.Evidence = $Evidence
+    }
+    if ($PSBoundParameters.ContainsKey("Blocking")) {
+        $step.Blocking = [bool]$Blocking
+    }
+
+    return [PSCustomObject]$step
 }
 
 function Get-VsleSetupWizardProgress {
@@ -247,4 +290,4 @@ function Get-VsleSetupWizardProgress {
     }
 }
 
-Export-ModuleMember -Function Get-VsleSetupWizardSteps, Get-VsleSetupWizardProgress
+Export-ModuleMember -Function Get-VsleSetupWizardStatuses, Get-VsleSetupWizardSteps, Get-VsleSetupWizardProgress, Set-VsleSetupWizardStepResult

@@ -34,6 +34,24 @@ Phase A only opens the WPF stepper window and loads the full setup step model.
 It has no install actions, file copying, archive extraction, SD-card flashing,
 SSH commands, or process launch behavior.
 
+## Phase B File Validation
+
+The Validate Files step now uses:
+
+```text
+lib/InstallFileChecks.psm1
+```
+
+It checks the Windows Etcher installer, shared ev3dev image, Windows internal
+release evidence zip, receipt JSON, expected zip entries, setup XAML, Windows
+service XML, and required EV3 server files. This step does not install files,
+copy files, extract archives, flash SD cards, run SSH, or start WeisileLink.
+
+On macOS, the repository can verify the validation plan with static tests,
+hash checks, zip entry checks, JSON parsing, and XAML/XML parsing. The actual
+WPF window behavior still needs a Windows PowerShell 5.1 smoke run for visual
+and click-flow accuracy.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:

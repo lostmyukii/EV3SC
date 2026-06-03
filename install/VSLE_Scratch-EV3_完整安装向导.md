@@ -63,7 +63,9 @@ install/
 
 `shared/` 是 EV3 端和课程共用文件。`mac/` 与 `windows/` 是老师电脑端文件。
 Windows 下的 `setup-wizard.ps1` 是 Phase A 图形向导骨架，只显示步骤和状态，
-不会执行安装、解压、刷卡、SSH 或启动程序动作。
+不会执行安装、解压、刷卡、SSH 或启动程序动作。Phase B 已将文件校验模块
+`windows/lib/InstallFileChecks.psm1` 接入 `Validate Files` 步骤，用于检查哈希、
+zip 目录、JSON、XML 和必需路径。
 
 要复制到 U 盘并把相对链接展开为真实文件：
 
