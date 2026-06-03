@@ -29,15 +29,24 @@ def test_macos_launch_agent_uses_localhost_and_bundled_binary():
     assert data["Label"] == "cn.vsle.weisile-link"
     args = data["ProgramArguments"]
     assert any("WeisileLink" in item for item in args)
+    assert "desktop-supervise" in args
+    assert "--open-scratchai" in args
+    assert "--native-adapter" in args
+    assert "--host" in args
+    assert "127.0.0.1" in args
+    assert "--port" in args
+    assert "20111" in args
+    assert "--trainer-port" in args
+    assert "8766" in args
     env = data["EnvironmentVariables"]
     assert env["WEISILE_LINK_HOST"] == "127.0.0.1"
     assert env["WEISILE_LINK_PORT"] == "20111"
-    assert env["WEISILE_TRANSPORT"] == "wifi"
-    assert env["WEISILE_OFFICIAL_BT_ADAPTER"] == (
+    assert "WEISILE_TRANSPORT" not in env
+    assert (
         "/Applications/WeisileLink.app/Contents/Resources/native/"
         "WeisileEV3BluetoothAdapter.app/Contents/MacOS/"
         "WeisileEV3BluetoothAdapter"
-    )
+    ) in args
     assert data["RunAtLoad"] is True
     assert data["KeepAlive"] is True
 
@@ -54,10 +63,13 @@ def test_macos_install_script_writes_absolute_log_paths():
     install_text = (ROOT / "desktop/macos/install.sh").read_text(encoding="utf-8")
     assert "__WEISILE_LOG_DIR__" in install_text
     assert "LOG_DIR" in install_text
+    assert "CONFIG_DIR" in install_text
+    assert "DIAGNOSTICS_DIR" in install_text
+    assert "VSLE_BT_ADAPTER" in install_text
     assert ">" in install_text
 
 
-def test_windows_install_scripts_keep_localhost_defaults():
+def test_windows_install_scripts_use_supervisor_and_localhost_defaults():
     install_text = (ROOT / "desktop/windows/install.ps1").read_text(encoding="utf-8")
     service_text = (ROOT / "desktop/windows/weisile-link-service.xml").read_text(
         encoding="utf-8"
@@ -65,8 +77,16 @@ def test_windows_install_scripts_keep_localhost_defaults():
     assert "127.0.0.1" in install_text
     assert "20111" in install_text
     assert "8766" in install_text
+    assert "desktop-supervise" in install_text
+    assert "--open-scratchai" in install_text
+    assert "WeisileEV3BluetoothAdapter.exe" in install_text
+    assert "DiagnosticsRoot" in install_text
+    assert "WEISILE_TRANSPORT=wifi" not in install_text
     assert "WeisileLink" in service_text
     assert "WEISILE_LINK_HOST=127.0.0.1" in service_text
+    assert "desktop-supervise" in service_text
+    assert "--native-adapter" in service_text
+    assert "WEISILE_TRANSPORT" not in service_text
 
 
 def test_desktop_asset_validator_passes():

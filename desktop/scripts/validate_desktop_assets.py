@@ -29,6 +29,7 @@ def main() -> int:
     with (ROOT / "desktop/macos/weisile-link.launchd.plist").open("rb") as handle:
         plist = plistlib.load(handle)
     env = plist.get("EnvironmentVariables", {})
+    args = plist.get("ProgramArguments", [])
     if env.get("WEISILE_LINK_HOST") != "127.0.0.1":
         print("macOS LaunchAgent must bind localhost by default", file=sys.stderr)
         return 1
@@ -37,10 +38,19 @@ def main() -> int:
         "WeisileEV3BluetoothAdapter.app/Contents/MacOS/"
         "WeisileEV3BluetoothAdapter"
     )
-    if env.get("WEISILE_OFFICIAL_BT_ADAPTER") != expected_adapter:
+    if "desktop-supervise" not in args:
+        print("macOS LaunchAgent must call desktop-supervise", file=sys.stderr)
+        return 1
+    if expected_adapter not in args:
         print(
-            "macOS LaunchAgent must point official-firmware Bluetooth mode "
+            "macOS LaunchAgent must point full VSLE Bluetooth mode "
             "at the bundled native adapter",
+            file=sys.stderr,
+        )
+        return 1
+    if "WEISILE_TRANSPORT" in env:
+        print(
+            "macOS LaunchAgent must not force a developer transport mode",
             file=sys.stderr,
         )
         return 1
@@ -57,6 +67,15 @@ def main() -> int:
     windows_text = (ROOT / "desktop/windows/install.ps1").read_text(encoding="utf-8")
     if "0.0.0.0" in windows_text:
         print("Windows default install must not bind LAN", file=sys.stderr)
+        return 1
+    if "desktop-supervise" not in windows_text:
+        print("Windows startup must call desktop-supervise", file=sys.stderr)
+        return 1
+    service_text = (ROOT / "desktop/windows/weisile-link-service.xml").read_text(
+        encoding="utf-8"
+    )
+    if "desktop-supervise" not in service_text:
+        print("Windows service must call desktop-supervise", file=sys.stderr)
         return 1
 
     print("desktop assets ok")

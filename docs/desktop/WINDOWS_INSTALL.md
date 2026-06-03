@@ -120,6 +120,12 @@ The first classroom release should support per-user startup because admin rights
 are not guaranteed. A machine-wide Windows Service path may be documented for
 IT-managed labs.
 
+The checked Windows startup script and service template call
+`desktop-supervise`, keep the local bridge on `127.0.0.1`, open ScratchAI after
+the bridge is ready, and pass the bundled
+`native\WeisileEV3BluetoothAdapter.exe` only when it exists. The Windows native
+RFCOMM adapter remains a separate classroom-readiness gate.
+
 The default install must bind only to `127.0.0.1`; it must not open LAN firewall
 rules. LAN access requires explicit teacher configuration and pairing-token
 setup.

@@ -43,6 +43,9 @@ as equivalent to full VSLE mode.
 - Export a diagnostic bundle with redaction enabled by default.
 - Offer start, stop, health check, and uninstall controls.
 - Detect port conflicts on `20111` or `8766` and show a recovery message.
+- Use `desktop-supervise` as the installed macOS/Windows startup entry so
+  saved-profile EV3 ready checks, local port monitoring, one-click ScratchAI
+  launch, and guided-diagnostics routing share one implementation.
 - Restart or surface a teacher-visible failure after bridge crashes.
 
 ## Security Defaults

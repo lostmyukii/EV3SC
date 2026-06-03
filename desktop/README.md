@@ -89,6 +89,14 @@ If no profile or credential exists, the supervisor returns `needs_pairing` and
 does not start the bridge. If the EV3 ready-check or local port checks fail, it
 returns `needs_attention` so the UI can open guided diagnostics.
 
+The checked macOS LaunchAgent and Windows startup/service assets already call
+`desktop-supervise` with localhost ports. The macOS asset passes the bundled
+native adapter from
+`WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter.app`.
+The Windows startup script passes a bundled adapter only when
+`native\WeisileEV3BluetoothAdapter.exe` exists, because the Windows native
+RFCOMM adapter remains a separate classroom readiness gate.
+
 The minimal first-run pairing command is:
 
 ```bash

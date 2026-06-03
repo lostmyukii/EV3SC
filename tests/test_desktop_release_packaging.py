@@ -138,6 +138,12 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
     assert "NSBluetoothAlwaysUsageDescription" in adapter_info
     assert (app / "Contents/Resources/install.sh").is_file()
     assert (app / "Contents/Resources/weisile-link.launchd.plist").is_file()
+    launch_agent = plistlib.loads(
+        (app / "Contents/Resources/weisile-link.launchd.plist").read_bytes()
+    )
+    assert "desktop-supervise" in launch_agent["ProgramArguments"]
+    assert "--open-scratchai" in launch_agent["ProgramArguments"]
+    assert "WEISILE_TRANSPORT" not in launch_agent["EnvironmentVariables"]
 
     info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
     assert info["CFBundleName"] == "WeisileLink"
@@ -162,6 +168,7 @@ def test_macos_packager_creates_app_bundle_zip_and_metadata(tmp_path):
         "WeisileEV3BluetoothAdapter.app/Contents/Info.plist"
     ) in names
     assert "WeisileLink.app/Contents/Resources/install.sh" in names
+    assert "WeisileLink.app/Contents/Resources/weisile-link.launchd.plist" in names
 
     metadata = json.loads(
         (output / "WeisileLink-macos-0.1.0-test-manifest.json").read_text(
@@ -209,6 +216,14 @@ def test_windows_packager_creates_zip_and_metadata(tmp_path):
     assert "WeisileLink/WeisileLink.exe" in names
     assert "WeisileLink/install.ps1" in names
     assert "WeisileLink/weisile-link-service.xml" in names
+    install_text = (output / "WeisileLink/install.ps1").read_text(encoding="utf-8")
+    service_text = (output / "WeisileLink/weisile-link-service.xml").read_text(
+        encoding="utf-8"
+    )
+    assert "desktop-supervise" in install_text
+    assert "desktop-supervise" in service_text
+    assert "WEISILE_TRANSPORT=wifi" not in install_text
+    assert "WEISILE_TRANSPORT" not in service_text
 
     metadata = json.loads(
         (output / "WeisileLink-windows-0.1.0-test-manifest.json").read_text(

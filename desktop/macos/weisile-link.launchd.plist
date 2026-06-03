@@ -8,6 +8,16 @@
   <key>ProgramArguments</key>
   <array>
     <string>/Applications/WeisileLink.app/Contents/MacOS/WeisileLink</string>
+    <string>desktop-supervise</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>20111</string>
+    <string>--trainer-port</string>
+    <string>8766</string>
+    <string>--native-adapter</string>
+    <string>/Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter</string>
+    <string>--open-scratchai</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
@@ -17,10 +27,6 @@
     <string>20111</string>
     <key>TRAINER_WS_PORT</key>
     <string>8766</string>
-    <key>WEISILE_TRANSPORT</key>
-    <string>wifi</string>
-    <key>WEISILE_OFFICIAL_BT_ADAPTER</key>
-    <string>/Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter</string>
     <key>LOG_LEVEL</key>
     <string>INFO</string>
   </dict>

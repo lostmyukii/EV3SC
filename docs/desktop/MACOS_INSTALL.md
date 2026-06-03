@@ -45,7 +45,9 @@ and then verified on a clean machine.
 
 The installer registers a per-user LaunchAgent named `cn.vsle.weisile-link`.
 The LaunchAgent starts WeisileLink on login, keeps it alive, binds to
-`127.0.0.1`, and writes logs to `~/Library/Logs/WeisileLink`.
+`127.0.0.1`, calls `desktop-supervise` with the bundled native adapter, opens
+ScratchAI after the local bridge is ready, and writes logs to
+`~/Library/Logs/WeisileLink`.
 
 ## Signing and Notarization
 
