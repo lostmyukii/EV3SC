@@ -3794,6 +3794,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/runtime.py`, `weisile-link/tests/test_desktop_runtime.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`
 - **Next step**: Add the one-click ScratchAI launch and packaged Desktop supervision wrapper so macOS/Windows app shells can start `desktop-start`, monitor `20111`/`8766`, open the public ScratchAI URL, and route failures into guided diagnostics.
 
+### [2026-06-03] Desktop ScratchAI supervisor launch
+- **Status**: ✅ Completed
+- **Commit**: `7b16cd8`
+- **What was done**: Added a reusable Desktop supervisor layer and `python -m weisile_link desktop-supervise` command for the future macOS/Windows app shells. The supervisor runs a stored-credential EV3 ready-check, starts a child `desktop-start` bridge without placing tokens on the command line, monitors local ports `20111` and `8766`, optionally opens the configured ScratchAI URL, and returns redacted four-state JSON that routes missing credentials to pairing and bridge/EV3 failures to guided diagnostics.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/supervisor.py`, `weisile-link/tests/test_desktop_supervisor.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`
+- **Next step**: Wire the supervisor into macOS LaunchAgent and Windows shortcut/startup assets so installed packages call `desktop-supervise` with the bundled native adapter, preserve localhost defaults, and expose diagnostics/log paths suitable for clean-machine install smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
