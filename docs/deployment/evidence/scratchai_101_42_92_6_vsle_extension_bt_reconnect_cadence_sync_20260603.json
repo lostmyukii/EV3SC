@@ -1,0 +1,43 @@
+{
+  "status": "completed",
+  "generated_at_utc": "2026-06-03T05:46:35Z",
+  "public_url": "http://101.42.92.6:18612/",
+  "public_extension_url": "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+  "remote_host_alias": "ubuntu-ss9r-medication",
+  "remote_base_dir": "/home/ubuntu/ev3sc-scratchai-18612",
+  "previous_release": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260602-numeric-boolean",
+  "release": "scratchai-18612-20260603-bt-reconnect-cadence",
+  "current_release": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260603-bt-reconnect-cadence",
+  "local_code_commit": "a17d9af",
+  "local_docs_commit_before_deploy_evidence": "4b66644",
+  "local_extension_sha256": "cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d",
+  "remote_extension_sha256": "cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d",
+  "public_extension_sha256": "cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d",
+  "public_extension_checks": {
+    "connection_cadence_constant": "CONNECTION_STALE_MS = 5000",
+    "legacy_200ms_connection_constant_absent": true,
+    "numeric_boolean_normalization_present": true,
+    "numeric_one_boolean_case_present": true
+  },
+  "service_status": {
+    "ev3sc-scratchai-preview-18612.service": "active",
+    "ev3sc-scratchai-middleware-18614.service": "active",
+    "ev3sc-scratchai-asset-18615.service": "active"
+  },
+  "local_tests": [
+    {
+      "command": ".venv/bin/python -m pytest weisile-link/tests/test_bluetooth_transport.py -q",
+      "result": "15 passed"
+    },
+    {
+      "command": "npm test -- --test-name-pattern='connection reporter|Bluetooth|numeric boolean|system blocks'",
+      "working_directory": "vsle-ev3-extension",
+      "result": "35 passed"
+    }
+  ],
+  "notes": [
+    "Only the EV3SC-owned VSLE-EV3 extension file was replaced in the copied public ScratchAI release.",
+    "Scratch visual design and GUI build assets were preserved from the previous public release.",
+    "Bluetooth hardware still requires local WeisileLink running on the teacher computer; the cloud host only serves the ScratchAI page and extension script."
+  ]
+}

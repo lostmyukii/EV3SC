@@ -244,6 +244,31 @@ Previous in-repo fallback verification remains valid for offline/local fallback:
 
 Prompt robustness check: the prompt `transparent classroom EV3 helper sprite, clean silhouette, no background` produced an opaque provider image and the server correctly rejected it with `generated=false` because transparent-background repair did not pass. The prompt `transparent friendly EV3 robot helper sprite, full body, clean silhouette, no background` completed with `generated=true`; this confirms the provider is reachable while preserving the classroom requirement that character assets must pass transparent-background validation before adoption.
 
+## 2026-06-03 VSLE Extension Bluetooth Reconnect/Cadence Sync
+
+Evidence:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.md`
+
+Release:
+
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260603-bt-reconnect-cadence`
+
+This copied the previous public release and replaced only
+`static/vsle-ev3-extension/index.js` with the EV3SC-owned extension from commit
+`a17d9af`. The public extension SHA-256 now matches local:
+
+```text
+cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d
+```
+
+The public extension contains `CONNECTION_STALE_MS = 5000`, keeps the numeric
+EV3 Boolean normalization for payloads such as `S4.pressed: 1`, and no longer
+uses the 200 ms connection reporter constant that caused slow Bluetooth
+classroom sampling to appear disconnected. The preview, middleware, and asset
+worker services were restarted and verified active.
+
 ## Notes
 
 - `http://49.232.81.132:18602/` and its API routes require preview authentication from the old deployment, so public unauthenticated API introspection was not possible.
