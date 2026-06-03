@@ -38,6 +38,7 @@ All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 | `windows/lib/SetupWizard.psm1` | `install/windows/lib/SetupWizard.psm1` | Windows Phase A setup step model | Script |
 | `windows/lib/InstallFileChecks.psm1` | `install/windows/lib/InstallFileChecks.psm1` | Windows Phase B file validation module for Step 1 | Script |
 | `windows/lib/WindowsInstallActions.psm1` | `install/windows/lib/WindowsInstallActions.psm1` | Windows Phase C Desktop install staging, confirmed copy, helper execution, and startup verification module for Step 7 | Script |
+| `windows/lib/Ev3ConnectionChecks.psm1` | `install/windows/lib/Ev3ConnectionChecks.psm1` | Windows Phase D EV3 transport input validation, guarded EV3 server install plan, and Bluetooth Full VSLE pairing guide module | Script |
 | `windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | Windows setup wizard development design | Documentation |
 
 ## Evidence And Samples

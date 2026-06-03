@@ -146,6 +146,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -195,6 +196,54 @@
 
                     <Border
                         Grid.Row="2"
+                        x:Name="Ev3SetupPanel"
+                        Visibility="Collapsed"
+                        Background="#F8F8FA"
+                        CornerRadius="18"
+                        Padding="18"
+                        Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock
+                                Text="EV3 connection"
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextBrush}" />
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Transport" FontSize="13" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                <ComboBox x:Name="TransportComboBox" Grid.Row="0" Grid.Column="1" Height="32" SelectedIndex="0">
+                                    <ComboBoxItem Content="WiFi Full VSLE" Tag="wifi-full-vsle" />
+                                    <ComboBoxItem Content="Bluetooth Full VSLE" Tag="bluetooth-full-vsle" />
+                                    <ComboBoxItem Content="USB-assisted setup" Tag="usb-assisted" />
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="EV3 SSH host" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                <TextBox x:Name="Ev3HostTextBox" Grid.Row="1" Grid.Column="1" Height="32" Margin="0,10,0,0" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="SSH user" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                <TextBox x:Name="Ev3UserTextBox" Grid.Row="2" Grid.Column="1" Height="32" Margin="0,10,0,0" Text="robot" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Bluetooth address" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                                <TextBox x:Name="Ev3BluetoothAddressTextBox" Grid.Row="3" Grid.Column="1" Height="32" Margin="0,10,0,0" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="SSH authentication is requested by Windows/OpenSSH and is not written into wizard evidence." FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        Grid.Row="3"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18"
@@ -215,7 +264,7 @@
                     </Border>
 
                     <Border
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18">
@@ -244,7 +293,7 @@
                         VerticalAlignment="Center"
                         FontSize="13"
                         Foreground="{StaticResource MutedTextBrush}" />
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button
                             x:Name="BackButton"
                             Content="Back"
@@ -263,10 +312,15 @@
                             Visibility="Collapsed"
                             Style="{StaticResource PrimaryButtonStyle}" />
                         <Button
+                            x:Name="ConfirmEv3InstallButton"
+                            Content="Confirm EV3 Install"
+                            Visibility="Collapsed"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                        <Button
                             x:Name="ContinueButton"
                             Content="Continue"
                             Style="{StaticResource PrimaryButtonStyle}" />
-                    </StackPanel>
+                    </WrapPanel>
                 </DockPanel>
             </Grid>
         </Border>

@@ -62,8 +62,8 @@ install/
 ```
 
 `shared/` 是 EV3 端和课程共用文件。`mac/` 与 `windows/` 是老师电脑端文件。
-Windows 下的 `setup-wizard.ps1` 是 Phase A 图形向导骨架，只显示步骤和状态，
-不会执行安装、解压、刷卡、SSH 或启动程序动作。Phase B 已将文件校验模块
+Windows 下的 `setup-wizard.ps1` 是图形向导入口，启动时不会自动执行安装、
+解压、刷卡、SSH 或启动程序动作。Phase B 已将文件校验模块
 `windows/lib/InstallFileChecks.psm1` 接入 `Validate Files` 步骤，用于检查哈希、
 zip 目录、JSON、XML 和必需路径。Phase C 已将
 `windows/lib/WindowsInstallActions.psm1` 接入 `Install WeisileLink Desktop`
@@ -71,7 +71,11 @@ zip 目录、JSON、XML 和必需路径。Phase C 已将
 老师点击 `Confirm Install` 之前，它不会复制到 `%LocalAppData%`，也不会调用
 安装脚本；确认后才复制 staged package、运行 Windows helper，并验证启动命令
 指向 `desktop-supervise` 的 localhost 默认端口 `127.0.0.1:20111` 和
-`127.0.0.1:8766`。
+`127.0.0.1:8766`。Phase D 已将 `windows/lib/Ev3ConnectionChecks.psm1`
+接入 EV3 引导步骤，用于校验 WiFi Full VSLE、Bluetooth Full VSLE 和
+USB-assisted setup 输入，生成 EV3 server 的 SSH/SCP 安装计划；老师点击
+`Confirm EV3 Install` 之前不会运行 SSH/SCP，也不会保存 SSH 密码或 pairing
+token。
 
 要复制到 U 盘并把相对链接展开为真实文件：
 

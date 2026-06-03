@@ -99,6 +99,37 @@ package into a clean temporary install root, and inspect startup metadata. The
 Windows WPF visual flow and actual helper execution still require a Windows
 PowerShell 5.1 smoke run.
 
+## Phase D EV3 Guided Setup
+
+The EV3 setup steps now use:
+
+```text
+lib/Ev3ConnectionChecks.psm1
+```
+
+The wizard exposes WiFi Full VSLE, Bluetooth Full VSLE, and USB-assisted setup
+inputs, plus SSH host, SSH user, and Bluetooth address fields. The default SSH
+user is `robot`. The EV3 SSH password is not stored or written into wizard
+evidence; Windows/OpenSSH authentication is handled outside the saved report.
+
+The `Install EV3 server` step generates a guarded SSH/SCP command plan that
+copies the EV3SC-owned server files and offline `websockets-7.0.tar.gz`, then
+runs:
+
+```text
+SKIP_PIP_INSTALL=1 ./scripts/install.sh
+systemctl is-active vsle-ev3-server.service
+```
+
+The command sequence runs only after the teacher clicks `Confirm EV3 Install`.
+Bluetooth Full VSLE remains an ev3dev + VSLE server path, and the wizard keeps
+official-firmware Bluetooth separate from Full VSLE.
+
+On macOS, automated validation can check the input model, command plan, source
+file paths, XAML structure, and redaction boundaries. Real USB/WiFi SSH install
+and Windows Bluetooth pairing still require a Windows machine and real EV3
+hardware smoke.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:

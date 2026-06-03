@@ -136,6 +136,7 @@ verify_once() {
     check_exists "windows/lib/SetupWizard.psm1" "Windows setup wizard Phase A step model"
     check_exists "windows/lib/InstallFileChecks.psm1" "Windows setup wizard Phase B file validator"
     check_exists "windows/lib/WindowsInstallActions.psm1" "Windows setup wizard Phase C confirmed desktop install actions"
+    check_exists "windows/lib/Ev3ConnectionChecks.psm1" "Windows setup wizard Phase D EV3 guided setup actions"
     check_exists "windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md" "Windows setup wizard development design"
     check_exists "shared/04-ai-quest-samples/ai-quest-samples/projects/obstacle_avoidance_collector.json" "AI Quest sample"
 
