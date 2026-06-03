@@ -575,6 +575,10 @@ Acceptance:
 
 - A teacher can prepare 10 EV3 bricks and 10 student computers with consistent
   labels and no terminal commands.
+- `scripts/run_desktop_fleet_rehearsal.py` passes for at least 10 devices,
+  imports a token-free roster, pairs/selects each simulated profile, verifies
+  Desktop startup/supervisor readiness for each profile, and writes token-safe
+  simulated evidence before signed clean-machine package evidence begins.
 
 ## Decisions To Make Before Implementation
 

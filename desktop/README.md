@@ -112,6 +112,21 @@ which EV3 is the current default. `desktop-device select` changes
 uses that classroom EV3 without editing `config.json`. App shells can also pass
 `--brick-id` to `desktop-start` or `desktop-supervise` for a one-time selection.
 
+Before treating fleet profile handling as ready for signed clean-machine
+package evidence, run the simulated 10-device rehearsal gate:
+
+```bash
+./.venv/bin/python scripts/run_desktop_fleet_rehearsal.py
+```
+
+The gate imports a non-secret roster, pairs 10 simulated classroom EV3 profiles,
+selects each profile, runs Desktop startup and supervisor checks for each one,
+and writes token-safe evidence to
+`docs/desktop/evidence/desktop-fleet-rehearsal.json` plus
+`docs/desktop/DESKTOP_FLEET_REHEARSAL.md`. It is simulated-only evidence and
+does not replace signed release-artifact install smoke evidence or real EV3
+Bluetooth evidence.
+
 ```bash
 python -m weisile_link desktop-device \
   --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
@@ -211,6 +226,8 @@ Run:
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_roster.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_maintenance.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_pairing.py -v
+./.venv/bin/python -m pytest tests/test_desktop_fleet_rehearsal.py -v
+./.venv/bin/python scripts/run_desktop_fleet_rehearsal.py
 desktop/scripts/validate_desktop_assets.py
 ```
 

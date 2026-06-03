@@ -1,0 +1,119 @@
+{
+  "commands_launched": 10,
+  "device_count": 10,
+  "devices": [
+    {
+      "brick_id": "VSLE-EV3-0001",
+      "label": "EV3-01",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0002",
+      "label": "EV3-02",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0003",
+      "label": "EV3-03",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0004",
+      "label": "EV3-04",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0005",
+      "label": "EV3-05",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0006",
+      "label": "EV3-06",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0007",
+      "label": "EV3-07",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0008",
+      "label": "EV3-08",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0009",
+      "label": "EV3-09",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    },
+    {
+      "brick_id": "VSLE-EV3-0010",
+      "label": "EV3-10",
+      "local_ports_ready": true,
+      "process_started": true,
+      "selected": true,
+      "startup_sensor_updates": 1,
+      "startup_state": "ready",
+      "supervisor_state": "ready"
+    }
+  ],
+  "evidence_kind": "desktop_fleet_rehearsal_simulated",
+  "minimum_required_devices": 10,
+  "next_gate": "Collect signed clean-machine macOS/Windows release evidence and real EV3 Bluetooth install smoke artifacts.",
+  "profiles_paired": 10,
+  "recorded_at": "2026-06-03T08:55:34.645759+00:00",
+  "release_artifact_evidence_ready": false,
+  "roster_imported": true,
+  "selected_profiles": 10,
+  "simulated_only": true,
+  "startup_ready": 10,
+  "status": "passed",
+  "supervisor_ready": 10,
+  "token_safe": true
+}

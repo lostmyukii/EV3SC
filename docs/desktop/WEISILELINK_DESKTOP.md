@@ -63,6 +63,22 @@ clean-machine install, upgrade, login/reboot auto-start, health check,
 ScratchAI WebSocket connection, diagnostics export, crash recovery, and
 uninstall verification on the target OS.
 
+Before signed clean-machine package evidence, the fleet profile path has its
+own simulated rehearsal gate:
+
+```bash
+./.venv/bin/python scripts/run_desktop_fleet_rehearsal.py
+```
+
+This imports a non-secret 10-device roster, saves simulated paired profiles
+through the Desktop credential/profile layer, selects every EV3, runs
+`desktop-start` ready checks and `desktop-supervise` port checks for each
+profile, and writes token-safe evidence to
+`docs/desktop/evidence/desktop-fleet-rehearsal.json` and
+`docs/desktop/DESKTOP_FLEET_REHEARSAL.md`. The evidence is intentionally marked
+`simulated_only: true` and `release_artifact_evidence_ready: false`; it proves
+fleet profile handling, not classroom release readiness.
+
 ## Release Artifact Packaging
 
 The first packaging step is `desktop/scripts/build_release_artifacts.py`. It
