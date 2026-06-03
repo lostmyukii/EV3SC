@@ -3871,6 +3871,13 @@ material into:
 - **Files created/modified**: `.github/workflows/windows-internal-release.yml`, `scripts/run_internal_release_flow.js`, `package.json`, `tests/test_internal_release_flow.py`, `README.md`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/WINDOWS_INSTALL.md`
 - **Next step**: Download the `windows-internal-release-evidence` artifact from the successful GitHub Actions run and use its unsigned Windows evidence for internal tester handoff; keep Windows code signing, timestamp URL, and SmartScreen reputation on the Production Release track only.
 
+### [2026-06-03] Windows internal release artifact handoff evidence
+- **Status**: ✅ Completed
+- **Commit**: `c63a6f6`
+- **What was done**: Downloaded the authenticated GitHub Actions artifact `windows-internal-release-evidence` from run `26879990306` and stored it as EV3SC-owned internal Windows unsigned test delivery evidence. Verified the local artifact SHA-256 matches the GitHub Actions digest `sha256:1853a7de52b37c683247440afa8cf66d112fe19993bc5876f4a20f1528c75fb0`, recorded the download receipt, and confirmed the zip contains the Windows unsigned internal release evidence, `WeisileLink.exe`, installer helpers, service metadata, manifest, and unsigned release zip.
+- **Files created/modified**: `docs/desktop/evidence/windows-internal-release-evidence/windows-internal-release-evidence.zip`, `docs/desktop/evidence/windows-internal-release-evidence/README.md`, `docs/desktop/evidence/windows-internal-release-evidence/download-receipt.json`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Hand the unsigned Windows internal artifact to VSLE-controlled internal testers and collect clean-machine Windows install smoke evidence before any Windows package is treated as release-artifact classroom evidence; keep production Windows code signing, timestamp URL, and SmartScreen/publisher reputation gates separate.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
