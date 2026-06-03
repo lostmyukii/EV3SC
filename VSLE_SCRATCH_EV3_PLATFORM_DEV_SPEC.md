@@ -3745,6 +3745,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `vsle-ev3-extension/index.js`, `vsle-ev3-extension/tests/test_extension.js`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Sync the updated VSLE extension to `http://101.42.92.6:18612/`, restart the local WeisileLink process from the updated checkout, hard-refresh ScratchAI, and rerun S1-S4 real sensor checks without USB.
 
+### [2026-06-03] Public ScratchAI Bluetooth reconnect extension sync
+- **Status**: ✅ Completed
+- **Commit**: `b93a2ab`
+- **What was done**: Published the Bluetooth reconnect/cadence VSLE-EV3 extension to the public ScratchAI host as release `scratchai-18612-20260603-bt-reconnect-cadence`. Verified the public extension SHA-256 matches local, contains `CONNECTION_STALE_MS = 5000`, keeps numeric EV3 Boolean handling, and the public preview/middleware/asset services are active.
+- **Files created/modified**: `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.json`, `docs/deployment/evidence/scratchai_101_42_92_6_vsle_extension_bt_reconnect_cadence_sync_20260603.md`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Stop any older local WeisileLink process, restart it from the updated checkout with the saved pairing token, hard-refresh `http://101.42.92.6:18612/`, re-add the EV3 extension, and rerun the real S1-S4 sensor checks without USB.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
