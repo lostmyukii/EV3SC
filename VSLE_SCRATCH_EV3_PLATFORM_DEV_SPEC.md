@@ -3801,6 +3801,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/supervisor.py`, `weisile-link/tests/test_desktop_supervisor.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`
 - **Next step**: Wire the supervisor into macOS LaunchAgent and Windows shortcut/startup assets so installed packages call `desktop-supervise` with the bundled native adapter, preserve localhost defaults, and expose diagnostics/log paths suitable for clean-machine install smoke evidence.
 
+### [2026-06-03] Desktop supervisor startup assets
+- **Status**: ✅ Completed
+- **Commit**: `71a5b72`
+- **What was done**: Updated the macOS LaunchAgent, macOS installer script, Windows startup script, and Windows service template so installed Desktop assets call `desktop-supervise` instead of the old developer environment-variable startup path. The assets keep localhost defaults, pass the bundled macOS native adapter, create documented config/log/diagnostics directories, avoid forcing `WEISILE_TRANSPORT=wifi`, and keep Windows native RFCOMM adapter support gated until the adapter exists.
+- **Files created/modified**: `desktop/macos/weisile-link.launchd.plist`, `desktop/macos/install.sh`, `desktop/windows/install.ps1`, `desktop/windows/weisile-link-service.xml`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`
+- **Next step**: Add a teacher-safe Desktop diagnostics/status command that runs the same local port, profile, credential, native adapter, and sensor-stream checks used by the supervisor, then writes a redacted support bundle for clean-machine install smoke evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
