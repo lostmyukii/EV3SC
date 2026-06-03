@@ -3927,6 +3927,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_c.py`, `tests/test_windows_setup_wizard_phase_c_execution.py`
 - **Next step**: Start Phase D EV3 Guided Setup by adding the SSH/transport input model and a guarded EV3 server install runner that keeps destructive or credential-sensitive actions behind manual confirmation.
 
+### [2026-06-03] Windows setup wizard Phase D EV3 input and guarded install planning
+- **Status**: ✅ Completed
+- **Commit**: `3c12808`
+- **What was done**: Added the Phase D EV3 guided setup module and UI wiring. The wizard now exposes WiFi Full VSLE, Bluetooth Full VSLE, and USB-assisted setup inputs, validates SSH host/user and Bluetooth address without storing secrets, prepares an EV3 server SSH/SCP install command plan from in-repo install assets, and keeps command execution behind `Confirm EV3 Install`.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Continue Phase D by adding real Windows PowerShell 5.1 + EV3 hardware smoke evidence for the SSH install path and a Bluetooth Full VSLE pairing confirmation/report slice.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
