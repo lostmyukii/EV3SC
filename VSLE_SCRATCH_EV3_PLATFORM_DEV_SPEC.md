@@ -3780,6 +3780,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/tests/test_desktop_profiles.py`, `desktop/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the first-run Desktop pairing command/wizard flow that opens Bluetooth, calls `BluetoothTransport.claim()`, saves the secure profile, starts WeisileLink from the saved profile, and performs the ready-check sensor subscription without USB.
 
+### [2026-06-03] Desktop first-run EV3 pairing command
+- **Status**: ✅ Completed
+- **Commit**: `f66ceb4`
+- **What was done**: Added a minimal first-run Desktop pairing flow exposed through `python -m weisile_link desktop-pair`. The command opens full VSLE Bluetooth, calls EV3 `auth.claim`, saves the secure profile, reconnects using the stored credential, waits for a sensor update as the ready check, and prints only redacted JSON with `paired`, `ready`, and `ready_check` fields.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/pairing.py`, `weisile-link/tests/test_desktop_pairing.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Wire the saved Desktop profile into the packaged WeisileLink startup path so the app can launch/reconnect the local JSON-RPC bridge from `config.json`, surface the four teacher health states, and open ScratchAI without terminal environment variables.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
