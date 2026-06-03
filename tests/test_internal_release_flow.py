@@ -225,15 +225,28 @@ def test_root_package_exposes_internal_release_scripts():
     payload = json.loads(package_json.read_text(encoding="utf-8"))
     scripts = payload["scripts"]
 
-    assert (
-        scripts["build:mac:internal"]
-        == "./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean"
-    )
-    assert (
-        scripts["build:win:internal"]
-        == "./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean"
-    )
-    assert (
-        scripts["release:internal"]
-        == "./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean"
-    )
+    assert scripts["build:mac:internal"] == "node scripts/run_internal_release_flow.js macos"
+    assert scripts["build:win:internal"] == "node scripts/run_internal_release_flow.js windows"
+    assert scripts["release:internal"] == "node scripts/run_internal_release_flow.js all"
+
+    shim = ROOT / "scripts/run_internal_release_flow.js"
+    text = shim.read_text(encoding="utf-8")
+    assert "process.env.PYTHON" in text
+    assert ".venv" in text
+    assert "Scripts" in text
+    assert "bin" in text
+    assert '"desktop", "scripts", "run_internal_release_flow.py"' in text
+
+
+def test_github_actions_windows_internal_release_workflow():
+    workflow = ROOT / ".github/workflows/windows-internal-release.yml"
+
+    text = workflow.read_text(encoding="utf-8")
+
+    assert "runs-on: windows-latest" in text
+    assert "npm run build:win:internal" in text
+    assert "actions/upload-artifact" in text
+    assert "docs/desktop/evidence/internal-release" in text
+    assert "desktop/release/internal/windows" in text
+    assert "python -m venv .venv" in text
+    assert "pyinstaller" in text.lower()

@@ -23,12 +23,18 @@ npm run build:win:internal
 npm run release:internal
 ```
 
-These call:
+These call the cross-platform Node shim, which selects `.venv/bin/python` on
+macOS/Linux and `.venv\Scripts\python.exe` on Windows before invoking the
+underlying Python runner:
 
 ```bash
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+node scripts/run_internal_release_flow.js macos
+node scripts/run_internal_release_flow.js windows
+node scripts/run_internal_release_flow.js all
+
+desktop/scripts/run_internal_release_flow.py --target macos --clean
+desktop/scripts/run_internal_release_flow.py --target windows --clean
+desktop/scripts/run_internal_release_flow.py --target all --clean
 ```
 
 On macOS, unsigned internal builds may trigger a system prompt such as "cannot

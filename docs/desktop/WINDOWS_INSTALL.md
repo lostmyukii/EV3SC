@@ -38,9 +38,13 @@ npm run build:mac:internal
 npm run build:win:internal
 npm run release:internal
 
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
-./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+node scripts/run_internal_release_flow.js macos
+node scripts/run_internal_release_flow.js windows
+node scripts/run_internal_release_flow.js all
+
+desktop/scripts/run_internal_release_flow.py --target macos --clean
+desktop/scripts/run_internal_release_flow.py --target windows --clean
+desktop/scripts/run_internal_release_flow.py --target all --clean
 ```
 
 For Internal Test Release, Windows signing and timestamp URLs are Internal Test Optional.
