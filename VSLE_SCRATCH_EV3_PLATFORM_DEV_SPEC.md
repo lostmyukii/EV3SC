@@ -3920,6 +3920,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_c.py`
 - **Next step**: Complete the remaining Phase C install execution slice by adding an explicit confirmation control that copies staged files to a temp install root, invokes the Windows helper only after confirmation, and verifies the startup command points to `desktop-supervise`.
 
+### [2026-06-03] Windows setup wizard Phase C confirmed desktop install execution
+- **Status**: ✅ Completed
+- **Commit**: `7ee9748`
+- **What was done**: Added the explicit `Confirm Install` path for the Windows Desktop step. The wizard now keeps staging separate from installation, copies staged WeisileLink Desktop files only after confirmation, runs the Windows helper only from that confirmed path, and verifies copied startup metadata points to `desktop-supervise` with localhost defaults. macOS validation covers tests, evidence bundle extraction, temp-root copy behavior, and static XAML/XML checks; Windows WPF smoke is still required for visual and click-flow accuracy.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_c.py`, `tests/test_windows_setup_wizard_phase_c_execution.py`
+- **Next step**: Start Phase D EV3 Guided Setup by adding the SSH/transport input model and a guarded EV3 server install runner that keeps destructive or credential-sensitive actions behind manual confirmation.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
