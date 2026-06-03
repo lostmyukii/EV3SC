@@ -3857,6 +3857,13 @@ material into:
 - **Files created/modified**: `docs/desktop/evidence/release-evidence-readiness-20260603.json`, `docs/desktop/evidence/release-evidence-readiness-20260603.md`, `docs/desktop/evidence/macos-release-flow.json`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Provide macOS Developer ID Application and Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE`, then rerun `desktop/scripts/run_macos_release_flow.py`; or move to a Windows build host with SignTool, `desktop/build/windows/WeisileLink.exe`, `WEISILE_WINDOWS_SIGN_IDENTITY`, and `WEISILE_WINDOWS_TIMESTAMP_URL`, then collect clean-machine EV3 Bluetooth install smoke evidence from the signed artifact.
 
+### [2026-06-03] Internal unsigned desktop release target
+- **Status**: ✅ Completed
+- **Commit**: `4380712`
+- **What was done**: Split desktop release evidence into Internal Test Release and Production Release tracks. Added reproducible unsigned internal build commands, generated a macOS unsigned internal artifact/evidence report, recorded `needs_pairing` as the expected unpaired startup state, and kept Developer ID signing, notarization, Windows signing, timestamp URLs, and SmartScreen/publisher reputation as Production Release Blocker items only.
+- **Files created/modified**: `desktop/scripts/run_internal_release_flow.py`, `tests/test_internal_release_flow.py`, `package.json`, `README.md`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/evidence/internal-release.json`, `docs/desktop/evidence/internal-release.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Run `npm run build:win:internal` on a real Windows host or GitHub Actions `windows-latest`, then use the generated unsigned Windows internal evidence for tester handoff while leaving production signing and notarization for the Production Release stage.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
