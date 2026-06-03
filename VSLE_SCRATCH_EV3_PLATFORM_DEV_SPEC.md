@@ -3766,6 +3766,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/scripts/vsle_firstboot.py`, `ev3-firmware/systemd/vsle-firstboot.service`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `ev3-firmware/scripts/rollback_ev3_autostart.sh`, `ev3-firmware/README.md`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the `auth.claim` EV3 server and WeisileLink pairing contract so WeisileLink Desktop can claim a fresh EV3 by brick ID and claim code, store the pairing token securely, and start Bluetooth Full VSLE without USB.
 
+### [2026-06-03] EV3 claim pairing handshake
+- **Status**: ✅ Completed
+- **Commit**: `80a1afb`
+- **What was done**: Implemented the EV3 `auth.claim` pairing handshake for first-run classroom provisioning. The EV3 server now validates the one-time claim code, rate-limits failed attempts, returns the long runtime pairing token and device manifest only on success, marks the claim code used in the private env file, and WeisileLink Bluetooth transport now has a tested `claim()` method for the Desktop pairing wizard.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement Desktop profile and credential storage so the claimed token is saved outside the visible config file, with macOS Keychain and Windows Credential Manager adapters behind a common WeisileLink Desktop credential interface.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
