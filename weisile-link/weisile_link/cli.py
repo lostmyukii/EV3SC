@@ -17,6 +17,10 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from weisile_link.desktop.pairing import run_pairing_command
+from weisile_link.desktop.runtime import (
+    DesktopStartupPlan,
+    run_desktop_start_command,
+)
 from weisile_link.json_rpc_server import (
     DEFAULT_ALLOWED_ORIGINS,
     ScratchJsonRpcServer,
@@ -47,6 +51,7 @@ class WeisileLinkRuntimeConfig:
     vsle_bt_adapter: str = ""
     official_bt_adapter: str = ""
     transport: str = "auto"
+    pairing_token: str = ""
     max_collected_points: int = 10_000
     log_level: str = "INFO"
     allowed_origins: Tuple[str, ...] = DEFAULT_ALLOWED_ORIGINS
@@ -74,6 +79,10 @@ class WeisileLinkRuntimeConfig:
                 cls.official_bt_adapter,
             ),
             transport=os.getenv("WEISILE_TRANSPORT", cls.transport).lower(),
+            pairing_token=os.getenv(
+                "WEISILE_PAIRING_TOKEN",
+                cls.pairing_token,
+            ),
             max_collected_points=_int_env(
                 "MAX_COLLECTED_POINTS",
                 cls.max_collected_points,
@@ -91,6 +100,7 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
     wifi_transport = WiFiTransport(
         config.ev3_ip,
         port=config.ev3_ws_port,
+        pairing_token=config.pairing_token,
         manager=manager,
     )
     bluetooth_transport: Optional[VSLEBluetoothTransport] = None
@@ -102,6 +112,7 @@ def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
         )
         bluetooth_transport = VSLEBluetoothTransport(
             config.ev3_bt,
+            pairing_token=config.pairing_token,
             manager=manager,
             native_adapter=native_vsle_adapter,
         )
@@ -168,11 +179,39 @@ async def run_runtime(config: WeisileLinkRuntimeConfig) -> None:
     await asyncio.gather(server.run(), server.run_trainer())
 
 
+def runtime_config_from_desktop_plan(
+    args: object,
+    plan: DesktopStartupPlan,
+) -> WeisileLinkRuntimeConfig:
+    """Convert a saved Desktop profile plan into service runtime config."""
+    return WeisileLinkRuntimeConfig(
+        host=plan.host,
+        port=plan.port,
+        trainer_port=plan.trainer_port,
+        ev3_bt=plan.ev3_bt,
+        vsle_bt_adapter=plan.native_adapter_path,
+        transport=plan.transport,
+        pairing_token=plan.pairing_token,
+        log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
+        allowed_origins=plan.allowed_origins,
+    )
+
+
 def main(argv: Optional[List[str]] = None) -> None:
     """Run the packaged WeisileLink service."""
     args = list(sys.argv[1:] if argv is None else argv)
     if args[:1] == ["desktop-pair"]:
         raise SystemExit(asyncio.run(run_pairing_command(args[1:])))
+    if args[:1] == ["desktop-start"]:
+        raise SystemExit(
+            asyncio.run(
+                run_desktop_start_command(
+                    args[1:],
+                    runtime_config_factory=runtime_config_from_desktop_plan,
+                    runtime_runner=run_runtime,
+                )
+            )
+        )
 
     config = WeisileLinkRuntimeConfig.from_env()
     try:

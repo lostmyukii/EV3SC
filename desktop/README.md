@@ -38,6 +38,34 @@ the platform credential backend, and upserts the non-secret profile. At startup,
 `resolve_profile_environment()` reads the token from the credential backend and
 builds the runtime environment for `vsle-bluetooth`.
 
+Daily startup uses the saved profile instead of teacher-entered environment
+variables:
+
+```bash
+python -m weisile_link desktop-start \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter
+```
+
+`desktop-start` loads the default profile from `config.json`, retrieves the raw
+token from Keychain or Credential Manager, starts WeisileLink on
+`127.0.0.1:20111` and Trainer on `127.0.0.1:8766`, and adds the configured
+ScratchAI site origin to the WebSocket allowlist. Its startup JSON is safe to
+show in a classroom UI: it reports one of `ready`, `starting`, `needs_pairing`,
+or `needs_attention` without printing the pairing token.
+
+To run the automatic EV3 ready check without starting the long-running local
+bridge:
+
+```bash
+python -m weisile_link desktop-start --check-only
+```
+
+`ready` means the saved credential authenticated and at least one fresh EV3
+sensor frame arrived. `needs_pairing` means no usable credential exists or the
+token was rotated. `needs_attention` means the profile exists but the Desktop
+app should open guided diagnostics for Bluetooth, EV3 service, or sensor stream
+failure.
+
 The minimal first-run pairing command is:
 
 ```bash
