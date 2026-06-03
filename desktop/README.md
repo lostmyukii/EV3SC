@@ -89,6 +89,18 @@ If no profile or credential exists, the supervisor returns `needs_pairing` and
 does not start the bridge. If the EV3 ready-check or local port checks fail, it
 returns `needs_attention` so the UI can open guided diagnostics.
 
+For support export, use the shared diagnostics command:
+
+```bash
+python -m weisile_link desktop-diagnostics \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
+  --output "$HOME/Library/Application Support/VSLE/WeisileLink/diagnostics/support.json"
+```
+
+It checks the saved profile, secure credential, local ports, native adapter,
+EV3 ready-check, and sensor stream. The generated bundle is redacted by
+default and is safe to attach to a support ticket.
+
 The checked macOS LaunchAgent and Windows startup/service assets already call
 `desktop-supervise` with localhost ports. The macOS asset passes the bundled
 native adapter from

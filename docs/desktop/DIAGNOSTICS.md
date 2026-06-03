@@ -47,6 +47,27 @@ The status UI or Start Menu/menu-bar action should offer one-click diagnostics
 export. The exported bundle should be suitable for attaching to support tickets
 without requiring command-line use.
 
+The installed app and support scripts can use the shared command-line entry:
+
+```bash
+python -m weisile_link desktop-diagnostics \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter \
+  --output "$HOME/Library/Application Support/VSLE/WeisileLink/diagnostics/support.json"
+```
+
+The command checks:
+
+- saved Desktop profile and secure credential reference
+- local Scratch Link port `20111`
+- Trainer port `8766`
+- native Bluetooth adapter path and executable bit
+- EV3 authentication and fresh sensor stream through the saved credential
+
+By default the JSON output redacts raw pairing tokens, API keys, Bluetooth
+addresses, long labels, and raw student data. Use
+`--include-device-identifiers` only when a teacher explicitly wants support to
+see Bluetooth addresses and device identifiers.
+
 ## Verification
 
 Every desktop release must export diagnostics on a clean macOS and Windows

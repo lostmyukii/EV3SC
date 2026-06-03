@@ -20,6 +20,16 @@ from weisile_link.desktop.pairing import (
     create_vsle_bluetooth_transport,
     run_pairing_command,
 )
+from weisile_link.desktop.diagnostics import (
+    DesktopDiagnosticCheck,
+    DesktopDiagnosticsResult,
+    DesktopDiagnosticsService,
+    build_diagnostics_bundle,
+    build_diagnostics_parser,
+    redact_secret_text,
+    run_diagnostics_command,
+    sanitize_diagnostics_value,
+)
 from weisile_link.desktop.runtime import (
     DesktopHealthState,
     DesktopRuntimeService,
@@ -39,6 +49,9 @@ from weisile_link.desktop.supervisor import (
 )
 
 __all__ = [
+    "DesktopDiagnosticCheck",
+    "DesktopDiagnosticsResult",
+    "DesktopDiagnosticsService",
     "DesktopHealthState",
     "DesktopPairingResult",
     "DesktopPairingService",
@@ -53,6 +66,8 @@ __all__ = [
     "MacOSKeychainBackend",
     "MemoryCredentialBackend",
     "WindowsCredentialManagerBackend",
+    "build_diagnostics_bundle",
+    "build_diagnostics_parser",
     "build_desktop_start_parser",
     "build_desktop_start_command",
     "build_pairing_parser",
@@ -61,10 +76,13 @@ __all__ = [
     "credential_backend_for_platform",
     "create_vsle_bluetooth_transport",
     "default_config_path",
+    "redact_secret_text",
+    "run_diagnostics_command",
     "run_desktop_start_command",
     "resolve_profile_environment",
     "run_pairing_command",
     "run_supervisor_command",
+    "sanitize_diagnostics_value",
     "save_claimed_profile",
     "tcp_port_open",
     "wait_for_local_ports",

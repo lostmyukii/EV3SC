@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from weisile_link.desktop.pairing import run_pairing_command
+from weisile_link.desktop.diagnostics import run_diagnostics_command
 from weisile_link.desktop.runtime import (
     DesktopStartupPlan,
     run_desktop_start_command,
@@ -203,6 +204,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = list(sys.argv[1:] if argv is None else argv)
     if args[:1] == ["desktop-pair"]:
         raise SystemExit(asyncio.run(run_pairing_command(args[1:])))
+    if args[:1] == ["desktop-diagnostics"]:
+        raise SystemExit(asyncio.run(run_diagnostics_command(args[1:])))
     if args[:1] == ["desktop-start"]:
         raise SystemExit(
             asyncio.run(
