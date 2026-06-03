@@ -1,0 +1,1 @@
+../../../desktop/macos/native/build.sh

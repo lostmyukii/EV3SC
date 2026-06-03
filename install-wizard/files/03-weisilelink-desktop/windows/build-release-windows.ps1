@@ -1,1 +1,0 @@
-../../../../desktop/windows/build_release.ps1

@@ -1,0 +1,1 @@
+../../../desktop/windows/install.ps1

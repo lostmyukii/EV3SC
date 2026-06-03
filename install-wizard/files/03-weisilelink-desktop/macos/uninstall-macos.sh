@@ -1,1 +1,0 @@
-../../../../desktop/macos/uninstall.sh

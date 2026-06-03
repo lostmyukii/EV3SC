@@ -1,1 +1,0 @@
-../../../../desktop/windows/uninstall.ps1
