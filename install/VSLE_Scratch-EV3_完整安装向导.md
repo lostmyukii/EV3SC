@@ -65,7 +65,10 @@ install/
 Windows 下的 `setup-wizard.ps1` 是 Phase A 图形向导骨架，只显示步骤和状态，
 不会执行安装、解压、刷卡、SSH 或启动程序动作。Phase B 已将文件校验模块
 `windows/lib/InstallFileChecks.psm1` 接入 `Validate Files` 步骤，用于检查哈希、
-zip 目录、JSON、XML 和必需路径。
+zip 目录、JSON、XML 和必需路径。Phase C 已将
+`windows/lib/WindowsInstallActions.psm1` 接入 `Install WeisileLink Desktop`
+步骤，用于把 Windows evidence bundle 展开到临时 staging 并显示确认信息；
+它不会自动复制到 `%LocalAppData%`，也不会自动调用安装脚本。
 
 要复制到 U 盘并把相对链接展开为真实文件：
 

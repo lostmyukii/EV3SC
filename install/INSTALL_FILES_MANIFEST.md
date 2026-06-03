@@ -37,6 +37,7 @@ All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 | `windows/setup-wizard.xaml` | `install/windows/setup-wizard.xaml` | Windows Phase A WPF setup wizard layout | XML |
 | `windows/lib/SetupWizard.psm1` | `install/windows/lib/SetupWizard.psm1` | Windows Phase A setup step model | Script |
 | `windows/lib/InstallFileChecks.psm1` | `install/windows/lib/InstallFileChecks.psm1` | Windows Phase B file validation module for Step 1 | Script |
+| `windows/lib/WindowsInstallActions.psm1` | `install/windows/lib/WindowsInstallActions.psm1` | Windows Phase C Desktop install staging and confirmation module for Step 7 | Script |
 | `windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | Windows setup wizard development design | Documentation |
 
 ## Evidence And Samples

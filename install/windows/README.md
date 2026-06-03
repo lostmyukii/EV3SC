@@ -52,6 +52,28 @@ hash checks, zip entry checks, JSON parsing, and XAML/XML parsing. The actual
 WPF window behavior still needs a Windows PowerShell 5.1 smoke run for visual
 and click-flow accuracy.
 
+## Phase C Desktop Install Preparation
+
+The Install WeisileLink Desktop step now uses:
+
+```text
+lib/WindowsInstallActions.psm1
+```
+
+It expands the Windows internal evidence bundle into a temporary staging folder,
+locates `WeisileLink.exe`, `install.ps1`, `uninstall.ps1`, service metadata,
+the manifest, and the nested unsigned release zip, then shows the intended
+target root for teacher review. This preparation step requires manual
+confirmation before any install action.
+
+This phase does not copy files into `%LocalAppData%`, does not call
+`install-windows.ps1`, does not start WeisileLink, and does not mark the
+unsigned internal build as production ready.
+
+On macOS, the repository can verify the evidence zip extraction and module
+structure. The final click-flow and Windows staging behavior still need a
+Windows PowerShell 5.1 smoke run.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:

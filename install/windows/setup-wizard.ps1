@@ -5,10 +5,12 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ModulePath = Join-Path $ScriptRoot "lib/SetupWizard.psm1"
 $InstallChecksModulePath = Join-Path $ScriptRoot "lib/InstallFileChecks.psm1"
+$WindowsInstallActionsModulePath = Join-Path $ScriptRoot "lib/WindowsInstallActions.psm1"
 $XamlPath = Join-Path $ScriptRoot "setup-wizard.xaml"
 
 Import-Module $ModulePath -Force
 Import-Module $InstallChecksModulePath -Force
+Import-Module $WindowsInstallActionsModulePath -Force
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -91,6 +93,57 @@ function Run-VsleValidateFilesStep {
     Update-VsleValidateFilesStep -Window $Window -Result $result
 }
 
+function Update-VsleDesktopInstallStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$Result
+    )
+
+    $step = Set-VsleSetupWizardStepResult `
+        -Id "install-weisilelink-desktop" `
+        -Status $Result.Status `
+        -Summary $Result.Summary `
+        -Evidence $Result.Evidence `
+        -Blocking $Result.Blocking
+
+    $StepList = $Window.FindName("StepList")
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $step
+}
+
+function Run-VslePrepareDesktopInstallStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window
+    )
+
+    $runningStep = Set-VsleSetupWizardStepResult `
+        -Id "install-weisilelink-desktop" `
+        -Status "running" `
+        -Summary "Preparing Windows Desktop package staging." `
+        -Evidence "Expanding Windows evidence bundle into a temporary staging directory." `
+        -Blocking $true
+    $StepList = $Window.FindName("StepList")
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $runningStep
+
+    try {
+        $installRoot = (Resolve-Path (Join-Path $ScriptRoot "..")).Path
+        $result = Prepare-VsleWindowsDesktopInstallStaging -InstallRoot $installRoot -Force
+    } catch {
+        $plan = Get-VsleWindowsDesktopInstallPlan
+        $result = New-VsleWindowsDesktopInstallConfirmation -Plan $plan
+        $result.Status = "blocked"
+        $result.Blocking = $true
+        $result.Summary = "Windows Desktop staging failed before install confirmation."
+        $result.Evidence = $_.Exception.Message
+    }
+
+    Update-VsleDesktopInstallStep -Window $Window -Result $result
+}
+
 function Open-VsleSetupWizard {
     [CmdletBinding()]
     param()
@@ -113,6 +166,10 @@ function Open-VsleSetupWizard {
                 Run-VsleValidateFilesStep -Window $window
                 return
             }
+            if ($stepList.SelectedItem.Id -eq "install-weisilelink-desktop" -and $stepList.SelectedItem.Status -in @("pending", "blocked", "warning")) {
+                Run-VslePrepareDesktopInstallStep -Window $window
+                return
+            }
             Set-CurrentStep -Window $window -Step $stepList.SelectedItem
         }
     })
@@ -120,6 +177,9 @@ function Open-VsleSetupWizard {
     $window.FindName("RetryButton").Add_Click({
         if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "validate-files") {
             Run-VsleValidateFilesStep -Window $window
+        }
+        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
+            Run-VslePrepareDesktopInstallStep -Window $window
         }
     })
 
