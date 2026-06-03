@@ -3906,6 +3906,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_a.py`
 - **Next step**: Implement Phase B file validation UI by adding a PowerShell install-file checker module and wiring Step 1 to deterministic pass/fail states without requiring Git or Unix tools on Windows.
 
+### [2026-06-03] Windows setup wizard Phase B file validation
+- **Status**: ✅ Completed
+- **Commit**: `40a6285`
+- **What was done**: Added a PowerShell install-file validation module for the Windows setup wizard and wired the `Validate Files` step to deterministic `passed`, `warning`, or `blocked` UI states. The validator checks required files, SHA-256 hashes, JSON parsing, XML/XAML parsing, and expected Windows evidence zip entries without installing, copying, extracting archives, flashing SD cards, running SSH, or starting WeisileLink.
+- **Files created/modified**: `install/windows/lib/InstallFileChecks.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_b.py`
+- **Next step**: Implement Phase C Desktop install automation for the wizard by expanding the Windows evidence bundle into a staging area, locating `WeisileLink.exe`, preparing the local install root, and proving the install action stays behind explicit user control.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
