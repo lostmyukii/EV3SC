@@ -5,9 +5,14 @@ This directory contains the files deployed to an EV3 brick running ev3dev.
 ## Files
 
 - `systemd/vsle-ev3-server.service`: autostart unit for the EV3 WebSocket server.
+- `systemd/vsle-firstboot.service`: first-boot identity and claim-code
+  provisioning unit for classroom golden SD images.
 - `scripts/install_ev3_autostart.sh`: installs `vsle_ev3_server.py`, creates a
-  local pairing-token env file, installs Python dependencies, and enables the
-  systemd service.
+  local pairing-token env file for normal installs, installs first-boot
+  provisioning assets, installs Python dependencies, and enables the systemd
+  services.
+- `scripts/vsle_firstboot.py`: generates a per-brick ID, claim code, pairing
+  token, private env file, and non-secret device manifest.
 - `scripts/rollback_ev3_autostart.sh`: restores the newest backup created by
   the installer.
 - `vsle_ev3_server.py`: WiFi WebSocket server plus optional Bluetooth Classic
@@ -25,6 +30,29 @@ ssh robot@ev3dev.local
 cd ~/vsle-ev3-firmware
 ./scripts/install.sh
 ```
+
+## Classroom golden SD image install
+
+Use golden image mode only while preparing an SD card image that will be cloned
+to multiple EV3 bricks. It installs the EV3SC server and first-boot assets but
+removes provisioned identity files so every cloned brick generates its own
+`brick_id`, claim code, and `WEISILE_PAIRING_TOKEN` on first boot:
+
+```bash
+VSLE_GOLDEN_IMAGE_MODE=1 \
+VSLE_EV3_ENABLE_BLUETOOTH=1 \
+VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
+SKIP_PIP_INSTALL=1 \
+./scripts/install.sh
+```
+
+On the first EV3 boot of each cloned card, `vsle-firstboot.service` writes
+`/home/robot/.config/vsle/ev3.env`, `/home/robot/.config/vsle/device.json`,
+and `/home/robot/.config/vsle/manifest.json`, then displays the VSLE brick ID
+and short claim code on the EV3 LCD for the future WeisileLink Desktop pairing
+wizard.
+In golden image mode, the first EV3 boot will provision identity files; the
+image-preparation step must not bake one EV3 token into every cloned card.
 
 ## Rollback
 

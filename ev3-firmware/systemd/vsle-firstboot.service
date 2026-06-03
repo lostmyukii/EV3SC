@@ -1,0 +1,19 @@
+[Unit]
+Description=VSLE EV3 first-boot provisioning
+Documentation=https://www.ev3dev.org/docs/getting-started/
+Before=vsle-ev3-server.service
+ConditionPathExists=!/home/robot/.config/vsle/manifest.json
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/home/robot
+ExecStartPre=/usr/bin/test -x /home/robot/vsle-tools/vsle_firstboot.py
+ExecStart=/usr/bin/python3 /home/robot/vsle-tools/vsle_firstboot.py provision --display
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
