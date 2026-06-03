@@ -355,6 +355,20 @@ test('connection reporter uses host receive freshness for stale EV3 clocks', () 
     }
 });
 
+test('connection reporter allows Bluetooth classroom baseline cadence', () => {
+    const originalNow = Date.now;
+    Date.now = () => 1716387604450;
+    try {
+        const sensorCache = new SensorCache({clock: () => 1716387600450});
+        sensorCache.update({sensors: {S4: {pressed: 1}}});
+        const extension = new VSLEEV3Extension({sensorCache});
+
+        assert.equal(extension.isConnected(), true);
+    } finally {
+        Date.now = originalNow;
+    }
+});
+
 test('motor command blocks normalize arguments before sending to WeisileLink', async () => {
     const {extension, sent} = makeExtension();
 

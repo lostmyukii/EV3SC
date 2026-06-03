@@ -136,6 +136,17 @@ class BluetoothTransport:
         self._sensor_callback = on_sensor_data
         self._closed_by_request = False
         self.manager.bluetooth_supported = self.supported
+        if (
+            self.connected
+            and self._receive_task is not None
+            and not self._receive_task.done()
+        ):
+            self._record_reconnected()
+            return True
+        if self._receive_task is not None and self._receive_task.done():
+            await self._close_socket()
+            self._receive_task = None
+            self.manager.connection_state.connected = False
         try:
             if self._native_adapter is not None:
                 if not await self._open_native_adapter():

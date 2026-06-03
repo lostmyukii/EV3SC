@@ -27,7 +27,7 @@
     const LCD_Y_MAX = 127;
     const WAIT_POLL_MS = 20;
     const WAIT_TIMEOUT_MS = 60000;
-    const SENSOR_STALE_MS = 200;
+    const CONNECTION_STALE_MS = 5000;
     const SENSOR_PANEL_WIDTH_PX = 280;
     const SENSOR_PANEL_BACKGROUND = '#F5F5F5';
     const SENSOR_PANEL_ACTIVE_GREEN = '#4CBF56';
@@ -423,7 +423,7 @@
             },
             connection: {
                 connected: receivedAt > 0 &&
-                    now() - receivedAt <= SENSOR_STALE_MS,
+                    now() - receivedAt <= CONNECTION_STALE_MS,
                 staleMs: receivedAt > 0 ? Math.max(0, now() - receivedAt) : null,
                 brickId: getPath(current, 'brick_id') || 'vsle-ev3-wifi',
                 brickName: getPath(current, 'brick_name') || 'VSLE EV3'
@@ -1289,7 +1289,8 @@
                 'received_at_ms',
                 this._cacheNumber('timestamp', 0)
             );
-            return receivedAt > 0 && Date.now() - receivedAt <= SENSOR_STALE_MS;
+            return receivedAt > 0 &&
+                Date.now() - receivedAt <= CONNECTION_STALE_MS;
         }
 
         getBatteryVoltage () {

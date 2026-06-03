@@ -285,6 +285,35 @@ def test_send_command_validates_normalizes_and_resolves_ack_from_receive_loop():
     asyncio.run(scenario())
 
 
+def test_connect_reuses_active_bluetooth_session_without_reopening_socket():
+    async def scenario():
+        fake_file = FakeBluetoothFile()
+        socket_module = FakeSocketModule(FakeBluetoothSocket(fake_file))
+        sensor_updates = []
+        manager = DegradationManager(bluetooth_supported=True)
+        transport = BluetoothTransport(
+            "00:16:53:AA:BB:CC",
+            socket_module=socket_module,
+            platform_name="Linux",
+            manager=manager,
+        )
+
+        assert await transport.connect(sensor_updates.append) is True
+        assert await transport.connect(sensor_updates.append) is True
+
+        fake_file.feed(
+            {"type": "sensor_update", "sensors": {"S4": {"pressed": 1}}}
+        )
+        await asyncio.sleep(0.01)
+
+        assert socket_module.calls == [(31, 1, 3)]
+        assert sensor_updates[-1]["sensors"]["S4"]["pressed"] == 1
+
+        await transport.disconnect()
+
+    asyncio.run(scenario())
+
+
 def test_validation_failure_never_writes_to_bluetooth_socket():
     async def scenario():
         fake_file = FakeBluetoothFile()
