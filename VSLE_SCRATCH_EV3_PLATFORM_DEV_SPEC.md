@@ -3773,6 +3773,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement Desktop profile and credential storage so the claimed token is saved outside the visible config file, with macOS Keychain and Windows Credential Manager adapters behind a common WeisileLink Desktop credential interface.
 
+### [2026-06-03] Desktop secure EV3 profile storage
+- **Status**: ✅ Completed
+- **Commit**: `bc4ff76`
+- **What was done**: Added the WeisileLink Desktop profile and credential layer for classroom EV3 pairing. `auth.claim` results can now be saved as non-secret profiles while the raw pairing token is stored behind macOS Keychain or Windows Credential Manager references; runtime startup can resolve a profile back into the needed environment without writing tokens into `config.json`.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/tests/test_desktop_profiles.py`, `desktop/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement the first-run Desktop pairing command/wizard flow that opens Bluetooth, calls `BluetoothTransport.claim()`, saves the secure profile, starts WeisileLink from the saved profile, and performs the ready-check sensor subscription without USB.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
