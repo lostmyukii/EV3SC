@@ -3822,6 +3822,13 @@ material into:
 - **Files created/modified**: `scripts/run_desktop_install_smoke.py`, `tests/test_desktop_install_smoke.py`, `scripts/apply_vsle_bluetooth_install_evidence.py`, `tests/test_vsle_bluetooth_release_evidence_bridge.py`, `docs/desktop/DIAGNOSTICS.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/OFFICIAL_EV3_BLUETOOTH_COMPATIBILITY.md`, `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json`, `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement fleet-facing classroom profile support: import/export a roster package, map expected S1-S4 sensors per EV3, and use the saved roster data in Desktop ready checks so teachers can prepare multiple EV3 bricks without terminal commands.
 
+### [2026-06-03] Desktop classroom roster profiles
+- **Status**: ✅ Completed
+- **Commit**: `26fdfcc`
+- **What was done**: Added non-secret classroom roster import/export support through `python -m weisile_link desktop-roster`. The Desktop profile store now persists roster devices and expected S1-S4 sensor layouts, merges matching roster data into paired profiles, and Desktop ready checks require expected real sensor ports before reporting `ready` when a roster layout is present.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/roster.py`, `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/pairing.py`, `weisile-link/weisile_link/desktop/runtime.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/tests/test_desktop_roster.py`, `weisile-link/tests/test_desktop_profiles.py`, `weisile-link/tests/test_desktop_pairing.py`, `weisile-link/tests/test_desktop_runtime.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement the next fleet-tools slice: device rename flow, token rotation command, and lost-token recovery guardrails so a teacher can maintain a classroom set after the initial roster import.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
