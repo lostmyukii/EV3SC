@@ -24,6 +24,26 @@ The classroom artifact is a signed `.pkg` that installs a signed
 runtime or a self-contained executable. It must not call `/usr/bin/python3` for
 classroom releases.
 
+The current target is Internal Test Release. Internal macOS builds may be
+unsigned and may skip code signing, Developer ID identities, Team ID, Apple
+notarytool credentials, and notarization:
+
+```bash
+npm run build:mac:internal
+npm run build:win:internal
+npm run release:internal
+
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+```
+
+For Internal Test Release, macOS signing and notarization are Internal Test Optional.
+Testers may see the normal unsigned-build security prompt that macOS cannot
+verify the developer. For Production Release, Developer ID signing,
+notarization, and signed installer packaging remain Production Release Blocker
+requirements before public or customer distribution.
+
 The checked packager for the app bundle zip is
 `desktop/scripts/build_release_artifacts.py`. It writes the app bundle,
 release zip, and manifest under `desktop/release/`:

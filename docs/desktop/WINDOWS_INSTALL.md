@@ -29,6 +29,27 @@ installer must place WeisileLink under either:
 The release must include a bundled runtime or self-contained executable. It must
 not require teacher-installed Python.
 
+The current target is Internal Test Release. Internal Windows builds may be
+unsigned and may skip SignTool, Windows code signing certificates, timestamp
+URLs, and publisher/SmartScreen reputation:
+
+```bash
+npm run build:mac:internal
+npm run build:win:internal
+npm run release:internal
+
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+```
+
+For Internal Test Release, Windows signing and timestamp URLs are Internal Test Optional.
+Testers may see normal unknown-publisher security prompts. Windows unsigned
+internal build requires real Windows host or GitHub Actions windows-latest;
+signing is not the internal-test blocker. For Production Release, Windows code
+signing, timestamping, and publisher reputation remain Production Release Blocker
+requirements.
+
 Build the self-contained Windows executable on a Windows build host first:
 
 ```bash

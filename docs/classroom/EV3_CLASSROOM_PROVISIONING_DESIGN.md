@@ -44,9 +44,11 @@ The classroom system should ship as three artifacts.
    only opened when the automatic check fails.
 
 5. Windows is a first-class target, not a later port.
-   The Windows package needs its own signed installer, native Bluetooth Classic
-   adapter, Credential Manager storage, startup task/service, and clean-machine
-   evidence.
+   The Windows package needs its own native Bluetooth Classic adapter,
+   Credential Manager storage, startup task/service, and clean-machine
+   evidence. A signed installer is required for Production Release, while
+   Internal Test Release may use unsigned Windows builds on a real Windows host
+   or GitHub Actions `windows-latest`.
 
 ## EV3 Golden SD Image
 
@@ -280,7 +282,9 @@ Diagnostics must redact:
 
 ## macOS Packaging
 
-macOS classroom packaging should be:
+macOS Internal Test Release packaging may be unsigned and skip Developer ID
+signing, notarization, Team ID, and notarytool credentials. Production Release
+packaging should be:
 
 - signed and notarized `WeisileLink.app`
 - signed `.pkg` installer
@@ -530,6 +534,7 @@ Acceptance:
 
 Deliverables:
 
+- unsigned Internal Test Release artifact and evidence report
 - signed/notarized app
 - signed `.pkg`
 - bundled native adapter
@@ -547,6 +552,8 @@ Acceptance:
 Deliverables:
 
 - self-contained `WeisileLink.exe`
+- unsigned Internal Test Release artifact on a real Windows host or GitHub
+  Actions `windows-latest`
 - signed MSI/EXE installer
 - Windows native RFCOMM adapter
 - Credential Manager storage

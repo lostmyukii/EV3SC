@@ -1,0 +1,121 @@
+{
+  "internal_test_release": {
+    "blocking_items": [
+      "windows_host_or_actions"
+    ],
+    "build_commands": [
+      "/Users/yukii/Desktop/EV3SC/.venv/bin/python /Users/yukii/Desktop/EV3SC/desktop/scripts/build_weisilelink_executable.py --target macos --output /Users/yukii/Desktop/EV3SC/desktop/build/macos --clean",
+      "/Users/yukii/Desktop/EV3SC/.venv/bin/python /Users/yukii/Desktop/EV3SC/desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output /Users/yukii/Desktop/EV3SC/desktop/release/internal/macos --version 0.1.0-internal --allow-unsigned",
+      "./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows"
+    ],
+    "core_verification_commands": [
+      "./.venv/bin/python -m pytest tests/test_desktop_packaging.py tests/test_desktop_install_smoke.py -v"
+    ],
+    "known_security_prompts": [
+      "macOS may show 'cannot verify developer' for unsigned builds."
+    ],
+    "notarized": false,
+    "notes": "Target all builds the current host target and records host requirements for unavailable targets.",
+    "ready": true,
+    "signed": false,
+    "startup_verification_commands": [
+      "desktop/build/macos/WeisileLink desktop-start --check-only --config .tmp/internal-release-check/config.json --ready-timeout 0.1"
+    ],
+    "startup_verification_result": {
+      "acceptable": true,
+      "command": "/Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink desktop-start --check-only --config /Users/yukii/Desktop/EV3SC/.tmp/internal-release-check/config.json --ready-timeout 0.1",
+      "returncode": 3,
+      "state": "needs_pairing"
+    },
+    "status": "partial",
+    "verification_commands": []
+  },
+  "production_release": {
+    "blockers": [
+      "macos_developer_id",
+      "macos_notarization",
+      "windows_code_signing_certificate",
+      "windows_timestamp_url",
+      "windows_publisher_reputation"
+    ],
+    "ready": false
+  },
+  "results": [
+    {
+      "internal_test_release": {
+        "artifact_output": "desktop/release/internal/macos",
+        "blocking_items": [],
+        "build_commands": [
+          "/Users/yukii/Desktop/EV3SC/.venv/bin/python /Users/yukii/Desktop/EV3SC/desktop/scripts/build_weisilelink_executable.py --target macos --output /Users/yukii/Desktop/EV3SC/desktop/build/macos --clean",
+          "/Users/yukii/Desktop/EV3SC/.venv/bin/python /Users/yukii/Desktop/EV3SC/desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output /Users/yukii/Desktop/EV3SC/desktop/release/internal/macos --version 0.1.0-internal --allow-unsigned"
+        ],
+        "core_verification_commands": [
+          "./.venv/bin/python -m pytest tests/test_desktop_packaging.py tests/test_desktop_install_smoke.py -v"
+        ],
+        "known_security_prompts": [
+          "macOS may show 'cannot verify developer' for unsigned builds."
+        ],
+        "notarized": false,
+        "notes": "Unsigned macOS internal builds are for VSLE-controlled test machines only and are not production release artifacts.",
+        "ready": true,
+        "signed": false,
+        "startup_verification_commands": [
+          "desktop/build/macos/WeisileLink desktop-start --check-only --config .tmp/internal-release-check/config.json --ready-timeout 0.1"
+        ],
+        "startup_verification_result": {
+          "acceptable": true,
+          "command": "/Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink desktop-start --check-only --config /Users/yukii/Desktop/EV3SC/.tmp/internal-release-check/config.json --ready-timeout 0.1",
+          "returncode": 3,
+          "state": "needs_pairing"
+        },
+        "status": "internal-build-ready",
+        "verification_commands": [
+          "./.venv/bin/python -m pytest tests/test_desktop_packaging.py tests/test_desktop_install_smoke.py -v"
+        ]
+      },
+      "production_release": {
+        "blockers": [
+          "macos_developer_id",
+          "macos_notarization",
+          "windows_code_signing_certificate",
+          "windows_timestamp_url",
+          "windows_publisher_reputation"
+        ],
+        "ready": false
+      },
+      "target": "macos"
+    },
+    {
+      "internal_test_release": {
+        "blocking_items": [
+          "windows_host_or_actions"
+        ],
+        "build_commands": [
+          "./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows"
+        ],
+        "core_verification_commands": [],
+        "known_security_prompts": [],
+        "notarized": false,
+        "notes": "Windows unsigned internal build requires real Windows host or GitHub Actions windows-latest. Windows code signing certificate and timestamp URL are production release blockers only.",
+        "ready": false,
+        "signed": false,
+        "startup_verification_commands": [],
+        "startup_verification_result": {},
+        "status": "requires-windows-host",
+        "verification_commands": []
+      },
+      "production_release": {
+        "blockers": [
+          "macos_developer_id",
+          "macos_notarization",
+          "windows_code_signing_certificate",
+          "windows_timestamp_url",
+          "windows_publisher_reputation"
+        ],
+        "ready": false
+      },
+      "target": "windows"
+    }
+  ],
+  "target": "all"
+}

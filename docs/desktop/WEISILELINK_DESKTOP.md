@@ -63,6 +63,30 @@ clean-machine install, upgrade, login/reboot auto-start, health check,
 ScratchAI WebSocket connection, diagnostics export, crash recovery, and
 uninstall verification on the target OS.
 
+The current target is Internal Test Release, not Production Release.
+
+Internal Test Release must produce a runnable internal build, record repeatable
+build commands, verify core Desktop behavior, and document known unsigned-build
+security prompts. Use:
+
+```bash
+npm run build:mac:internal
+npm run build:win:internal
+npm run release:internal
+
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+```
+
+For internal testing, macOS signing, macOS notarization, Apple notarization
+credentials, Windows signing, timestamp URLs, and Windows SmartScreen or
+publisher verification are Internal Test Optional. They must not block internal
+build generation. For Production Release, they remain Production Release
+Blocker requirements for public/customer distribution. In short: signing and
+publisher identity are Internal Test Optional, but each one is still a
+Production Release Blocker.
+
 Before signed clean-machine package evidence, the fleet profile path has its
 own simulated rehearsal gate:
 

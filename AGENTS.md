@@ -241,6 +241,10 @@ Required desktop-release scope:
   approval evidence.
 - Signed release artifacts before external classroom distribution; macOS
   releases must be notarized before non-developer distribution.
+- Current internal testing builds may be unsigned. Developer ID signing,
+  notarization credentials, Windows code signing certificates, timestamp URLs,
+  and SmartScreen/publisher reputation are Internal Test Optional and remain
+  Production Release Blocker items only for external distribution.
 - Logs and diagnostics must redact pairing tokens, API keys, oversized labels,
   and student raw data by default.
 - macOS and Windows official-firmware Bluetooth compatibility must remain

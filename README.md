@@ -6,6 +6,38 @@ Scratch-EV3 classroom platform.
 Detailed project rules live in `AGENTS.md`. The full platform specification and
 progress log live in `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`.
 
+## Internal Test Release
+
+The current desktop publishing target is internal testing, not public
+distribution, app-store listing, or customer delivery. Internal builds may be
+unsigned. macOS Developer ID signing, macOS notarization, Apple notarization
+credentials, Windows code signing, timestamp URLs, and Windows
+SmartScreen/publisher reputation are Internal Test Optional for this target and
+remain Production Release Blocker items only for external distribution.
+
+Use the root workspace scripts:
+
+```bash
+npm run build:mac:internal
+npm run build:win:internal
+npm run release:internal
+```
+
+These call:
+
+```bash
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+```
+
+On macOS, unsigned internal builds may trigger a system prompt such as "cannot
+verify developer". On Windows, unsigned builds may show unknown-publisher or
+SmartScreen warnings. Those prompts are expected for Internal Test Release and
+must be documented for testers. Windows unsigned internal build requires a real
+Windows host or GitHub Actions `windows-latest`; signing is not the internal
+test blocker.
+
 ## EV3 ev3dev SD Card Install Teaching Guide
 
 This section is written as a step-by-step teaching script. Each confirmed step

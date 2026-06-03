@@ -9,6 +9,31 @@ complete only after a bundled runtime or self-contained executable is built,
 signed, installed on clean machines, verified after reboot/login, and tested
 through diagnostics export and uninstall.
 
+## Internal Test Release
+
+The current release target is internal testing, not public distribution,
+customer delivery, or app-store listing. Internal builds may be unsigned:
+
+```bash
+npm run build:mac:internal
+npm run build:win:internal
+npm run release:internal
+
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target macos --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target windows --clean
+./.venv/bin/python desktop/scripts/run_internal_release_flow.py --target all --clean
+```
+
+For Internal Test Release, macOS Developer ID signing, macOS notarization,
+Apple notarization credentials, Windows code signing certificates, timestamp
+URLs, and Windows SmartScreen/publisher reputation are Internal Test Optional.
+Unsigned internal builds may trigger "cannot verify developer" or "unknown
+publisher" prompts; this is expected and must be recorded for testers.
+
+For Production Release, those same items remain Production Release Blocker
+requirements before external distribution. The production signing, notarization,
+and clean-machine install-smoke flow remains checked in and unchanged.
+
 ## Modes
 
 - Full VSLE mode: EV3 boots ev3dev and runs `vsle_ev3_server.py`.

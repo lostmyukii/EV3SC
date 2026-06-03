@@ -88,9 +88,9 @@ The official Scratch Link + EV3 integration has five fundamental limitations con
 | Extension type | Unsandboxed Extension | Eliminates Worker postMessage overhead; required for 50Hz sensor polling |
 | EV3 OS | ev3dev (GPL-2.0) | Only option supporting Python WebSocket server on EV3 hardware |
 | Bridge protocol | JSON-RPC 2.0 over WebSocket | Scratch Link compatible; enables drop-in replacement |
-| Full-mode BT transport | `vsle-bluetooth` JSON-line transport over verified Linux RFCOMM or project-owned native byte-stream adapters | No pybluez dependency; Mac browser full VSLE Bluetooth smoke is the first no-Windows functional test path, while release readiness still requires signed artifact evidence |
+| Full-mode BT transport | `vsle-bluetooth` JSON-line transport over verified Linux RFCOMM or project-owned native byte-stream adapters | No pybluez dependency; Mac browser full VSLE Bluetooth smoke is the first no-Windows functional test path, while signed artifact evidence is reserved for Production Release |
 | WiFi transport | asyncio WebSocket (WiFi dongle) | Enables multi-EV3, 50Hz streaming, eliminates Bluetooth |
-| WeisileLink Desktop | Signed macOS/Windows local app with bundled runtime | Makes classroom install reliable without teacher-installed Python |
+| WeisileLink Desktop | Internal Test Release can be unsigned; Production Release requires signed macOS/Windows local app with bundled runtime | Makes internal validation possible without signing credentials while preserving reliable external distribution requirements |
 | Official firmware compatibility | Separate Bluetooth Classic mode using EV3 Direct Commands | Fast no-ev3dev trial path for basic non-AI projects; not equivalent to full VSLE mode |
 | UI preservation | Strict Scratch visual identity | Zero learning curve for existing Scratch users |
 | Data pipeline | WebSocket broadcast router | Single EV3 data stream → multiple consumers simultaneously |
@@ -2391,10 +2391,10 @@ Teacher-facing UI should translate alerts into plain recovery steps.
 | Browser | Current Chrome/Edge/Safari | Must support WebSocket and TurboWarp build |
 | Scratch runtime | TurboWarp fork | Unsandboxed Extension required |
 | Teacher computer WiFi transport | macOS, Windows, Linux | Primary supported classroom path |
-| Full VSLE Bluetooth transport | Primary no-WiFi full-module path when compatible EV3 WiFi dongles are unavailable | Real ev3dev command groups can pass through `vsle-bluetooth`; Mac browser full VSLE Bluetooth smoke is the first functional test path when no Windows host is available, while the 25ms high-speed gate and release-artifact gates remain separate |
-| Teacher computer Bluetooth transport | macOS via project-owned native byte-stream adapter; Linux only where stdlib RFCOMM is verified; Windows pending signed native evidence | Browser code must not open direct Bluetooth connections; Windows evidence remains separate from Mac smoke evidence |
-| WeisileLink Desktop macOS | Planned release artifact | Signed app/pkg, LaunchAgent, bundled runtime, localhost defaults, notarization before classroom distribution, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |
-| WeisileLink Desktop Windows | Planned release artifact | Signed installer, per-user startup or service option, bundled runtime, localhost defaults, firewall-safe behavior, and accepted `run_desktop_install_smoke.py` evidence before classroom readiness |
+| Full VSLE Bluetooth transport | Primary no-WiFi full-module path when compatible EV3 WiFi dongles are unavailable | Real ev3dev command groups can pass through `vsle-bluetooth`; Mac browser full VSLE Bluetooth smoke is the first functional test path when no Windows host is available, while the 25ms high-speed gate and Production Release artifact gates remain separate |
+| Teacher computer Bluetooth transport | macOS via project-owned native byte-stream adapter; Linux only where stdlib RFCOMM is verified; Windows pending target-host native evidence | Browser code must not open direct Bluetooth connections; Windows evidence remains separate from Mac smoke evidence |
+| WeisileLink Desktop macOS | Internal Test Release unsigned artifact available; Production Release planned | Internal Test Release permits unsigned macOS builds with LaunchAgent, bundled runtime, localhost defaults, native adapter, and evidence report. Developer ID signing, notarization, and signed `.pkg` are Production Release Blocker items for external distribution. |
+| WeisileLink Desktop Windows | Internal Test Release requires Windows host or GitHub Actions `windows-latest`; Production Release planned | Internal Test Release permits unsigned `WeisileLink.exe`/installer output on the target Windows host. Windows code signing certificate, timestamp URL, and SmartScreen/publisher reputation are Production Release Blocker items, not internal-test blockers. |
 | Official EV3 firmware Bluetooth compatibility | Limited planned mode | Basic non-AI pack only until native adapter tests, release-artifact install smoke, and real official-firmware EV3 smoke evidence pass per OS |
 | EV3 OS | ev3dev Stretch/Buster compatible image | Must support Python 3 and ev3dev2 |
 | EV3 hardware | LEGO MINDSTORMS EV3 | WiFi USB dongle recommended |
