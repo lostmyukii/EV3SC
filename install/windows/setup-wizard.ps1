@@ -304,19 +304,19 @@ function Run-VslePrepareEv3SetupStep {
 
     $input = Get-VsleEv3SetupInputFromWindow -Window $Window
     if ($StepId -eq "choose-transport") {
-        $result = Test-VsleEv3SetupInput -Input $input
+        $result = Test-VsleEv3SetupInput -SetupInput $input
         Update-VsleEv3SetupStep -Window $Window -StepId $StepId -Result $result
         return
     }
 
     if ($StepId -eq "enable-bluetooth-full-vsle") {
-        $result = New-VsleBluetoothFullVslePairingGuide -Input $input
+        $result = New-VsleBluetoothFullVslePairingGuide -SetupInput $input
         Update-VsleEv3SetupStep -Window $Window -StepId $StepId -Result $result
         return
     }
 
     $installRoot = (Resolve-Path (Join-Path $ScriptRoot "..")).Path
-    $result = New-VsleEv3ServerInstallPlan -Input $input -InstallRoot $installRoot
+    $result = New-VsleEv3ServerInstallPlan -SetupInput $input -InstallRoot $installRoot
     if ($result.PSObject.Properties.Name -contains "CommandSteps") {
         $Script:VlseLastEv3InstallPlan = $result
     }
@@ -344,7 +344,7 @@ function Run-VsleConfirmEv3ServerInstallStep {
         if ($null -eq $Script:VlseLastEv3InstallPlan) {
             $installRoot = (Resolve-Path (Join-Path $ScriptRoot "..")).Path
             $input = Get-VsleEv3SetupInputFromWindow -Window $Window
-            $Script:VlseLastEv3InstallPlan = New-VsleEv3ServerInstallPlan -Input $input -InstallRoot $installRoot
+            $Script:VlseLastEv3InstallPlan = New-VsleEv3ServerInstallPlan -SetupInput $input -InstallRoot $installRoot
         }
 
         $result = Invoke-VsleEv3ServerInstall `

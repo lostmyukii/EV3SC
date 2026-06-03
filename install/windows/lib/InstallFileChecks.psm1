@@ -260,22 +260,22 @@ function Invoke-VsleInstallFileChecks {
     )
 
     $plan = Get-VsleInstallFileCheckPlan
-    $results = New-Object System.Collections.Generic.List[object]
+    $results = @()
 
     foreach ($check in $plan.Hashes) {
-        $results.Add((Test-VsleHashFile -InstallRoot $InstallRoot -Check $check))
+        $results += Test-VsleHashFile -InstallRoot $InstallRoot -Check $check
     }
     foreach ($check in $plan.Exists) {
-        $results.Add((Test-VsleExistingFile -InstallRoot $InstallRoot -Check $check))
+        $results += Test-VsleExistingFile -InstallRoot $InstallRoot -Check $check
     }
     foreach ($check in $plan.Json) {
-        $results.Add((Test-VsleJsonFile -InstallRoot $InstallRoot -Check $check))
+        $results += Test-VsleJsonFile -InstallRoot $InstallRoot -Check $check
     }
     foreach ($check in $plan.Xml) {
-        $results.Add((Test-VsleXmlFile -InstallRoot $InstallRoot -Check $check))
+        $results += Test-VsleXmlFile -InstallRoot $InstallRoot -Check $check
     }
     foreach ($check in $plan.ZipEntries) {
-        $results.Add((Test-VsleZipEntries -InstallRoot $InstallRoot -Check $check))
+        $results += Test-VsleZipEntries -InstallRoot $InstallRoot -Check $check
     }
 
     $blocked = @($results | Where-Object { $_.Required -and -not $_.Passed })
@@ -299,7 +299,7 @@ function Invoke-VsleInstallFileChecks {
         CheckedAt = (Get-Date).ToString("s")
         Summary = "Install file validation: $($results.Count) checks, $($blocked.Count) blocked, $($warnings.Count) warnings."
         Evidence = $evidence
-        Results = @($results)
+        Results = $results
     }
 }
 

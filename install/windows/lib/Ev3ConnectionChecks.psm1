@@ -39,27 +39,27 @@ function Test-VsleEv3SetupInput {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [object]$Input
+        [object]$SetupInput
     )
 
     $issues = New-Object System.Collections.Generic.List[string]
-    if ($Script:AllowedTransports -notcontains $Input.Transport) {
+    if ($Script:AllowedTransports -notcontains $SetupInput.Transport) {
         $issues.Add("Unsupported transport. Official firmware Bluetooth is not a Full VSLE transport.")
     }
-    if ([string]::IsNullOrWhiteSpace($Input.Host)) {
+    if ([string]::IsNullOrWhiteSpace($SetupInput.Host)) {
         $issues.Add("EV3 SSH host or address is required.")
-    } elseif ($Input.Host -notmatch '^[A-Za-z0-9.\-_%:\[\]]+$') {
+    } elseif ($SetupInput.Host -notmatch '^[A-Za-z0-9.\-_%:\[\]]+$') {
         $issues.Add("EV3 SSH host contains unsupported characters.")
     }
-    if ([string]::IsNullOrWhiteSpace($Input.User)) {
+    if ([string]::IsNullOrWhiteSpace($SetupInput.User)) {
         $issues.Add("EV3 SSH user is required.")
-    } elseif ($Input.User -notmatch '^[A-Za-z0-9._-]+$') {
+    } elseif ($SetupInput.User -notmatch '^[A-Za-z0-9._-]+$') {
         $issues.Add("EV3 SSH user contains unsupported characters.")
     }
-    if ($Input.Transport -eq "bluetooth-full-vsle") {
-        if ([string]::IsNullOrWhiteSpace($Input.BluetoothAddress)) {
+    if ($SetupInput.Transport -eq "bluetooth-full-vsle") {
+        if ([string]::IsNullOrWhiteSpace($SetupInput.BluetoothAddress)) {
             $issues.Add("Bluetooth address is required for Bluetooth Full VSLE.")
-        } elseif ($Input.BluetoothAddress -notmatch '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$') {
+        } elseif ($SetupInput.BluetoothAddress -notmatch '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$') {
             $issues.Add("Bluetooth address must look like 00:16:53:AA:BB:CC.")
         }
     }
@@ -71,14 +71,14 @@ function Test-VsleEv3SetupInput {
             ManualConfirmationRequired = $true
             Summary = "EV3 setup input is incomplete."
             Evidence = ($issues -join [Environment]::NewLine)
-            Input = $Input
+            Input = $SetupInput
         }
     }
 
     $evidence = @(
-        "Transport: $($Input.Transport)",
-        "SSH target: $($Input.User)@$($Input.Host)",
-        "Bluetooth address: $($Input.RedactedBluetoothAddress)",
+        "Transport: $($SetupInput.Transport)",
+        "SSH target: $($SetupInput.User)@$($SetupInput.Host)",
+        "Bluetooth address: $($SetupInput.RedactedBluetoothAddress)",
         "OfficialFirmwareCompatibility: false"
     ) -join [Environment]::NewLine
 
@@ -88,7 +88,7 @@ function Test-VsleEv3SetupInput {
         ManualConfirmationRequired = $true
         Summary = "EV3 setup input is valid. Confirm before running SSH or SCP commands."
         Evidence = $evidence
-        Input = $Input
+        Input = $SetupInput
     }
 }
 
@@ -150,12 +150,12 @@ function New-VsleEv3ServerInstallPlan {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [object]$Input,
+        [object]$SetupInput,
         [string]$InstallRoot = (Get-VsleDefaultEv3InstallRoot),
         [string]$RemoteRoot = "~/vsle-ev3-firmware"
     )
 
-    $inputResult = Test-VsleEv3SetupInput -Input $Input
+    $inputResult = Test-VsleEv3SetupInput -SetupInput $SetupInput
     if ($inputResult.Status -ne "passed") {
         return $inputResult
     }
@@ -166,7 +166,7 @@ function New-VsleEv3ServerInstallPlan {
         return $sourceResult
     }
 
-    $sshTarget = "$($Input.User)@$($Input.Host)"
+    $sshTarget = "$($SetupInput.User)@$($SetupInput.Host)"
     $remoteInstall = "cd $RemoteRoot && SITE=`"`$(python3 -c 'import site; print(site.USER_SITE)')`" && mkdir -p `"`$SITE`" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf `"`$SITE/websockets`" && cp -r /tmp/websockets-7.0/src/websockets `"`$SITE/websockets`" && python3 -m py_compile vsle_ev3_server.py && SKIP_PIP_INSTALL=1 ./scripts/install.sh && systemctl is-active vsle-ev3-server.service"
 
     $commandSteps = @(
@@ -198,9 +198,9 @@ function New-VsleEv3ServerInstallPlan {
     )
 
     $evidence = @(
-        "Transport: $($Input.Transport)",
+        "Transport: $($SetupInput.Transport)",
         "SSH target: $sshTarget",
-        "Bluetooth address: $($Input.RedactedBluetoothAddress)",
+        "Bluetooth address: $($SetupInput.RedactedBluetoothAddress)",
         "Remote root: $RemoteRoot",
         "Command count: $($commandSteps.Count)",
         "Manual confirmation required before SSH or SCP commands run.",
@@ -213,7 +213,7 @@ function New-VsleEv3ServerInstallPlan {
         ManualConfirmationRequired = $true
         Summary = "EV3 server install command plan is ready. Confirm before running SSH or SCP."
         Evidence = $evidence
-        Input = $Input
+        Input = $SetupInput
         Sources = $sources
         RemoteRoot = $RemoteRoot
         CommandSteps = $commandSteps
@@ -316,21 +316,21 @@ function New-VsleBluetoothFullVslePairingGuide {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [object]$Input
+        [object]$SetupInput
     )
 
-    if ($Input.Transport -ne "bluetooth-full-vsle") {
+    if ($SetupInput.Transport -ne "bluetooth-full-vsle") {
         return [PSCustomObject]@{
             Status = "skipped"
             Blocking = $false
             ManualConfirmationRequired = $true
             Summary = "Bluetooth Full VSLE pairing guide is skipped for this transport."
-            Evidence = "Selected transport: $($Input.Transport)"
-            Input = $Input
+            Evidence = "Selected transport: $($SetupInput.Transport)"
+            Input = $SetupInput
         }
     }
 
-    $validation = Test-VsleEv3SetupInput -Input $Input
+    $validation = Test-VsleEv3SetupInput -SetupInput $SetupInput
     if ($validation.Status -ne "passed") {
         return $validation
     }
@@ -340,8 +340,8 @@ function New-VsleBluetoothFullVslePairingGuide {
         Blocking = $true
         ManualConfirmationRequired = $true
         Summary = "Bluetooth Full VSLE requires Windows Bluetooth pairing confirmation."
-        Evidence = "Pair EV3 in Windows Bluetooth settings, confirm the EV3 is paired or connected, then continue. Bluetooth address: $($Input.RedactedBluetoothAddress)."
-        Input = $Input
+        Evidence = "Pair EV3 in Windows Bluetooth settings, confirm the EV3 is paired or connected, then continue. Bluetooth address: $($SetupInput.RedactedBluetoothAddress)."
+        Input = $SetupInput
     }
 }
 
