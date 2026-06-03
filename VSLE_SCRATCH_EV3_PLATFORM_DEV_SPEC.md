@@ -3808,6 +3808,13 @@ material into:
 - **Files created/modified**: `desktop/macos/weisile-link.launchd.plist`, `desktop/macos/install.sh`, `desktop/windows/install.ps1`, `desktop/windows/weisile-link-service.xml`, `desktop/scripts/validate_desktop_assets.py`, `tests/test_desktop_packaging.py`, `tests/test_desktop_release_packaging.py`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`
 - **Next step**: Add a teacher-safe Desktop diagnostics/status command that runs the same local port, profile, credential, native adapter, and sensor-stream checks used by the supervisor, then writes a redacted support bundle for clean-machine install smoke evidence.
 
+### [2026-06-03] Desktop safe diagnostics command
+- **Status**: ✅ Completed
+- **Commit**: `d0a1ceb`
+- **What was done**: Added `python -m weisile_link desktop-diagnostics` and a reusable Desktop diagnostics service. The command checks saved profile presence, secure credential availability, native adapter executability, local ports `20111` and `8766`, EV3 authentication, and fresh sensor stream readiness, then prints or writes a recursive redacted support bundle that hides pairing tokens, API keys, Bluetooth addresses by default, long labels, and raw student data.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/diagnostics.py`, `weisile-link/tests/test_desktop_diagnostics.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `docs/desktop/DIAGNOSTICS.md`
+- **Next step**: Thread the diagnostics command into clean-machine install smoke evidence so release artifacts can prove installed-from-artifact startup, localhost endpoint readiness, diagnostics export redaction, and real EV3 Bluetooth sensor readiness in one evidence JSON.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
