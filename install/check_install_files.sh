@@ -69,6 +69,21 @@ PY
     fi
 }
 
+check_xml() {
+    path=$1
+    label=$2
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - "$ROOT/$path" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+ET.parse(sys.argv[1])
+PY
+        printf 'OK: XML parse %s\n' "$label"
+    else
+        printf 'SKIP: python3 not available for %s\n' "$label"
+    fi
+}
+
 verify_once() {
     pass=$1
     printf 'Verification pass %s start\n' "$pass"
@@ -116,6 +131,10 @@ verify_once() {
     check_exists "windows/02-weisilelink-desktop/uninstall-windows.ps1" "Windows helper uninstall script"
     check_exists "windows/02-weisilelink-desktop/build-release-windows.ps1" "Windows release handoff script"
     check_exists "windows/02-weisilelink-desktop/weisile-link-service.xml" "Windows service metadata"
+    check_exists "windows/setup-wizard.ps1" "Windows setup wizard Phase A entrypoint"
+    check_exists "windows/setup-wizard.xaml" "Windows setup wizard Phase A WPF layout"
+    check_exists "windows/lib/SetupWizard.psm1" "Windows setup wizard Phase A step model"
+    check_exists "windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md" "Windows setup wizard development design"
     check_exists "shared/04-ai-quest-samples/ai-quest-samples/projects/obstacle_avoidance_collector.json" "AI Quest sample"
 
     check_zip "shared/01-ev3-sd-card/ev3dev-stretch-ev3-generic-2020-04-10.zip" "ev3dev image"
@@ -133,6 +152,7 @@ verify_once() {
     check_json "shared/03-evidence-templates/vsle_bluetooth_sensor_port_matrix.template.json" "Bluetooth port matrix template"
     check_json "shared/03-evidence-templates/scratchai_teacher_block_rehearsal.template.json" "ScratchAI rehearsal template"
     check_json "shared/03-evidence-templates/real_ev3_rehearsal_evidence.template.json" "Real EV3 rehearsal template"
+    check_xml "windows/setup-wizard.xaml" "Windows setup wizard Phase A XAML"
 
     if command -v hdiutil >/dev/null 2>&1; then
         hdiutil verify "$ROOT/mac/01-sd-card/balenaEtcher-1.17.0.dmg" >/dev/null

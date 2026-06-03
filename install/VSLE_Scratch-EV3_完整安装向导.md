@@ -55,10 +55,15 @@ install/
 └── windows/
     ├── 01-sd-card/
     ├── 02-weisilelink-desktop/
-    └── 03-evidence-templates/
+    ├── 03-evidence-templates/
+    ├── setup-wizard.ps1
+    ├── setup-wizard.xaml
+    └── lib/
 ```
 
 `shared/` 是 EV3 端和课程共用文件。`mac/` 与 `windows/` 是老师电脑端文件。
+Windows 下的 `setup-wizard.ps1` 是 Phase A 图形向导骨架，只显示步骤和状态，
+不会执行安装、解压、刷卡、SSH 或启动程序动作。
 
 要复制到 U 盘并把相对链接展开为真实文件：
 

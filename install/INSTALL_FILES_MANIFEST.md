@@ -33,6 +33,10 @@ All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 | `windows/02-weisilelink-desktop/uninstall-windows.ps1` | `desktop/windows/uninstall.ps1` | Windows helper uninstall script | Script |
 | `windows/02-weisilelink-desktop/build-release-windows.ps1` | `desktop/windows/build_release.ps1` | Windows build-host release handoff script | Script |
 | `windows/02-weisilelink-desktop/weisile-link-service.xml` | `desktop/windows/weisile-link-service.xml` | Windows service metadata | Template |
+| `windows/setup-wizard.ps1` | `install/windows/setup-wizard.ps1` | Windows Phase A WPF setup wizard entrypoint; no install actions | Script |
+| `windows/setup-wizard.xaml` | `install/windows/setup-wizard.xaml` | Windows Phase A WPF setup wizard layout | XML |
+| `windows/lib/SetupWizard.psm1` | `install/windows/lib/SetupWizard.psm1` | Windows Phase A setup step model | Script |
+| `windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md` | Windows setup wizard development design | Documentation |
 
 ## Evidence And Samples
 

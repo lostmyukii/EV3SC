@@ -14,6 +14,26 @@ It defines the feasibility boundaries, iOS/Apple-inspired wizard UX, page flow,
 automation modules, manual confirmation steps, security rules, and staged
 implementation plan.
 
+## Phase A Wizard Shell
+
+The first Windows GUI skeleton is:
+
+```text
+setup-wizard.ps1
+setup-wizard.xaml
+lib/SetupWizard.psm1
+```
+
+Run it on Windows PowerShell 5.1+ from this folder:
+
+```powershell
+.\setup-wizard.ps1
+```
+
+Phase A only opens the WPF stepper window and loads the full setup step model.
+It has no install actions, file copying, archive extraction, SD-card flashing,
+SSH commands, or process launch behavior.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:
