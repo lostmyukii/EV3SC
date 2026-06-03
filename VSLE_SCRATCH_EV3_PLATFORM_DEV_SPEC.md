@@ -3843,6 +3843,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/maintenance.py`, `weisile-link/tests/test_desktop_maintenance.py`, `weisile-link/tests/test_desktop_runtime.py`, `weisile-link/tests/test_desktop_supervisor.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Add a 10-device fleet rehearsal evidence gate that imports a roster, pairs/selects multiple simulated classroom EV3 profiles, runs Desktop startup/supervisor checks for each profile, and records token-safe evidence before moving to signed clean-machine package evidence.
 
+### [2026-06-03] Desktop fleet rehearsal evidence gate
+- **Status**: ✅ Completed
+- **Commit**: `8bedbc3`
+- **What was done**: Added a simulated 10-device Desktop fleet rehearsal gate. The runner imports a token-free classroom roster, saves paired profiles through the secure Desktop profile layer, selects each classroom EV3, runs startup and supervisor checks for every profile, rejects fewer than 10 devices, and writes token-safe JSON and Markdown evidence that remains explicitly separate from signed release-artifact readiness.
+- **Files created/modified**: `scripts/run_desktop_fleet_rehearsal.py`, `tests/test_desktop_fleet_rehearsal.py`, `docs/desktop/evidence/desktop-fleet-rehearsal.json`, `docs/desktop/DESKTOP_FLEET_REHEARSAL.md`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Collect signed clean-machine macOS/Windows release evidence and real EV3 Bluetooth install smoke artifacts, starting with the macOS Developer ID/notarization release flow when signing credentials are available.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
