@@ -3850,6 +3850,13 @@ material into:
 - **Files created/modified**: `scripts/run_desktop_fleet_rehearsal.py`, `tests/test_desktop_fleet_rehearsal.py`, `docs/desktop/evidence/desktop-fleet-rehearsal.json`, `docs/desktop/DESKTOP_FLEET_REHEARSAL.md`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Collect signed clean-machine macOS/Windows release evidence and real EV3 Bluetooth install smoke artifacts, starting with the macOS Developer ID/notarization release flow when signing credentials are available.
 
+### [2026-06-03] Desktop release evidence readiness blocked
+- **Status**: ✅ Completed
+- **Commit**: `1b8dd09`
+- **What was done**: Refreshed the guarded macOS and Windows release-evidence gates. Both release flows stopped at preflight and executed zero release commands: macOS is blocked by missing Developer ID Application identity, Developer ID Installer identity, and notarytool profile; Windows is blocked because this host is macOS, SignTool is unavailable, `WeisileLink.exe` is missing, and Windows signing/timestamp inputs are not configured.
+- **Files created/modified**: `docs/desktop/evidence/release-evidence-readiness-20260603.json`, `docs/desktop/evidence/release-evidence-readiness-20260603.md`, `docs/desktop/evidence/macos-release-flow.json`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Provide macOS Developer ID Application and Installer identities plus `WEISILE_NOTARY_KEYCHAIN_PROFILE`, then rerun `desktop/scripts/run_macos_release_flow.py`; or move to a Windows build host with SignTool, `desktop/build/windows/WeisileLink.exe`, `WEISILE_WINDOWS_SIGN_IDENTITY`, and `WEISILE_WINDOWS_TIMESTAMP_URL`, then collect clean-machine EV3 Bluetooth install smoke evidence from the signed artifact.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
