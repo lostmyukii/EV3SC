@@ -130,6 +130,36 @@ file paths, XAML structure, and redaction boundaries. Real USB/WiFi SSH install
 and Windows Bluetooth pairing still require a Windows machine and real EV3
 hardware smoke.
 
+## Windows WPF Smoke
+
+The WPF wizard smoke runner is:
+
+```text
+run-wpf-smoke.ps1
+```
+
+Run it from this folder on a Windows computer with Windows PowerShell 5.1:
+
+```powershell
+.\run-wpf-smoke.ps1 -OutputPath .\03-evidence-templates\windows-setup-wizard-wpf-smoke.local.json
+```
+
+The runner imports the setup modules, loads `setup-wizard.xaml` through WPF,
+checks the key stepper controls, verifies the manual confirmation controls are
+present, and writes JSON evidence. It does not call `ShowDialog`, does not run
+installer actions, does not connect to EV3 hardware, and never records pairing
+tokens, passwords, or API keys.
+
+The template for the expected evidence shape is:
+
+```text
+03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json
+```
+
+On macOS, PowerShell Core can run the script only as a compatibility guard. It
+will write blocked evidence that says the WPF smoke requires Windows PowerShell
+5.1; it cannot validate real WPF rendering or click-flow behavior on macOS.
+
 ## SD Card
 
 `01-sd-card/` contains the Windows Etcher installer:

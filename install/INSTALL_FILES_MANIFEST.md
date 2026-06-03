@@ -35,6 +35,7 @@ All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 | `windows/02-weisilelink-desktop/weisile-link-service.xml` | `desktop/windows/weisile-link-service.xml` | Windows service metadata | Template |
 | `windows/setup-wizard.ps1` | `install/windows/setup-wizard.ps1` | Windows Phase A WPF setup wizard entrypoint; no install actions | Script |
 | `windows/setup-wizard.xaml` | `install/windows/setup-wizard.xaml` | Windows Phase A WPF setup wizard layout | XML |
+| `windows/run-wpf-smoke.ps1` | `install/windows/run-wpf-smoke.ps1` | Windows PowerShell 5.1 WPF wizard smoke runner and blocked macOS/PowerShell Core guard | Script |
 | `windows/lib/SetupWizard.psm1` | `install/windows/lib/SetupWizard.psm1` | Windows Phase A setup step model | Script |
 | `windows/lib/InstallFileChecks.psm1` | `install/windows/lib/InstallFileChecks.psm1` | Windows Phase B file validation module for Step 1 | Script |
 | `windows/lib/WindowsInstallActions.psm1` | `install/windows/lib/WindowsInstallActions.psm1` | Windows Phase C Desktop install staging, confirmed copy, helper execution, and startup verification module for Step 7 | Script |
@@ -51,6 +52,7 @@ All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 | `shared/03-evidence-templates/real_ev3_rehearsal_evidence.template.json` | `docs/classroom/real_ev3_rehearsal_evidence.template.json` | Real EV3 rehearsal template |
 | `mac/03-evidence-templates/macos-vsle-bluetooth-install-smoke.template.json` | `docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json` | macOS release-artifact smoke template |
 | `windows/03-evidence-templates/windows-vsle-bluetooth-install-smoke.template.json` | `docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.json` | Windows release-artifact smoke template |
+| `windows/03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json` | `install/windows/03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json` | Windows PowerShell 5.1 WPF wizard smoke evidence template |
 | `shared/04-ai-quest-samples/ai-quest-samples` | `ai-quest-samples/` | AI Quest sample projects |
 
 ## Production Release Warning

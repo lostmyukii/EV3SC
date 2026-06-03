@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "generated_at": null,
+  "status": "blocked",
+  "blocker": "Template only. Fill by running install/windows/run-wpf-smoke.ps1 on Windows PowerShell 5.1.",
+  "windows_powershell_5_1": false,
+  "modules_import_ok": false,
+  "xaml_parse_ok": false,
+  "wpf_load_ok": false,
+  "click_flow_checked": false,
+  "controls_found": [],
+  "missing_controls": [],
+  "visual": {
+    "title": "",
+    "width": 0,
+    "height": 0,
+    "min_width": 0,
+    "min_height": 0
+  },
+  "manual_confirmations": {
+    "confirm_install_visible": false,
+    "confirm_ev3_install_visible": false,
+    "bluetooth_full_vsle_visible": false
+  },
+  "host": {
+    "os": "",
+    "platform": "",
+    "ps_version": "",
+    "ps_edition": ""
+  },
+  "production_release_ready": false
+}

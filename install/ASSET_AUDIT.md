@@ -58,6 +58,7 @@ Ignored as non-install or transient material:
 | Windows setup wizard Phase B validator | `install/windows/lib/InstallFileChecks.psm1` | `install/windows/lib/` | Hash, zip-entry, JSON, XML, and required-path tests pass; no install actions |
 | Windows setup wizard Phase C desktop install automation | `install/windows/lib/WindowsInstallActions.psm1` | `install/windows/lib/` | Stages Windows evidence bundle, copies the package only after explicit confirmation, and verifies startup metadata points to `desktop-supervise` localhost defaults |
 | Windows setup wizard Phase D EV3 guided setup | `install/windows/lib/Ev3ConnectionChecks.psm1` | `install/windows/lib/` | Validates EV3 transport inputs, prepares guarded SSH/SCP install plans, and keeps Bluetooth Full VSLE pairing behind manual confirmation |
+| Windows setup wizard WPF smoke runner | `install/windows/run-wpf-smoke.ps1`, `install/windows/03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json` | `install/windows/` | Produces blocked evidence on macOS/PowerShell Core and requires Windows PowerShell 5.1 for real WPF load and click-flow evidence |
 
 The Windows internal evidence zip contains `WeisileLink.exe`,
 `WeisileLink-windows-0.1.0-internal-unsigned.zip`, a manifest, install helpers,
