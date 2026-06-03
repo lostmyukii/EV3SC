@@ -3759,6 +3759,13 @@ material into:
 - **Files created/modified**: `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/classroom/README.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Implement the first vertical slice: EV3 first-boot claim-code provisioning, `auth.claim`, Desktop profile/token storage, and a minimal pairing wizard that pairs one fresh EV3 without USB.
 
+### [2026-06-03] EV3 first-boot provisioning assets
+- **Status**: ✅ Completed
+- **Commit**: `ee176c6`
+- **What was done**: Added the EV3 first-boot provisioning tool and systemd unit so classroom golden SD cards remain unprovisioned until each cloned EV3 boots for the first time. The first boot now creates a unique brick ID, pairing token, claim code, private env file, non-secret device manifest, and golden-image install path without baking one token into every cloned card.
+- **Files created/modified**: `ev3-firmware/scripts/vsle_firstboot.py`, `ev3-firmware/systemd/vsle-firstboot.service`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `ev3-firmware/scripts/rollback_ev3_autostart.sh`, `ev3-firmware/README.md`, `tests/test_ev3_autostart_assets.py`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Implement the `auth.claim` EV3 server and WeisileLink pairing contract so WeisileLink Desktop can claim a fresh EV3 by brick ID and claim code, store the pairing token securely, and start Bluetooth Full VSLE without USB.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
