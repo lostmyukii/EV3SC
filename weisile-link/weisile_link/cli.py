@@ -18,6 +18,10 @@ from typing import List, Optional, Tuple
 
 from weisile_link.desktop.pairing import run_pairing_command
 from weisile_link.desktop.diagnostics import run_diagnostics_command
+from weisile_link.desktop.maintenance import (
+    run_device_command,
+    run_token_command,
+)
 from weisile_link.desktop.runtime import (
     DesktopStartupPlan,
     run_desktop_start_command,
@@ -97,9 +101,7 @@ class WeisileLinkRuntimeConfig:
 
 def build_server(config: WeisileLinkRuntimeConfig) -> ScratchJsonRpcServer:
     """Create a packaged WeisileLink server without connecting to EV3 yet."""
-    manager = DegradationManager(
-        max_collected_points=config.max_collected_points
-    )
+    manager = DegradationManager(max_collected_points=config.max_collected_points)
     wifi_transport = WiFiTransport(
         config.ev3_ip,
         port=config.ev3_ws_port,
@@ -219,6 +221,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         )
     if args[:1] == ["desktop-roster"]:
         raise SystemExit(run_roster_command(args[1:]))
+    if args[:1] == ["desktop-device"]:
+        raise SystemExit(run_device_command(args[1:]))
+    if args[:1] == ["desktop-token"]:
+        raise SystemExit(asyncio.run(run_token_command(args[1:])))
     if args[:1] == ["desktop-supervise"]:
         raise SystemExit(asyncio.run(run_supervisor_command(args[1:])))
 

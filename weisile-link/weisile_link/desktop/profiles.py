@@ -36,11 +36,7 @@ class DesktopProfile:
 
     def to_config(self) -> Dict[str, Any]:
         payload = asdict(self)
-        return {
-            key: value
-            for key, value in payload.items()
-            if value not in ("", {})
-        }
+        return {key: value for key, value in payload.items() if value not in ("", {})}
 
 
 class CredentialBackend:
@@ -91,9 +87,7 @@ class MacOSKeychainBackend(CredentialBackend):
     def __init__(
         self,
         *,
-        runner: Optional[
-            Callable[..., subprocess.CompletedProcess[str]]
-        ] = None,
+        runner: Optional[Callable[..., subprocess.CompletedProcess[str]]] = None,
     ) -> None:
         self._runner = runner or subprocess.run
 
@@ -157,9 +151,7 @@ class MacOSKeychainBackend(CredentialBackend):
         )
         if result.returncode == 0 or allow_missing:
             return result
-        raise DesktopProfileError(
-            result.stderr.strip() or "Keychain command failed"
-        )
+        raise DesktopProfileError(result.stderr.strip() or "Keychain command failed")
 
 
 class WindowsCredentialManagerBackend(CredentialBackend):
@@ -200,9 +192,7 @@ class _WindowsCredentialAPI:
         from ctypes import wintypes
 
         if platform.system() != "Windows":
-            raise DesktopProfileError(
-                "Windows Credential Manager is unavailable"
-            )
+            raise DesktopProfileError("Windows Credential Manager is unavailable")
 
         class FILETIME(ctypes.Structure):
             _fields_ = [
@@ -359,9 +349,7 @@ class DesktopProfileStore:
         profiles.sort(key=lambda item: item.get("brick_id", ""))
         payload["profiles"] = profiles
         payload["default_brick_id"] = profile.brick_id
-        payload["scratchai_url"] = (
-            payload.get("scratchai_url") or self.scratchai_url
-        )
+        payload["scratchai_url"] = payload.get("scratchai_url") or self.scratchai_url
         self.save(payload)
         return payload
 
@@ -419,33 +407,69 @@ class DesktopProfileStore:
             device = devices_by_id.get(brick_id, {})
             exported = {
                 "brick_id": brick_id,
-                "label": str(
-                    device.get("label") or item.get("name") or brick_id
-                ),
+                "label": str(device.get("label") or item.get("name") or brick_id),
                 "ev3_bt": str(device.get("ev3_bt") or item.get("ev3_bt") or ""),
             }
             expected = (
-                device.get("expected_sensors")
-                or item.get("expected_sensors")
-                or {}
+                device.get("expected_sensors") or item.get("expected_sensors") or {}
             )
             if expected:
-                exported["expected_sensors"] = _normalize_expected_sensors(
-                    expected
-                )
+                exported["expected_sensors"] = _normalize_expected_sensors(expected)
             devices_by_id[brick_id] = _normalize_roster_device(exported)
 
         return {
-            "classroom_id": str(
-                payload.get("roster", {}).get("classroom_id") or ""
-            ),
-            "scratchai_url": str(
-                payload.get("scratchai_url") or self.scratchai_url
-            ),
-            "devices": [
-                devices_by_id[brick_id] for brick_id in sorted(devices_by_id)
-            ],
+            "classroom_id": str(payload.get("roster", {}).get("classroom_id") or ""),
+            "scratchai_url": str(payload.get("scratchai_url") or self.scratchai_url),
+            "devices": [devices_by_id[brick_id] for brick_id in sorted(devices_by_id)],
         }
+
+    def rename_device(self, brick_id: str, name: str) -> Dict[str, Any]:
+        """Rename a paired profile and matching roster device without touching tokens."""
+        target = _require_non_empty(brick_id, "brick_id")
+        label = _require_non_empty(name, "name")
+        payload = self.load()
+        matched = False
+        for item in payload.get("profiles", []):
+            if item.get("brick_id") == target:
+                item["name"] = label
+                matched = True
+        for item in payload.get("roster", {}).get("devices", []):
+            if item.get("brick_id") == target:
+                item["label"] = label
+                matched = True
+        if not matched:
+            raise DesktopProfileError("Desktop device not found")
+        self.save(payload)
+        return payload
+
+    def remove_profile(self, brick_id: str) -> DesktopProfile:
+        """Remove a paired profile while preserving non-secret roster data."""
+        payload = self.load()
+        target = _require_non_empty(brick_id, "brick_id")
+        removed = None
+        profiles = []
+        for item in payload.get("profiles", []):
+            if item.get("brick_id") == target:
+                removed = item
+            else:
+                profiles.append(item)
+        if removed is None:
+            raise DesktopProfileError("Desktop profile not found")
+        payload["profiles"] = profiles
+        if payload.get("default_brick_id") == target:
+            payload["default_brick_id"] = profiles[0]["brick_id"] if profiles else ""
+        self.save(payload)
+        return DesktopProfile(
+            brick_id=removed["brick_id"],
+            name=removed.get("name", removed["brick_id"]),
+            transport=removed.get("transport", "vsle-bluetooth"),
+            ev3_bt=removed.get("ev3_bt", ""),
+            token_ref=removed["token_ref"],
+            last_seen_at=removed.get("last_seen_at", ""),
+            server_version=removed.get("server_version", ""),
+            capabilities=removed.get("capabilities", {}),
+            expected_sensors=_expected_sensors_for_profile(payload, removed),
+        )
 
 
 def save_claimed_profile(
@@ -477,6 +501,35 @@ def save_claimed_profile(
     return profile_store.get_profile(brick_id)
 
 
+def save_rotated_profile_token(
+    profile: DesktopProfile,
+    rotated_result: Dict[str, Any],
+    *,
+    credential_backend: CredentialBackend,
+    profile_store: DesktopProfileStore,
+    now: Optional[Callable[[], datetime]] = None,
+) -> DesktopProfile:
+    """Persist an `auth.rotate` result without writing raw tokens to config."""
+    token = _require_token(str(rotated_result.get("pairing_token", "")))
+    token_ref = credential_backend.store_pairing_token(profile.brick_id, token)
+    current_time = now() if now is not None else datetime.now(timezone.utc)
+    updated = DesktopProfile(
+        brick_id=profile.brick_id,
+        name=str(rotated_result.get("brick_name") or profile.name),
+        transport=str(rotated_result.get("transport") or profile.transport),
+        ev3_bt=str(rotated_result.get("ev3_bt") or profile.ev3_bt),
+        token_ref=token_ref,
+        last_seen_at=current_time.astimezone(timezone.utc).isoformat(),
+        server_version=str(
+            rotated_result.get("server_version") or profile.server_version
+        ),
+        capabilities=dict(profile.capabilities),
+        expected_sensors=dict(profile.expected_sensors),
+    )
+    profile_store.upsert_profile(updated)
+    return profile_store.get_profile(profile.brick_id)
+
+
 def resolve_profile_environment(
     profile: DesktopProfile,
     *,
@@ -499,9 +552,7 @@ def credential_backend_for_platform(
         return MacOSKeychainBackend()
     if system == "Windows":
         return WindowsCredentialManagerBackend()
-    raise DesktopProfileError(
-        "Unsupported credential platform: {}".format(system)
-    )
+    raise DesktopProfileError("Unsupported credential platform: {}".format(system))
 
 
 def default_config_path(system_name: Optional[str] = None) -> Path:
@@ -530,9 +581,7 @@ def _credential_target(brick_id: str) -> str:
 def _target_from_ref(token_ref: str, scheme: str) -> str:
     prefix = "{}:".format(scheme)
     if not token_ref.startswith(prefix):
-        raise DesktopProfileError(
-            "Token ref does not use {} scheme".format(scheme)
-        )
+        raise DesktopProfileError("Token ref does not use {} scheme".format(scheme))
     target = token_ref[len(prefix) :]
     if not target.startswith("{}/".format(DEFAULT_SERVICE_PREFIX)):
         raise DesktopProfileError("Token ref target is outside VSLE namespace")
@@ -595,9 +644,7 @@ def _normalize_roster_device(device: Dict[str, Any]) -> Dict[str, Any]:
             device.get("expected_sensors") or {}
         ),
     }
-    return {
-        key: value for key, value in payload.items() if value not in ("", {})
-    }
+    return {key: value for key, value in payload.items() if value not in ("", {})}
 
 
 def _normalize_expected_sensors(raw: Any) -> Dict[str, str]:

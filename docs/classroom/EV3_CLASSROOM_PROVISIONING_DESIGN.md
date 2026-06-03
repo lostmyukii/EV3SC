@@ -430,6 +430,22 @@ Imported roster data is stored as non-secret config. When a roster device
 matches a paired profile, Desktop ready checks use `expected_sensors` to
 require the expected S1-S4 sensor ports before reporting `Ready`.
 
+The first maintenance entry points are:
+
+```bash
+python -m weisile_link desktop-device --config path/to/config.json rename \
+  --brick-id VSLE-EV3-4655 --name "Table 1 EV3"
+python -m weisile_link desktop-token --config path/to/config.json rotate \
+  --brick-id VSLE-EV3-4655 --native-adapter path/to/native-adapter
+python -m weisile_link desktop-token --config path/to/config.json recover \
+  --brick-id VSLE-EV3-4655 --confirm-delete-profile
+```
+
+Lost-token recovery is intentionally guarded: Desktop cannot recover a raw
+token from config, so it preserves roster data, removes only the stale local
+profile after explicit confirmation, and requires re-claim or USB support
+recovery before lessons continue.
+
 ## Migration Workflow For Many EV3 Bricks
 
 ### Lab Prep

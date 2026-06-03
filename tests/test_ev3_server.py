@@ -407,6 +407,74 @@ def test_auth_claim_rate_limits_bad_codes_without_token_leak(tmp_path):
     assert "secret-token" not in json.dumps(responses)
 
 
+def test_auth_rotate_replaces_pairing_token_and_updates_env(tmp_path, monkeypatch):
+    module = load_server_module()
+    monkeypatch.setattr(
+        module.secrets,
+        "token_urlsafe",
+        lambda _size: "rotated-secret-token-1234567890",
+    )
+    env_file = tmp_path / "ev3.env"
+    env_file.write_text(
+        "WEISILE_PAIRING_TOKEN=old-secret-token\nVSLE_CLAIM_CODE_USED=1\n",
+        encoding="utf-8",
+    )
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="old-secret-token",
+        env_file=str(env_file),
+        brick_id="VSLE-EV3-583C",
+        brick_name="Class EV3 01",
+        ev3_bt_address="A0:E6:F8:19:58:3C",
+        clock=lambda: 1234.5,
+    )
+
+    response = server.handle_raw_message(
+        json.dumps(
+            {
+                "id": "rotate-1",
+                "method": "auth.rotate",
+                "params": {
+                    "host_id": "teacher-macbook-01",
+                    "app_version": "0.1.0",
+                },
+            }
+        )
+    )
+
+    assert response["ok"] is True
+    assert response["id"] == "rotate-1"
+    assert response["result"]["pairing_token"] == ("rotated-secret-token-1234567890")
+    assert response["result"]["brick_id"] == "VSLE-EV3-583C"
+    assert server.pairing_token == "rotated-secret-token-1234567890"
+    env_text = env_file.read_text(encoding="utf-8")
+    assert "WEISILE_PAIRING_TOKEN=rotated-secret-token-1234567890" in env_text
+    assert "VSLE_TOKEN_ROTATED_HOST_ID=teacher-macbook-01" in env_text
+    assert "VSLE_TOKEN_ROTATED_AT=1234.5" in env_text
+    assert "old-secret-token" not in env_text
+
+
+def test_auth_rotate_requires_persistable_env_without_leaking_old_token(tmp_path):
+    module = load_server_module()
+    server = module.VSLEEV3Server(
+        FakeHardware(),
+        pairing_token="old-secret-token",
+        env_file=str(tmp_path / "missing.env"),
+    )
+
+    response = server.handle_auth_rotate(
+        {
+            "id": "rotate-missing",
+            "method": "auth.rotate",
+            "params": {"host_id": "teacher-macbook-01"},
+        }
+    )
+
+    assert response["ok"] is False
+    assert response["code"] == "EV3_AUTH_ROTATE_PERSIST_FAILED"
+    assert "old-secret-token" not in json.dumps(response)
+
+
 def test_invalid_command_fails_closed_without_hardware_action():
     module = load_server_module()
     hardware = FakeHardware()

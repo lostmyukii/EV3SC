@@ -296,6 +296,73 @@ class BluetoothTransport:
             self.manager.connection_state.active_transport = None
             await self._close_socket()
 
+    async def rotate_pairing_token(
+        self,
+        *,
+        host_id: str,
+        app_version: str = "",
+    ) -> Dict[str, Any]:
+        """Rotate a claimed EV3 pairing token over a temporary authenticated link."""
+        if not self._pairing_token:
+            raise PermissionError("pairing token is required for rotation")
+        if self.connected:
+            raise ConnectionError("EV3 Bluetooth transport is already connected")
+        self.manager.bluetooth_supported = self.supported
+        try:
+            if self._native_adapter is not None:
+                if not await self._open_native_adapter():
+                    raise ConnectionError("native Bluetooth adapter did not connect")
+            else:
+                if not self.supported:
+                    raise ConnectionError("stdlib RFCOMM is not supported on this host")
+                self.sock = self._socket_module.socket(
+                    self._socket_module.AF_BLUETOOTH,
+                    self._socket_module.SOCK_STREAM,
+                    self._socket_module.BTPROTO_RFCOMM,
+                )
+                self.sock.settimeout(self.connect_timeout_s)
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(
+                    None,
+                    self.sock.connect,
+                    (self.ev3_address, self.channel),
+                )
+                self._file = self.sock.makefile("rwb", buffering=0)
+                self._record_reconnected()
+
+            if not await self._pair():
+                raise PermissionError("EV3 pairing failed before token rotation")
+            await self._write_json_line(
+                {
+                    "id": "auth.rotate",
+                    "method": "auth.rotate",
+                    "params": {
+                        "host_id": str(host_id),
+                        "app_version": str(app_version),
+                    },
+                }
+            )
+            ack = await asyncio.wait_for(
+                self._read_json_line(),
+                timeout=self.command_timeout_s,
+            )
+            if ack.get("type") == "ack" and ack.get("ok") is True:
+                result = ack.get("result") or {}
+                token = result.get("pairing_token")
+                if token:
+                    self._pairing_token = str(token)
+                return result
+            raise PermissionError(
+                str(ack.get("error") or ack.get("code") or "EV3 token rotation failed")
+            )
+        except Exception as exc:
+            self._record_failure(str(exc) or type(exc).__name__)
+            raise
+        finally:
+            self.manager.connection_state.connected = False
+            self.manager.connection_state.active_transport = None
+            await self._close_socket()
+
     async def send_command(self, command: Dict[str, Any]) -> Dict[str, Any]:
         """Validate, send, and await one EV3 ack envelope."""
         stream_missing = self._file is None and self._native_adapter is None

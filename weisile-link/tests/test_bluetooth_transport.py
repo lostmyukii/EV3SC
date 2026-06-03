@@ -327,6 +327,75 @@ def test_claim_rejects_failed_ack_without_storing_token():
     asyncio.run(scenario())
 
 
+def test_rotate_pairing_token_pairs_rotates_token_and_closes_temp_socket():
+    async def scenario():
+        fake_file = FakeBluetoothFile(
+            [
+                {"type": "ack", "id": "auth.pair", "ok": True},
+                {
+                    "type": "ack",
+                    "id": "auth.rotate",
+                    "ok": True,
+                    "result": {
+                        "brick_id": "VSLE-EV3-583C",
+                        "brick_name": "Class EV3 01",
+                        "transport": "vsle-bluetooth",
+                        "ev3_bt": "A0:E6:F8:19:58:3C",
+                        "pairing_token": "rotated-secret-token-1234567890",
+                    },
+                },
+            ]
+        )
+        fake_socket = FakeBluetoothSocket(fake_file)
+        transport = BluetoothTransport(
+            "A0:E6:F8:19:58:3C",
+            socket_module=FakeSocketModule(fake_socket),
+            platform_name="Linux",
+            pairing_token="old-secret-token",
+        )
+
+        result = await transport.rotate_pairing_token(
+            host_id="teacher-macbook-01",
+            app_version="0.1.0",
+        )
+
+        assert result["pairing_token"] == "rotated-secret-token-1234567890"
+        assert transport._pairing_token == "rotated-secret-token-1234567890"
+        assert decoded_writes(fake_file) == [
+            {
+                "id": "auth.pair",
+                "method": "auth.pair",
+                "params": {"token": "old-secret-token"},
+            },
+            {
+                "id": "auth.rotate",
+                "method": "auth.rotate",
+                "params": {
+                    "host_id": "teacher-macbook-01",
+                    "app_version": "0.1.0",
+                },
+            },
+        ]
+        assert fake_socket.closed is True
+
+    asyncio.run(scenario())
+
+
+def test_rotate_pairing_token_requires_existing_token():
+    async def scenario():
+        transport = BluetoothTransport(
+            "A0:E6:F8:19:58:3C",
+            socket_module=FakeSocketModule(FakeBluetoothSocket(FakeBluetoothFile())),
+            platform_name="Linux",
+            pairing_token="",
+        )
+
+        with pytest.raises(PermissionError):
+            await transport.rotate_pairing_token(host_id="teacher-macbook-01")
+
+    asyncio.run(scenario())
+
+
 def test_send_command_validates_normalizes_and_resolves_ack_from_receive_loop():
     async def scenario():
         fake_file = FakeBluetoothFile()

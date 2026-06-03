@@ -17,6 +17,7 @@ import hmac
 import io
 import json
 import os
+import secrets
 import signal
 import socket
 import time
@@ -1140,6 +1141,77 @@ class VSLEEV3Server:
             },
         }
 
+    def handle_auth_rotate(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        """Rotate the runtime pairing token for an authenticated Desktop."""
+        request_id = message.get("id")
+        try:
+            params = message.get("params", {})
+            if not isinstance(params, dict):
+                raise EV3CommandError(
+                    "EV3_INVALID_COMMAND",
+                    "auth.rotate params must be an object",
+                    False,
+                )
+            if not self.pairing_token:
+                raise EV3CommandError(
+                    "EV3_AUTH_ROTATE_UNAVAILABLE",
+                    "EV3 pairing token is not provisioned",
+                    False,
+                )
+            host_id = _claim_metadata(params.get("host_id"), "host_id")
+            new_token = secrets.token_urlsafe(32)
+            self._persist_rotated_token(
+                new_token,
+                host_id=host_id,
+                app_version=_optional_claim_metadata(params.get("app_version")),
+            )
+            return {
+                "type": "ack",
+                "id": request_id,
+                "ok": True,
+                "result": {
+                    "brick_id": self.brick_id,
+                    "brick_name": self.brick_name,
+                    "transport": "vsle-bluetooth",
+                    "ev3_bt": self.ev3_bt_address,
+                    "pairing_token": new_token,
+                    "server_version": self.server_version,
+                    "rotated_host_id": host_id,
+                },
+            }
+        except EV3CommandError as exc:
+            return self._error_ack(request_id, exc)
+
+    def _persist_rotated_token(
+        self,
+        new_token: str,
+        *,
+        host_id: str,
+        app_version: str,
+    ) -> None:
+        values = _read_env_file(self.env_file)
+        if not values:
+            raise EV3CommandError(
+                "EV3_AUTH_ROTATE_PERSIST_FAILED",
+                "EV3 identity env file is not available",
+                False,
+            )
+        values["WEISILE_PAIRING_TOKEN"] = new_token
+        values["VSLE_TOKEN_ROTATED_AT"] = str(self.clock())
+        values["VSLE_TOKEN_ROTATED_HOST_ID"] = host_id
+        if app_version:
+            values["VSLE_TOKEN_ROTATED_APP_VERSION"] = app_version
+        try:
+            _write_env_file(self.env_file, values)
+        except Exception as exc:
+            raise EV3CommandError(
+                "EV3_AUTH_ROTATE_PERSIST_FAILED",
+                "EV3 rotated token could not be saved",
+                False,
+                {"exception_type": type(exc).__name__},
+            )
+        self.pairing_token = new_token
+
     async def handle_client(self, websocket: Any, _path: str = "") -> None:
         """Handle one WebSocket client and stop motors on disconnect."""
         if not await self.authenticate_client(websocket):
@@ -1177,6 +1249,8 @@ class VSLEEV3Server:
                 None,
                 EV3CommandError("EV3_INVALID_COMMAND", "Invalid JSON command", False),
             )
+        if isinstance(message, dict) and message.get("method") == "auth.rotate":
+            return self.handle_auth_rotate(message)
         return self.handle_command(message)
 
     def handle_command(self, message: Dict[str, Any]) -> Dict[str, Any]:

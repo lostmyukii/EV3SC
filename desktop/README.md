@@ -91,6 +91,40 @@ python -m weisile_link desktop-roster \
   --output classroom-roster.json
 ```
 
+Fleet maintenance commands keep the same safe-output rule:
+
+```bash
+python -m weisile_link desktop-device \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  rename \
+  --brick-id VSLE-EV3-583C \
+  --name "Table 1 EV3"
+```
+
+```bash
+python -m weisile_link desktop-token \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  rotate \
+  --brick-id VSLE-EV3-583C \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter
+```
+
+Token rotation authenticates with the current secure credential, asks the EV3
+to persist a new runtime token, then stores that token back into Keychain or
+Credential Manager. The command output never prints the old or new token.
+
+If a local credential is lost, Desktop must not pretend it can recover the raw
+token. The guarded recovery command explains the required re-claim/USB support
+path, and only removes the stale local profile when explicitly confirmed:
+
+```bash
+python -m weisile_link desktop-token \
+  --config "$HOME/Library/Application Support/VSLE/WeisileLink/config.json" \
+  recover \
+  --brick-id VSLE-EV3-583C \
+  --confirm-delete-profile
+```
+
 The packaged macOS/Windows shell should call the one-click supervisor instead
 of asking teachers to run the bridge command directly:
 
@@ -156,6 +190,7 @@ Run:
 ./.venv/bin/python -m pytest tests/test_desktop_packaging.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_profiles.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_roster.py -v
+./.venv/bin/python -m pytest weisile-link/tests/test_desktop_maintenance.py -v
 ./.venv/bin/python -m pytest weisile-link/tests/test_desktop_pairing.py -v
 desktop/scripts/validate_desktop_assets.py
 ```
