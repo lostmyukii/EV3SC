@@ -3836,6 +3836,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `weisile-link/weisile_link/desktop/maintenance.py`, `weisile-link/tests/test_desktop_maintenance.py`, `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement multi-EV3 profile selection for the Desktop startup/supervisor path so a teacher can choose which paired classroom brick to launch without editing config files.
 
+### [2026-06-03] Desktop multi-EV3 profile selection
+- **Status**: ✅ Completed
+- **Commit**: `651dbd6`
+- **What was done**: Added token-safe multi-EV3 profile selection for the Desktop classroom path. `desktop-device list` now shows paired device summaries without credential references, `desktop-device select` updates the default brick, and `desktop-start`/`desktop-supervise` can launch either the selected default or a one-time `--brick-id` override while keeping pairing tokens out of command output and child process arguments.
+- **Files created/modified**: `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/maintenance.py`, `weisile-link/tests/test_desktop_maintenance.py`, `weisile-link/tests/test_desktop_runtime.py`, `weisile-link/tests/test_desktop_supervisor.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Add a 10-device fleet rehearsal evidence gate that imports a roster, pairs/selects multiple simulated classroom EV3 profiles, runs Desktop startup/supervisor checks for each profile, and records token-safe evidence before moving to signed clean-machine package evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
