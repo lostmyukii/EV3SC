@@ -21,6 +21,7 @@ from weisile_link.desktop.runtime import (
     DesktopStartupPlan,
     run_desktop_start_command,
 )
+from weisile_link.desktop.supervisor import run_supervisor_command
 from weisile_link.json_rpc_server import (
     DEFAULT_ALLOWED_ORIGINS,
     ScratchJsonRpcServer,
@@ -212,6 +213,8 @@ def main(argv: Optional[List[str]] = None) -> None:
                 )
             )
         )
+    if args[:1] == ["desktop-supervise"]:
+        raise SystemExit(asyncio.run(run_supervisor_command(args[1:])))
 
     config = WeisileLinkRuntimeConfig.from_env()
     try:

@@ -28,6 +28,15 @@ from weisile_link.desktop.runtime import (
     classroom_allowed_origins,
     run_desktop_start_command,
 )
+from weisile_link.desktop.supervisor import (
+    DesktopSupervisionResult,
+    DesktopSupervisorService,
+    build_desktop_start_command,
+    build_supervisor_parser,
+    run_supervisor_command,
+    tcp_port_open,
+    wait_for_local_ports,
+)
 
 __all__ = [
     "DesktopHealthState",
@@ -38,12 +47,16 @@ __all__ = [
     "DesktopProfileStore",
     "DesktopReadyCheck",
     "DesktopRuntimeService",
+    "DesktopSupervisionResult",
+    "DesktopSupervisorService",
     "DesktopStartupPlan",
     "MacOSKeychainBackend",
     "MemoryCredentialBackend",
     "WindowsCredentialManagerBackend",
     "build_desktop_start_parser",
+    "build_desktop_start_command",
     "build_pairing_parser",
+    "build_supervisor_parser",
     "classroom_allowed_origins",
     "credential_backend_for_platform",
     "create_vsle_bluetooth_transport",
@@ -51,5 +64,8 @@ __all__ = [
     "run_desktop_start_command",
     "resolve_profile_environment",
     "run_pairing_command",
+    "run_supervisor_command",
     "save_claimed_profile",
+    "tcp_port_open",
+    "wait_for_local_ports",
 ]

@@ -66,6 +66,29 @@ token was rotated. `needs_attention` means the profile exists but the Desktop
 app should open guided diagnostics for Bluetooth, EV3 service, or sensor stream
 failure.
 
+The packaged macOS/Windows shell should call the one-click supervisor instead
+of asking teachers to run the bridge command directly:
+
+```bash
+python -m weisile_link desktop-supervise \
+  --native-adapter /Applications/WeisileLink.app/Contents/Resources/native/WeisileEV3BluetoothAdapter \
+  --open-scratchai
+```
+
+`desktop-supervise` performs the teacher-facing sequence:
+
+1. Load the saved profile and secure token reference.
+2. Run an EV3 ready-check using the stored credential.
+3. Start a child `desktop-start` process without placing the token on the
+   command line.
+4. Wait for local ports `20111` and `8766`.
+5. Open the configured ScratchAI URL when the bridge is ready.
+6. Return redacted JSON for the future Desktop UI.
+
+If no profile or credential exists, the supervisor returns `needs_pairing` and
+does not start the bridge. If the EV3 ready-check or local port checks fail, it
+returns `needs_attention` so the UI can open guided diagnostics.
+
 The minimal first-run pairing command is:
 
 ```bash
