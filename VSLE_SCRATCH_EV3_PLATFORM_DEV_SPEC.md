@@ -3829,6 +3829,13 @@ material into:
 - **Files created/modified**: `weisile-link/weisile_link/desktop/roster.py`, `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/desktop/pairing.py`, `weisile-link/weisile_link/desktop/runtime.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `weisile-link/tests/test_desktop_roster.py`, `weisile-link/tests/test_desktop_profiles.py`, `weisile-link/tests/test_desktop_pairing.py`, `weisile-link/tests/test_desktop_runtime.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
 - **Next step**: Implement the next fleet-tools slice: device rename flow, token rotation command, and lost-token recovery guardrails so a teacher can maintain a classroom set after the initial roster import.
 
+### [2026-06-03] Desktop fleet maintenance commands
+- **Status**: ✅ Completed
+- **Commit**: `edc39f7`
+- **What was done**: Added the first fleet maintenance command set for classroom EV3 upkeep. Teachers can now rename a device/profile without touching credentials, rotate a runtime pairing token through authenticated `auth.rotate`, and run a guarded lost-token recovery flow that preserves non-secret roster data and never prints raw old or new tokens.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `weisile-link/weisile_link/transport/bluetooth_transport.py`, `weisile-link/tests/test_bluetooth_transport.py`, `weisile-link/weisile_link/desktop/maintenance.py`, `weisile-link/tests/test_desktop_maintenance.py`, `weisile-link/weisile_link/desktop/profiles.py`, `weisile-link/weisile_link/cli.py`, `weisile-link/weisile_link/desktop/__init__.py`, `desktop/README.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `docs/SOURCE_REGISTER.md`
+- **Next step**: Implement multi-EV3 profile selection for the Desktop startup/supervisor path so a teacher can choose which paired classroom brick to launch without editing config files.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
