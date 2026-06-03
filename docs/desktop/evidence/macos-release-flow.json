@@ -16,7 +16,7 @@
     }
   ],
   "preflight_ready": false,
-  "preflight_report": "/Users/yukii/Desktop/EV3SC/docs/desktop/evidence/macos-release-preflight.md",
+  "preflight_report": "docs/desktop/evidence/macos-release-preflight.md",
   "release_commands_after_preflight": [
     "./.venv/bin/python desktop/scripts/build_release_artifacts.py macos --executable /Users/yukii/Desktop/EV3SC/desktop/build/macos/WeisileLink --native-adapter /Users/yukii/Desktop/EV3SC/desktop/build/macos/native/WeisileEV3BluetoothAdapter.app/Contents/MacOS/WeisileEV3BluetoothAdapter --output desktop/release/macos --version 0.1.0 --sign-identity \"Developer ID Application: WeisileEDU\"",
     "./.venv/bin/python desktop/scripts/notarize_macos_release.py --manifest desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json --keychain-profile VSLE_NOTARY",

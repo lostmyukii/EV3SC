@@ -1,0 +1,42 @@
+{
+  "evidence_kind": "desktop_release_evidence_readiness",
+  "recorded_at": "2026-06-03T09:04:01Z",
+  "release_artifact_evidence_ready": false,
+  "macos": {
+    "preflight_ready": false,
+    "release_flow_status": "blocked-preflight",
+    "commands_executed": 0,
+    "blocking_checks": [
+      "app_sign_identity",
+      "installer_sign_identity",
+      "notary_keychain_profile"
+    ],
+    "reports": [
+      "docs/desktop/evidence/macos-release-preflight.json",
+      "docs/desktop/evidence/macos-release-preflight.md",
+      "docs/desktop/evidence/macos-release-flow.json",
+      "docs/desktop/evidence/macos-release-flow.md"
+    ]
+  },
+  "windows": {
+    "preflight_ready": false,
+    "release_flow_status": "blocked-preflight",
+    "commands_executed": 0,
+    "blocking_checks": [
+      "tool:signtool",
+      "host_os_windows",
+      "executable_path",
+      "windows_sign_identity",
+      "timestamp_url"
+    ],
+    "reports": [
+      "docs/desktop/evidence/windows-release-preflight.json",
+      "docs/desktop/evidence/windows-release-preflight.md",
+      "docs/desktop/evidence/windows-release-flow.json",
+      "docs/desktop/evidence/windows-release-flow.md"
+    ]
+  },
+  "clean_machine_install_smoke_ready": false,
+  "real_ev3_bluetooth_install_smoke_ready": false,
+  "next_step": "Provide macOS Developer ID Application and Installer identities plus a notarytool profile, or move to a Windows build host with signtool, a self-contained WeisileLink.exe, a signing identity, and a timestamp URL; then rerun the guarded release flow before collecting clean-machine EV3 Bluetooth install smoke evidence."
+}
