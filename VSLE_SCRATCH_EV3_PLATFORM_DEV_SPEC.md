@@ -3864,6 +3864,13 @@ material into:
 - **Files created/modified**: `desktop/scripts/run_internal_release_flow.py`, `tests/test_internal_release_flow.py`, `package.json`, `README.md`, `desktop/README.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WINDOWS_INSTALL.md`, `docs/desktop/evidence/internal-release.json`, `docs/desktop/evidence/internal-release.md`, `docs/classroom/EV3_CLASSROOM_PROVISIONING_DESIGN.md`, `AGENTS.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Run `npm run build:win:internal` on a real Windows host or GitHub Actions `windows-latest`, then use the generated unsigned Windows internal evidence for tester handoff while leaving production signing and notarization for the Production Release stage.
 
+### [2026-06-03] GitHub Actions Windows internal release evidence
+- **Status**: ✅ Completed
+- **Commit**: `ee84e98`
+- **What was done**: Added and pushed a `windows-latest` GitHub Actions workflow that runs `npm run build:win:internal`, then confirmed run `26879990306` completed successfully. The workflow uploaded the unsigned internal artifact bundle as `windows-internal-release-evidence` (artifact `7382544085`, digest `sha256:1853a7de52b37c683247440afa8cf66d112fe19993bc5876f4a20f1528c75fb0`); local unauthenticated artifact download returns GitHub `401`, so testers should download it through the authenticated Actions UI.
+- **Files created/modified**: `.github/workflows/windows-internal-release.yml`, `scripts/run_internal_release_flow.js`, `package.json`, `tests/test_internal_release_flow.py`, `README.md`, `desktop/README.md`, `docs/desktop/MACOS_INSTALL.md`, `docs/desktop/WEISILELINK_DESKTOP.md`, `docs/desktop/WINDOWS_INSTALL.md`
+- **Next step**: Download the `windows-internal-release-evidence` artifact from the successful GitHub Actions run and use its unsigned Windows evidence for internal tester handoff; keep Windows code signing, timestamp URL, and SmartScreen reputation on the Production Release track only.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
