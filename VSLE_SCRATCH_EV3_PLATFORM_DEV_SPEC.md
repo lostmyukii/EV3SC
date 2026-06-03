@@ -3892,6 +3892,13 @@ material into:
 - **Files created/modified**: `install/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/ASSET_AUDIT.md`, `install/INSTALL_FILES_MANIFEST.md`, `install/check_install_files.sh`, `install/make_usb_copy.sh`, `install/mac/`, `install/windows/`, `install/shared/`, `install-wizard/`
 - **Next step**: Use `install/make_usb_copy.sh` for internal tester handoff, then collect clean-machine macOS and Windows install smoke evidence from signed release artifacts before external classroom distribution.
 
+### [2026-06-03] Windows setup wizard development design
+- **Status**: ✅ Completed
+- **Commit**: `a2416a9`
+- **What was done**: Added a Windows graphical setup wizard development design that defines feasibility boundaries, a PowerShell/WPF recommendation, iOS/Apple-inspired UX principles, step-by-step page flow, automation modules, manual confirmation gates, security rules, test strategy, and staged implementation phases for automating the Windows VSLE Scratch-EV3 install flow.
+- **Files created/modified**: `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `install/windows/README.md`
+- **Next step**: Build the Phase A Windows setup wizard skeleton with a WPF stepper window and no install actions until validation modules and tests are in place.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
