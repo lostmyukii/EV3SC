@@ -3878,6 +3878,20 @@ material into:
 - **Files created/modified**: `docs/desktop/evidence/windows-internal-release-evidence/windows-internal-release-evidence.zip`, `docs/desktop/evidence/windows-internal-release-evidence/README.md`, `docs/desktop/evidence/windows-internal-release-evidence/download-receipt.json`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Hand the unsigned Windows internal artifact to VSLE-controlled internal testers and collect clean-machine Windows install smoke evidence before any Windows package is treated as release-artifact classroom evidence; keep production Windows code signing, timestamp URL, and SmartScreen/publisher reputation gates separate.
 
+### [2026-06-03] Installation wizard initial package
+- **Status**: ✅ Completed
+- **Commit**: `9e5e4b9`
+- **What was done**: Created the first consolidated installation wizard package with a Chinese step-by-step guide, install file manifest, validation script, and ordered install file entry points for SD card flashing, EV3 server setup, WeisileLink Desktop, evidence templates, and AI Quest samples. The package kept large local installation downloads as relative links to EV3SC-owned assets so the repository would not duplicate oversized binaries.
+- **Files created/modified**: `install-wizard/README.md`, `install-wizard/INSTALL_FILES_MANIFEST.md`, `install-wizard/check_install_files.sh`, `install-wizard/安装向导.md`, `install-wizard/files/`
+- **Next step**: Audit the full EV3SC folder and reorganize the wizard into a top-level `install/` folder split by macOS, Windows, and shared EV3 materials.
+
+### [2026-06-03] Platform-split install folder audit and validation
+- **Status**: ✅ Completed
+- **Commit**: `a9590d9`
+- **What was done**: Replaced the initial `install-wizard/` package with a top-level `install/` folder split into `mac/`, `windows/`, and `shared/` sections. Audited installation assets across the EV3SC folder, documented large-file handling, added a USB copy helper that expands symlinks, and verified both the source install folder and a copied USB-style folder with repeated three-pass hash, archive, JSON, DMG, executable, and symlink checks.
+- **Files created/modified**: `install/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/ASSET_AUDIT.md`, `install/INSTALL_FILES_MANIFEST.md`, `install/check_install_files.sh`, `install/make_usb_copy.sh`, `install/mac/`, `install/windows/`, `install/shared/`, `install-wizard/`
+- **Next step**: Use `install/make_usb_copy.sh` for internal tester handoff, then collect clean-machine macOS and Windows install smoke evidence from signed release artifacts before external classroom distribution.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
