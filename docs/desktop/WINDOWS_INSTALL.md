@@ -155,6 +155,9 @@ for official-firmware Bluetooth compatibility must include:
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
+  "desktop_diagnostics_export_ok": true,
+  "desktop_diagnostics_redaction_ok": true,
+  "desktop_diagnostics_bundle": "docs/desktop/evidence/windows-diagnostics.json",
   "official_firmware_bt_real_ev3_ok": true
 }
 ```
@@ -181,10 +184,15 @@ Copy-Item docs/desktop/evidence/windows-vsle-bluetooth-install-smoke.template.js
 
 ```json
 {
+  "release_artifact_manifest": "desktop/release/windows/WeisileLink-windows-0.1.0-manifest.json",
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
-  "vsle_bluetooth_real_ev3_ok": true
+  "desktop_diagnostics_export_ok": true,
+  "desktop_diagnostics_redaction_ok": true,
+  "desktop_diagnostics_bundle": "docs/desktop/evidence/windows-vsle-bluetooth-diagnostics.json",
+  "vsle_bluetooth_real_ev3_ok": true,
+  "vsle_bluetooth_sensor_ready": true
 }
 ```
 
@@ -208,6 +216,12 @@ artifact before release-artifact evidence can pass:
 
 `windows_installer_type` may be `msi` or `exe`. A signed zip with no signed
 installer fields is not enough for classroom evidence.
+
+The `desktop_diagnostics_bundle` file must be produced by the installed
+`desktop-diagnostics` command with default redaction enabled. The install smoke
+gate opens that JSON, requires the diagnostics state to be `ready`, requires
+the `ev3_ready_check` to pass, and rejects raw pairing tokens, API keys,
+Bluetooth addresses, or student raw data.
 
 Run:
 

@@ -225,8 +225,15 @@ manifests unless they include `windows_installer`, `windows_installer_type`,
 
 For the no-WiFi full VSLE Bluetooth classroom path, collect clean-machine
 install evidence with an ev3dev EV3 running `vsle_ev3_server.py` over
-`vsle-bluetooth`. The evidence must include `vsle_bluetooth_real_ev3_ok: true`
-and must pass the desktop gate in VSLE mode:
+`vsle-bluetooth`. The evidence must include
+`desktop_diagnostics_export_ok: true`,
+`desktop_diagnostics_redaction_ok: true`, a
+`desktop_diagnostics_bundle` produced by the installed `desktop-diagnostics`
+command, `vsle_bluetooth_real_ev3_ok: true`, and
+`vsle_bluetooth_sensor_ready: true`. The desktop gate opens the diagnostics
+bundle, requires `state: ready`, requires `ev3_ready_check` to pass, and
+rejects raw pairing tokens, API keys, Bluetooth addresses, or student raw data
+before it accepts the VSLE mode evidence:
 
 Use the platform-specific templates under `docs/desktop/evidence/`:
 
@@ -237,7 +244,9 @@ The copied evidence JSON must set `release_artifact_manifest` to the manifest
 for the installed release artifact. macOS manifests must be signed and
 notarized; Windows manifests must be signed. In both cases, the manifest must
 record a bundled self-contained executable before the install smoke gate can
-accept `installed_from_release_artifact: true`.
+accept `installed_from_release_artifact: true`. The same evidence JSON must
+also prove the installed app exported a default-redacted diagnostics bundle and
+observed a real EV3 sensor stream through Bluetooth.
 
 ```bash
 python scripts/run_desktop_install_smoke.py \

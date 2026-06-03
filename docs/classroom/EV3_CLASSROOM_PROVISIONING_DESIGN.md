@@ -384,7 +384,10 @@ Windows is classroom ready only when this passes on a clean Windows machine:
 8. Diagnostic export redacts secrets.
 9. Uninstall removes startup entries and app files.
 10. `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth` accepts the
-    evidence JSON.
+    evidence JSON with `desktop_diagnostics_export_ok: true`,
+    `desktop_diagnostics_redaction_ok: true`,
+    `desktop_diagnostics_bundle` pointing to the installed diagnostics export,
+    and `vsle_bluetooth_sensor_ready: true`.
 
 ## Classroom Roster Package
 
@@ -498,7 +501,8 @@ Deliverables:
 Acceptance:
 
 - `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth` passes from
-  release-artifact evidence.
+  release-artifact evidence that includes a default-redacted
+  `desktop_diagnostics_bundle` and `vsle_bluetooth_sensor_ready: true`.
 
 ### Milestone 4: Windows Classroom Package
 
@@ -515,6 +519,9 @@ Acceptance:
 
 - A clean Windows computer pairs to a real ev3dev EV3 without USB and ScratchAI
   reads sensors through local WeisileLink.
+- `scripts/run_desktop_install_smoke.py --mode vsle-bluetooth` passes from the
+  signed Windows installer evidence with default-redacted diagnostics and
+  `vsle_bluetooth_sensor_ready: true`.
 
 ### Milestone 5: Fleet Tools
 

@@ -73,3 +73,10 @@ see Bluetooth addresses and device identifiers.
 Every desktop release must export diagnostics on a clean macOS and Windows
 machine. The verifier must inspect the resulting bundle and confirm secrets,
 student raw data, and oversized labels are absent by default.
+
+The clean-machine install smoke evidence must reference that bundle with
+`desktop_diagnostics_bundle`, set `desktop_diagnostics_export_ok: true`, and
+set `desktop_diagnostics_redaction_ok: true`. The install smoke gate reads the
+bundle, requires `state: ready`, requires `ev3_ready_check` to pass for the
+real EV3 path, and rejects raw pairing tokens, API keys, Bluetooth addresses,
+or student raw data.

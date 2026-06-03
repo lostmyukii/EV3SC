@@ -150,6 +150,13 @@ def main() -> int:
         "platform": platform,
         "install_evidence": str(args.install_evidence),
         "release_artifact_manifest": install["release_artifact_manifest"],
+        "desktop_diagnostics_bundle": install.get("desktop_diagnostics_bundle")
+        or install.get("desktop_diagnostics_bundle_path"),
+        "desktop_diagnostics_export_ok": install.get("desktop_diagnostics_export_ok"),
+        "desktop_diagnostics_redaction_ok": install.get(
+            "desktop_diagnostics_redaction_ok"
+        ),
+        "vsle_bluetooth_sensor_ready": install.get("vsle_bluetooth_sensor_ready"),
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

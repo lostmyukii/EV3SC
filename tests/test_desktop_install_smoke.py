@@ -62,6 +62,50 @@ def _release_manifest(
     return str(manifest)
 
 
+def _diagnostics_bundle(
+    tmp_path,
+    *,
+    state="ready",
+    ev3_ready=True,
+    unsafe=False,
+):
+    check = {
+        "name": "ev3_ready_check",
+        "ok": ev3_ready,
+        "status": state,
+        "detail": "Fresh sensor stream observed.",
+        "data": {"sensor_updates_observed": 87},
+    }
+    payload = {
+        "state": state,
+        "summary": "Ready for ScratchAI.",
+        "checks": [check],
+        "bundle": {
+            "health": {"state": state, "checks": [check]},
+            "config": {
+                "EV3_BT": "<redacted>",
+                "WEISILE_PAIRING_TOKEN": "<redacted>",
+            },
+            "recent_logs": ["WEISILE_PAIRING_TOKEN=<redacted>"],
+        },
+    }
+    if unsafe:
+        payload["bundle"]["config"]["EV3_BT"] = "A0:E6:F8:19:58:3C"
+        payload["bundle"]["recent_logs"] = ["WEISILE_PAIRING_TOKEN=secret-token"]
+
+    bundle = tmp_path / "desktop-diagnostics.json"
+    bundle.write_text(json.dumps(payload), encoding="utf-8")
+    return str(bundle)
+
+
+def _diagnostics_fields(tmp_path, **kwargs):
+    return {
+        "desktop_diagnostics_export_ok": True,
+        "desktop_diagnostics_redaction_ok": True,
+        "desktop_diagnostics_bundle": _diagnostics_bundle(tmp_path, **kwargs),
+    }
+
+
 def test_runner_refuses_missing_evidence_json(tmp_path):
     report_path = tmp_path / "missing-report.md"
     result = subprocess.run(
@@ -89,6 +133,7 @@ def test_runner_refuses_localhost_only_developer_run(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "developer_checkout_run": True,
             "installed_from_release_artifact": False,
             "started_after_reboot": True,
@@ -108,6 +153,7 @@ def test_runner_requires_official_firmware_real_ev3_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
@@ -124,6 +170,7 @@ def test_runner_passes_with_release_reboot_endpoint_and_real_ev3(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
@@ -142,11 +189,13 @@ def test_runner_passes_vsle_bluetooth_release_artifact_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -155,6 +204,7 @@ def test_runner_passes_vsle_bluetooth_release_artifact_evidence(tmp_path):
     assert "Mode: `vsle-bluetooth`" in report
     assert "Classroom ready: yes" in report
     assert "vsle_bluetooth_real_ev3_ok: pass" in report
+    assert "vsle_bluetooth_sensor_ready: pass" in report
     assert "official_firmware_bt_real_ev3_ok" not in report
 
 
@@ -162,11 +212,13 @@ def test_runner_refuses_vsle_bluetooth_without_real_ev3_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": False,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -176,14 +228,36 @@ def test_runner_refuses_vsle_bluetooth_without_real_ev3_evidence(tmp_path):
     assert "vsle_bluetooth_real_ev3_ok must be true" in report
 
 
-def test_runner_refuses_release_artifact_without_manifest(tmp_path):
+def test_runner_refuses_vsle_bluetooth_without_sensor_ready_evidence(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
+            "release_artifact_manifest": _release_manifest(tmp_path),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": False,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "Classroom ready: no" in report
+    assert "vsle_bluetooth_sensor_ready must be true" in report
+
+
+def test_runner_refuses_release_artifact_without_manifest(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            **_diagnostics_fields(tmp_path),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -199,6 +273,7 @@ def test_runner_refuses_macos_vsle_bluetooth_unsigned_or_unnnotarized_manifest(
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": _release_manifest(
                 tmp_path,
                 signed=False,
@@ -208,6 +283,7 @@ def test_runner_refuses_macos_vsle_bluetooth_unsigned_or_unnnotarized_manifest(
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -227,11 +303,13 @@ def test_runner_refuses_macos_release_without_signed_installer_pkg(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": manifest,
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -247,11 +325,13 @@ def test_runner_refuses_windows_release_without_signed_installer(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": manifest,
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
@@ -276,17 +356,81 @@ def test_runner_passes_windows_release_with_signed_installer(tmp_path):
     result, report = _run_smoke(
         tmp_path,
         {
+            **_diagnostics_fields(tmp_path),
             "release_artifact_manifest": str(manifest),
             "installed_from_release_artifact": True,
             "started_after_reboot": True,
             "scratch_link_endpoint_ok": True,
             "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
         },
         mode="vsle-bluetooth",
     )
 
     assert result.returncode == 0, result.stderr + result.stdout
     assert "Classroom ready: yes" in report
+
+
+def test_runner_refuses_missing_diagnostics_bundle_when_export_claimed(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            "release_artifact_manifest": _release_manifest(tmp_path),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "desktop_diagnostics_export_ok": True,
+            "desktop_diagnostics_redaction_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "desktop_diagnostics_bundle must be an inline object" in report
+
+
+def test_runner_refuses_unredacted_diagnostics_bundle(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            **_diagnostics_fields(tmp_path, unsafe=True),
+            "release_artifact_manifest": _release_manifest(tmp_path),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "desktop diagnostics bundle contains an unredacted secret" in report
+    assert "desktop diagnostics bundle contains an unredacted Bluetooth address" in (
+        report
+    )
+
+
+def test_runner_refuses_diagnostics_without_ev3_ready_check(tmp_path):
+    result, report = _run_smoke(
+        tmp_path,
+        {
+            **_diagnostics_fields(tmp_path, state="needs_attention", ev3_ready=False),
+            "release_artifact_manifest": _release_manifest(tmp_path),
+            "installed_from_release_artifact": True,
+            "started_after_reboot": True,
+            "scratch_link_endpoint_ok": True,
+            "vsle_bluetooth_real_ev3_ok": True,
+            "vsle_bluetooth_sensor_ready": True,
+        },
+        mode="vsle-bluetooth",
+    )
+
+    assert result.returncode == 1
+    assert "desktop diagnostics bundle state must be ready" in report
+    assert "desktop diagnostics ev3_ready_check must pass" in report
 
 
 def test_native_adapter_readmes_keep_platform_boundaries():
@@ -316,6 +460,8 @@ def test_desktop_docs_reference_install_smoke_gate():
         assert "run_desktop_install_smoke.py" in text
         assert "installed_from_release_artifact" in text
         assert "release_artifact_manifest" in text
+        assert "desktop_diagnostics_export_ok" in text
+        assert "desktop_diagnostics_redaction_ok" in text
         assert "official_firmware_bt_real_ev3_ok" in text
     windows_text = (ROOT / "docs/desktop/WINDOWS_INSTALL.md").read_text(
         encoding="utf-8"
@@ -334,6 +480,7 @@ def test_desktop_docs_reference_vsle_bluetooth_install_smoke_mode():
         text = path.read_text(encoding="utf-8")
         assert "--mode vsle-bluetooth" in text
         assert "vsle_bluetooth_real_ev3_ok" in text
+        assert "vsle_bluetooth_sensor_ready" in text
 
 
 def test_vsle_bluetooth_install_evidence_templates_are_blocked_by_default(
@@ -348,6 +495,8 @@ def test_vsle_bluetooth_install_evidence_templates_are_blocked_by_default(
         payload = json.loads(template.read_text(encoding="utf-8"))
         assert payload["release_artifact_manifest"] == ""
         assert payload["installed_from_release_artifact"] is False
+        assert payload["desktop_diagnostics_export_ok"] is False
+        assert payload["desktop_diagnostics_redaction_ok"] is False
         result = subprocess.run(
             [
                 sys.executable,
@@ -372,6 +521,7 @@ def test_vsle_bluetooth_install_evidence_templates_are_blocked_by_default(
         assert "started_after_reboot must be true" in text
         assert "scratch_link_endpoint_ok must be true" in text
         assert "vsle_bluetooth_real_ev3_ok must be true" in text
+        assert "vsle_bluetooth_sensor_ready must be true" in text
 
 
 def test_desktop_docs_point_to_vsle_bluetooth_evidence_templates():
@@ -389,3 +539,4 @@ def test_desktop_docs_point_to_vsle_bluetooth_evidence_templates():
         assert template_name in text
         assert template_name.replace(".template", "") in text
         assert "release_artifact_manifest" in text
+        assert "desktop_diagnostics_bundle" in text

@@ -29,13 +29,47 @@ def _release_manifest(tmp_path):
     return manifest
 
 
+def _diagnostics_bundle(tmp_path):
+    check = {
+        "name": "ev3_ready_check",
+        "ok": True,
+        "status": "ready",
+        "detail": "Fresh sensor stream observed.",
+        "data": {"sensor_updates_observed": 87},
+    }
+    bundle = tmp_path / "desktop-diagnostics.json"
+    bundle.write_text(
+        json.dumps(
+            {
+                "state": "ready",
+                "summary": "Ready for ScratchAI.",
+                "checks": [check],
+                "bundle": {
+                    "health": {"state": "ready", "checks": [check]},
+                    "config": {
+                        "EV3_BT": "<redacted>",
+                        "WEISILE_PAIRING_TOKEN": "<redacted>",
+                    },
+                    "recent_logs": ["WEISILE_PAIRING_TOKEN=<redacted>"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    return bundle
+
+
 def _install_evidence(tmp_path, **overrides):
     payload = {
         "release_artifact_manifest": str(_release_manifest(tmp_path)),
         "installed_from_release_artifact": True,
         "started_after_reboot": True,
         "scratch_link_endpoint_ok": True,
+        "desktop_diagnostics_export_ok": True,
+        "desktop_diagnostics_redaction_ok": True,
+        "desktop_diagnostics_bundle": str(_diagnostics_bundle(tmp_path)),
         "vsle_bluetooth_real_ev3_ok": True,
+        "vsle_bluetooth_sensor_ready": True,
         "developer_checkout_run": False,
         "localhost_only_developer_run": False,
     }
@@ -113,6 +147,10 @@ def test_bridge_applies_valid_macos_vsle_bluetooth_release_evidence(tmp_path):
     assert output["installed_from_release_artifact"] is True
     assert output["release_artifact_evidence"]["mode"] == "vsle-bluetooth"
     assert output["release_artifact_evidence"]["platform"] == "macos"
+    assert (
+        output["release_artifact_evidence"]["desktop_diagnostics_redaction_ok"] is True
+    )
+    assert output["release_artifact_evidence"]["vsle_bluetooth_sensor_ready"] is True
     assert "Release evidence applied: yes" in report
 
 

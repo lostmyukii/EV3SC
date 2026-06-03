@@ -90,6 +90,9 @@ after the installed release artifact produces evidence with these fields:
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
+  "desktop_diagnostics_export_ok": true,
+  "desktop_diagnostics_redaction_ok": true,
+  "desktop_diagnostics_bundle": "docs/desktop/evidence/<os>-diagnostics.json",
   "official_firmware_bt_real_ev3_ok": true
 }
 ```
@@ -99,6 +102,12 @@ installed artifact. macOS manifests must record `signed: true` and
 `notarized: true`; Windows manifests must record `signed: true`. All manifests
 must record a bundled self-contained executable before the install smoke gate
 can accept release-artifact evidence.
+
+The diagnostics bundle must be produced by the installed
+`desktop-diagnostics` command with default redaction enabled. The gate opens
+that JSON, requires the Desktop diagnostics state to be `ready`, requires the
+`ev3_ready_check` to pass, and rejects raw pairing tokens, API keys, Bluetooth
+addresses, or student raw data.
 
 Run:
 

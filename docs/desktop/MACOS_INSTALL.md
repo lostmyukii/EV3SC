@@ -152,6 +152,9 @@ for official-firmware Bluetooth compatibility must include:
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
+  "desktop_diagnostics_export_ok": true,
+  "desktop_diagnostics_redaction_ok": true,
+  "desktop_diagnostics_bundle": "docs/desktop/evidence/macos-diagnostics.json",
   "official_firmware_bt_real_ev3_ok": true
 }
 ```
@@ -178,10 +181,15 @@ cp docs/desktop/evidence/macos-vsle-bluetooth-install-smoke.template.json \
 
 ```json
 {
+  "release_artifact_manifest": "desktop/release/macos/WeisileLink-macos-0.1.0-manifest.json",
   "installed_from_release_artifact": true,
   "started_after_reboot": true,
   "scratch_link_endpoint_ok": true,
-  "vsle_bluetooth_real_ev3_ok": true
+  "desktop_diagnostics_export_ok": true,
+  "desktop_diagnostics_redaction_ok": true,
+  "desktop_diagnostics_bundle": "docs/desktop/evidence/macos-vsle-bluetooth-diagnostics.json",
+  "vsle_bluetooth_real_ev3_ok": true,
+  "vsle_bluetooth_sensor_ready": true
 }
 ```
 
@@ -190,6 +198,12 @@ installed artifact. For macOS, `scripts/run_desktop_install_smoke.py` requires
 that manifest to record `signed: true`, `notarized: true`, a bundled
 self-contained executable, and the bundled native Bluetooth adapter before the
 release-artifact evidence can pass.
+
+The `desktop_diagnostics_bundle` file must be produced by the installed
+`desktop-diagnostics` command with default redaction enabled. The install smoke
+gate opens that JSON, requires the diagnostics state to be `ready`, requires
+the `ev3_ready_check` to pass, and rejects raw pairing tokens, API keys,
+Bluetooth addresses, or student raw data.
 
 Run:
 
