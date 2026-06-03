@@ -3934,6 +3934,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Continue Phase D by adding real Windows PowerShell 5.1 + EV3 hardware smoke evidence for the SSH install path and a Bluetooth Full VSLE pairing confirmation/report slice.
 
+### [2026-06-04] Windows setup wizard PowerShell Core runtime smoke
+- **Status**: ✅ Completed
+- **Commit**: `fc9e266`
+- **What was done**: Installed and used PowerShell Core on macOS to run a real module-level smoke for the Windows setup wizard. Fixed PowerShell 7 compatibility in the install-file checker result collection and EV3 setup parameter names, then added an automated `pwsh` runtime test that imports the wizard modules, validates install files, builds an EV3 server install plan, and stages the Windows Desktop package. WPF/Windows PowerShell 5.1 visual smoke remains a Windows-only gate.
+- **Files created/modified**: `install/windows/lib/InstallFileChecks.psm1`, `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
+- **Next step**: Run the same wizard on a Windows PowerShell 5.1 machine to validate WPF rendering/click flow, then collect real EV3 SSH install and Bluetooth Full VSLE pairing evidence.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
