@@ -404,10 +404,28 @@ function Set-CurrentStep {
     }
 
     $manualConfirmationsList = $Window.FindName("ManualConfirmationsList")
+    $manualConfirmations = @(Convert-VsleManualConfirmationsForDisplay -Step $Step)
     if ($null -ne $manualConfirmationsList) {
-        $manualConfirmations = @(Convert-VsleManualConfirmationsForDisplay -Step $Step)
         $manualConfirmationsList.ItemsSource = $manualConfirmations
         $manualConfirmationsList.Items.Refresh()
+    }
+
+    $manualConfirmationPinnedPanel = $Window.FindName("ManualConfirmationPinnedPanel")
+    if ($null -ne $manualConfirmationPinnedPanel) {
+        if ($manualConfirmations.Count -gt 0) {
+            $manualConfirmationPinnedPanel.Visibility = "Visible"
+        } else {
+            $manualConfirmationPinnedPanel.Visibility = "Collapsed"
+        }
+    }
+
+    $manualConfirmationProgressText = $Window.FindName("ManualConfirmationProgressText")
+    if ($null -ne $manualConfirmationProgressText) {
+        if ($manualProgress.HasRequiredItems) {
+            $manualConfirmationProgressText.Text = "已确认 $($manualProgress.requiredCheckedCount) / $($manualProgress.requiredTotalCount) 项"
+        } else {
+            $manualConfirmationProgressText.Text = "本步无需勾选"
+        }
     }
 
     $backButton = $Window.FindName("BackButton")

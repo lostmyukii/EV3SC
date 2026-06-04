@@ -148,6 +148,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -215,6 +216,81 @@
 
                     <Border
                         Grid.Row="1"
+                        x:Name="ManualConfirmationPinnedPanel"
+                        Visibility="Collapsed"
+                        Background="#EAF4FF"
+                        BorderBrush="#B7D8FF"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Padding="18"
+                        Margin="0,0,0,14">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="120" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock
+                                        Text="必须完成的确认"
+                                        FontSize="16"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource AccentBrush}" />
+                                    <TextBlock
+                                        Text="人工确认清单"
+                                        Margin="0,3,0,0"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource TextBrush}" />
+                                </StackPanel>
+                                <TextBlock
+                                    x:Name="ManualConfirmationProgressText"
+                                    Grid.Column="1"
+                                    Text="已确认 0 / 0 项"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    TextAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Foreground="{StaticResource TextBrush}" />
+                            </Grid>
+                            <TextBlock
+                                Text="勾选后本步进度会同步增加；全部确认后才能继续下一步。"
+                                Margin="0,8,0,0"
+                                FontSize="13"
+                                LineHeight="20"
+                                TextWrapping="Wrap"
+                                Foreground="{StaticResource MutedTextBrush}" />
+                            <ListBox
+                                x:Name="ManualConfirmationsList"
+                                Margin="0,10,0,0"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                MinHeight="96"
+                                MaxHeight="180"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox
+                                            Margin="0,5,0,5"
+                                            Tag="{Binding Key}"
+                                            IsChecked="{Binding Checked, Mode=TwoWay}"
+                                            FontSize="14"
+                                            Foreground="{StaticResource TextBrush}">
+                                            <TextBlock
+                                                Text="{Binding Label}"
+                                                TextWrapping="Wrap"
+                                                FontSize="14"
+                                                LineHeight="21"
+                                                Foreground="{StaticResource TextBrush}" />
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        Grid.Row="2"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18"
@@ -236,7 +312,7 @@
                     </Border>
 
                     <Border
-                        Grid.Row="2"
+                        Grid.Row="3"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18"
@@ -254,35 +330,11 @@
                                 LineHeight="22"
                                 TextWrapping="Wrap"
                                 Foreground="{StaticResource MutedTextBrush}" />
-                            <TextBlock
-                                Text="人工确认清单"
-                                Margin="0,12,0,0"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="{StaticResource TextBrush}" />
-                            <ListBox
-                                x:Name="ManualConfirmationsList"
-                                Margin="0,8,0,0"
-                                BorderThickness="0"
-                                Background="Transparent"
-                                MaxHeight="132">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <CheckBox
-                                            Margin="0,4,0,4"
-                                            Content="{Binding Label}"
-                                            Tag="{Binding Key}"
-                                            IsChecked="{Binding Checked, Mode=TwoWay}"
-                                            FontSize="13"
-                                            Foreground="{StaticResource TextBrush}" />
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
                         </StackPanel>
                     </Border>
 
                     <Border
-                        Grid.Row="3"
+                        Grid.Row="4"
                         x:Name="Ev3SetupPanel"
                         Visibility="Collapsed"
                         Background="#F8F8FA"
@@ -330,7 +382,7 @@
                     </Border>
 
                     <Border
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18"
@@ -386,7 +438,7 @@
                     </Border>
 
                     <Border
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Background="#F8F8FA"
                         CornerRadius="18"
                         Padding="18">

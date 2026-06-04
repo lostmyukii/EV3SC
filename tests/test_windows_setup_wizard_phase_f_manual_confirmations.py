@@ -47,6 +47,17 @@ def test_phase_f_xaml_renders_manual_confirmation_checkboxes():
     assert "人工确认清单" in text
 
 
+def test_phase_f_xaml_pins_manual_confirmations_above_manual_instructions():
+    text = _read(XAML)
+
+    assert 'x:Name="ManualConfirmationPinnedPanel"' in text
+    assert "必须完成的确认" in text
+    assert "勾选后本步进度会同步增加" in text
+    assert 'MinHeight="96"' in text
+    assert 'MaxHeight="180"' in text
+    assert text.index('x:Name="ManualConfirmationsList"') < text.index('x:Name="ManualActionsText"')
+
+
 def test_phase_f_script_tracks_manual_confirmation_progress_and_gates_continue():
     text = _read(SCRIPT)
 
@@ -60,6 +71,7 @@ def test_phase_f_script_tracks_manual_confirmation_progress_and_gates_continue()
         "requiredCheckedCount",
         "requiredTotalCount",
         "ManualConfirmationRequired",
+        "ManualConfirmationPinnedPanel",
     ):
         assert expected in text
 
