@@ -44,6 +44,9 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "当前设备：EV3 关机；SD 卡暂时放在桌面旁，下一步会插到 Windows 电脑。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @(
+            @{ Id = "welcome-internal-test-ready"; Label = "我已确认这是内部测试安装包，并已准备好 EV3、microSD 卡、USB 线和网络/蓝牙硬件。"; Required = $true }
+        )
     }
     @{
         Id = "validate-files"
@@ -75,6 +78,7 @@ $Script:VlseSetupWizardSteps = @(
             @{ Name = "Desktop release 内容"; Status = "pending"; Detail = "等待检查 WeisileLink.exe。" }
             @{ Name = "最终结果"; Status = "pending"; Detail = "等待汇总文件检查结果。" }
         )
+        ManualConfirmations = @()
     }
     @{
         Id = "prepare-sd-card"
@@ -105,6 +109,11 @@ $Script:VlseSetupWizardSteps = @(
             @{ Name = "Etcher 写入"; Status = "needs_manual_action"; Detail = "老师在 Etcher 中选择镜像和目标盘。" }
             @{ Name = "安全弹出"; Status = "needs_manual_action"; Detail = "Etcher 验证完成后安全弹出 SD 卡。" }
         )
+        ManualConfirmations = @(
+            @{ Id = "sd-card-in-computer"; Label = "我已确认 SD 卡插在 Windows 电脑上，不在 EV3 上。"; Required = $true }
+            @{ Id = "etcher-image-and-target"; Label = "我已确认 Etcher 选择的是 ev3dev 镜像和正确的 microSD 卡。"; Required = $true }
+            @{ Id = "etcher-complete-and-ejected"; Label = "我已确认 Etcher 显示 Flash Complete，并已安全弹出 SD 卡。"; Required = $true }
+        )
     }
     @{
         Id = "ev3-first-boot"
@@ -132,6 +141,11 @@ $Script:VlseSetupWizardSteps = @(
             @{ Name = "EV3 启动"; Status = "needs_manual_action"; Detail = "打开 EV3 电源并等待启动。" }
             @{ Name = "Brickman 页面"; Status = "needs_manual_action"; Detail = "确认 EV3 屏幕出现 ev3dev / Brickman。" }
         )
+        ManualConfirmations = @(
+            @{ Id = "sd-card-in-ev3"; Label = "我已确认 SD 卡已经插入 EV3。"; Required = $true }
+            @{ Id = "ev3-powered-on"; Label = "我已确认 EV3 已开机并正在启动。"; Required = $true }
+            @{ Id = "brickman-visible"; Label = "我已确认 EV3 屏幕出现 ev3dev / Brickman。"; Required = $true }
+        )
     }
     @{
         Id = "choose-transport"
@@ -154,6 +168,7 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 保持 ev3dev 开机状态。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @()
     }
     @{
         Id = "install-ev3-server"
@@ -180,6 +195,7 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 运行 ev3dev，并通过 WiFi/蓝牙完整模式连接。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @()
     }
     @{
         Id = "enable-bluetooth-full-vsle"
@@ -205,6 +221,11 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 运行 ev3dev，不是官方固件蓝牙兼容模式。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @(
+            @{ Id = "windows-bluetooth-ready"; Label = "我已确认 Windows 电脑有蓝牙或已插入 USB 蓝牙适配器。"; Required = $true }
+            @{ Id = "ev3-paired-in-windows"; Label = "我已确认 EV3 已在 Windows 蓝牙设置中配对。"; Required = $true }
+            @{ Id = "bluetooth-full-vsle-not-official"; Label = "我已确认这是 Bluetooth Full VSLE，EV3 运行 ev3dev，不是官方固件兼容模式。"; Required = $true }
+        )
     }
     @{
         Id = "install-weisilelink-desktop"
@@ -228,6 +249,7 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "当前设备：操作 Windows 电脑；EV3 可保持开机等待后续连接。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @()
     }
     @{
         Id = "verify-local-bridge"
@@ -251,6 +273,7 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "当前设备：操作 Windows 电脑；WeisileLink Desktop 在本机运行。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @()
     }
     @{
         Id = "open-scratchai"
@@ -274,6 +297,11 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "当前设备：Windows 浏览器连接本机 WeisileLink；EV3 保持开机连接。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @(
+            @{ Id = "scratchai-open"; Label = "我已确认 ScratchAI 已打开。"; Required = $true }
+            @{ Id = "vsle-ev3-extension-selected"; Label = "我已确认已选择 VSLE-EV3 扩展。"; Required = $true }
+            @{ Id = "ev3-blocks-or-sensors-visible"; Label = "我已确认 EV3 积木或传感器数值已经出现。"; Required = $true }
+        )
     }
     @{
         Id = "finish-report"
@@ -297,6 +325,7 @@ $Script:VlseSetupWizardSteps = @(
         HardwareLocation = "当前设备：操作 Windows 电脑；EV3 可保持当前连接状态。"
         StepProgressPercent = 0
         CheckItems = @()
+        ManualConfirmations = @()
     }
 )
 
@@ -337,6 +366,7 @@ function Set-VsleSetupWizardStepResult {
         [object]$Blocking,
         [object]$StepProgressPercent,
         [object[]]$CheckItems,
+        [object[]]$ManualConfirmations,
         [string]$CompletionCondition,
         [string]$HardwareLocation
     )
@@ -362,6 +392,9 @@ function Set-VsleSetupWizardStepResult {
     }
     if ($PSBoundParameters.ContainsKey("CheckItems")) {
         $step.CheckItems = @($CheckItems)
+    }
+    if ($PSBoundParameters.ContainsKey("ManualConfirmations")) {
+        $step.ManualConfirmations = @($ManualConfirmations)
     }
     if ($PSBoundParameters.ContainsKey("CompletionCondition")) {
         $step.CompletionCondition = $CompletionCondition

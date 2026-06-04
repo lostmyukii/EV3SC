@@ -254,6 +254,30 @@
                                 LineHeight="22"
                                 TextWrapping="Wrap"
                                 Foreground="{StaticResource MutedTextBrush}" />
+                            <TextBlock
+                                Text="人工确认清单"
+                                Margin="0,12,0,0"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextBrush}" />
+                            <ListBox
+                                x:Name="ManualConfirmationsList"
+                                Margin="0,8,0,0"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                MaxHeight="132">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox
+                                            Margin="0,4,0,4"
+                                            Content="{Binding Label}"
+                                            Tag="{Binding Key}"
+                                            IsChecked="{Binding Checked, Mode=TwoWay}"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextBrush}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </StackPanel>
                     </Border>
 

@@ -10,6 +10,7 @@ $Ev3ConnectionChecksModulePath = Join-Path $ScriptRoot "lib/Ev3ConnectionChecks.
 $XamlPath = Join-Path $ScriptRoot "setup-wizard.xaml"
 $Script:VlseLastDesktopInstallPlan = $null
 $Script:VlseLastEv3InstallPlan = $null
+$Script:VlseManualConfirmationChecked = @{}
 
 Import-Module $ModulePath -Force -DisableNameChecking
 Import-Module $InstallChecksModulePath -Force -DisableNameChecking
@@ -75,6 +76,148 @@ function Convert-VsleCheckItemsForDisplay {
             Detail = [string](Get-VsleObjectPropertyValue -Object $_ -Name "Detail" -DefaultValue "")
         }
     })
+}
+
+function Convert-VsleManualConfirmationsForDisplay {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Step
+    )
+
+    $confirmations = @(Get-VsleObjectPropertyValue -Object $Step -Name "ManualConfirmations" -DefaultValue @())
+    return @($confirmations | ForEach-Object {
+        $id = [string](Get-VsleObjectPropertyValue -Object $_ -Name "Id" -DefaultValue "")
+        $key = "$($Step.Id)|$id"
+        [PSCustomObject]@{
+            Key = $key
+            Id = $id
+            Label = [string](Get-VsleObjectPropertyValue -Object $_ -Name "Label" -DefaultValue "我已确认此项已完成。")
+            Required = [bool](Get-VsleObjectPropertyValue -Object $_ -Name "Required" -DefaultValue $true)
+            Checked = $Script:VlseManualConfirmationChecked.ContainsKey($key) -and [bool]$Script:VlseManualConfirmationChecked[$key]
+        }
+    })
+}
+
+function Get-VsleManualConfirmationProgress {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Step
+    )
+
+    $confirmations = @(Get-VsleObjectPropertyValue -Object $Step -Name "ManualConfirmations" -DefaultValue @())
+    $requiredConfirmations = @($confirmations | Where-Object {
+        [bool](Get-VsleObjectPropertyValue -Object $_ -Name "Required" -DefaultValue $true)
+    })
+    $requiredTotalCount = $requiredConfirmations.Count
+    $requiredCheckedCount = 0
+    foreach ($confirmation in $requiredConfirmations) {
+        $id = [string](Get-VsleObjectPropertyValue -Object $confirmation -Name "Id" -DefaultValue "")
+        $key = "$($Step.Id)|$id"
+        if ($Script:VlseManualConfirmationChecked.ContainsKey($key) -and [bool]$Script:VlseManualConfirmationChecked[$key]) {
+            $requiredCheckedCount += 1
+        }
+    }
+
+    $percent = if ($requiredTotalCount -eq 0) {
+        [int](Get-VsleObjectPropertyValue -Object $Step -Name "StepProgressPercent" -DefaultValue 0)
+    } else {
+        [int][Math]::Round(($requiredCheckedCount / $requiredTotalCount) * 100)
+    }
+
+    return [PSCustomObject]@{
+        HasRequiredItems = $requiredTotalCount -gt 0
+        requiredCheckedCount = $requiredCheckedCount
+        requiredTotalCount = $requiredTotalCount
+        Percent = $percent
+        Complete = ($requiredTotalCount -gt 0 -and $requiredCheckedCount -eq $requiredTotalCount)
+    }
+}
+
+function Set-VsleManualConfirmationStateFromKey {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Key,
+        [Parameter(Mandatory = $true)]
+        [bool]$Checked
+    )
+
+    $Script:VlseManualConfirmationChecked[$Key] = $Checked
+}
+
+function Get-VsleVisualChildren {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Parent
+    )
+
+    $children = @()
+    $count = [System.Windows.Media.VisualTreeHelper]::GetChildrenCount($Parent)
+    for ($index = 0; $index -lt $count; $index += 1) {
+        $child = [System.Windows.Media.VisualTreeHelper]::GetChild($Parent, $index)
+        $children += $child
+        $children += Get-VsleVisualChildren -Parent $child
+    }
+    return $children
+}
+
+function Register-VsleManualConfirmationCheckboxHandlers {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$ListBox,
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$StepList
+    )
+
+    [void]$ListBox.UpdateLayout()
+    $checkboxes = @(Get-VsleVisualChildren -Parent $ListBox | Where-Object { $_ -is [System.Windows.Controls.CheckBox] })
+    foreach ($checkbox in $checkboxes) {
+        if ($checkbox.Tag -and -not $checkbox.Tag.ToString().EndsWith("|")) {
+            $checkbox.Add_Checked({
+                param($sender, $eventArgs)
+                Set-VsleManualConfirmationStateFromKey -Key ([string]$sender.Tag) -Checked $true
+                Update-VsleManualConfirmationProgress -Window $Window -StepList $StepList
+            })
+            $checkbox.Add_Unchecked({
+                param($sender, $eventArgs)
+                Set-VsleManualConfirmationStateFromKey -Key ([string]$sender.Tag) -Checked $false
+                Update-VsleManualConfirmationProgress -Window $Window -StepList $StepList
+            })
+        }
+    }
+}
+
+function Update-VsleManualConfirmationProgress {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$StepList
+    )
+
+    if ($null -eq $StepList.SelectedItem) {
+        return
+    }
+
+    $step = $StepList.SelectedItem
+    $manualProgress = Get-VsleManualConfirmationProgress -Step $step
+    if (-not $manualProgress.HasRequiredItems) {
+        return
+    }
+
+    $status = if ($manualProgress.Complete) { "passed" } else { "needs_manual_action" }
+    $blocking = -not $manualProgress.Complete
+    $updatedStep = Set-VsleSetupWizardStepResult `
+        -Id $step.Id `
+        -Status $status `
+        -Summary $step.Summary `
+        -Evidence "人工确认进度：$($manualProgress.requiredCheckedCount) / $($manualProgress.requiredTotalCount)。" `
+        -Blocking $blocking `
+        -StepProgressPercent $manualProgress.Percent
+
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $updatedStep
 }
 
 function New-VsleValidateFileCheckItemsForRunning {
@@ -228,7 +371,11 @@ function Set-CurrentStep {
     $Window.FindName("EvidenceText").Text = $Step.Evidence
     $Window.FindName("ProgressText").Text = "第 $([int]$Step.Number + 1) / $($progress.TotalSteps) 步"
 
+    $manualProgress = Get-VsleManualConfirmationProgress -Step $Step
     $progressPercent = [int](Get-VsleObjectPropertyValue -Object $Step -Name "StepProgressPercent" -DefaultValue 0)
+    if ($manualProgress.HasRequiredItems -and $Step.Status -ne "skipped") {
+        $progressPercent = $manualProgress.Percent
+    }
     $progressPercent = [Math]::Max(0, [Math]::Min(100, $progressPercent))
     $currentStepProgressBar = $Window.FindName("CurrentStepProgressBar")
     if ($null -ne $currentStepProgressBar) {
@@ -256,6 +403,13 @@ function Set-CurrentStep {
         $checkItemsList.Items.Refresh()
     }
 
+    $manualConfirmationsList = $Window.FindName("ManualConfirmationsList")
+    if ($null -ne $manualConfirmationsList) {
+        $manualConfirmations = @(Convert-VsleManualConfirmationsForDisplay -Step $Step)
+        $manualConfirmationsList.ItemsSource = $manualConfirmations
+        $manualConfirmationsList.Items.Refresh()
+    }
+
     $backButton = $Window.FindName("BackButton")
     if ($null -ne $backButton) {
         $backButton.IsEnabled = [int]$Step.Number -gt 0
@@ -263,10 +417,14 @@ function Set-CurrentStep {
 
     $continueButton = $Window.FindName("ContinueButton")
     if ($null -ne $continueButton) {
-        $continueButton.IsEnabled = (
-            -not ($Step.Status -eq "blocked") -and
-            [int]$Step.Number -lt ($progress.TotalSteps - 1)
-        )
+        if ($manualProgress.HasRequiredItems -and $Step.Status -ne "skipped") {
+            $continueButton.IsEnabled = $manualProgress.Complete
+        } else {
+            $continueButton.IsEnabled = (
+                -not ($Step.Status -eq "blocked") -and
+                [int]$Step.Number -lt ($progress.TotalSteps - 1)
+            )
+        }
     }
 
     $ev3SetupPanel = $Window.FindName("Ev3SetupPanel")
@@ -760,6 +918,36 @@ function Open-VsleSetupWizard {
             Set-CurrentStep -Window $window -Step $stepList.SelectedItem
         }
     })
+
+    $manualConfirmationsList = $window.FindName("ManualConfirmationsList")
+    if ($null -ne $manualConfirmationsList) {
+        $manualConfirmationsList.AddHandler(
+            [System.Windows.Controls.Primitives.ToggleButton]::CheckedEvent,
+            [System.Windows.RoutedEventHandler]{
+                param($sender, $eventArgs)
+                Invoke-VsleWizardUiAction -Window $window -Action {
+                    $source = $eventArgs.OriginalSource
+                    if ($source -is [System.Windows.Controls.CheckBox] -and $source.Tag) {
+                        Set-VsleManualConfirmationStateFromKey -Key ([string]$source.Tag) -Checked $true
+                        Update-VsleManualConfirmationProgress -Window $window -StepList $stepList
+                    }
+                }
+            }.GetNewClosure()
+        )
+        $manualConfirmationsList.AddHandler(
+            [System.Windows.Controls.Primitives.ToggleButton]::UncheckedEvent,
+            [System.Windows.RoutedEventHandler]{
+                param($sender, $eventArgs)
+                Invoke-VsleWizardUiAction -Window $window -Action {
+                    $source = $eventArgs.OriginalSource
+                    if ($source -is [System.Windows.Controls.CheckBox] -and $source.Tag) {
+                        Set-VsleManualConfirmationStateFromKey -Key ([string]$source.Tag) -Checked $false
+                        Update-VsleManualConfirmationProgress -Window $window -StepList $stepList
+                    }
+                }
+            }.GetNewClosure()
+        )
+    }
 
     $window.FindName("BackButton").Add_Click({
         Invoke-VsleWizardUiAction -Window $window -Action {
