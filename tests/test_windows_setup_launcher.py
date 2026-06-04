@@ -11,6 +11,7 @@ def test_windows_double_click_launcher_exists_and_uses_system_powershell_51():
     assert LAUNCHER.exists(), "Windows double-click launcher is missing"
 
     text = LAUNCHER.read_text(encoding="utf-8")
+    raw = LAUNCHER.read_bytes()
 
     assert "@echo off" in text
     assert "%~dp0" in text
@@ -23,6 +24,9 @@ def test_windows_double_click_launcher_exists_and_uses_system_powershell_51():
     assert "WEISILE_PAIRING_TOKEN" not in text
     assert "Password" not in text
     assert "API" not in text
+    assert all(byte < 128 for byte in raw), "CMD launcher must be ASCII-only"
+    assert b"\r\n" in raw, "CMD launcher must use CRLF line endings"
+    assert b"\n" not in raw.replace(b"\r\n", b""), "CMD launcher has bare LF"
 
 
 def test_windows_start_here_tells_user_to_double_click_launcher_not_ps1():

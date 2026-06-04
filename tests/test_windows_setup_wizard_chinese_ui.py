@@ -86,7 +86,8 @@ def test_windows_launcher_and_start_note_are_teacher_facing_chinese():
     launcher = _read(LAUNCHER)
     start_here = _read(START_HERE)
 
-    assert "正在打开 VSLE Scratch-EV3 安装向导" in launcher
+    assert "Opening VSLE Scratch-EV3 setup wizard" in launcher
+    assert "正在打开" not in launcher
     assert "请双击" in start_here
     assert "Start-VSLE-Setup-Wizard.cmd" in start_here
     assert "不要手动运行 setup-wizard.ps1" in start_here

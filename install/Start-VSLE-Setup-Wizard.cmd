@@ -6,30 +6,30 @@ set "WIZARD_SCRIPT=%INSTALL_ROOT%windows\setup-wizard.ps1"
 set "POWERSHELL_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 
 if not exist "%POWERSHELL_EXE%" (
-    echo 未找到 Windows PowerShell 5.1。
-    echo 请使用已启用 Windows PowerShell 的 Windows 10 或 Windows 11。
+    echo Windows PowerShell 5.1 was not found.
+    echo Please use Windows 10 or Windows 11 with Windows PowerShell enabled.
     pause
     exit /b 1
 )
 
 if not exist "%WIZARD_SCRIPT%" (
-    echo 缺少 VSLE 安装向导文件：
+    echo VSLE setup wizard file is missing:
     echo %WIZARD_SCRIPT%
     echo.
-    echo 请重新复制完整的 VSLE-Install 文件夹。
+    echo Please copy the whole VSLE-Install folder again.
     pause
     exit /b 1
 )
 
-echo 正在打开 VSLE Scratch-EV3 安装向导...
+echo Opening VSLE Scratch-EV3 setup wizard...
 cd /d "%INSTALL_ROOT%windows"
 "%POWERSHELL_EXE%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%WIZARD_SCRIPT%"
 set "EXIT_CODE=%ERRORLEVEL%"
 
 if not "%EXIT_CODE%"=="0" (
     echo.
-    echo VSLE 安装向导退出，代码：%EXIT_CODE%。
-    echo 请把这个窗口截图发送给 VSLE 支持人员。
+    echo VSLE setup wizard exited with code %EXIT_CODE%.
+    echo Please send this window screenshot to the VSLE support team.
     pause
 )
 
