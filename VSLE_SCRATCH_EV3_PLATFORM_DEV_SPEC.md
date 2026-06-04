@@ -3983,6 +3983,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`
 - **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and verify `Start-VSLE-Setup-Wizard.cmd` opens the Chinese wizard with working Back, Continue, Retry, Export Diagnostics, and confirmation buttons.
 
+### [2026-06-04] Windows setup wizard Phase E clarity
+- **Status**: ✅ Completed
+- **Commit**: `b5a83b0`
+- **What was done**: Added teacher-facing Phase E clarity to the Windows setup wizard: current-step progress, explicit completion condition, current hardware location, automatic check-item details, and SD-card location guidance that distinguishes Windows computer, EV3 brick, and first-boot states. File validation now maps the existing hash/path/JSON/XML/zip checks into seven visible check items and reaches 100% when the validation result passes.
+- **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_e_clarity.py`
+- **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and visually verify the Chinese WPF wizard shows the new progress bar, 100% file-check result, SD-card location copy, and manual confirmation guidance.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
