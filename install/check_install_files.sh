@@ -121,6 +121,8 @@ verify_once() {
         "Windows internal release artifact receipt"
 
     check_exists "shared/02-ev3-server/ev3-firmware/vsle_ev3_server.py" "EV3 server"
+    check_exists "Start-VSLE-Setup-Wizard.cmd" "Windows double-click setup launcher"
+    check_exists "START_HERE_WINDOWS.txt" "Windows start-here instructions"
     check_exists "shared/02-ev3-server/ev3-firmware/scripts/install.sh" "EV3 install wrapper"
     check_exists "shared/02-ev3-server/ev3-firmware/scripts/install_ev3_autostart.sh" "EV3 autostart installer"
     check_exists "shared/02-ev3-server/ev3-firmware/systemd/vsle-ev3-server.service" "EV3 systemd unit"

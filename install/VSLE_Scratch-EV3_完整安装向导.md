@@ -43,6 +43,8 @@ Install file verification passed after 3 passes.
 
 ```text
 install/
+├── Start-VSLE-Setup-Wizard.cmd
+├── START_HERE_WINDOWS.txt
 ├── shared/
 │   ├── 01-ev3-sd-card/
 │   ├── 02-ev3-server/
@@ -62,8 +64,10 @@ install/
 ```
 
 `shared/` 是 EV3 端和课程共用文件。`mac/` 与 `windows/` 是老师电脑端文件。
-Windows 下的 `setup-wizard.ps1` 是图形向导入口，启动时不会自动执行安装、
-解压、刷卡、SSH 或启动程序动作。Phase B 已将文件校验模块
+Windows 下优先双击根目录的 `Start-VSLE-Setup-Wizard.cmd`，不要手动运行
+`setup-wizard.ps1`。这个双击入口会调用 Windows 系统自带的 PowerShell 5.1
+打开图形向导，启动时不会自动执行安装、解压、刷卡、SSH 或启动程序动作。
+Phase B 已将文件校验模块
 `windows/lib/InstallFileChecks.psm1` 接入 `Validate Files` 步骤，用于检查哈希、
 zip 目录、JSON、XML 和必需路径。Phase C 已将
 `windows/lib/WindowsInstallActions.psm1` 接入 `Install WeisileLink Desktop`

@@ -2,6 +2,13 @@
 
 All paths are relative to `/Users/yukii/Desktop/EV3SC/install/`.
 
+## Root Launcher Files
+
+| Install path | Source path | Purpose | SHA-256 |
+|---|---|---|---|
+| `Start-VSLE-Setup-Wizard.cmd` | `install/Start-VSLE-Setup-Wizard.cmd` | Windows double-click launcher for the VSLE WPF setup wizard | Script |
+| `START_HERE_WINDOWS.txt` | `install/START_HERE_WINDOWS.txt` | Windows first-step instructions that direct users to the double-click launcher instead of manual `.ps1` execution | Text |
+
 ## Shared EV3 Files
 
 | Install path | Source path | Purpose | SHA-256 |

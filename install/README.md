@@ -5,6 +5,9 @@ Scratch-EV3 platform.
 
 Start with:
 
+- `Start-VSLE-Setup-Wizard.cmd` on Windows when users want a double-click
+  graphical setup entry instead of manual `.ps1` commands.
+- `START_HERE_WINDOWS.txt` for the short Windows handoff note.
 - `VSLE_Scratch-EV3_完整安装向导.md` for the full Chinese step-by-step guide.
 - `mac/README.md` for macOS teacher-computer installation.
 - `windows/README.md` for Windows teacher-computer installation.

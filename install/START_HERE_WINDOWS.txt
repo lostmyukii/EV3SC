@@ -1,0 +1,22 @@
+Windows 安装请先看这里
+
+1. 请把整个 VSLE-Install 文件夹复制到 Windows，例如：
+
+   C:\VSLE-Install
+
+2. 打开 C:\VSLE-Install。
+
+3. 双击：
+
+   Start-VSLE-Setup-Wizard.cmd
+
+4. 不要手动运行 setup-wizard.ps1。
+
+5. 如果 Windows 弹出安全提示，请确认这是 VSLE 内部测试安装包后继续。
+
+6. 向导打开后，先点击 Validate Files，再继续安装 WeisileLink Desktop。
+
+说明：
+- balenaEtcher-Setup-1.17.0.exe 只用于刷 EV3 的 ev3dev SD 卡。
+- Start-VSLE-Setup-Wizard.cmd 才是 VSLE Windows 安装向导入口。
+- 当前 Windows 包仍是 unsigned internal test build，不是外部课堂正式发布包。

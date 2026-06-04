@@ -2,6 +2,19 @@
 
 Use this folder on a Windows teacher computer or Windows build host.
 
+## Double-Click Launcher
+
+For teacher-facing Windows setup, use the root launcher:
+
+```text
+..\Start-VSLE-Setup-Wizard.cmd
+```
+
+Copy the whole `VSLE-Install` folder to Windows, open the folder, and double
+click `Start-VSLE-Setup-Wizard.cmd`. Users should not manually run
+`setup-wizard.ps1`; the launcher calls Windows PowerShell 5.1 internally and
+opens the same WPF setup wizard.
+
 ## Development Design
 
 The proposed Windows graphical setup wizard design is documented in:

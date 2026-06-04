@@ -21,6 +21,13 @@ Ignored as non-install or transient material:
 
 ## Accepted Install Assets
 
+### Root Launcher Assets
+
+| Asset | Source | Install location | Audit result |
+|---|---|---|---|
+| Windows double-click setup launcher | `install/Start-VSLE-Setup-Wizard.cmd` | `install/` | Present; launches Windows PowerShell 5.1 internally and avoids manual `.ps1` execution for teachers |
+| Windows start-here note | `install/START_HERE_WINDOWS.txt` | `install/` | Present; tells Windows users to copy the whole folder and double-click the launcher |
+
 ### Shared EV3 Assets
 
 | Asset | Source | Install location | Audit result |
