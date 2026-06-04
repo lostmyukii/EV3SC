@@ -47,7 +47,7 @@ def test_phase_c_wizard_has_dedicated_confirmation_control():
     script = _read(SCRIPT)
 
     assert 'x:Name="ConfirmInstallButton"' in xaml
-    assert "Confirm Install" in xaml
+    assert "确认安装" in xaml
     assert "ConfirmInstallButton" in script
     assert "Run-VsleConfirmDesktopInstallStep" in script
     assert "Invoke-VsleWindowsDesktopInstallExecution" in script

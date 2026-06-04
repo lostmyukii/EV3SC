@@ -112,7 +112,7 @@ def test_phase_d_setup_model_and_docs_register_ev3_module():
     assert 'Id = "choose-transport"' in setup_module
     assert 'Id = "install-ev3-server"' in setup_module
     assert 'Id = "enable-bluetooth-full-vsle"' in setup_module
-    assert "EV3 server service is active" in setup_module
+    assert "EV3 server 服务为 active" in setup_module
 
     assert "Phase D EV3 Guided Setup" in readme
     assert "Ev3ConnectionChecks.psm1" in readme

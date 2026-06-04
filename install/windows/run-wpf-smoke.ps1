@@ -89,10 +89,10 @@ if (-not ($runningOnWindows -and $isDesktopEdition -and $isPowerShell51)) {
 $evidence = New-VsleWpfSmokeEvidence -Status "running"
 
 try {
-    Import-Module (Join-Path $ScriptRoot "lib/SetupWizard.psm1") -Force
-    Import-Module (Join-Path $ScriptRoot "lib/InstallFileChecks.psm1") -Force
-    Import-Module (Join-Path $ScriptRoot "lib/WindowsInstallActions.psm1") -Force
-    Import-Module (Join-Path $ScriptRoot "lib/Ev3ConnectionChecks.psm1") -Force
+    Import-Module (Join-Path $ScriptRoot "lib/SetupWizard.psm1") -Force -DisableNameChecking
+    Import-Module (Join-Path $ScriptRoot "lib/InstallFileChecks.psm1") -Force -DisableNameChecking
+    Import-Module (Join-Path $ScriptRoot "lib/WindowsInstallActions.psm1") -Force -DisableNameChecking
+    Import-Module (Join-Path $ScriptRoot "lib/Ev3ConnectionChecks.psm1") -Force -DisableNameChecking
     $evidence.modules_import_ok = $true
 
     Add-Type -AssemblyName PresentationFramework

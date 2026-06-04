@@ -96,7 +96,7 @@ def test_setup_wizard_xaml_parses_and_contains_ios_style_stepper_shell():
     tree = ET.parse(XAML)
     root = tree.getroot()
     assert root.tag.endswith("Window")
-    assert root.attrib["Title"] == "VSLE Windows Setup Wizard"
+    assert root.attrib["Title"] == "VSLE Scratch-EV3 安装向导"
 
     text = _read(XAML)
     for required_name in (

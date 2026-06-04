@@ -11,10 +11,10 @@ $XamlPath = Join-Path $ScriptRoot "setup-wizard.xaml"
 $Script:VlseLastDesktopInstallPlan = $null
 $Script:VlseLastEv3InstallPlan = $null
 
-Import-Module $ModulePath -Force
-Import-Module $InstallChecksModulePath -Force
-Import-Module $WindowsInstallActionsModulePath -Force
-Import-Module $Ev3ConnectionChecksModulePath -Force
+Import-Module $ModulePath -Force -DisableNameChecking
+Import-Module $InstallChecksModulePath -Force -DisableNameChecking
+Import-Module $WindowsInstallActionsModulePath -Force -DisableNameChecking
+Import-Module $Ev3ConnectionChecksModulePath -Force -DisableNameChecking
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -41,7 +41,11 @@ function Set-CurrentStep {
     $Window.FindName("StepSummary").Text = $Step.Summary
     $Window.FindName("AutoActionsText").Text = ConvertTo-BulletText -Items $Step.AutomaticActions
     $Window.FindName("ManualActionsText").Text = ConvertTo-BulletText -Items $Step.ManualActions
-    $Window.FindName("StatusText").Text = "Status: $($Step.Status); blocking: $($Step.Blocking); next: $($Step.NextEnabledWhen)"
+    $statusLabel = $Step.Status
+    if ($Step.PSObject.Properties.Name -contains "StatusLabel") {
+        $statusLabel = $Step.StatusLabel
+    }
+    $Window.FindName("StatusText").Text = "状态：$statusLabel；阻塞：$($Step.Blocking)；下一步：$($Step.NextEnabledWhen)"
     $Window.FindName("EvidenceText").Text = $Step.Evidence
     $Window.FindName("ContinueButton").IsEnabled = -not ($Step.Status -eq "blocked")
 
@@ -119,8 +123,8 @@ function Run-VsleValidateFilesStep {
     $runningStep = Set-VsleSetupWizardStepResult `
         -Id "validate-files" `
         -Status "running" `
-        -Summary "Checking hashes, JSON, XML, and Windows release zip entries." `
-        -Evidence "Validation is running." `
+        -Summary "正在检查哈希、JSON、XML 和 Windows release zip 内容。" `
+        -Evidence "文件检查正在运行。" `
         -Blocking $true
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
@@ -133,7 +137,7 @@ function Run-VsleValidateFilesStep {
         $result = [PSCustomObject]@{
             Status = "blocked"
             Blocking = $true
-            Summary = "Install file validation failed before completing."
+            Summary = "安装文件检查未完成。"
             Evidence = $_.Exception.Message
         }
     }
@@ -170,8 +174,8 @@ function Run-VslePrepareDesktopInstallStep {
     $runningStep = Set-VsleSetupWizardStepResult `
         -Id "install-weisilelink-desktop" `
         -Status "running" `
-        -Summary "Preparing Windows Desktop package staging." `
-        -Evidence "Expanding Windows evidence bundle into a temporary staging directory." `
+        -Summary "正在准备 Windows Desktop 安装文件。" `
+        -Evidence "正在把 Windows evidence bundle 展开到临时 staging 目录。" `
         -Blocking $true
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
@@ -186,7 +190,7 @@ function Run-VslePrepareDesktopInstallStep {
         $result = New-VsleWindowsDesktopInstallConfirmation -Plan $plan
         $result.Status = "blocked"
         $result.Blocking = $true
-        $result.Summary = "Windows Desktop staging failed before install confirmation."
+        $result.Summary = "Windows Desktop 安装文件准备失败。"
         $result.Evidence = $_.Exception.Message
         $Script:VlseLastDesktopInstallPlan = $plan
     }
@@ -203,8 +207,8 @@ function Run-VsleConfirmDesktopInstallStep {
     $runningStep = Set-VsleSetupWizardStepResult `
         -Id "install-weisilelink-desktop" `
         -Status "running" `
-        -Summary "Installing WeisileLink Desktop after teacher confirmation." `
-        -Evidence "Copying the staged package, running the Windows helper, and verifying the startup command." `
+        -Summary "老师确认后，正在安装 WeisileLink Desktop。" `
+        -Evidence "正在复制 staged package、运行 Windows helper，并检查启动命令。" `
         -Blocking $true
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
@@ -231,7 +235,7 @@ function Run-VsleConfirmDesktopInstallStep {
             Status = "blocked"
             Blocking = $true
             ManualConfirmationRequired = $true
-            Summary = "Windows Desktop install failed after confirmation."
+            Summary = "确认后安装 Windows Desktop 失败。"
             Evidence = $_.Exception.Message
             Plan = $plan
         }
@@ -333,8 +337,8 @@ function Run-VsleConfirmEv3ServerInstallStep {
     $runningStep = Set-VsleSetupWizardStepResult `
         -Id "install-ev3-server" `
         -Status "running" `
-        -Summary "Running EV3 server install after teacher confirmation." `
-        -Evidence "Running the guarded SSH/SCP install command sequence." `
+        -Summary "老师确认后，正在安装 EV3 server。" `
+        -Evidence "正在运行受保护的 SSH/SCP 安装命令序列。" `
         -Blocking $true
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
@@ -356,7 +360,7 @@ function Run-VsleConfirmEv3ServerInstallStep {
             Status = "blocked"
             Blocking = $true
             ManualConfirmationRequired = $true
-            Summary = "EV3 server install failed after confirmation."
+            Summary = "确认后安装 EV3 server 失败。"
             Evidence = $_.Exception.Message
             Plan = $Script:VlseLastEv3InstallPlan
         }
@@ -379,7 +383,7 @@ function Open-VsleSetupWizard {
     $stepList.SelectedIndex = 0
 
     $progress = Get-VsleSetupWizardProgress
-    $window.FindName("ProgressText").Text = "Phase A shell: $($progress.TotalSteps) steps loaded; no install actions run."
+    $window.FindName("ProgressText").Text = "已加载 $($progress.TotalSteps) 个步骤；欢迎页不会自动执行安装。"
 
     $stepList.Add_SelectionChanged({
         if ($null -ne $stepList.SelectedItem) {
