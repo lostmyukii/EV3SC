@@ -4011,6 +4011,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_e_clarity.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and verify the right-side detail panel can scroll downward to reveal all cards on the target Windows display.
 
+### [2026-06-04] EV3 SD card flashing flow clarity
+- **Status**: ✅ Completed
+- **Commit**: `1ee4235`
+- **What was done**: Clarified the Windows setup wizard's SD-card step as the full ev3dev system flashing workflow rather than a vague preparation step. The teacher-facing flow now explicitly covers inserting the microSD card into Windows, opening Etcher, choosing `Flash from file`, selecting the ev3dev zip, choosing the external SD-card target, clicking `Flash`, waiting for `Flash Complete`, and safely ejecting the card before moving it to the EV3.
+- **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_e_clarity.py`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`, `tests/test_windows_setup_wizard_chinese_ui.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and verify that the SD-card page clearly shows the full Etcher flashing sequence and manual confirmation checklist.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
