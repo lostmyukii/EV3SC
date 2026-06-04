@@ -141,16 +141,23 @@
                         Foreground="{StaticResource MutedTextBrush}" />
                 </StackPanel>
 
-                <Grid Grid.Row="1" Margin="0,30,0,24">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                <ScrollViewer
+                    Grid.Row="1"
+                    x:Name="StepDetailsScrollViewer"
+                    Margin="0,30,0,24"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
+                    PanningMode="VerticalFirst">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
                     <Border
                         Grid.Row="0"
@@ -458,7 +465,8 @@
                                 Foreground="{StaticResource MutedTextBrush}" />
                         </StackPanel>
                     </Border>
-                </Grid>
+                    </Grid>
+                </ScrollViewer>
 
                 <DockPanel Grid.Row="2" LastChildFill="False">
                     <TextBlock

@@ -30,6 +30,17 @@ def test_phase_e_xaml_exposes_step_progress_and_guidance_controls():
     assert "自动检查明细" in text
 
 
+def test_phase_e_xaml_wraps_step_details_in_scroll_viewer():
+    text = _read(XAML)
+
+    assert 'x:Name="StepDetailsScrollViewer"' in text
+    assert 'VerticalScrollBarVisibility="Auto"' in text
+    assert 'HorizontalScrollBarVisibility="Disabled"' in text
+    assert 'PanningMode="VerticalFirst"' in text
+    assert text.index('x:Name="StepDetailsScrollViewer"') < text.index('x:Name="CurrentStepProgressBar"')
+    assert text.index('x:Name="StepDetailsScrollViewer"') < text.index('x:Name="EvidenceText"')
+
+
 def test_phase_e_step_model_has_progress_completion_and_sd_card_guidance():
     text = _read(MODULE)
 
