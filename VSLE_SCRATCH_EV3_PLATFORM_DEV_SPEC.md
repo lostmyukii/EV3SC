@@ -3948,6 +3948,13 @@ material into:
 - **Files created/modified**: `install/windows/run-wpf-smoke.ps1`, `install/windows/03-evidence-templates/windows-setup-wizard-wpf-smoke.template.json`, `install/windows/README.md`, `install/INSTALL_FILES_MANIFEST.md`, `install/ASSET_AUDIT.md`, `install/check_install_files.sh`, `tests/test_windows_setup_wizard_wpf_smoke.py`
 - **Next step**: Run `install/windows/run-wpf-smoke.ps1` on a Windows PowerShell 5.1 machine, then collect real EV3 SSH install and Bluetooth Full VSLE pairing evidence.
 
+### [2026-06-04] Windows double-click setup launcher
+- **Status**: ✅ Completed
+- **Commit**: `4eb3a0f`
+- **What was done**: Added a root-level Windows double-click launcher so teachers can open the WPF setup wizard without manually running `.ps1` files or typing PowerShell commands. The launcher uses the system Windows PowerShell 5.1 executable internally, keeps the existing setup wizard behavior, and adds a short Windows start-here note for handoff.
+- **Files created/modified**: `install/Start-VSLE-Setup-Wizard.cmd`, `install/START_HERE_WINDOWS.txt`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/README.md`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/ASSET_AUDIT.md`, `tests/test_windows_setup_launcher.py`
+- **Next step**: Generate a fresh USB-ready `VSLE-Install` folder and have the Windows machine double-click `Start-VSLE-Setup-Wizard.cmd`; a true signed `.exe` installer remains the next production packaging milestone.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
