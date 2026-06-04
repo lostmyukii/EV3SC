@@ -4025,6 +4025,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and visually verify the connection-method step shows the default SSH host, field guidance, Bluetooth-address instructions, and Windows pairing path in the scrollable details area.
 
+### [2026-06-04] Windows setup wizard local bridge verification
+- **Status**: ✅ Completed
+- **Commit**: `62c4518`
+- **What was done**: Added a real local bridge verification step to the Windows setup wizard. The step first checks whether `127.0.0.1:20111` and `127.0.0.1:8766` already respond, starts `WeisileLink.exe desktop-supervise` when needed on Windows, polls both ports, records process ID and endpoint evidence, and blocks the wizard if the bridge cannot be verified.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy the fresh folder to Windows, and validate that the local bridge step starts or detects WeisileLink Desktop and only continues after both localhost ports pass.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
