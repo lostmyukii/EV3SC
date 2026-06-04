@@ -90,6 +90,13 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "WiFi Full VSLE" in xaml
     assert "Bluetooth Full VSLE" in xaml
     assert "USB-assisted setup" in xaml
+    assert 'Text="ev3dev.local"' in xaml
+    assert "先填 ev3dev.local" in xaml
+    assert "SSH 用户固定填写 robot" in xaml
+    assert "默认密码是 maker" in xaml
+    assert "蓝牙地址可在 EV3 的 Bluetooth 设置中查看" in xaml
+    assert "也可以在 EV3 SSH 里运行 hciconfig -a" in xaml
+    assert "Windows 设置 > 蓝牙和设备 > 添加设备" in xaml
 
     assert "Ev3ConnectionChecks.psm1" in script
     assert "Get-VsleEv3SetupInputFromWindow" in script
@@ -113,11 +120,26 @@ def test_phase_d_setup_model_and_docs_register_ev3_module():
     assert 'Id = "install-ev3-server"' in setup_module
     assert 'Id = "enable-bluetooth-full-vsle"' in setup_module
     assert "EV3 server 服务为 active" in setup_module
+    for expected in (
+        "WiFi Full VSLE：EV3 SSH 地址先填 ev3dev.local",
+        "如果 ev3dev.local 不通，在 EV3 Brickman 的网络信息里查看 IP 地址",
+        "SSH 用户填写 robot；默认密码是 maker",
+        "Bluetooth Full VSLE：先确认 Windows 有蓝牙或 USB 蓝牙适配器",
+        "EV3 蓝牙地址可在 EV3 的 Bluetooth 设置中查看",
+        "也可在 EV3 SSH 里运行 hciconfig -a | grep \"BD Address\"",
+        "Windows 设置 > 蓝牙和设备 > 添加设备",
+        "install/shared/02-ev3-server/ev3-firmware/vsle_ev3_server.py",
+        "install/shared/02-ev3-server/websockets-7.0.tar.gz",
+    ):
+        assert expected in setup_module
 
     assert "Phase D EV3 Guided Setup" in readme
     assert "Ev3ConnectionChecks.psm1" in readme
     assert "Confirm EV3 Install" in readme
     assert "Bluetooth Full VSLE" in readme
+    assert "ev3dev.local" in readme
+    assert "hciconfig -a" in readme
+    assert "Windows Settings > Bluetooth & devices > Add device" in readme
     assert "password" in readme.lower()
     assert "not stored" in readme.lower()
 

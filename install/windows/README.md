@@ -125,6 +125,20 @@ inputs, plus SSH host, SSH user, and Bluetooth address fields. The default SSH
 user is `robot`. The EV3 SSH password is not stored or written into wizard
 evidence; Windows/OpenSSH authentication is handled outside the saved report.
 
+Teacher-facing input guidance shown in the wizard:
+
+1. For WiFi Full VSLE, try `ev3dev.local` as the EV3 SSH address first.
+2. If `ev3dev.local` does not connect, read the IP address from the EV3
+   Brickman network information screen and enter that IP as the EV3 SSH address.
+3. Use `robot` as the SSH user.
+4. Use the default EV3 SSH password `maker` only when Windows/OpenSSH asks for
+   it; the wizard does not store it.
+5. For Bluetooth Full VSLE, confirm Windows has built-in Bluetooth or a USB
+   Bluetooth adapter.
+6. Read the EV3 Bluetooth address from the EV3 Bluetooth settings, or SSH into
+   EV3 and run `hciconfig -a | grep "BD Address"`.
+7. Pair from Windows Settings > Bluetooth & devices > Add device.
+
 The `Install EV3 server` step generates a guarded SSH/SCP command plan that
 copies the EV3SC-owned server files and offline `websockets-7.0.tar.gz`, then
 runs:

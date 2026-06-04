@@ -365,6 +365,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="连接方式" FontSize="13" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
@@ -375,7 +376,7 @@
                                 </ComboBox>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="EV3 SSH 地址" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
-                                <TextBox x:Name="Ev3HostTextBox" Grid.Row="1" Grid.Column="1" Height="32" Margin="0,10,0,0" />
+                                <TextBox x:Name="Ev3HostTextBox" Grid.Row="1" Grid.Column="1" Height="32" Margin="0,10,0,0" Text="ev3dev.local" />
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="SSH 用户" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
                                 <TextBox x:Name="Ev3UserTextBox" Grid.Row="2" Grid.Column="1" Height="32" Margin="0,10,0,0" Text="robot" />
@@ -383,7 +384,11 @@
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="EV3 蓝牙地址" FontSize="13" Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
                                 <TextBox x:Name="Ev3BluetoothAddressTextBox" Grid.Row="3" Grid.Column="1" Height="32" Margin="0,10,0,0" />
 
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="SSH 密码由 Windows/OpenSSH 单独提示，不会写入安装向导证据。" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}" />
+                                <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Margin="0,12,0,0" FontSize="12" LineHeight="19" TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}">
+                                    填写提示：EV3 SSH 地址先填 ev3dev.local；如果不通，在 EV3 Brickman 的网络信息里查看 IP 地址。SSH 用户固定填写 robot；默认密码是 maker。蓝牙地址可在 EV3 的 Bluetooth 设置中查看，也可以在 EV3 SSH 里运行 hciconfig -a | grep "BD Address"。Windows 设置 > 蓝牙和设备 > 添加设备 里完成配对。
+                                </TextBlock>
+
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="SSH 密码由 Windows/OpenSSH 单独提示，不会写入安装向导证据。" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}" />
                             </Grid>
                         </StackPanel>
                     </Border>

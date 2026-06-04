@@ -151,6 +151,14 @@ Etcher 操作：
 ## 4. 第一次登录 EV3
 
 WiFi 可用时，在 EV3 Brickman 菜单里连接网络并记录 IP。
+在 Windows 安装向导里，`EV3 SSH 地址`可以先填写：
+
+```text
+ev3dev.local
+```
+
+如果 `ev3dev.local` 连接失败，就在 EV3 Brickman 的网络信息里查看 IP 地址，
+再把这个 IP 地址填入 `EV3 SSH 地址`。
 
 WiFi 不可用时，用 USB 登录。Mac 示例：
 
@@ -164,6 +172,12 @@ ssh -6 robot@fe80::16:53ff:fe4f:4655%en10
 username: robot
 password: maker
 ```
+
+Windows 图形向导里：
+
+- `SSH 用户`填写 `robot`。
+- 默认密码是 `maker`，只在 Windows/OpenSSH 弹出提示时输入。
+- 向导不会保存密码，也不会把密码写入安装报告。
 
 `%en10` 只是示例。每台 Mac 的接口名可能不同。
 
@@ -269,11 +283,20 @@ nc -z -w 2 127.0.0.1 20111
 
 EV3 必须运行 ev3dev 和 EV3SC server。
 
-在 EV3 上读取 Bluetooth 地址：
+在 EV3 上读取 Bluetooth 地址。可以先在 EV3 的 Bluetooth 设置中查看；
+如果已经能 SSH 到 EV3，也可以运行：
 
 ```bash
 hciconfig -a | grep "BD Address"
 ```
+
+Windows 电脑上配对入口：
+
+```text
+Windows 设置 > 蓝牙和设备 > 添加设备
+```
+
+如果台式机没有蓝牙，需要先插入 USB 蓝牙适配器，再进行配对。
 
 启用 RFCOMM listener：
 

@@ -166,10 +166,20 @@ $Script:VlseSetupWizardSteps = @(
         Status = "needs_input"
         Blocking = $true
         ManualConfirmationRequired = $true
-        Summary = "选择 WiFi Full VSLE、Bluetooth Full VSLE 或 USB 辅助设置。"
-        AutomaticActions = @("显示支持的连接方式和必填信息。")
+        Summary = "选择 WiFi Full VSLE、Bluetooth Full VSLE 或 USB 辅助设置，并在本页直接填写 EV3 地址信息。"
+        AutomaticActions = @(
+            "显示支持的连接方式和必填信息。",
+            "EV3 SSH 地址输入框默认填入 ev3dev.local。",
+            "显示 SSH 用户、默认密码、IP 地址和蓝牙地址的查找方式。"
+        )
         ManualActions = @(
-            "WiFi 模式填写 EV3 IP/主机名，蓝牙完整模式填写 EV3 蓝牙地址。",
+            "WiFi Full VSLE：EV3 SSH 地址先填 ev3dev.local。",
+            "如果 ev3dev.local 不通，在 EV3 Brickman 的网络信息里查看 IP 地址，然后把 IP 地址填入 EV3 SSH 地址。",
+            "SSH 用户填写 robot；默认密码是 maker。密码只会由 Windows/OpenSSH 提示输入，不会保存到安装报告。",
+            "Bluetooth Full VSLE：先确认 Windows 有蓝牙或 USB 蓝牙适配器。",
+            "EV3 蓝牙地址可在 EV3 的 Bluetooth 设置中查看。",
+            '也可在 EV3 SSH 里运行 hciconfig -a | grep "BD Address" 查看蓝牙地址。',
+            "Windows 设置 > 蓝牙和设备 > 添加设备，选择 EV3 完成配对。",
             "不要把官方固件蓝牙兼容模式当作 Full VSLE 完整模式。"
         )
         Evidence = "选择的连接方式会写入安装报告。"
@@ -189,14 +199,20 @@ $Script:VlseSetupWizardSteps = @(
         Status = "pending"
         Blocking = $true
         ManualConfirmationRequired = $true
-        Summary = "老师确认 SSH 信息后，复制并安装 EV3SC 自有 EV3 server 文件。"
+        Summary = "老师确认 SSH 信息后，复制并安装 EV3SC 自有 EV3 server 文件；本页列出需要复制的文件位置。"
         AutomaticActions = @(
             "检查 SSH 是否可连接。",
             "复制 EV3 firmware 文件。",
+            "复制 install/shared/02-ev3-server/ev3-firmware/vsle_ev3_server.py。",
+            "复制 install/shared/02-ev3-server/ev3-firmware/scripts/。",
+            "复制 install/shared/02-ev3-server/ev3-firmware/systemd/。",
+            "复制 install/shared/02-ev3-server/websockets-7.0.tar.gz。",
             "运行离线 websockets 和 EV3 server 安装命令。"
         )
         ManualActions = @(
-            "填写 SSH 地址和用户名，密码由 Windows/OpenSSH 单独提示。",
+            "EV3 SSH 地址：先用 ev3dev.local；不通时用 EV3 Brickman 网络信息里显示的 IP 地址。",
+            "SSH 用户：robot。",
+            "SSH 密码：maker。密码由 Windows/OpenSSH 单独提示，不会写入安装向导证据。",
             "确认 EV3 server 服务状态。"
         )
         Evidence = "服务状态会作为 EV3 安装证据记录。"
@@ -216,13 +232,17 @@ $Script:VlseSetupWizardSteps = @(
         Status = "skipped"
         Blocking = $false
         ManualConfirmationRequired = $true
-        Summary = "仅在选择 Bluetooth Full VSLE 时使用；EV3 仍然运行 ev3dev 和 VSLE server。"
+        Summary = "仅在选择 Bluetooth Full VSLE 时使用；本页直接说明如何找到 EV3 蓝牙地址并在 Windows 中配对。"
         AutomaticActions = @(
             "显示 EV3 端蓝牙完整模式启用命令。",
-            "老师确认后可通过 SSH 辅助执行命令。"
+            "老师确认后可通过 SSH 辅助执行命令。",
+            "提示 EV3 蓝牙地址和 Windows 配对入口。"
         )
         ManualActions = @(
-            "在 Windows 蓝牙设置中配对 EV3。",
+            "确认 EV3 仍运行 ev3dev 和 VSLE server，不是官方固件兼容模式。",
+            "EV3 蓝牙地址可在 EV3 的 Bluetooth 设置中查看。",
+            '也可在 EV3 SSH 里运行 hciconfig -a | grep "BD Address" 查看蓝牙地址。',
+            "Windows 设置 > 蓝牙和设备 > 添加设备，选择 EV3。",
             "确认 Windows 显示 EV3 已配对或已连接。"
         )
         Evidence = "蓝牙配对证据仅记录老师确认结果，并保持脱敏。"
