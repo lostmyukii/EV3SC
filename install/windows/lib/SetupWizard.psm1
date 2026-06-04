@@ -40,6 +40,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "欢迎页不会执行安装动作。"
         NextEnabledWhen = "老师确认内部测试提示后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "确认这是内部测试安装包，并准备好 EV3、microSD 卡、USB 线和需要的网络/蓝牙硬件。"
+        HardwareLocation = "当前设备：EV3 关机；SD 卡暂时放在桌面旁，下一步会插到 Windows 电脑。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "validate-files"
@@ -59,6 +63,18 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "文件检查会显示通过或阻塞原因。"
         NextEnabledWhen = "所有文件检查通过后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "所有自动检查项显示已通过，并且本步进度达到 100%。"
+        HardwareLocation = "当前设备：不需要插 EV3 或 SD 卡；本步只检查 VSLE-Install 文件夹。"
+        StepProgressPercent = 0
+        CheckItems = @(
+            @{ Name = "必需路径"; Status = "pending"; Detail = "等待检查 install 文件夹结构。" }
+            @{ Name = "Etcher 与 ev3dev"; Status = "pending"; Detail = "等待检查安装器和镜像。" }
+            @{ Name = "Windows release evidence"; Status = "pending"; Detail = "等待检查 Windows 内测包。" }
+            @{ Name = "JSON 证据模板"; Status = "pending"; Detail = "等待解析 JSON 模板。" }
+            @{ Name = "XAML 向导文件"; Status = "pending"; Detail = "等待解析 WPF XAML。" }
+            @{ Name = "Desktop release 内容"; Status = "pending"; Detail = "等待检查 WeisileLink.exe。" }
+            @{ Name = "最终结果"; Status = "pending"; Detail = "等待汇总文件检查结果。" }
+        )
     }
     @{
         Id = "prepare-sd-card"
@@ -74,12 +90,21 @@ $Script:VlseSetupWizardSteps = @(
             "提示老师确认 SD 卡目标盘。"
         )
         ManualActions = @(
-            "在 Etcher 中选择 microSD 卡。",
-            "确认 Etcher 写入和验证完成，并安全弹出 SD 卡。"
+            "SD 卡位置：插在 Windows 电脑上，不要插入 EV3。",
+            "在 Etcher 中选择 ev3dev 镜像和 microSD 卡目标盘。",
+            "Etcher 显示 Flash Complete 后，确认验证完成并安全弹出 SD 卡。"
         )
         Evidence = "SD 卡刷写结果由老师手动确认。"
         NextEnabledWhen = "老师确认 SD 卡准备完成后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "Etcher 显示 Flash Complete，验证完成，并且 SD 卡已从 Windows 电脑安全弹出。"
+        HardwareLocation = "SD 卡位置：插在 Windows 电脑上；EV3 保持关机，不要插入 EV3。"
+        StepProgressPercent = 0
+        CheckItems = @(
+            @{ Name = "SD 卡在电脑上"; Status = "needs_manual_action"; Detail = "老师确认 microSD 卡已插入 Windows 电脑。" }
+            @{ Name = "Etcher 写入"; Status = "needs_manual_action"; Detail = "老师在 Etcher 中选择镜像和目标盘。" }
+            @{ Name = "安全弹出"; Status = "needs_manual_action"; Detail = "Etcher 验证完成后安全弹出 SD 卡。" }
+        )
     }
     @{
         Id = "ev3-first-boot"
@@ -92,13 +117,21 @@ $Script:VlseSetupWizardSteps = @(
         Summary = "引导 EV3 首次启动 ev3dev，并确认 Brickman 页面出现。"
         AutomaticActions = @("显示首次启动检查清单和预计等待时间。")
         ManualActions = @(
-            "插入已经刷好的 SD 卡。",
+            "SD 卡位置：插在 EV3 里，不再插在 Windows 电脑上。",
             "打开 EV3 电源。",
             "确认看到 ev3dev / Brickman 页面。"
         )
         Evidence = "首次启动结果由老师手动确认。"
         NextEnabledWhen = "老师确认 EV3 首次启动完成后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "EV3 屏幕显示 ev3dev / Brickman 页面，说明 SD 卡启动成功。"
+        HardwareLocation = "SD 卡位置：插在 EV3 里；Windows 电脑不再占用这张 SD 卡。"
+        StepProgressPercent = 0
+        CheckItems = @(
+            @{ Name = "SD 卡在 EV3"; Status = "needs_manual_action"; Detail = "把刷好的 microSD 卡插入 EV3。" }
+            @{ Name = "EV3 启动"; Status = "needs_manual_action"; Detail = "打开 EV3 电源并等待启动。" }
+            @{ Name = "Brickman 页面"; Status = "needs_manual_action"; Detail = "确认 EV3 屏幕出现 ev3dev / Brickman。" }
+        )
     }
     @{
         Id = "choose-transport"
@@ -117,6 +150,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "选择的连接方式会写入安装报告。"
         NextEnabledWhen = "连接方式和必填信息有效后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "连接方式已选择，WiFi 模式有 EV3 地址，蓝牙完整模式有 EV3 蓝牙地址。"
+        HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 保持 ev3dev 开机状态。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "install-ev3-server"
@@ -139,6 +176,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "服务状态会作为 EV3 安装证据记录。"
         NextEnabledWhen = "EV3 server 服务为 active 后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "EV3 server 安装计划生成成功，或确认安装后服务状态为 active。"
+        HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 运行 ev3dev，并通过 WiFi/蓝牙完整模式连接。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "enable-bluetooth-full-vsle"
@@ -160,6 +201,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "蓝牙配对证据仅记录老师确认结果，并保持脱敏。"
         NextEnabledWhen = "老师确认配对完成，或改选 WiFi 模式后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "Windows 蓝牙设置里显示 EV3 已配对，且选择的是 Bluetooth Full VSLE。"
+        HardwareLocation = "SD 卡位置：仍在 EV3 里；EV3 运行 ev3dev，不是官方固件蓝牙兼容模式。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "install-weisilelink-desktop"
@@ -179,6 +224,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "安装路径和 manifest 哈希会写入安装证据。"
         NextEnabledWhen = "Desktop 文件和开机启动入口验证通过后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "WeisileLink Desktop 文件已复制，启动入口指向 desktop-supervise，本机端口默认 localhost。"
+        HardwareLocation = "当前设备：操作 Windows 电脑；EV3 可保持开机等待后续连接。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "verify-local-bridge"
@@ -198,6 +247,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "本机端口检查结果会写入最终安装报告。"
         NextEnabledWhen = "两个本机端口都通过后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "127.0.0.1:20111 和 127.0.0.1:8766 都能响应。"
+        HardwareLocation = "当前设备：操作 Windows 电脑；WeisileLink Desktop 在本机运行。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "open-scratchai"
@@ -217,6 +270,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "老师确认结果会写入安装报告。"
         NextEnabledWhen = "老师确认 ScratchAI EV3 扩展可用后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "ScratchAI 打开后出现 VSLE-EV3 扩展，EV3 传感器数值能更新。"
+        HardwareLocation = "当前设备：Windows 浏览器连接本机 WeisileLink；EV3 保持开机连接。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
     @{
         Id = "finish-report"
@@ -236,6 +293,10 @@ $Script:VlseSetupWizardSteps = @(
         Evidence = "未签名内部测试包会保持 production_release_ready=false。"
         NextEnabledWhen = "报告写入完成且不包含秘密信息后继续。"
         ProductionReleaseReady = $false
+        CompletionCondition = "安装报告和诊断文件已导出，并且不包含密码、pairing token 或学生原始数据。"
+        HardwareLocation = "当前设备：操作 Windows 电脑；EV3 可保持当前连接状态。"
+        StepProgressPercent = 0
+        CheckItems = @()
     }
 )
 
@@ -273,7 +334,11 @@ function Set-VsleSetupWizardStepResult {
         [string]$Status,
         [string]$Summary,
         [string]$Evidence,
-        [object]$Blocking
+        [object]$Blocking,
+        [object]$StepProgressPercent,
+        [object[]]$CheckItems,
+        [string]$CompletionCondition,
+        [string]$HardwareLocation
     )
 
     $step = $Script:VlseSetupWizardSteps | Where-Object { $_.Id -eq $Id } | Select-Object -First 1
@@ -292,6 +357,18 @@ function Set-VsleSetupWizardStepResult {
     if ($PSBoundParameters.ContainsKey("Blocking")) {
         $step.Blocking = [bool]$Blocking
     }
+    if ($PSBoundParameters.ContainsKey("StepProgressPercent")) {
+        $step.StepProgressPercent = [int]$StepProgressPercent
+    }
+    if ($PSBoundParameters.ContainsKey("CheckItems")) {
+        $step.CheckItems = @($CheckItems)
+    }
+    if ($PSBoundParameters.ContainsKey("CompletionCondition")) {
+        $step.CompletionCondition = $CompletionCondition
+    }
+    if ($PSBoundParameters.ContainsKey("HardwareLocation")) {
+        $step.HardwareLocation = $HardwareLocation
+    }
 
     return [PSCustomObject]$step
 }
@@ -309,6 +386,8 @@ function Get-VsleSetupWizardProgress {
     [PSCustomObject]@{
         TotalSteps = $total
         ReadySteps = $readyCount
+        CompletedSteps = $readyCount
+        BlockedSteps = @($steps | Where-Object { $_.Status -eq "blocked" }).Count
         PercentComplete = if ($total -eq 0) { 0 } else { [Math]::Round(($readyCount / $total) * 100, 1) }
         ProductionReleaseReady = $false
     }
