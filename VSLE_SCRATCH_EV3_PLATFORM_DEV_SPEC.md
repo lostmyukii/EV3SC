@@ -3976,6 +3976,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/run-wpf-smoke.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_encoding.py`
 - **Next step**: Regenerate `VSLE-Install` and retry double-clicking `Start-VSLE-Setup-Wizard.cmd` on Windows; if Windows PowerShell 5.1 still fails, provide an English-only fallback package.
 
+### [2026-06-04] Windows setup wizard button wiring fix
+- **Status**: ✅ Completed
+- **Commit**: `f751bd7`
+- **What was done**: Wired the Windows setup wizard Back, Continue, and Export Diagnostics buttons, and wrapped button actions with visible error reporting so future click failures appear in the wizard instead of looking inert. Added a regression test that requires every visible wizard button to have a click handler and keeps the Chinese PowerShell 5.1 encoding constraints intact.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`
+- **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and verify `Start-VSLE-Setup-Wizard.cmd` opens the Chinese wizard with working Back, Continue, Retry, Export Diagnostics, and confirmation buttons.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
