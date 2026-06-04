@@ -3969,6 +3969,13 @@ material into:
 - **Files created/modified**: `install/Start-VSLE-Setup-Wizard.cmd`, `tests/test_windows_setup_launcher.py`, `tests/test_windows_setup_wizard_chinese_ui.py`
 - **Next step**: Regenerate `VSLE-Install` and retry double-clicking `Start-VSLE-Setup-Wizard.cmd` on Windows.
 
+### [2026-06-04] Windows PowerShell 5 Chinese encoding fix
+- **Status**: ✅ Completed
+- **Commit**: `3699303`
+- **What was done**: Added UTF-8 BOM encoding to the Chinese Windows setup wizard PowerShell/XAML files so Windows PowerShell 5.1 reads Chinese strings correctly instead of treating UTF-8 as the local ANSI code page. Added regression tests that enforce BOM-tagged Chinese wizard files and reject smart quotes, while keeping the CMD launcher ASCII-only/CRLF.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/run-wpf-smoke.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_encoding.py`
+- **Next step**: Regenerate `VSLE-Install` and retry double-clicking `Start-VSLE-Setup-Wizard.cmd` on Windows; if Windows PowerShell 5.1 still fails, provide an English-only fallback package.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
