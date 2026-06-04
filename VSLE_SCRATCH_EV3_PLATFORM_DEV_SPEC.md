@@ -4018,6 +4018,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_e_clarity.py`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`, `tests/test_windows_setup_wizard_chinese_ui.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and verify that the SD-card page clearly shows the full Etcher flashing sequence and manual confirmation checklist.
 
+### [2026-06-04] EV3 connection field guidance
+- **Status**: ✅ Completed
+- **Commit**: `63ad802`
+- **What was done**: Added teacher-facing input guidance directly to the Windows setup wizard's EV3 connection panel and related steps. The interface now defaults the EV3 SSH address to `ev3dev.local`, explains where to find an EV3 IP address, states the `robot` user and `maker` password behavior, explains how to find the EV3 Bluetooth address, and gives the Windows Bluetooth pairing path without requiring teachers to search externally.
+- **Files created/modified**: `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and visually verify the connection-method step shows the default SSH host, field guidance, Bluetooth-address instructions, and Windows pairing path in the scrollable details area.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
