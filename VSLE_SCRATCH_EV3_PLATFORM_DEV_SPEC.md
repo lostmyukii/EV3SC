@@ -3962,6 +3962,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/run-wpf-smoke.ps1`, `install/Start-VSLE-Setup-Wizard.cmd`, `install/START_HERE_WINDOWS.txt`, `tests/test_windows_setup_wizard_chinese_ui.py`, `tests/test_windows_setup_wizard_phase_a.py`, `tests/test_windows_setup_wizard_phase_c_execution.py`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Regenerate the USB-ready `VSLE-Install` folder and verify the Windows machine opens the Chinese wizard by double-clicking `Start-VSLE-Setup-Wizard.cmd` without the PowerShell module warning.
 
+### [2026-06-04] Windows launcher CMD encoding fix
+- **Status**: ✅ Completed
+- **Commit**: `dda5631`
+- **What was done**: Fixed the Windows double-click launcher after CMD misread Chinese UTF-8 text as commands. The launcher is now ASCII-only with Windows CRLF line endings, while the WPF wizard itself remains Chinese; tests now enforce those launcher byte-level constraints.
+- **Files created/modified**: `install/Start-VSLE-Setup-Wizard.cmd`, `tests/test_windows_setup_launcher.py`, `tests/test_windows_setup_wizard_chinese_ui.py`
+- **Next step**: Regenerate `VSLE-Install` and retry double-clicking `Start-VSLE-Setup-Wizard.cmd` on Windows.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
