@@ -3955,6 +3955,13 @@ material into:
 - **Files created/modified**: `install/Start-VSLE-Setup-Wizard.cmd`, `install/START_HERE_WINDOWS.txt`, `install/check_install_files.sh`, `install/INSTALL_FILES_MANIFEST.md`, `install/README.md`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `install/ASSET_AUDIT.md`, `tests/test_windows_setup_launcher.py`
 - **Next step**: Generate a fresh USB-ready `VSLE-Install` folder and have the Windows machine double-click `Start-VSLE-Setup-Wizard.cmd`; a true signed `.exe` installer remains the next production packaging milestone.
 
+### [2026-06-04] Windows setup wizard Chinese UI
+- **Status**: ✅ Completed
+- **Commit**: `32ee294`
+- **What was done**: Localized the Windows WPF setup wizard shell, step model, status labels, buttons, EV3 input labels, launcher messages, and start-here note into Chinese for teacher-facing installation. Added `-DisableNameChecking` to the wizard and smoke module imports so Windows PowerShell no longer shows the unapproved-verb warning for `WindowsInstallActions`.
+- **Files created/modified**: `install/windows/setup-wizard.xaml`, `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/run-wpf-smoke.ps1`, `install/Start-VSLE-Setup-Wizard.cmd`, `install/START_HERE_WINDOWS.txt`, `tests/test_windows_setup_wizard_chinese_ui.py`, `tests/test_windows_setup_wizard_phase_a.py`, `tests/test_windows_setup_wizard_phase_c_execution.py`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Regenerate the USB-ready `VSLE-Install` folder and verify the Windows machine opens the Chinese wizard by double-clicking `Start-VSLE-Setup-Wizard.cmd` without the PowerShell module warning.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
