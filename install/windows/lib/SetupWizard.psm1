@@ -290,9 +290,10 @@ $Script:VlseSetupWizardSteps = @(
         Status = "pending"
         Blocking = $true
         ManualConfirmationRequired = $false
-        Summary = "启动 WeisileLink Desktop supervisor，并检查本机端口。"
+        Summary = "真实启动或检测 WeisileLink Desktop supervisor，并检查本机端口。"
         AutomaticActions = @(
-            "启动 desktop-supervise。",
+            "如果端口已经响应，记录为已检测到正在运行。",
+            "如果端口未响应，启动 desktop-supervise 后轮询端口。",
             "检查 127.0.0.1:20111。",
             "检查 127.0.0.1:8766。"
         )

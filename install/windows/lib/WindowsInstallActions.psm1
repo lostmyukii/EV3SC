@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 
 $Script:WindowsEvidenceEntries = @(
     "desktop/release/internal/windows/WeisileLink/WeisileLink.exe",
@@ -308,6 +308,178 @@ function Invoke-VsleWindowsDesktopInstallExecution {
     }
 }
 
+function Test-VsleTcpPort {
+    [CmdletBinding()]
+    param(
+        [string]$Host = "127.0.0.1",
+        [Parameter(Mandatory = $true)]
+        [int]$Port,
+        [int]$TimeoutMs = 750
+    )
+
+    $client = New-Object System.Net.Sockets.TcpClient
+    $asyncResult = $null
+    try {
+        $asyncResult = $client.BeginConnect($Host, $Port, $null, $null)
+        $connected = $asyncResult.AsyncWaitHandle.WaitOne($TimeoutMs, $false)
+        if (-not $connected) {
+            return $false
+        }
+
+        $client.EndConnect($asyncResult)
+        return $true
+    } catch {
+        return $false
+    } finally {
+        if ($null -ne $asyncResult -and $null -ne $asyncResult.AsyncWaitHandle) {
+            $asyncResult.AsyncWaitHandle.Close()
+        }
+        $client.Close()
+    }
+}
+
+function Get-VsleWindowsDesktopBridgePlan {
+    [CmdletBinding()]
+    param(
+        [string]$TargetRoot = (Get-VsleDefaultWindowsDesktopTargetRoot),
+        [string]$Host = "127.0.0.1",
+        [int]$ScratchLinkPort = 20111,
+        [int]$TrainerPort = 8766
+    )
+
+    $exePath = Join-Path $TargetRoot "WeisileLink.exe"
+    $nativeAdapterPath = Join-Path $TargetRoot "native\WeisileEV3BluetoothAdapter.exe"
+    $arguments = @(
+        "desktop-supervise",
+        "--host",
+        $Host,
+        "--port",
+        [string]$ScratchLinkPort,
+        "--trainer-port",
+        [string]$TrainerPort
+    )
+    if (Test-Path -LiteralPath $nativeAdapterPath) {
+        $arguments += @("--native-adapter", $nativeAdapterPath)
+    }
+
+    [PSCustomObject]@{
+        TargetRoot = $TargetRoot
+        ExePath = $exePath
+        NativeAdapterPath = $nativeAdapterPath
+        Host = $Host
+        ScratchLinkPort = $ScratchLinkPort
+        TrainerPort = $TrainerPort
+        Arguments = @($arguments)
+        ArgumentLine = ($arguments -join " ")
+        ProductionReleaseReady = $false
+    }
+}
+
+function Invoke-VsleWindowsDesktopBridgeVerification {
+    [CmdletBinding()]
+    param(
+        [object]$Plan = (Get-VsleWindowsDesktopBridgePlan),
+        [int]$TimeoutSeconds = 12,
+        [int]$PollIntervalMs = 500,
+        [switch]$SkipStart
+    )
+
+    $scratchOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.ScratchLinkPort
+    $trainerOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.TrainerPort
+    $startAttempted = $false
+    $bridgeProcessId = $null
+
+    if (-not ($scratchOk -and $trainerOk) -and -not $SkipStart) {
+        if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+            return [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                ManualConfirmationRequired = $false
+                Summary = "本地桥接启动检查需要 Windows。"
+                Evidence = @(
+                    "StartAttempted: false",
+                    "Reason: WeisileLink.exe desktop-supervise can only be started on Windows.",
+                    "scratch_link_endpoint_ok: $scratchOk",
+                    "trainer_endpoint_ok: $trainerOk",
+                    "ProductionReleaseReady: false"
+                ) -join [Environment]::NewLine
+                Plan = $Plan
+                BridgeProcessId = $bridgeProcessId
+                scratch_link_endpoint_ok = $scratchOk
+                trainer_endpoint_ok = $trainerOk
+            }
+        }
+
+        if (-not (Test-Path -LiteralPath $Plan.ExePath)) {
+            return [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                ManualConfirmationRequired = $false
+                Summary = "WeisileLink.exe 尚未安装，无法启动本地桥接。"
+                Evidence = @(
+                    "Missing executable: $($Plan.ExePath)",
+                    "scratch_link_endpoint_ok: $scratchOk",
+                    "trainer_endpoint_ok: $trainerOk",
+                    "ProductionReleaseReady: false"
+                ) -join [Environment]::NewLine
+                Plan = $Plan
+                BridgeProcessId = $bridgeProcessId
+                scratch_link_endpoint_ok = $scratchOk
+                trainer_endpoint_ok = $trainerOk
+            }
+        }
+
+        $process = Start-Process `
+            -FilePath $Plan.ExePath `
+            -ArgumentList $Plan.Arguments `
+            -WindowStyle Hidden `
+            -PassThru
+        $startAttempted = $true
+        $bridgeProcessId = $process.Id
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $scratchOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.ScratchLinkPort
+        $trainerOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.TrainerPort
+        if ($scratchOk -and $trainerOk) {
+            break
+        }
+        Start-Sleep -Milliseconds $PollIntervalMs
+    } while ((Get-Date) -lt $deadline)
+
+    $status = if ($scratchOk -and $trainerOk) { "passed" } else { "blocked" }
+    $summary = if ($scratchOk -and $trainerOk) {
+        "本地桥接已启动或已检测到运行，两个本机端口都通过。"
+    } else {
+        "本地桥接未通过端口检查。"
+    }
+
+    $evidence = @(
+        "Executable: $($Plan.ExePath)",
+        "Command: $($Plan.ExePath) $($Plan.ArgumentLine)",
+        "StartAttempted: $startAttempted",
+        "BridgeProcessId: $bridgeProcessId",
+        "scratch_link_endpoint_ok: $scratchOk",
+        "trainer_endpoint_ok: $trainerOk",
+        "Scratch Link endpoint: $($Plan.Host):$($Plan.ScratchLinkPort)",
+        "Trainer endpoint: $($Plan.Host):$($Plan.TrainerPort)",
+        "ProductionReleaseReady: false"
+    ) -join [Environment]::NewLine
+
+    [PSCustomObject]@{
+        Status = $status
+        Blocking = -not ($scratchOk -and $trainerOk)
+        ManualConfirmationRequired = $false
+        Summary = $summary
+        Evidence = $evidence
+        Plan = $Plan
+        BridgeProcessId = $bridgeProcessId
+        scratch_link_endpoint_ok = $scratchOk
+        trainer_endpoint_ok = $trainerOk
+    }
+}
+
 function New-VsleWindowsDesktopInstallConfirmation {
     [CmdletBinding()]
     param(
@@ -371,4 +543,4 @@ function Prepare-VsleWindowsDesktopInstallStaging {
     return Test-VsleWindowsDesktopInstallStaging -Plan $plan
 }
 
-Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand
+Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand, Get-VsleWindowsDesktopBridgePlan, Test-VsleTcpPort, Invoke-VsleWindowsDesktopBridgeVerification

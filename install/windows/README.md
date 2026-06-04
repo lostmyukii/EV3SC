@@ -112,6 +112,26 @@ package into a clean temporary install root, and inspect startup metadata. The
 Windows WPF visual flow and actual helper execution still require a Windows
 PowerShell 5.1 smoke run.
 
+## Phase G Local Bridge Verification
+
+The `Start and Verify Local Bridge` step starts or detects WeisileLink.exe desktop-supervise
+on the Windows teacher computer. It first checks whether the localhost endpoints
+are already responding:
+
+```text
+127.0.0.1:20111
+127.0.0.1:8766
+```
+
+If both endpoints already respond, the wizard records the bridge as already
+running. If either endpoint is not available, the wizard starts
+`WeisileLink.exe desktop-supervise --host 127.0.0.1 --port 20111 --trainer-port
+8766`, then polls both ports until they pass or the step blocks with evidence.
+
+This phase is a real Windows runtime check, not a manual placeholder. On macOS,
+static and PowerShell Core tests can verify the command plan and module shape,
+but the actual `WeisileLink.exe` launch must be validated on Windows.
+
 ## Phase D EV3 Guided Setup
 
 The EV3 setup steps now use:

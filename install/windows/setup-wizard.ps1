@@ -775,6 +775,58 @@ function Run-VsleConfirmDesktopInstallStep {
     Update-VsleDesktopInstallStep -Window $Window -Result $result
 }
 
+function Update-VsleLocalBridgeStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$Result
+    )
+
+    $step = Set-VsleSetupWizardStepResult `
+        -Id "verify-local-bridge" `
+        -Status $Result.Status `
+        -Summary $Result.Summary `
+        -Evidence $Result.Evidence `
+        -Blocking $Result.Blocking
+
+    $StepList = $Window.FindName("StepList")
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $step
+}
+
+function Run-VsleVerifyLocalBridgeStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window
+    )
+
+    $runningStep = Set-VsleSetupWizardStepResult `
+        -Id "verify-local-bridge" `
+        -Status "running" `
+        -Summary "正在启动并检查本地桥接。" `
+        -Evidence "正在启动或检测 WeisileLink Desktop supervisor，并检查 127.0.0.1:20111 和 127.0.0.1:8766。" `
+        -Blocking $true
+    $StepList = $Window.FindName("StepList")
+    $StepList.Items.Refresh()
+    Set-CurrentStep -Window $Window -Step $runningStep
+
+    try {
+        $plan = Get-VsleWindowsDesktopBridgePlan
+        $result = Invoke-VsleWindowsDesktopBridgeVerification -Plan $plan
+    } catch {
+        $result = [PSCustomObject]@{
+            Status = "blocked"
+            Blocking = $true
+            ManualConfirmationRequired = $false
+            Summary = "本地桥接启动检查失败。"
+            Evidence = $_.Exception.Message
+        }
+    }
+
+    Update-VsleLocalBridgeStep -Window $Window -Result $result
+}
+
 function Get-VsleSelectedTransportValue {
     param(
         [Parameter(Mandatory = $true)]
@@ -929,6 +981,10 @@ function Open-VsleSetupWizard {
                 Run-VslePrepareDesktopInstallStep -Window $window
                 return
             }
+            if ($stepList.SelectedItem.Id -eq "verify-local-bridge" -and $stepList.SelectedItem.Status -in @("pending", "blocked", "warning")) {
+                Run-VsleVerifyLocalBridgeStep -Window $window
+                return
+            }
             if ($stepList.SelectedItem.Id -in @("choose-transport", "install-ev3-server", "enable-bluetooth-full-vsle")) {
                 Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
                 return
@@ -986,6 +1042,9 @@ function Open-VsleSetupWizard {
             }
             if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
                 Run-VslePrepareDesktopInstallStep -Window $window
+            }
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "verify-local-bridge") {
+                Run-VsleVerifyLocalBridgeStep -Window $window
             }
             if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -in @("choose-transport", "install-ev3-server", "enable-bluetooth-full-vsle")) {
                 Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
