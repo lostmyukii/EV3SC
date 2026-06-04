@@ -4004,6 +4004,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy the fresh folder to Windows, and verify that the fixed checklist is visible immediately after opening manual steps such as the welcome, SD-card, EV3 boot, Bluetooth, and ScratchAI steps.
 
+### [2026-06-04] Windows setup wizard scrollable details
+- **Status**: ✅ Completed
+- **Commit**: `7bdda61`
+- **What was done**: Wrapped the Windows setup wizard step-detail area in a WPF `ScrollViewer` so teachers can scroll down when Windows display scaling or smaller screen height clips the lower cards. The bottom navigation buttons remain outside the scroll area so Back, Retry, Export, Confirm, and Continue stay visible while details scroll.
+- **Files created/modified**: `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_e_clarity.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, and verify the right-side detail panel can scroll downward to reveal all cards on the target Windows display.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
