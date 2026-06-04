@@ -37,6 +37,7 @@ function Set-CurrentStep {
         [object]$Step
     )
 
+    $progress = Get-VsleSetupWizardProgress
     $Window.FindName("StepTitle").Text = $Step.Title
     $Window.FindName("StepSummary").Text = $Step.Summary
     $Window.FindName("AutoActionsText").Text = ConvertTo-BulletText -Items $Step.AutomaticActions
@@ -47,7 +48,20 @@ function Set-CurrentStep {
     }
     $Window.FindName("StatusText").Text = "状态：$statusLabel；阻塞：$($Step.Blocking)；下一步：$($Step.NextEnabledWhen)"
     $Window.FindName("EvidenceText").Text = $Step.Evidence
-    $Window.FindName("ContinueButton").IsEnabled = -not ($Step.Status -eq "blocked")
+    $Window.FindName("ProgressText").Text = "第 $([int]$Step.Number + 1) / $($progress.TotalSteps) 步"
+
+    $backButton = $Window.FindName("BackButton")
+    if ($null -ne $backButton) {
+        $backButton.IsEnabled = [int]$Step.Number -gt 0
+    }
+
+    $continueButton = $Window.FindName("ContinueButton")
+    if ($null -ne $continueButton) {
+        $continueButton.IsEnabled = (
+            -not ($Step.Status -eq "blocked") -and
+            [int]$Step.Number -lt ($progress.TotalSteps - 1)
+        )
+    }
 
     $ev3SetupPanel = $Window.FindName("Ev3SetupPanel")
     if ($null -ne $ev3SetupPanel) {
@@ -92,6 +106,122 @@ function Set-CurrentStep {
             $confirmEv3InstallButton.IsEnabled = $false
         }
     }
+}
+
+function Set-VsleWizardButtonError {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [string]$Message
+    )
+
+    $Window.FindName("StatusText").Text = "状态：按钮操作失败；阻塞：True；下一步：请导出诊断或重试。"
+    $Window.FindName("EvidenceText").Text = "按钮操作失败：$Message"
+}
+
+function Invoke-VsleWizardUiAction {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [scriptblock]$Action
+    )
+
+    try {
+        & $Action
+    } catch {
+        Set-VsleWizardButtonError -Window $Window -Message $_.Exception.Message
+    }
+}
+
+function Move-VsleSetupWizardStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$StepList,
+        [Parameter(Mandatory = $true)]
+        [int]$Direction
+    )
+
+    if ($null -eq $StepList -or $StepList.Items.Count -eq 0) {
+        return
+    }
+
+    $currentIndex = $StepList.SelectedIndex
+    if ($currentIndex -lt 0) {
+        $currentIndex = 0
+    }
+
+    $targetIndex = $currentIndex + $Direction
+    $targetIndex = [Math]::Max(0, [Math]::Min($targetIndex, $StepList.Items.Count - 1))
+    if ($targetIndex -ne $StepList.SelectedIndex) {
+        $StepList.SelectedIndex = $targetIndex
+        return
+    }
+
+    if ($null -ne $StepList.SelectedItem) {
+        Set-CurrentStep -Window $Window -Step $StepList.SelectedItem
+    }
+}
+
+function Export-VsleSetupWizardDiagnostics {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$StepList
+    )
+
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    if ([string]::IsNullOrWhiteSpace($desktop) -or -not (Test-Path -LiteralPath $desktop)) {
+        $desktop = [System.IO.Path]::GetTempPath()
+    }
+
+    $selectedStepId = ""
+    if ($null -ne $StepList.SelectedItem) {
+        $selectedStepId = [string]$StepList.SelectedItem.Id
+    }
+
+    $steps = @()
+    foreach ($item in $StepList.Items) {
+        if ($null -ne $item) {
+            $steps += [ordered]@{
+                id = [string]$item.Id
+                title = [string]$item.Title
+                status = [string]$item.Status
+                blocking = [bool]$item.Blocking
+                evidence = [string]$item.Evidence
+            }
+        }
+    }
+
+    $progress = Get-VsleSetupWizardProgress
+    $payload = [ordered]@{
+        schema_version = 1
+        generated_at = (Get-Date).ToString("o")
+        selected_step_id = $selectedStepId
+        production_release_ready = $false
+        progress = [ordered]@{
+            total_steps = [int]$progress.TotalSteps
+            completed_steps = [int]$progress.CompletedSteps
+            blocked_steps = [int]$progress.BlockedSteps
+        }
+        steps = $steps
+        host = [ordered]@{
+            os = [System.Environment]::OSVersion.VersionString
+            ps_version = $PSVersionTable.PSVersion.ToString()
+            ps_edition = if ($PSVersionTable.ContainsKey("PSEdition")) { $PSVersionTable.PSEdition } else { "" }
+        }
+    }
+
+    $fileName = "vsle-setup-wizard-diagnostics-{0}.json" -f (Get-Date -Format "yyyyMMdd-HHmmss")
+    $outputPath = Join-Path $desktop $fileName
+    $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $outputPath -Encoding UTF8
+
+    $Window.FindName("StatusText").Text = "状态：诊断已导出；阻塞：False；下一步：继续安装向导。"
+    $Window.FindName("EvidenceText").Text = "诊断已导出：$outputPath"
 }
 
 function Update-VsleValidateFilesStep {
@@ -386,7 +516,10 @@ function Open-VsleSetupWizard {
     $window.FindName("ProgressText").Text = "已加载 $($progress.TotalSteps) 个步骤；欢迎页不会自动执行安装。"
 
     $stepList.Add_SelectionChanged({
-        if ($null -ne $stepList.SelectedItem) {
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            if ($null -eq $stepList.SelectedItem) {
+                return
+            }
             if ($stepList.SelectedItem.Id -eq "validate-files" -and $stepList.SelectedItem.Status -in @("pending", "blocked", "warning")) {
                 Run-VsleValidateFilesStep -Window $window
                 return
@@ -403,27 +536,51 @@ function Open-VsleSetupWizard {
         }
     })
 
+    $window.FindName("BackButton").Add_Click({
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            Move-VsleSetupWizardStep -Window $window -StepList $stepList -Direction (-1)
+        }
+    })
+
+    $window.FindName("ContinueButton").Add_Click({
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            Move-VsleSetupWizardStep -Window $window -StepList $stepList -Direction 1
+        }
+    })
+
     $window.FindName("RetryButton").Add_Click({
-        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "validate-files") {
-            Run-VsleValidateFilesStep -Window $window
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "validate-files") {
+                Run-VsleValidateFilesStep -Window $window
+            }
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
+                Run-VslePrepareDesktopInstallStep -Window $window
+            }
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -in @("choose-transport", "install-ev3-server", "enable-bluetooth-full-vsle")) {
+                Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
+            }
         }
-        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
-            Run-VslePrepareDesktopInstallStep -Window $window
-        }
-        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -in @("choose-transport", "install-ev3-server", "enable-bluetooth-full-vsle")) {
-            Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
+    })
+
+    $window.FindName("ExportButton").Add_Click({
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            Export-VsleSetupWizardDiagnostics -Window $window -StepList $stepList
         }
     })
 
     $window.FindName("ConfirmInstallButton").Add_Click({
-        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
-            Run-VsleConfirmDesktopInstallStep -Window $window
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-weisilelink-desktop") {
+                Run-VsleConfirmDesktopInstallStep -Window $window
+            }
         }
     })
 
     $window.FindName("ConfirmEv3InstallButton").Add_Click({
-        if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-ev3-server") {
-            Run-VsleConfirmEv3ServerInstallStep -Window $window
+        Invoke-VsleWizardUiAction -Window $window -Action {
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-ev3-server") {
+                Run-VsleConfirmEv3ServerInstallStep -Window $window
+            }
         }
     })
 

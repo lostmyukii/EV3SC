@@ -92,6 +92,24 @@ def test_setup_wizard_script_only_loads_phase_a_ui():
         assert action not in text
 
 
+def test_setup_wizard_main_buttons_have_click_handlers():
+    text = _read(SCRIPT)
+
+    for button_name in (
+        "BackButton",
+        "ContinueButton",
+        "RetryButton",
+        "ExportButton",
+        "ConfirmInstallButton",
+        "ConfirmEv3InstallButton",
+    ):
+        assert f'$window.FindName("{button_name}").Add_Click' in text
+
+    assert "Move-VsleSetupWizardStep" in text
+    assert "Export-VsleSetupWizardDiagnostics" in text
+    assert "Invoke-VsleWizardUiAction" in text
+
+
 def test_setup_wizard_xaml_parses_and_contains_ios_style_stepper_shell():
     tree = ET.parse(XAML)
     root = tree.getroot()
