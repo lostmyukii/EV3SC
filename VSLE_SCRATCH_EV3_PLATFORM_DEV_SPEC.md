@@ -3990,6 +3990,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_e_clarity.py`
 - **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and visually verify the Chinese WPF wizard shows the new progress bar, 100% file-check result, SD-card location copy, and manual confirmation guidance.
 
+### [2026-06-04] Windows setup wizard Phase F manual confirmation progress
+- **Status**: ✅ Completed
+- **Commit**: `0e0cd14`
+- **What was done**: Added teacher confirmation checkboxes for manual Windows setup steps and wired them to the current-step progress bar. Manual steps now show an "人工确认清单"; checking required items updates progress, and Continue stays disabled until all required confirmations are checked, while automatic validation steps still use system-driven progress.
+- **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`
+- **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and verify the WPF checkbox interactions visually: checking and unchecking manual items should change progress and gate Continue.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
