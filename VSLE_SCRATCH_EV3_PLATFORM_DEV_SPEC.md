@@ -3997,6 +3997,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/SetupWizard.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`
 - **Next step**: Regenerate `VSLE-Install`, copy the fresh folder to Windows, and verify the WPF checkbox interactions visually: checking and unchecking manual items should change progress and gate Continue.
 
+### [2026-06-04] Windows setup wizard fixed manual confirmation panel
+- **Status**: ✅ Completed
+- **Commit**: `9efbb0b`
+- **What was done**: Promoted the manual confirmation checklist into a fixed, blue-highlighted panel near the top of the Windows WPF wizard step details so it remains visible on real Windows displays. The panel now shows its own checked-count label, wraps long Chinese confirmation text, and hides automatically on steps without manual confirmations.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `tests/test_windows_setup_wizard_phase_f_manual_confirmations.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy the fresh folder to Windows, and verify that the fixed checklist is visible immediately after opening manual steps such as the welcome, SD-card, EV3 boot, Bluetooth, and ScratchAI steps.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
