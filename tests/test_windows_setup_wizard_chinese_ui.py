@@ -57,7 +57,7 @@ def test_step_model_exposes_chinese_titles_and_status_labels():
     for text in (
         'Title = "欢迎"',
         'Title = "检查安装文件"',
-        'Title = "准备 EV3 SD 卡"',
+        'Title = "刷写 ev3dev 系统到 EV3 SD 卡"',
         'Title = "安装 WeisileLink Desktop"',
         'Title = "完成并导出报告"',
         'StatusLabel',

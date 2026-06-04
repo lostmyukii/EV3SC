@@ -28,7 +28,9 @@ def test_phase_f_step_model_defines_manual_confirmations():
     for label in (
         "我已确认这是内部测试安装包",
         "我已确认 SD 卡插在 Windows 电脑上，不在 EV3 上",
-        "我已确认 Etcher 选择的是 ev3dev 镜像和正确的 microSD 卡",
+        "我已确认 Etcher 的 Flash from file 已选择 ev3dev 镜像文件",
+        "我已确认 Etcher 的 target 是外置 microSD 卡，不是 Windows 系统盘或其它硬盘",
+        "我已确认已经点击 Flash，并等待 Etcher 完成写入和验证",
         "我已确认 Etcher 显示 Flash Complete，并已安全弹出 SD 卡",
         "我已确认 SD 卡已经插入 EV3",
         "我已确认 EV3 屏幕出现 ev3dev / Brickman",

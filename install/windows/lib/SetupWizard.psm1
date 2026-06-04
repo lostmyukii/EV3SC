@@ -83,36 +83,47 @@ $Script:VlseSetupWizardSteps = @(
     @{
         Id = "prepare-sd-card"
         Number = 2
-        Title = "准备 EV3 SD 卡"
+        Title = "刷写 ev3dev 系统到 EV3 SD 卡"
         Mode = "human-confirmed"
         Status = "needs_manual_action"
         Blocking = $true
         ManualConfirmationRequired = $true
-        Summary = "引导使用 Etcher 刷写 ev3dev SD 卡，目标磁盘必须人工选择。"
+        Summary = "这一步就是把 ev3dev 系统安装到 microSD 卡；目标磁盘必须由老师人工选择，避免误清空电脑硬盘。"
         AutomaticActions = @(
-            "显示 Etcher 和 ev3dev 镜像路径。",
-            "提示老师确认 SD 卡目标盘。"
+            "显示 Balena Etcher 安装器路径：windows/01-sd-card/balenaEtcher-Setup-1.17.0.exe。",
+            "显示 ev3dev 镜像路径：shared/01-ev3-sd-card/ev3dev-stretch-ev3-generic-2020-04-10.zip。",
+            "提示老师只能选择外置 microSD 卡作为 target。"
         )
         ManualActions = @(
-            "SD 卡位置：插在 Windows 电脑上，不要插入 EV3。",
-            "在 Etcher 中选择 ev3dev 镜像和 microSD 卡目标盘。",
-            "Etcher 显示 Flash Complete 后，确认验证完成并安全弹出 SD 卡。"
+            "1. 将 microSD 卡插入 Windows 电脑，EV3 保持关机，SD 卡不要插在 EV3 上。",
+            "2. 打开 Balena Etcher。如果未安装，请先运行 windows/01-sd-card/balenaEtcher-Setup-1.17.0.exe。",
+            "3. 选择 Flash from file。",
+            "4. 选择 ev3dev 镜像文件 shared/01-ev3-sd-card/ev3dev-stretch-ev3-generic-2020-04-10.zip。",
+            "5. 选择目标 microSD 卡。请反复确认这是外置 SD 卡，不是 Windows 系统盘或其它硬盘。",
+            "6. 点击 Flash，开始把 ev3dev 系统写入 SD 卡。",
+            "7. 等待 Etcher 显示 Flash Complete，确认写入和验证都已完成。",
+            "8. 安全弹出 SD 卡；下一步才把 SD 卡插入 EV3。"
         )
-        Evidence = "SD 卡刷写结果由老师手动确认。"
-        NextEnabledWhen = "老师确认 SD 卡准备完成后继续。"
+        Evidence = "SD 卡刷写和验证结果由老师手动确认。"
+        NextEnabledWhen = "老师确认 ev3dev 已写入 microSD 卡并安全弹出后继续。"
         ProductionReleaseReady = $false
-        CompletionCondition = "Etcher 显示 Flash Complete，验证完成，并且 SD 卡已从 Windows 电脑安全弹出。"
+        CompletionCondition = "Etcher 显示 Flash Complete，写入和验证完成，并且 SD 卡已从 Windows 电脑安全弹出。"
         HardwareLocation = "SD 卡位置：插在 Windows 电脑上；EV3 保持关机，不要插入 EV3。"
         StepProgressPercent = 0
         CheckItems = @(
-            @{ Name = "SD 卡在电脑上"; Status = "needs_manual_action"; Detail = "老师确认 microSD 卡已插入 Windows 电脑。" }
-            @{ Name = "Etcher 写入"; Status = "needs_manual_action"; Detail = "老师在 Etcher 中选择镜像和目标盘。" }
-            @{ Name = "安全弹出"; Status = "needs_manual_action"; Detail = "Etcher 验证完成后安全弹出 SD 卡。" }
+            @{ Name = "1. SD 卡插入电脑"; Status = "needs_manual_action"; Detail = "microSD 卡插在 Windows 电脑上，不在 EV3 上。" }
+            @{ Name = "2. 打开 Etcher"; Status = "needs_manual_action"; Detail = "运行 Balena Etcher，必要时先安装 Etcher。" }
+            @{ Name = "3. 选择镜像"; Status = "needs_manual_action"; Detail = "在 Flash from file 中选择 ev3dev zip 镜像。" }
+            @{ Name = "4. 选择目标 SD 卡"; Status = "needs_manual_action"; Detail = "人工确认 target 是外置 microSD 卡，不能选系统盘。" }
+            @{ Name = "5. 点击 Flash"; Status = "needs_manual_action"; Detail = "开始把 ev3dev 系统写入 SD 卡。" }
+            @{ Name = "6. 完成并弹出"; Status = "needs_manual_action"; Detail = "Etcher 显示 Flash Complete 后安全弹出 SD 卡。" }
         )
         ManualConfirmations = @(
             @{ Id = "sd-card-in-computer"; Label = "我已确认 SD 卡插在 Windows 电脑上，不在 EV3 上。"; Required = $true }
-            @{ Id = "etcher-image-and-target"; Label = "我已确认 Etcher 选择的是 ev3dev 镜像和正确的 microSD 卡。"; Required = $true }
-            @{ Id = "etcher-complete-and-ejected"; Label = "我已确认 Etcher 显示 Flash Complete，并已安全弹出 SD 卡。"; Required = $true }
+            @{ Id = "etcher-image-selected"; Label = "我已确认 Etcher 的 Flash from file 已选择 ev3dev 镜像文件。"; Required = $true }
+            @{ Id = "etcher-target-selected"; Label = "我已确认 Etcher 的 target 是外置 microSD 卡，不是 Windows 系统盘或其它硬盘。"; Required = $true }
+            @{ Id = "etcher-flash-complete"; Label = "我已确认已经点击 Flash，并等待 Etcher 完成写入和验证。"; Required = $true }
+            @{ Id = "sd-card-ejected"; Label = "我已确认 Etcher 显示 Flash Complete，并已安全弹出 SD 卡。"; Required = $true }
         )
     }
     @{

@@ -106,7 +106,10 @@ install/make_usb_copy.sh /Volumes/<USB_NAME>/VSLE-Install
 - 无 WiFi dongle：使用 `Bluetooth Full VSLE`。这仍然要求 EV3 运行 ev3dev。
 - `Official Firmware Bluetooth Compatibility` 是有限模式，不能替代 Full VSLE。
 
-## 3. 刷写 ev3dev SD 卡
+## 3. 刷写 ev3dev 系统到 EV3 SD 卡
+
+这一步就是把 ev3dev 系统安装到 microSD 卡。目标磁盘必须人工选择，
+不要自动化选择磁盘，避免误清空 Windows 或 macOS 电脑硬盘。
 
 ### macOS
 
@@ -132,14 +135,14 @@ install/shared/01-ev3-sd-card/ev3dev-stretch-ev3-generic-2020-04-10.zip
 
 Etcher 操作：
 
-1. 插入 microSD 卡。
+1. 将 microSD 卡插入电脑，EV3 保持关机，SD 卡不要插在 EV3 上。
 2. 打开 Balena Etcher。
 3. 选择 `Flash from file`。
-4. 选择上面的 ev3dev zip。
+4. 选择上面的 ev3dev zip 镜像。
 5. 选择外置 microSD 卡作为 target。
-6. 再次确认 target 不是电脑内置磁盘。
-7. 点击 `Flash`。
-8. 等待写入和验证完成。
+6. 再次确认 target 是外置 microSD 卡，不是电脑系统盘或其它硬盘。
+7. 点击 `Flash`，开始把 ev3dev 系统写入 SD 卡。
+8. 等待 Etcher 显示 `Flash Complete`，确认写入和验证都已完成。
 9. 安全弹出 SD 卡。
 
 把 SD 卡插入 EV3，开机并等待 ev3dev / Brickman 界面出现。首次启动可能较慢。

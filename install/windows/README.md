@@ -175,6 +175,10 @@ will write blocked evidence that says the WPF smoke requires Windows PowerShell
 
 ## SD Card
 
+This step flashes, or installs, the ev3dev system onto the EV3 microSD card.
+The target disk must be selected manually in Etcher so Windows cannot
+accidentally overwrite the teacher computer's system disk.
+
 `01-sd-card/` contains the Windows Etcher installer:
 
 ```text
@@ -186,6 +190,18 @@ The EV3 image is shared with macOS:
 ```text
 ../shared/01-ev3-sd-card/ev3dev-stretch-ev3-generic-2020-04-10.zip
 ```
+
+Teacher-facing flow:
+
+1. Insert the microSD card into the Windows computer; keep it out of the EV3.
+2. Open Balena Etcher.
+3. Choose `Flash from file`.
+4. Select the shared ev3dev zip image.
+5. Select the external microSD card as the target.
+6. Confirm the target is not the Windows system disk or another hard drive.
+7. Click `Flash`.
+8. Wait for Etcher to show `Flash Complete`.
+9. Safely eject the SD card before inserting it into the EV3.
 
 ## WeisileLink Desktop
 

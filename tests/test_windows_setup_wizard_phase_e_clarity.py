@@ -59,6 +59,25 @@ def test_phase_e_step_model_has_progress_completion_and_sd_card_guidance():
     assert "Brickman" in text
 
 
+def test_phase_e_prepare_sd_card_step_names_full_flash_workflow():
+    text = _read(MODULE)
+
+    for expected in (
+        "刷写 ev3dev 系统到 EV3 SD 卡",
+        "这一步就是把 ev3dev 系统安装到 microSD 卡",
+        "1. 将 microSD 卡插入 Windows 电脑",
+        "2. 打开 Balena Etcher",
+        "3. 选择 Flash from file",
+        "4. 选择 ev3dev 镜像文件",
+        "5. 选择目标 microSD 卡",
+        "6. 点击 Flash",
+        "7. 等待 Etcher 显示 Flash Complete",
+        "8. 安全弹出 SD 卡",
+        "我已确认已经点击 Flash，并等待 Etcher 完成写入和验证",
+    ):
+        assert expected in text
+
+
 def test_phase_e_file_validation_has_deterministic_check_items():
     text = _read(MODULE)
 
