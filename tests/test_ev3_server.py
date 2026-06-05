@@ -27,6 +27,7 @@ def test_ev3_server_keeps_python35_runtime_compatibility():
     assert "asyncio.create_task(" not in source
     assert "asyncio.get_running_loop(" not in source
     assert "import secrets" not in source
+    assert "\n        *,\n" not in source
     assert not any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
     assert not any(isinstance(node, ast.AnnAssign) for node in ast.walk(tree))
 

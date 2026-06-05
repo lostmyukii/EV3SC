@@ -1189,7 +1189,6 @@ class VSLEEV3Server:
     def _persist_rotated_token(
         self,
         new_token: str,
-        *,
         host_id: str,
         app_version: str,
     ) -> None:
