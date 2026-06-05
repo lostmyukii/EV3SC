@@ -4032,6 +4032,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy the fresh folder to Windows, and validate that the local bridge step starts or detects WeisileLink Desktop and only continues after both localhost ports pass.
 
+### [2026-06-05] EV3 token rotation Python 3.5 compatibility
+- **Status**: ✅ Completed
+- **Commit**: `5f050f7`
+- **What was done**: Fixed a regression that made the EV3 server import Python 3.6-only `secrets` during startup/token rotation on ev3dev Stretch. Token rotation now uses the same Python 3.5-compatible `os.urandom` plus URL-safe base64 pattern used by the EV3 installer, and `/Users/yukii/Desktop/VSLE-Install` was regenerated with the fixed EV3 server.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows and rerun the EV3 Server install step; if it still blocks, export diagnostics and inspect `journalctl -u vsle-ev3-server.service -n 80 --no-pager`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
