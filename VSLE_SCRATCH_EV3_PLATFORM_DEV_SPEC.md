@@ -4046,6 +4046,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server install step against `169.254.53.80`, and confirm `python3 -m py_compile vsle_ev3_server.py` passes on the EV3 before continuing.
 
+### [2026-06-05] Windows EV3 install script permission compatibility
+- **Status**: ✅ Completed
+- **Commit**: `9bc3723`
+- **What was done**: Fixed the Windows setup wizard EV3 server install step so Windows/OpenSSH runs the copied EV3 install script through `bash ./scripts/install.sh` instead of executing `./scripts/install.sh` directly. This avoids `Permission denied` when Windows or SCP drops the POSIX executable bit, and `/Users/yukii/Desktop/VSLE-Install` was regenerated with the corrected wizard files.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, replace the old folder, and rerun the EV3 Server install step against the reachable EV3 IP such as `169.254.53.80`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
