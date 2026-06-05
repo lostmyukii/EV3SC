@@ -4039,6 +4039,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows and rerun the EV3 Server install step; if it still blocks, export diagnostics and inspect `journalctl -u vsle-ev3-server.service -n 80 --no-pager`.
 
+### [2026-06-05] EV3 Python 3.5 keyword-only signature compatibility
+- **Status**: ✅ Completed
+- **Commit**: `3d6453c`
+- **What was done**: Fixed the EV3 server `SyntaxError` seen on the physical brick's Python 3.5.3 by removing the keyword-only marker from the token-rotation persistence helper signature. Added a regression assertion that keeps EV3 server code free of the bare `*` signature marker, and regenerated `/Users/yukii/Desktop/VSLE-Install` with the corrected file.
+- **Files created/modified**: `ev3-firmware/vsle_ev3_server.py`, `tests/test_ev3_server.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server install step against `169.254.53.80`, and confirm `python3 -m py_compile vsle_ev3_server.py` passes on the EV3 before continuing.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
