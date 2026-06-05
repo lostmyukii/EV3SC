@@ -12,12 +12,12 @@ runner is used.
 """
 
 import asyncio
+import base64
 import csv
 import hmac
 import io
 import json
 import os
-import secrets
 import signal
 import socket
 import time
@@ -326,6 +326,10 @@ def _optional_claim_metadata(value: Any) -> str:
     if any(ord(char) < 32 for char in text):
         return ""
     return text
+
+
+def _token_urlsafe(num_bytes: int) -> str:
+    return base64.urlsafe_b64encode(os.urandom(num_bytes)).decode("ascii").rstrip("=")
 
 
 def _read_env_file(path: str) -> Dict[str, str]:
@@ -1159,7 +1163,7 @@ class VSLEEV3Server:
                     False,
                 )
             host_id = _claim_metadata(params.get("host_id"), "host_id")
-            new_token = secrets.token_urlsafe(32)
+            new_token = _token_urlsafe(32)
             self._persist_rotated_token(
                 new_token,
                 host_id=host_id,

@@ -26,6 +26,7 @@ def test_ev3_server_keeps_python35_runtime_compatibility():
     assert "asyncio.run(" not in source
     assert "asyncio.create_task(" not in source
     assert "asyncio.get_running_loop(" not in source
+    assert "import secrets" not in source
     assert not any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
     assert not any(isinstance(node, ast.AnnAssign) for node in ast.walk(tree))
 
@@ -410,8 +411,8 @@ def test_auth_claim_rate_limits_bad_codes_without_token_leak(tmp_path):
 def test_auth_rotate_replaces_pairing_token_and_updates_env(tmp_path, monkeypatch):
     module = load_server_module()
     monkeypatch.setattr(
-        module.secrets,
-        "token_urlsafe",
+        module,
+        "_token_urlsafe",
         lambda _size: "rotated-secret-token-1234567890",
     )
     env_file = tmp_path / "ev3.env"
