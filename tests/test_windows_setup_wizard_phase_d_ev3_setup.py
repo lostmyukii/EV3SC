@@ -29,7 +29,7 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "New-VsleBluetoothFullVslePairingGuide" in text
     assert "[switch]$ConfirmEv3Install" in text
     assert "Manual confirmation required before installing the EV3 server." in text
-    assert "SKIP_PIP_INSTALL=1 ./scripts/install.sh" in text
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in text
     assert "systemctl is-active vsle-ev3-server.service" in text
     assert "python3 -m py_compile vsle_ev3_server.py" in text
     assert "scp" in text

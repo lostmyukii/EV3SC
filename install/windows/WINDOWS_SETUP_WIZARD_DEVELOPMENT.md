@@ -254,7 +254,7 @@ Automatic actions where possible:
 - Test EV3 SSH reachability.
 - Copy EV3 firmware files and `websockets-7.0.tar.gz`.
 - Run offline `websockets` install commands on EV3.
-- Run `SKIP_PIP_INSTALL=1 ./scripts/install.sh`.
+- Run `SKIP_PIP_INSTALL=1 bash ./scripts/install.sh`.
 - Check `vsle-ev3-server.service`.
 
 Manual inputs:

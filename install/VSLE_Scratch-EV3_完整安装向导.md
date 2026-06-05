@@ -240,7 +240,7 @@ print('ev3dev2=' + ev3dev2.__version__)
 print('websockets=' + websockets.__version__)
 PY
 
-SKIP_PIP_INSTALL=1 ./scripts/install.sh
+SKIP_PIP_INSTALL=1 bash ./scripts/install.sh
 systemctl is-enabled vsle-ev3-server.service
 systemctl is-active vsle-ev3-server.service
 ```
@@ -306,7 +306,7 @@ VSLE_EV3_ENABLE_BLUETOOTH=1 \
   VSLE_EV3_BT_ADDRESS=<EV3_BLUETOOTH_ADDRESS> \
   VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
   SKIP_PIP_INSTALL=1 \
-  ./scripts/install.sh
+  bash ./scripts/install.sh
 sudo systemctl restart vsle-ev3-server.service
 systemctl is-active vsle-ev3-server.service
 ```

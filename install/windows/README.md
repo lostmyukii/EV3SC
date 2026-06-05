@@ -164,7 +164,7 @@ copies the EV3SC-owned server files and offline `websockets-7.0.tar.gz`, then
 runs:
 
 ```text
-SKIP_PIP_INSTALL=1 ./scripts/install.sh
+SKIP_PIP_INSTALL=1 bash ./scripts/install.sh
 systemctl is-active vsle-ev3-server.service
 ```
 
