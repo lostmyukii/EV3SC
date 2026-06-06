@@ -4081,6 +4081,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and inspect the now-expanded evidence text if the EV3 still blocks.
 
+### [2026-06-06] Windows EV3 strict PowerShell stderr capture
+- **Status**: ✅ Completed
+- **Commit**: `4e61e2f`
+- **What was done**: Fixed the Windows setup wizard EV3 command runner for Windows PowerShell 5.1 strict error mode by temporarily capturing native SSH/SCP stderr with `$ErrorActionPreference = "Continue"` inside the command boundary and then restoring the previous preference. ErrorRecord formatting now also considers `ErrorDetails`, `TargetObject`, and the full record text, and `/Users/yukii/Desktop/VSLE-Install` was regenerated and verified from the copied folder.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and use the expanded evidence to address the actual SSH or EV3 service error if the step still blocks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
