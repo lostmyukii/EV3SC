@@ -498,8 +498,22 @@ function Set-VsleWizardButtonError {
         [string]$Message
     )
 
+    $evidence = "按钮操作失败：$Message"
+    $stepList = $Window.FindName("StepList")
+    if ($null -ne $stepList -and $null -ne $stepList.SelectedItem) {
+        $updatedStep = Set-VsleSetupWizardStepResult `
+            -Id ([string]$stepList.SelectedItem.Id) `
+            -Status "blocked" `
+            -Summary "按钮操作失败。" `
+            -Evidence $evidence `
+            -Blocking $true
+        $stepList.Items.Refresh()
+        Set-CurrentStep -Window $Window -Step $updatedStep
+        return
+    }
+
     $Window.FindName("StatusText").Text = "状态：按钮操作失败；阻塞：True；下一步：请导出诊断或重试。"
-    $Window.FindName("EvidenceText").Text = "按钮操作失败：$Message"
+    $Window.FindName("EvidenceText").Text = $evidence
 }
 
 function Invoke-VsleWizardUiAction {
@@ -567,7 +581,7 @@ function Export-VsleSetupWizardDiagnostics {
     }
 
     $steps = @()
-    foreach ($item in $StepList.Items) {
+    foreach ($item in Get-VsleSetupWizardSteps) {
         if ($null -ne $item) {
             $steps += [ordered]@{
                 id = [string]$item.Id
@@ -591,6 +605,11 @@ function Export-VsleSetupWizardDiagnostics {
             blocked_steps = [int]$progress.BlockedSteps
         }
         steps = $steps
+        current_display = [ordered]@{
+            selected_step_id = $selectedStepId
+            status_text = [string]$Window.FindName("StatusText").Text
+            evidence_text = [string]$Window.FindName("EvidenceText").Text
+        }
         host = [ordered]@{
             os = [System.Environment]::OSVersion.VersionString
             ps_version = $PSVersionTable.PSVersion.ToString()

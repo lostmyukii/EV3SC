@@ -110,6 +110,25 @@ def test_setup_wizard_main_buttons_have_click_handlers():
     assert "Invoke-VsleWizardUiAction" in text
 
 
+def test_setup_wizard_diagnostics_exports_live_step_model_and_display_text():
+    text = _read(SCRIPT)
+
+    assert "foreach ($item in Get-VsleSetupWizardSteps)" in text
+    assert "foreach ($item in $StepList.Items)" not in text
+    assert "current_display = [ordered]@{" in text
+    assert 'status_text = [string]$Window.FindName("StatusText").Text' in text
+    assert 'evidence_text = [string]$Window.FindName("EvidenceText").Text' in text
+
+
+def test_setup_wizard_button_errors_are_persisted_to_selected_step():
+    text = _read(SCRIPT)
+
+    assert "function Set-VsleWizardButtonError" in text
+    assert "Set-VsleSetupWizardStepResult" in text
+    assert '-Summary "按钮操作失败。"' in text
+    assert "-Evidence $evidence" in text
+
+
 def test_setup_wizard_xaml_parses_and_contains_ios_style_stepper_shell():
     tree = ET.parse(XAML)
     root = tree.getroot()
