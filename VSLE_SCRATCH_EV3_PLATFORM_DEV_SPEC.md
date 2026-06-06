@@ -4067,6 +4067,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows and retry the EV3 Server step; if it still appears unresponsive, export diagnostics again so the JSON includes the live screen evidence and exact blocking state.
 
+### [2026-06-06] Windows EV3 install failure evidence fallback
+- **Status**: ✅ Completed
+- **Commit**: `f7e4c57`
+- **What was done**: Fixed a follow-on diagnostics gap where the EV3 Server step could become blocked with empty evidence. EV3 command failures now include the failing step, executable, exit code, and captured command output, while the WPF wizard falls back to explicit non-empty diagnostic text when a result or exception does not provide details.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, use the EV3's numeric USB/IP address if `ev3dev.local` is unreliable, and export diagnostics again if the EV3 Server step blocks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
