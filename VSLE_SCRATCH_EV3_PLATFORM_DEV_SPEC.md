@@ -4053,6 +4053,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, replace the old folder, and rerun the EV3 Server install step against the reachable EV3 IP such as `169.254.53.80`.
 
+### [2026-06-06] EV3 autostart child installer permission compatibility
+- **Status**: ✅ Completed
+- **Commit**: `7a0c7ea`
+- **What was done**: Fixed the follow-on EV3 install failure where `scripts/install.sh` entered successfully but then directly executed `scripts/install_ev3_autostart.sh`, which could still fail with `Permission denied` after Windows/OpenSSH copying removed executable bits. The EV3 install entrypoint now runs the child installer through `bash`, user-facing EV3 setup commands were updated to use `bash`, and `/Users/yukii/Desktop/VSLE-Install` was regenerated with the corrected firmware package.
+- **Files created/modified**: `ev3-firmware/scripts/install.sh`, `tests/test_ev3_autostart_assets.py`, `ev3-firmware/README.md`, `README.md`, `docs/EV3DEV_SETUP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, replace the old copy, and rerun the EV3 Server install step; if the service still blocks after this permission chain is fixed, inspect the new wizard evidence and `systemctl status vsle-ev3-server.service`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
