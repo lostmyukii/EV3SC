@@ -118,6 +118,9 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "System.Management.Automation.ErrorRecord" in module
     assert "FullyQualifiedErrorId" in module
     assert "Exception.Message" in module
+    assert "$previousErrorActionPreference = $ErrorActionPreference" in module
+    assert '$ErrorActionPreference = "Continue"' in module
+    assert "$ErrorActionPreference = $previousErrorActionPreference" in module
     assert "2>&1 | Out-String" not in module
     assert "Command output:" in module
     assert "No command output captured." in module

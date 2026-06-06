@@ -42,6 +42,31 @@ def test_windows_setup_modules_run_under_powershell_core():
             throw "EV3 plan command count was $($ev3Plan.CommandSteps.Count)"
         }
 
+        $quote = [char]34
+        $childCommand = "Write-Error ${quote}remote permission denied from EV3${quote}; exit 44"
+        $ev3FailureStep = [pscustomobject]@{
+            Name = "simulate-native-stderr"
+            Executable = "pwsh"
+            Arguments = @("-NoLogo", "-NoProfile", "-Command", $childCommand)
+        }
+        $ev3FailurePlan = [pscustomobject]@{
+            Status = "needs_manual_action"
+            CommandSteps = @($ev3FailureStep)
+        }
+        $ev3Failure = Invoke-VsleEv3ServerInstall `
+            -Plan $ev3FailurePlan `
+            -ConfirmEv3Install `
+            -RunSshCommands
+        if ($ev3Failure.Status -ne "blocked") {
+            throw "EV3 simulated failure status was $($ev3Failure.Status)"
+        }
+        if ($ev3Failure.Evidence -notmatch "remote permission denied from EV3") {
+            throw "EV3 simulated failure evidence did not include native stderr: $($ev3Failure.Evidence)"
+        }
+        if ($ev3Failure.Evidence.Trim() -eq "System.Management.Automation.RemoteException") {
+            throw "EV3 simulated failure evidence collapsed to RemoteException"
+        }
+
         $stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) `
             "VSLE/pwsh-runtime/windows-release-evidence"
         $desktopStage = Prepare-VsleWindowsDesktopInstallStaging `

@@ -245,6 +245,21 @@ function Convert-VsleNativeCommandOutputText {
                 }
             }
 
+            $errorDetails = [string]$item.ErrorDetails
+            if (-not [string]::IsNullOrWhiteSpace($errorDetails)) {
+                $lines.Add($errorDetails.Trim())
+            }
+
+            $targetText = [string]$item.TargetObject
+            if (-not [string]::IsNullOrWhiteSpace($targetText)) {
+                $lines.Add($targetText.Trim())
+            }
+
+            $recordText = [string]$item
+            if (-not [string]::IsNullOrWhiteSpace($recordText)) {
+                $lines.Add($recordText.Trim())
+            }
+
             $errorId = [string]$item.FullyQualifiedErrorId
             if (-not [string]::IsNullOrWhiteSpace($errorId)) {
                 $lines.Add("FullyQualifiedErrorId: $errorId")
@@ -272,7 +287,7 @@ function Convert-VsleNativeCommandOutputText {
 
     return (($lines | Where-Object {
         -not [string]::IsNullOrWhiteSpace($_)
-    }) -join [Environment]::NewLine).Trim()
+    } | Select-Object -Unique) -join [Environment]::NewLine).Trim()
 }
 
 function Invoke-VsleEv3NativeCommand {
@@ -283,9 +298,15 @@ function Invoke-VsleEv3NativeCommand {
         [string[]]$Arguments
     )
 
-    $rawOutput = @(& $Executable @Arguments 2>&1)
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $rawOutput = @(& $Executable @Arguments 2>&1)
+        $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { $global:LASTEXITCODE }
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $output = Convert-VsleNativeCommandOutputText -OutputObjects $rawOutput
-    $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { $global:LASTEXITCODE }
     [PSCustomObject]@{
         Executable = $Executable
         ExitCode = $exitCode
