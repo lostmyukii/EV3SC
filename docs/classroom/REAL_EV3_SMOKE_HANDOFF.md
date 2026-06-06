@@ -113,7 +113,7 @@ On the EV3, enable the full VSLE Bluetooth listener only after pairing and
 classroom safety checks:
 
 ```bash
-VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./scripts/install.sh
+VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 bash ./scripts/install.sh
 systemctl restart vsle-ev3-server
 systemctl status vsle-ev3-server
 ```

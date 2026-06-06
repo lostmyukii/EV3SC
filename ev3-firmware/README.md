@@ -28,7 +28,7 @@ does not alter the running service.
 scp -r ev3-firmware robot@ev3dev.local:~/vsle-ev3-firmware
 ssh robot@ev3dev.local
 cd ~/vsle-ev3-firmware
-./scripts/install.sh
+bash ./scripts/install.sh
 ```
 
 ## Classroom golden SD image install
@@ -43,7 +43,7 @@ VSLE_GOLDEN_IMAGE_MODE=1 \
 VSLE_EV3_ENABLE_BLUETOOTH=1 \
 VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
 SKIP_PIP_INSTALL=1 \
-./scripts/install.sh
+bash ./scripts/install.sh
 ```
 
 On the first EV3 boot of each cloned card, `vsle-firstboot.service` writes
@@ -86,11 +86,11 @@ VSLE_EV3_ENABLE_BLUETOOTH=1 \
   VSLE_EV3_BT_ADDRESS=<EV3_BLUETOOTH_ADDRESS> \
   VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
   SKIP_PIP_INSTALL=1 \
-  ./ev3-firmware/scripts/install.sh
+  bash ./ev3-firmware/scripts/install.sh
 ```
 
 On the EV3 after copying the firmware directory, use the same environment
-variables with `./scripts/install.sh`, then restart the service so the new env
+variables with `bash ./scripts/install.sh`, then restart the service so the new env
 file is loaded:
 
 ```bash

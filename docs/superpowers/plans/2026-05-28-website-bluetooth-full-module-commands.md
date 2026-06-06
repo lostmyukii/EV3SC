@@ -1216,7 +1216,7 @@ In `docs/EV3DEV_SETUP.md` and `ev3-firmware/README.md`, add a section named `Ful
 Full VSLE Bluetooth requires ev3dev and `vsle_ev3_server.py`; it is not official firmware compatibility mode. Enable it only after the EV3 is paired and classroom safety is checked:
 
 ```bash
-VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 ./ev3-firmware/scripts/install.sh
+VSLE_EV3_ENABLE_BLUETOOTH=1 VSLE_EV3_BT_RFCOMM_CHANNEL=1 bash ./ev3-firmware/scripts/install.sh
 ```
 
 The ScratchAI website must select `vsle-bluetooth` for full module coverage. Official firmware compatibility remains `official-bluetooth` and does not cover AI Quest, PID, 50Hz raw streaming, or full display behavior.

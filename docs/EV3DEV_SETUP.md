@@ -148,11 +148,11 @@ VSLE_EV3_ENABLE_BLUETOOTH=1 \
   VSLE_EV3_BT_ADDRESS=<EV3_BLUETOOTH_ADDRESS> \
   VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
   SKIP_PIP_INSTALL=1 \
-  ./ev3-firmware/scripts/install.sh
+  bash ./ev3-firmware/scripts/install.sh
 ```
 
 If you are already inside the copied `~/vsle-ev3-firmware` directory on the
-EV3, use the same variables with `./scripts/install.sh`, then explicitly
+EV3, use the same variables with `bash ./scripts/install.sh`, then explicitly
 restart the service so the new env file is loaded by the running unit:
 
 ```bash

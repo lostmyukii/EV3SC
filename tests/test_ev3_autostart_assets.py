@@ -53,6 +53,13 @@ def test_install_and_rollback_scripts_are_executable_and_valid_bash():
         subprocess.run(["bash", "-n", str(script)], check=True)
 
 
+def test_install_entry_runs_autostart_installer_through_bash():
+    text = _read(INSTALL_ENTRY)
+
+    assert 'exec bash "${SCRIPT_DIR}/install_ev3_autostart.sh" "$@"' in text
+    assert 'exec "${SCRIPT_DIR}/install_ev3_autostart.sh" "$@"' not in text
+
+
 def test_firstboot_script_is_executable_and_generates_private_identity(tmp_path):
     config_dir = tmp_path / "vsle"
     env_file = config_dir / "ev3.env"
@@ -269,7 +276,7 @@ def test_ev3_setup_docs_cover_full_vsle_bluetooth_mode():
     assert "VSLE_EV3_ENABLE_BLUETOOTH=1" in combined
     assert "VSLE_EV3_BT_ADDRESS" in combined
     assert "VSLE_EV3_BT_RFCOMM_CHANNEL=1" in combined
-    assert "./ev3-firmware/scripts/install.sh" in combined
+    assert "bash ./ev3-firmware/scripts/install.sh" in combined
     assert "hciconfig hci0 up" in combined
     assert "Powered: yes" in combined
     assert "vsle-bluetooth" in combined

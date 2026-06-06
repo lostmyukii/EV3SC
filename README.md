@@ -370,7 +370,7 @@ Install the VSLE server as a systemd service, skipping pip because dependencies
 were checked manually:
 
 ```bash
-SKIP_PIP_INSTALL=1 ./scripts/install.sh
+SKIP_PIP_INSTALL=1 bash ./scripts/install.sh
 ```
 
 Confirmed install result on 2026-05-29:
@@ -472,7 +472,7 @@ VSLE_EV3_ENABLE_BLUETOOTH=1 \
   VSLE_EV3_BT_ADDRESS=A0:E6:F8:19:58:3C \
   VSLE_EV3_BT_RFCOMM_CHANNEL=1 \
   SKIP_PIP_INSTALL=1 \
-  ./scripts/install.sh
+  bash ./scripts/install.sh
 sudo systemctl restart vsle-ev3-server.service
 ```
 
