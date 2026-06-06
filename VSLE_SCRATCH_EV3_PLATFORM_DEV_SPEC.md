@@ -4060,6 +4060,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/scripts/install.sh`, `tests/test_ev3_autostart_assets.py`, `ev3-firmware/README.md`, `README.md`, `docs/EV3DEV_SETUP.md`, `docs/classroom/REAL_EV3_SMOKE_HANDOFF.md`, `docs/superpowers/plans/2026-05-28-website-bluetooth-full-module-commands.md`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, replace the old copy, and rerun the EV3 Server install step; if the service still blocks after this permission chain is fixed, inspect the new wizard evidence and `systemctl status vsle-ev3-server.service`.
 
+### [2026-06-06] Windows wizard live diagnostics export
+- **Status**: ✅ Completed
+- **Commit**: `6774b83`
+- **What was done**: Fixed the Windows setup wizard diagnostics export so it records the live setup-step model instead of the stale WPF list snapshot, and now includes the current on-screen status/evidence text. Button-handler failures are also persisted into the selected step before export, preventing empty `pending` diagnostics when EV3 setup input validation or button handling fails.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows and retry the EV3 Server step; if it still appears unresponsive, export diagnostics again so the JSON includes the live screen evidence and exact blocking state.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
