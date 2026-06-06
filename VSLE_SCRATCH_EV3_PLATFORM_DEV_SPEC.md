@@ -4074,6 +4074,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, use the EV3's numeric USB/IP address if `ev3dev.local` is unreliable, and export diagnostics again if the EV3 Server step blocks.
 
+### [2026-06-06] Windows EV3 remote error evidence expansion
+- **Status**: ✅ Completed
+- **Commit**: `7bbc9fc`
+- **What was done**: Expanded Windows setup wizard EV3 command failure capture so PowerShell `ErrorRecord` objects expose the real SSH or remote stderr message, error type, error ID, category, and position instead of showing only `System.Management.Automation.RemoteException`. The desktop `/Users/yukii/Desktop/VSLE-Install` folder was regenerated after the user deleted the previous copy, and the regenerated copy passed its own install-file verification.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and inspect the now-expanded evidence text if the EV3 still blocks.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
