@@ -220,6 +220,61 @@ function New-VsleEv3ServerInstallPlan {
     }
 }
 
+function Convert-VsleNativeCommandOutputText {
+    param(
+        [AllowNull()]
+        [object[]]$OutputObjects
+    )
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    foreach ($item in @($OutputObjects)) {
+        if ($null -eq $item) {
+            continue
+        }
+
+        if ($item -is [System.Management.Automation.ErrorRecord]) {
+            if ($null -ne $item.Exception) {
+                $message = [string]$item.Exception.Message
+                if (-not [string]::IsNullOrWhiteSpace($message)) {
+                    $lines.Add($message.Trim())
+                }
+
+                $errorType = [string]$item.Exception.GetType().FullName
+                if (-not [string]::IsNullOrWhiteSpace($errorType)) {
+                    $lines.Add("PowerShell error type: $errorType")
+                }
+            }
+
+            $errorId = [string]$item.FullyQualifiedErrorId
+            if (-not [string]::IsNullOrWhiteSpace($errorId)) {
+                $lines.Add("FullyQualifiedErrorId: $errorId")
+            }
+
+            $category = [string]$item.CategoryInfo
+            if (-not [string]::IsNullOrWhiteSpace($category)) {
+                $lines.Add("CategoryInfo: $category")
+            }
+
+            if ($null -ne $item.InvocationInfo) {
+                $position = [string]$item.InvocationInfo.PositionMessage
+                if (-not [string]::IsNullOrWhiteSpace($position)) {
+                    $lines.Add("Position: $position")
+                }
+            }
+            continue
+        }
+
+        $text = [string]$item
+        if (-not [string]::IsNullOrWhiteSpace($text)) {
+            $lines.Add($text.Trim())
+        }
+    }
+
+    return (($lines | Where-Object {
+        -not [string]::IsNullOrWhiteSpace($_)
+    }) -join [Environment]::NewLine).Trim()
+}
+
 function Invoke-VsleEv3NativeCommand {
     param(
         [Parameter(Mandatory = $true)]
@@ -228,12 +283,13 @@ function Invoke-VsleEv3NativeCommand {
         [string[]]$Arguments
     )
 
-    $output = & $Executable @Arguments 2>&1 | Out-String
+    $rawOutput = @(& $Executable @Arguments 2>&1)
+    $output = Convert-VsleNativeCommandOutputText -OutputObjects $rawOutput
     $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { $global:LASTEXITCODE }
     [PSCustomObject]@{
         Executable = $Executable
         ExitCode = $exitCode
-        Output = $output.Trim()
+        Output = $output
     }
 }
 
@@ -321,7 +377,7 @@ function Invoke-VsleEv3ServerInstall {
                 ManualConfirmationRequired = $true
                 Summary = "EV3 server install command failed."
                 Evidence = $evidence
-                Results = @($results)
+                Results = $results.ToArray()
                 Plan = $Plan
             }
         }
@@ -333,7 +389,7 @@ function Invoke-VsleEv3ServerInstall {
         ManualConfirmationRequired = $false
         Summary = "EV3 server install runner completed and service status check passed."
         Evidence = "EV3 service check command completed: systemctl is-active vsle-ev3-server.service."
-        Results = @($results)
+        Results = $results.ToArray()
         Plan = $Plan
     }
 }

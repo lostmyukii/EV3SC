@@ -114,9 +114,17 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     module = _read(EV3_MODULE)
     script = _read(SCRIPT)
 
+    assert "Convert-VsleNativeCommandOutputText" in module
+    assert "System.Management.Automation.ErrorRecord" in module
+    assert "FullyQualifiedErrorId" in module
+    assert "Exception.Message" in module
+    assert "2>&1 | Out-String" not in module
     assert "Command output:" in module
     assert "No command output captured." in module
     assert "EV3 install did not provide diagnostic detail." in module
+    assert "PowerShell error type:" in module
+    assert "Results = $results.ToArray()" in module
+    assert "Results = @($results)" not in module
     assert "Get-VsleEv3ResultEvidenceText" in script
     assert "if ([string]::IsNullOrWhiteSpace($evidence))" in script
     assert "EV3 安装步骤没有返回诊断内容" in script
