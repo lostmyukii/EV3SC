@@ -110,6 +110,18 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert 'Id -eq "choose-transport"' in script
 
 
+def test_phase_d_ev3_failures_never_export_empty_evidence():
+    module = _read(EV3_MODULE)
+    script = _read(SCRIPT)
+
+    assert "Command output:" in module
+    assert "No command output captured." in module
+    assert "EV3 install did not provide diagnostic detail." in module
+    assert "Get-VsleEv3ResultEvidenceText" in script
+    assert "if ([string]::IsNullOrWhiteSpace($evidence))" in script
+    assert "EV3 安装步骤没有返回诊断内容" in script
+
+
 def test_phase_d_setup_model_and_docs_register_ev3_module():
     setup_module = _read(SETUP_MODULE)
     readme = _read(README)

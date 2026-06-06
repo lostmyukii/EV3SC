@@ -888,16 +888,41 @@ function Update-VsleEv3SetupStep {
         [object]$Result
     )
 
+    $evidence = Get-VsleEv3ResultEvidenceText -Result $Result
     $step = Set-VsleSetupWizardStepResult `
         -Id $StepId `
         -Status $Result.Status `
         -Summary $Result.Summary `
-        -Evidence $Result.Evidence `
+        -Evidence $evidence `
         -Blocking $Result.Blocking
 
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
     Set-CurrentStep -Window $Window -Step $step
+}
+
+function Get-VsleEv3ResultEvidenceText {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Result
+    )
+
+    $evidence = ""
+    if ($Result.PSObject.Properties.Name -contains "Evidence") {
+        $evidence = [string]$Result.Evidence
+    }
+    if ([string]::IsNullOrWhiteSpace($evidence)) {
+        $summary = ""
+        if ($Result.PSObject.Properties.Name -contains "Summary") {
+            $summary = [string]$Result.Summary
+        }
+        if ([string]::IsNullOrWhiteSpace($summary)) {
+            $summary = "EV3 安装步骤没有返回诊断内容。"
+        }
+        $evidence = "EV3 安装步骤没有返回诊断内容。Summary: $summary"
+    }
+
+    return $evidence
 }
 
 function Run-VslePrepareEv3SetupStep {
@@ -958,12 +983,19 @@ function Run-VsleConfirmEv3ServerInstallStep {
             -ConfirmEv3Install `
             -RunSshCommands
     } catch {
+        $errorMessage = [string]$_.Exception.Message
+        if ([string]::IsNullOrWhiteSpace($errorMessage)) {
+            $errorMessage = [string]$_
+        }
+        if ([string]::IsNullOrWhiteSpace($errorMessage)) {
+            $errorMessage = "EV3 安装命令异常结束，但 Windows PowerShell 没有返回错误详情。"
+        }
         $result = [PSCustomObject]@{
             Status = "blocked"
             Blocking = $true
             ManualConfirmationRequired = $true
             Summary = "确认后安装 EV3 server 失败。"
-            Evidence = $_.Exception.Message
+            Evidence = $errorMessage
             Plan = $Script:VlseLastEv3InstallPlan
         }
     }

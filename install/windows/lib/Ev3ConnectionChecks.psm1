@@ -237,6 +237,27 @@ function Invoke-VsleEv3NativeCommand {
     }
 }
 
+function Format-VsleEv3CommandFailureEvidence {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Step,
+        [Parameter(Mandatory = $true)]
+        [object]$Result
+    )
+
+    $output = [string]$Result.Output
+    if ([string]::IsNullOrWhiteSpace($output)) {
+        $output = "No command output captured."
+    }
+
+    return @(
+        "Step $($Step.Name) failed with exit code $($Result.ExitCode).",
+        "Executable: $($Step.Executable)",
+        "Command output:",
+        $output
+    ) -join [Environment]::NewLine
+}
+
 function Invoke-VsleEv3ServerInstall {
     [CmdletBinding()]
     param(
@@ -258,12 +279,16 @@ function Invoke-VsleEv3ServerInstall {
     }
 
     if ($Plan.Status -ne "needs_manual_action") {
+        $evidence = [string]$Plan.Evidence
+        if ([string]::IsNullOrWhiteSpace($evidence)) {
+            $evidence = "EV3 install did not provide diagnostic detail."
+        }
         return [PSCustomObject]@{
             Status = "blocked"
             Blocking = $true
             ManualConfirmationRequired = $true
             Summary = "EV3 server install plan is not ready."
-            Evidence = $Plan.Evidence
+            Evidence = $evidence
             Plan = $Plan
         }
     }
@@ -289,12 +314,13 @@ function Invoke-VsleEv3ServerInstall {
             Output = $result.Output
         })
         if ($result.ExitCode -ne 0) {
+            $evidence = Format-VsleEv3CommandFailureEvidence -Step $step -Result $result
             return [PSCustomObject]@{
                 Status = "blocked"
                 Blocking = $true
                 ManualConfirmationRequired = $true
                 Summary = "EV3 server install command failed."
-                Evidence = "Step $($step.Name) failed with exit code $($result.ExitCode)."
+                Evidence = $evidence
                 Results = @($results)
                 Plan = $Plan
             }
