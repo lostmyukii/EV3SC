@@ -4102,6 +4102,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`, `tests/test_windows_setup_wizard_phase_c.py`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Regenerate a fresh Windows install handoff from the EV3SC `install/` tree, copy it to the Windows machine, rerun the EV3 Server install step, enter the EV3 password in the separate PowerShell window, then return to the wizard and click Retry.
 
+### [2026-06-07] EV3 firstboot signature compatibility
+- **Status**: ✅ Completed
+- **Commit**: `ce299f7`
+- **What was done**: Fixed the real EV3 `vsle-firstboot.service` failure after EV3 Python reported `SyntaxError: invalid syntax` at the annotated `_device_manifest` signature. The firstboot provisioning script now uses conservative unannotated function signatures without keyword-only markers, and a regression test blocks reintroducing that EV3-incompatible signature style.
+- **Files created/modified**: `ev3-firmware/scripts/vsle_firstboot.py`, `tests/test_ev3_autostart_assets.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, rerun the EV3 Server install step against `169.254.34.253`, then confirm `vsle-firstboot.service` and `vsle-ev3-server.service` become active.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
