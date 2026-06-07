@@ -4095,6 +4095,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and enter `maker` for both the SSH login prompt and the sudo prompt if both appear.
 
+### [2026-06-07] Windows EV3 external install console
+- **Status**: ✅ Completed
+- **Commit**: `e795e11`
+- **What was done**: Changed the Windows setup wizard EV3 install confirmation so SSH/SCP and sudo run in a separate PowerShell window instead of synchronously blocking the WPF UI thread. The wizard now records the external runner process and result JSON, keeps Continue blocked while the install is still running, and lets Retry load the final result back into the EV3 setup step.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_a.py`, `tests/test_windows_setup_wizard_phase_c.py`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Regenerate a fresh Windows install handoff from the EV3SC `install/` tree, copy it to the Windows machine, rerun the EV3 Server install step, enter the EV3 password in the separate PowerShell window, then return to the wizard and click Retry.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
