@@ -47,7 +47,7 @@ ENV_KEY_ORDER = (
 )
 
 
-def main() -> int:
+def main():
     parser = argparse.ArgumentParser(
         description="Provision VSLE identity on first EV3 boot."
     )
@@ -92,7 +92,7 @@ def main() -> int:
     return 2
 
 
-def _add_common_args(parser: argparse.ArgumentParser) -> None:
+def _add_common_args(parser):
     parser.add_argument("--config-dir", default=str(DEFAULT_CONFIG_DIR))
     parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     parser.add_argument("--device-file", default=str(DEFAULT_DEVICE_FILE))
@@ -110,7 +110,7 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--display", action="store_true")
 
 
-def _apply_common_defaults(args: argparse.Namespace) -> None:
+def _apply_common_defaults(args):
     args.config_dir = str(DEFAULT_CONFIG_DIR)
     args.env_file = str(DEFAULT_ENV_FILE)
     args.device_file = str(DEFAULT_DEVICE_FILE)
@@ -125,7 +125,7 @@ def _apply_common_defaults(args: argparse.Namespace) -> None:
     args.display = False
 
 
-def _paths_from_args(args: argparse.Namespace) -> dict:
+def _paths_from_args(args):
     return {
         "config_dir": Path(args.config_dir),
         "env_file": Path(args.env_file),
@@ -140,7 +140,7 @@ def _paths_from_args(args: argparse.Namespace) -> dict:
     }
 
 
-def provision(paths: dict, *, force: bool = False, display: bool = False) -> dict:
+def provision(paths, force=False, display=False):
     """Create EV3 identity files without leaking the pairing token to JSON."""
     env_file = paths["env_file"]
     if _identity_complete(paths) and not force:
@@ -217,7 +217,7 @@ def provision(paths: dict, *, force: bool = False, display: bool = False) -> dic
     return result
 
 
-def load_identity(paths: dict) -> dict:
+def load_identity(paths):
     env = _read_env(paths["env_file"])
     missing = [
         key
@@ -234,7 +234,7 @@ def load_identity(paths: dict) -> dict:
     }
 
 
-def reset_identity(paths: dict) -> None:
+def reset_identity(paths):
     for key in ("env_file", "device_file", "manifest_file"):
         try:
             paths[key].unlink()
@@ -242,21 +242,20 @@ def reset_identity(paths: dict) -> None:
             pass
 
 
-def _identity_complete(paths: dict) -> bool:
+def _identity_complete(paths):
     return all(
         paths[key].exists() for key in ("env_file", "device_file", "manifest_file")
     )
 
 
 def _device_manifest(
-    *,
-    brick_id: str,
-    brick_name: str,
-    bluetooth_address: str,
-    rfcomm_channel: int,
-    claim_code: str,
-    provisioned_at: str,
-) -> dict:
+    brick_id,
+    brick_name,
+    bluetooth_address,
+    rfcomm_channel,
+    claim_code,
+    provisioned_at,
+):
     return {
         "schema_version": 1,
         "brick_id": brick_id,
@@ -282,7 +281,7 @@ def _device_manifest(
     }
 
 
-def _display_claim_code(identity: dict, *, enabled: bool) -> None:
+def _display_claim_code(identity, enabled):
     if not enabled:
         return
     try:
@@ -299,7 +298,7 @@ def _display_claim_code(identity: dict, *, enabled: bool) -> None:
         return
 
 
-def _brick_id(prefix: str, bluetooth_address: str, machine_id: str) -> str:
+def _brick_id(prefix, bluetooth_address, machine_id):
     suffix_source = bluetooth_address or machine_id or _token()
     suffix = re.sub(r"[^A-Fa-f0-9]", "", suffix_source).upper()
     if len(suffix) >= 4:
@@ -308,31 +307,31 @@ def _brick_id(prefix: str, bluetooth_address: str, machine_id: str) -> str:
     return "{0}-{1}".format(prefix, digest[:4])
 
 
-def _claim_code(digits: int) -> str:
+def _claim_code(digits):
     lower = 10 ** (digits - 1)
     upper = (10**digits) - 1
     return str(random.SystemRandom().randint(lower, upper))
 
 
-def _token() -> str:
+def _token():
     return base64.urlsafe_b64encode(os.urandom(32)).decode("ascii").rstrip("=")
 
 
-def _read_first_line(path: Path) -> str:
+def _read_first_line(path):
     try:
         return path.read_text(encoding="utf-8").splitlines()[0].strip()
     except (IndexError, OSError):
         return ""
 
 
-def _normalize_bluetooth_address(value: str) -> str:
+def _normalize_bluetooth_address(value):
     value = value.strip().upper()
     if re.match(r"^[0-9A-F]{2}(:[0-9A-F]{2}){5}$", value):
         return value
     return ""
 
 
-def _read_env(path: Path) -> dict:
+def _read_env(path):
     values = {}
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
@@ -347,7 +346,7 @@ def _read_env(path: Path) -> dict:
     return values
 
 
-def _write_env(path: Path, values: dict) -> None:
+def _write_env(path, values):
     path.parent.mkdir(parents=True, exist_ok=True)
     ordered_keys = list(ENV_KEY_ORDER)
     extra_keys = sorted(key for key in values if key not in ordered_keys)
@@ -360,7 +359,7 @@ def _write_env(path: Path, values: dict) -> None:
     os.chmod(str(path), stat.S_IRUSR | stat.S_IWUSR)
 
 
-def _write_json(path: Path, payload: dict, *, mode: int) -> None:
+def _write_json(path, payload, mode):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
@@ -369,7 +368,7 @@ def _write_json(path: Path, payload: dict, *, mode: int) -> None:
     os.chmod(str(path), mode)
 
 
-def _utc_now() -> str:
+def _utc_now():
     return _dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
 

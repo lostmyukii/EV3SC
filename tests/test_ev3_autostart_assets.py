@@ -141,6 +141,18 @@ def test_firstboot_script_is_idempotent_without_force(tmp_path):
     assert device_file.read_text(encoding="utf-8") == first_device
 
 
+def test_firstboot_script_avoids_ev3_python_signature_syntax():
+    text = _read(FIRSTBOOT)
+
+    assert "->" not in text
+    for line in text.splitlines():
+        stripped = line.strip()
+        assert stripped != "*,"
+        if stripped.startswith("def "):
+            signature = stripped.split(":", 1)[0]
+            assert ": " not in signature
+
+
 def test_firstboot_systemd_unit_runs_before_ev3_server_and_displays_code():
     text = _read(FIRSTBOOT_SERVICE)
 
