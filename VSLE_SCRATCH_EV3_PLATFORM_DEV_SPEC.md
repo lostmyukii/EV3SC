@@ -4088,6 +4088,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and use the expanded evidence to address the actual SSH or EV3 service error if the step still blocks.
 
+### [2026-06-07] Windows EV3 sudo TTY install fix
+- **Status**: ✅ Completed
+- **Commit**: `4dbb5e1`
+- **What was done**: Fixed the EV3 Server install command after diagnostics showed `sudo: no tty present and no askpass program specified`. The Windows wizard now runs the remote install through `ssh -tt`, validates sudo with `sudo -v` before installing systemd units, and explains that SSH login and sudo install may each ask for the default EV3 password without storing it.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/VSLE_Scratch-EV3_完整安装向导.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Copy the regenerated `/Users/yukii/Desktop/VSLE-Install` folder to Windows, rerun the EV3 Server step, and enter `maker` for both the SSH login prompt and the sudo prompt if both appear.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
