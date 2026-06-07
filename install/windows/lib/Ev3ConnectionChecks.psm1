@@ -167,7 +167,7 @@ function New-VsleEv3ServerInstallPlan {
     }
 
     $sshTarget = "$($SetupInput.User)@$($SetupInput.Host)"
-    $remoteInstall = "cd $RemoteRoot && SITE=`"`$(python3 -c 'import site; print(site.USER_SITE)')`" && mkdir -p `"`$SITE`" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf `"`$SITE/websockets`" && cp -r /tmp/websockets-7.0/src/websockets `"`$SITE/websockets`" && python3 -m py_compile vsle_ev3_server.py && SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl is-active vsle-ev3-server.service"
+    $remoteInstall = "cd $RemoteRoot && SITE=`"`$(python3 -c 'import site; print(site.USER_SITE)')`" && mkdir -p `"`$SITE`" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf `"`$SITE/websockets`" && cp -r /tmp/websockets-7.0/src/websockets `"`$SITE/websockets`" && python3 -m py_compile vsle_ev3_server.py && sudo -v && SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl is-active vsle-ev3-server.service"
 
     $commandSteps = @(
         [PSCustomObject]@{
@@ -192,8 +192,8 @@ function New-VsleEv3ServerInstallPlan {
         [PSCustomObject]@{
             Name = "install-and-check-service"
             Executable = "ssh"
-            Arguments = @($sshTarget, $remoteInstall)
-            Preview = "ssh $sshTarget '$remoteInstall'"
+            Arguments = @("-tt", $sshTarget, $remoteInstall)
+            Preview = "ssh -tt $sshTarget '$remoteInstall'"
         }
     )
 

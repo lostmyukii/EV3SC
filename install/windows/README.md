@@ -151,8 +151,9 @@ Teacher-facing input guidance shown in the wizard:
 2. If `ev3dev.local` does not connect, read the IP address from the EV3
    Brickman network information screen and enter that IP as the EV3 SSH address.
 3. Use `robot` as the SSH user.
-4. Use the default EV3 SSH password `maker` only when Windows/OpenSSH asks for
-   it; the wizard does not store it.
+4. Use the default EV3 password `maker` only when Windows/OpenSSH or the EV3
+   sudo prompt asks for it; the wizard does not store it. The EV3 server
+   install may prompt once for SSH login and once for sudo installation.
 5. For Bluetooth Full VSLE, confirm Windows has built-in Bluetooth or a USB
    Bluetooth adapter.
 6. Read the EV3 Bluetooth address from the EV3 Bluetooth settings, or SSH into
@@ -167,6 +168,9 @@ runs:
 SKIP_PIP_INSTALL=1 bash ./scripts/install.sh
 systemctl is-active vsle-ev3-server.service
 ```
+
+The SSH install command allocates a TTY so EV3 sudo can ask for the password
+instead of failing with `sudo: no tty present and no askpass program specified`.
 
 The command sequence runs only after the teacher clicks `Confirm EV3 Install`.
 Bluetooth Full VSLE remains an ev3dev + VSLE server path, and the wizard keeps

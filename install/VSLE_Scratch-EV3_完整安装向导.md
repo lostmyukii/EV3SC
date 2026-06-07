@@ -176,7 +176,8 @@ password: maker
 Windows 图形向导里：
 
 - `SSH 用户`填写 `robot`。
-- 默认密码是 `maker`，只在 Windows/OpenSSH 弹出提示时输入。
+- 默认密码是 `maker`，只在 Windows/OpenSSH 或 EV3 `sudo` 弹出提示时输入。
+- 安装 EV3 Server 时可能先提示 SSH 登录密码，再提示一次 sudo 安装密码，两次都输入 `maker`。
 - 向导不会保存密码，也不会把密码写入安装报告。
 
 `%en10` 只是示例。每台 Mac 的接口名可能不同。

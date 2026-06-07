@@ -30,6 +30,8 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "[switch]$ConfirmEv3Install" in text
     assert "Manual confirmation required before installing the EV3 server." in text
     assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in text
+    assert "sudo -v" in text
+    assert "Arguments = @(\"-tt\", $sshTarget, $remoteInstall)" in text
     assert "systemctl is-active vsle-ev3-server.service" in text
     assert "python3 -m py_compile vsle_ev3_server.py" in text
     assert "scp" in text
@@ -94,6 +96,8 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "先填 ev3dev.local" in xaml
     assert "SSH 用户固定填写 robot" in xaml
     assert "默认密码是 maker" in xaml
+    assert "sudo 安装可能分别提示密码" in xaml
+    assert "不会写入安装向导证据" in xaml
     assert "蓝牙地址可在 EV3 的 Bluetooth 设置中查看" in xaml
     assert "也可以在 EV3 SSH 里运行 hciconfig -a" in xaml
     assert "Windows 设置 > 蓝牙和设备 > 添加设备" in xaml
@@ -165,6 +169,8 @@ def test_phase_d_setup_model_and_docs_register_ev3_module():
     assert "Windows Settings > Bluetooth & devices > Add device" in readme
     assert "password" in readme.lower()
     assert "not stored" in readme.lower()
+    assert "sudo prompt" in readme
+    assert "no tty present and no askpass program specified" in readme
 
     assert "windows/lib/Ev3ConnectionChecks.psm1" in manifest
     assert "windows/lib/Ev3ConnectionChecks.psm1" in check_script

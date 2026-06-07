@@ -41,6 +41,21 @@ def test_windows_setup_modules_run_under_powershell_core():
         if ($ev3Plan.CommandSteps.Count -ne 3) {
             throw "EV3 plan command count was $($ev3Plan.CommandSteps.Count)"
         }
+        $installStep = $ev3Plan.CommandSteps |
+            Where-Object { $_.Name -eq "install-and-check-service" } |
+            Select-Object -First 1
+        if ($null -eq $installStep) {
+            throw "EV3 plan did not include install-and-check-service"
+        }
+        if ($installStep.Arguments[0] -ne "-tt") {
+            throw "EV3 install SSH step must allocate a tty for sudo"
+        }
+        if ($installStep.Arguments[2] -notmatch "sudo -v") {
+            throw "EV3 install remote command must validate sudo before systemd install"
+        }
+        if ($installStep.Arguments -join " " -match "maker") {
+            throw "EV3 install remote command must not hard-code the default password"
+        }
 
         $quote = [char]34
         $childCommand = "Write-Error ${quote}remote permission denied from EV3${quote}; exit 44"
