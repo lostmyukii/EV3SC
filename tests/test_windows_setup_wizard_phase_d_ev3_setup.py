@@ -109,6 +109,14 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "New-VsleEv3ServerInstallPlan" in script
     assert "Invoke-VsleEv3ServerInstall" in script
     assert "-ConfirmEv3Install" in script
+    assert "New-VsleEv3ExternalInstallRunner" in script
+    assert "Start-VsleEv3InstallConsole" in script
+    assert "Update-VsleEv3ExternalInstallResultStep" in script
+    assert "Start-Process" in script
+    assert "ev3-install-result" in script
+    assert "Return to the VSLE wizard and click Retry" in script
+    assert '$continueButton.IsEnabled = (' in script
+    assert "-not [bool]$Step.Blocking" in script
     assert "ConfirmEv3InstallButton" in script
     assert 'Id -eq "install-ev3-server"' in script
     assert 'Id -eq "choose-transport"' in script

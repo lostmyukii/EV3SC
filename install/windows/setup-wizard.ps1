@@ -10,6 +10,9 @@ $Ev3ConnectionChecksModulePath = Join-Path $ScriptRoot "lib/Ev3ConnectionChecks.
 $XamlPath = Join-Path $ScriptRoot "setup-wizard.xaml"
 $Script:VlseLastDesktopInstallPlan = $null
 $Script:VlseLastEv3InstallPlan = $null
+$Script:VlseLastEv3ExternalInstallProcessId = $null
+$Script:VlseLastEv3ExternalInstallResultPath = $null
+$Script:VlseLastEv3ExternalInstallScriptPath = $null
 $Script:VlseManualConfirmationChecked = @{}
 
 Import-Module $ModulePath -Force -DisableNameChecking
@@ -439,6 +442,7 @@ function Set-CurrentStep {
             $continueButton.IsEnabled = $manualProgress.Complete
         } else {
             $continueButton.IsEnabled = (
+                -not [bool]$Step.Blocking -and
                 -not ($Step.Status -eq "blocked") -and
                 [int]$Step.Number -lt ($progress.TotalSteps - 1)
             )
@@ -955,6 +959,170 @@ function Run-VslePrepareEv3SetupStep {
     Update-VsleEv3SetupStep -Window $Window -StepId $StepId -Result $result
 }
 
+function ConvertTo-VslePowerShellSingleQuotedLiteral {
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
+    return "'$($Value -replace "'", "''")'"
+}
+
+function New-VsleEv3ExternalInstallRunner {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Plan
+    )
+
+    $runnerRoot = Join-Path ([System.IO.Path]::GetTempPath()) "VSLE/ev3-install"
+    [void][System.IO.Directory]::CreateDirectory($runnerRoot)
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $planPath = Join-Path $runnerRoot "ev3-install-plan-$stamp.json"
+    $resultPath = Join-Path $runnerRoot "ev3-install-result-$stamp.json"
+    $scriptPath = Join-Path $runnerRoot "ev3-install-runner-$stamp.ps1"
+
+    $Plan | ConvertTo-Json -Depth 16 | Set-Content -Path $planPath -Encoding UTF8
+
+    $moduleLiteral = ConvertTo-VslePowerShellSingleQuotedLiteral -Value $Ev3ConnectionChecksModulePath
+    $planLiteral = ConvertTo-VslePowerShellSingleQuotedLiteral -Value $planPath
+    $resultLiteral = ConvertTo-VslePowerShellSingleQuotedLiteral -Value $resultPath
+
+    $runnerLines = @(
+        '$ErrorActionPreference = "Stop"',
+        '$Host.UI.RawUI.WindowTitle = "VSLE EV3 Server Install"',
+        "Import-Module $moduleLiteral -Force -DisableNameChecking",
+        "`$planPath = $planLiteral",
+        "`$resultPath = $resultLiteral",
+        'Write-Host "VSLE EV3 Server install is running."',
+        'Write-Host "If prompted for SSH or sudo password, type the EV3 password and press Enter."',
+        'Write-Host "Do not close this window until it prints a final status."',
+        'try {',
+        '    $plan = Get-Content -Path $planPath -Raw | ConvertFrom-Json',
+        '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands',
+        '} catch {',
+        '    $message = [string]$_.Exception.Message',
+        '    if ([string]::IsNullOrWhiteSpace($message)) { $message = [string]$_ }',
+        '    $result = [PSCustomObject]@{',
+        '        Status = "blocked"',
+        '        Blocking = $true',
+        '        ManualConfirmationRequired = $true',
+        '        Summary = "EV3 Server install runner failed."',
+        '        Evidence = $message',
+        '    }',
+        '}',
+        '$result | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
+        'Write-Host ""',
+        'Write-Host ("VSLE EV3 install status: " + $result.Status)',
+        'if ($result.Evidence) { Write-Host $result.Evidence }',
+        'Write-Host ""',
+        'Write-Host "Return to the VSLE wizard and click Retry to load this result."',
+        'Write-Host ("Result file: " + $resultPath)',
+        'Read-Host "Press Enter to close this install window"'
+    )
+    $runnerLines | Set-Content -Path $scriptPath -Encoding UTF8
+
+    return [PSCustomObject]@{
+        ScriptPath = $scriptPath
+        PlanPath = $planPath
+        ResultPath = $resultPath
+    }
+}
+
+function Start-VsleEv3InstallConsole {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Plan
+    )
+
+    $runner = New-VsleEv3ExternalInstallRunner -Plan $Plan
+    $powershellPath = Join-Path $PSHOME "powershell.exe"
+    if (-not (Test-Path -LiteralPath $powershellPath)) {
+        $powershellPath = "powershell.exe"
+    }
+
+    $process = Start-Process `
+        -FilePath $powershellPath `
+        -ArgumentList @(
+            "-NoLogo",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            $runner.ScriptPath
+        ) `
+        -WindowStyle Normal `
+        -PassThru
+
+    $Script:VlseLastEv3ExternalInstallProcessId = $process.Id
+    $Script:VlseLastEv3ExternalInstallResultPath = $runner.ResultPath
+    $Script:VlseLastEv3ExternalInstallScriptPath = $runner.ScriptPath
+
+    return [PSCustomObject]@{
+        ProcessId = $process.Id
+        ScriptPath = $runner.ScriptPath
+        ResultPath = $runner.ResultPath
+    }
+}
+
+function Update-VsleEv3ExternalInstallResultStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Script:VlseLastEv3ExternalInstallResultPath)) {
+        return $false
+    }
+
+    if (Test-Path -LiteralPath $Script:VlseLastEv3ExternalInstallResultPath) {
+        try {
+            $result = Get-Content -Path $Script:VlseLastEv3ExternalInstallResultPath -Raw | ConvertFrom-Json
+        } catch {
+            $result = [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                Summary = "EV3 Server install result could not be read."
+                Evidence = $_.Exception.Message
+            }
+        }
+        Update-VsleEv3SetupStep -Window $Window -StepId "install-ev3-server" -Result $result
+        return $true
+    }
+
+    $isRunning = $false
+    if ($null -ne $Script:VlseLastEv3ExternalInstallProcessId) {
+        $process = Get-Process -Id $Script:VlseLastEv3ExternalInstallProcessId -ErrorAction SilentlyContinue
+        $isRunning = $null -ne $process
+    }
+
+    $status = if ($isRunning) {
+        "running"
+    } else {
+        "blocked"
+    }
+    $summary = if ($isRunning) {
+        "EV3 Server install is still running in the external PowerShell window."
+    } else {
+        "EV3 Server install window has no result file yet."
+    }
+    $evidence = @(
+        "外部 EV3 安装窗口尚未写出结果。",
+        "如果窗口仍在运行，请在该窗口完成 SSH/sudo 密码输入并等待最终状态。",
+        "完成后回到向导点击重试。",
+        "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
+        "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
+    ) -join [Environment]::NewLine
+    $result = [PSCustomObject]@{
+        Status = $status
+        Blocking = $true
+        ManualConfirmationRequired = $true
+        Summary = $summary
+        Evidence = $evidence
+    }
+    Update-VsleEv3SetupStep -Window $Window -StepId "install-ev3-server" -Result $result
+    return $true
+}
+
 function Run-VsleConfirmEv3ServerInstallStep {
     param(
         [Parameter(Mandatory = $true)]
@@ -964,8 +1132,8 @@ function Run-VsleConfirmEv3ServerInstallStep {
     $runningStep = Set-VsleSetupWizardStepResult `
         -Id "install-ev3-server" `
         -Status "running" `
-        -Summary "老师确认后，正在安装 EV3 server。" `
-        -Evidence "正在运行受保护的 SSH/SCP 安装命令序列。" `
+        -Summary "正在打开独立 PowerShell 窗口安装 EV3 server。" `
+        -Evidence "将打开独立 PowerShell 窗口运行 SSH/SCP 命令，向导窗口会保持可点击。" `
         -Blocking $true
     $StepList = $Window.FindName("StepList")
     $StepList.Items.Refresh()
@@ -978,10 +1146,23 @@ function Run-VsleConfirmEv3ServerInstallStep {
             $Script:VlseLastEv3InstallPlan = New-VsleEv3ServerInstallPlan -SetupInput $input -InstallRoot $installRoot
         }
 
-        $result = Invoke-VsleEv3ServerInstall `
-            -Plan $Script:VlseLastEv3InstallPlan `
-            -ConfirmEv3Install `
-            -RunSshCommands
+        $externalRun = Start-VsleEv3InstallConsole -Plan $Script:VlseLastEv3InstallPlan
+        $evidence = @(
+            "已打开独立 PowerShell 窗口执行 EV3 安装。",
+            "如果窗口提示 SSH 或 sudo 密码，请在该窗口输入 EV3 密码并按 Enter。",
+            "安装窗口打印最终状态后，回到本向导点击重试读取结果。",
+            "ProcessId: $($externalRun.ProcessId)",
+            "Result file: $($externalRun.ResultPath)",
+            "Script file: $($externalRun.ScriptPath)"
+        ) -join [Environment]::NewLine
+        $result = [PSCustomObject]@{
+            Status = "running"
+            Blocking = $true
+            ManualConfirmationRequired = $true
+            Summary = "EV3 Server install is running in an external PowerShell window."
+            Evidence = $evidence
+            Plan = $Script:VlseLastEv3InstallPlan
+        }
     } catch {
         $errorMessage = [string]$_.Exception.Message
         if ([string]::IsNullOrWhiteSpace($errorMessage)) {
@@ -1097,7 +1278,11 @@ function Open-VsleSetupWizard {
             if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "verify-local-bridge") {
                 Run-VsleVerifyLocalBridgeStep -Window $window
             }
-            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -in @("choose-transport", "install-ev3-server", "enable-bluetooth-full-vsle")) {
+            if ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -eq "install-ev3-server") {
+                if (-not (Update-VsleEv3ExternalInstallResultStep -Window $window)) {
+                    Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
+                }
+            } elseif ($null -ne $stepList.SelectedItem -and $stepList.SelectedItem.Id -in @("choose-transport", "enable-bluetooth-full-vsle")) {
                 Run-VslePrepareEv3SetupStep -Window $window -StepId $stepList.SelectedItem.Id
             }
         }

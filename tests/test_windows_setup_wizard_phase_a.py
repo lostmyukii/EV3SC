@@ -81,7 +81,6 @@ def test_setup_wizard_script_only_loads_phase_a_ui():
         "install-windows.ps1",
         "uninstall-windows.ps1",
         "Expand-Archive",
-        "Start-Process",
         "Copy-Item",
         "Remove-Item",
         "ssh ",
@@ -90,6 +89,9 @@ def test_setup_wizard_script_only_loads_phase_a_ui():
     ]
     for action in forbidden_actions:
         assert action not in text
+
+    assert "Start-VsleEv3InstallConsole" in text
+    assert "Start-Process" in text
 
 
 def test_setup_wizard_main_buttons_have_click_handlers():

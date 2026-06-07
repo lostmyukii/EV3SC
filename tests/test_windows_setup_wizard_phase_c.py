@@ -31,6 +31,15 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _function_body(text: str, function_name: str) -> str:
+    start_marker = f"function {function_name}"
+    start = text.index(start_marker)
+    next_function = text.find("\nfunction ", start + len(start_marker))
+    if next_function == -1:
+        return text[start:]
+    return text[start:next_function]
+
+
 def test_phase_c_module_exists_and_exports_staging_functions():
     assert ACTION_MODULE.is_file(), ACTION_MODULE
     text = _read(ACTION_MODULE)
@@ -79,6 +88,7 @@ def test_phase_c_staging_function_does_not_auto_install_or_launch_processes():
 def test_setup_wizard_wires_step_7_to_desktop_install_preparation():
     script = _read(SCRIPT)
     setup_module = _read(SETUP_MODULE)
+    prepare_step = _function_body(script, "Run-VslePrepareDesktopInstallStep")
 
     assert "WindowsInstallActions.psm1" in script
     assert "Prepare-VsleWindowsDesktopInstallStaging" in script
@@ -97,7 +107,7 @@ def test_setup_wizard_wires_step_7_to_desktop_install_preparation():
         "desktop-supervise",
     ]
     for token in forbidden_script_tokens:
-        assert token not in script
+        assert token not in prepare_step
 
 
 def test_current_windows_evidence_extracts_to_clean_staging_package():
