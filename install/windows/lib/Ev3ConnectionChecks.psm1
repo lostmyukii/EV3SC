@@ -314,6 +314,19 @@ function Invoke-VsleEv3NativeCommand {
     }
 }
 
+function New-VsleUnicodeString {
+    param(
+        [Parameter(Mandatory = $true)]
+        [int[]]$CodePoints
+    )
+
+    $builder = New-Object System.Text.StringBuilder
+    foreach ($codePoint in $CodePoints) {
+        [void]$builder.Append([char]$codePoint)
+    }
+    return $builder.ToString()
+}
+
 function Get-VsleEv3CommandFailureHint {
     param(
         [AllowNull()]
@@ -324,11 +337,33 @@ function Get-VsleEv3CommandFailureHint {
         return ""
     }
 
-    if ($Output -match "sudo:\s*3 incorrect password attempts") {
+    if ($Output -match 'sudo:\s*3 incorrect password attempts') {
+        $wrongEntry = New-VsleUnicodeString -CodePoints @(
+            0x5bc6, 0x7801, 0x8f93, 0x5165, 0x9519, 0x8bef, 0x3002
+        )
+        $retryInstall = New-VsleUnicodeString -CodePoints @(
+            0x8bf7, 0x91cd, 0x65b0, 0x70b9, 0x51fb, 0x786e,
+            0x8ba4, 0x5b89, 0x88c5, 0xff1b, 0x51fa, 0x73b0
+        )
+        $typeAtPrompt = New-VsleUnicodeString -CodePoints @(
+            0x65f6, 0x8f93, 0x5165
+        )
+        $userSecret = New-VsleUnicodeString -CodePoints @(
+            0x7528, 0x6237, 0x5bc6, 0x7801, 0x3002
+        )
+        $hiddenEntry = New-VsleUnicodeString -CodePoints @(
+            0x5bc6, 0x7801, 0x8f93, 0x5165, 0x65f6, 0x7a97,
+            0x53e3, 0x4e0d, 0x4f1a, 0x663e, 0x793a, 0x5b57,
+            0x7b26, 0xff0c, 0x8f93, 0x5165, 0x5b8c, 0x6210,
+            0x540e, 0x6309
+        )
+        $sentenceStop = New-VsleUnicodeString -CodePoints @(0x3002)
+
         return @(
-            "EV3 sudo 密码输入错误。",
-            "请重新点击确认安装；出现 [sudo] password for robot: 时输入 EV3 robot 用户密码。",
-            "密码输入时窗口不会显示字符，输入完成后按 Enter。"
+            ("EV3 sudo " + $wrongEntry),
+            ($retryInstall + " [sudo] password for robot: " +
+                $typeAtPrompt + " EV3 robot " + $userSecret),
+            ($hiddenEntry + " Enter" + $sentenceStop)
         ) -join [Environment]::NewLine
     }
 
@@ -354,7 +389,10 @@ function Format-VsleEv3CommandFailureEvidence {
 
     $hint = Get-VsleEv3CommandFailureHint -Output $output
     if (-not [string]::IsNullOrWhiteSpace($hint)) {
-        $parts.Add("可能原因和处理方式:")
+        $parts.Add((New-VsleUnicodeString -CodePoints @(
+            0x53ef, 0x80fd, 0x539f, 0x56e0, 0x548c,
+            0x5904, 0x7406, 0x65b9, 0x5f0f, 0x003a
+        )))
         $parts.Add($hint)
     }
 

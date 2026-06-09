@@ -126,6 +126,7 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     module = _read(EV3_MODULE)
     script = _read(SCRIPT)
 
+    assert module.isascii()
     assert "Convert-VsleNativeCommandOutputText" in module
     assert "System.Management.Automation.ErrorRecord" in module
     assert "FullyQualifiedErrorId" in module
@@ -140,8 +141,8 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "PowerShell error type:" in module
     assert "Get-VsleEv3CommandFailureHint" in module
     assert 'sudo:\\s*3 incorrect password attempts' in module
-    assert "EV3 sudo 密码输入错误" in module
-    assert "重新点击确认安装" in module
+    assert "New-VsleUnicodeString" in module
+    assert "0x5bc6, 0x7801, 0x8f93, 0x5165" in module
     assert "Results = $results.ToArray()" in module
     assert "Results = @($results)" not in module
     assert "Get-VsleEv3ResultEvidenceText" in script
