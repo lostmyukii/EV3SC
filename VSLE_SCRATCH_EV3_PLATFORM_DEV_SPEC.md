@@ -4130,6 +4130,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, rerun the local bridge step, and confirm `127.0.0.1:20111` and `127.0.0.1:8766` both pass.
 
+### [2026-06-09] Windows Bluetooth local bridge startup
+- **Status**: ✅ Completed
+- **Commit**: `0924005`
+- **What was done**: Clarified that the classroom path should select Bluetooth Full VSLE and fixed the Windows local bridge plan for that path. Bluetooth Full VSLE now starts `WeisileLink.exe` directly with `WEISILE_TRANSPORT=vsle-bluetooth`, `EV3_BT`, the EV3 host fallback, localhost port variables, and the native adapter path when installed instead of requiring a saved Desktop profile through `desktop-supervise`.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, select Bluetooth Full VSLE in the connection step, enter the EV3 Bluetooth address, and rerun the local bridge step.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
