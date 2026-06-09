@@ -314,6 +314,27 @@ function Invoke-VsleEv3NativeCommand {
     }
 }
 
+function Get-VsleEv3CommandFailureHint {
+    param(
+        [AllowNull()]
+        [string]$Output
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Output)) {
+        return ""
+    }
+
+    if ($Output -match "sudo:\s*3 incorrect password attempts") {
+        return @(
+            "EV3 sudo 密码输入错误。",
+            "请重新点击确认安装；出现 [sudo] password for robot: 时输入 EV3 robot 用户密码。",
+            "密码输入时窗口不会显示字符，输入完成后按 Enter。"
+        ) -join [Environment]::NewLine
+    }
+
+    return ""
+}
+
 function Format-VsleEv3CommandFailureEvidence {
     param(
         [Parameter(Mandatory = $true)]
@@ -327,12 +348,20 @@ function Format-VsleEv3CommandFailureEvidence {
         $output = "No command output captured."
     }
 
-    return @(
-        "Step $($Step.Name) failed with exit code $($Result.ExitCode).",
-        "Executable: $($Step.Executable)",
-        "Command output:",
-        $output
-    ) -join [Environment]::NewLine
+    $parts = New-Object System.Collections.Generic.List[string]
+    $parts.Add("Step $($Step.Name) failed with exit code $($Result.ExitCode).")
+    $parts.Add("Executable: $($Step.Executable)")
+
+    $hint = Get-VsleEv3CommandFailureHint -Output $output
+    if (-not [string]::IsNullOrWhiteSpace($hint)) {
+        $parts.Add("可能原因和处理方式:")
+        $parts.Add($hint)
+    }
+
+    $parts.Add("Command output:")
+    $parts.Add($output)
+
+    return ($parts.ToArray() -join [Environment]::NewLine)
 }
 
 function Invoke-VsleEv3ServerInstall {

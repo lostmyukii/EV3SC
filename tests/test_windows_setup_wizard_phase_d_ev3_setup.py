@@ -138,6 +138,10 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "No command output captured." in module
     assert "EV3 install did not provide diagnostic detail." in module
     assert "PowerShell error type:" in module
+    assert "Get-VsleEv3CommandFailureHint" in module
+    assert 'sudo:\\s*3 incorrect password attempts' in module
+    assert "EV3 sudo 密码输入错误" in module
+    assert "重新点击确认安装" in module
     assert "Results = $results.ToArray()" in module
     assert "Results = @($results)" not in module
     assert "Get-VsleEv3ResultEvidenceText" in script
