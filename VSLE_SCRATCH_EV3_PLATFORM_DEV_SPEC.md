@@ -4137,6 +4137,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, select Bluetooth Full VSLE in the connection step, enter the EV3 Bluetooth address, and rerun the local bridge step.
 
+### [2026-06-09] Windows EV3 controlled sudo password input
+- **Status**: ✅ Completed
+- **Commit**: `712752f`
+- **What was done**: Replaced the unreliable repeated hidden EV3 sudo prompt with one runtime-visible password input in the external PowerShell installer; pressing Enter uses the ev3dev default `maker`. The runner sends the password only through Unix-LF standard input to a remote `bash -s` script and validates sudo with `sudo -S`, while keeping the password out of native command arguments, result JSON, wizard evidence, and diagnostics.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, rerun Install EV3 Server, enter the EV3 password once in the visible prompt or press Enter for `maker`, then answer any separate hidden Windows/OpenSSH login prompt and load the result with Retry.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
