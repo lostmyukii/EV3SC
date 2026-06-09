@@ -4140,9 +4140,9 @@ material into:
 ### [2026-06-09] Windows EV3 controlled sudo password input
 - **Status**: ✅ Completed
 - **Commit**: `712752f`
-- **What was done**: Replaced the unreliable repeated hidden EV3 sudo prompt with one runtime-visible password input in the external PowerShell installer; pressing Enter uses the ev3dev default `maker`. The runner sends the password only through Unix-LF standard input to a remote `bash -s` script and validates sudo with `sudo -S`, while keeping the password out of native command arguments, result JSON, wizard evidence, and diagnostics.
-- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
-- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, rerun Install EV3 Server, enter the EV3 password once in the visible prompt or press Enter for `maker`, then answer any separate hidden Windows/OpenSSH login prompt and load the result with Retry.
+- **What was done**: Replaced the unreliable repeated hidden EV3 sudo prompt with one runtime-visible password input in the external PowerShell installer; pressing Enter uses the ev3dev default `maker`. The runner sends the password only through Unix-LF standard input to a remote `bash -s` script and validates sudo with `sudo -S`, while keeping the password out of native command arguments, result JSON, wizard evidence, and diagnostics. The desktop `/Users/yukii/Desktop/VSLE-Install` handoff was regenerated and passed its own three-pass install-file verification.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, enter the EV3 password once in the visible prompt or press Enter for `maker`, then answer any separate hidden Windows/OpenSSH login prompt and load the result with Retry.
 
 ---
 
