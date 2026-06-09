@@ -293,11 +293,12 @@ $Script:VlseSetupWizardSteps = @(
         Summary = "真实启动或检测 WeisileLink Desktop supervisor，并检查本机端口。"
         AutomaticActions = @(
             "如果端口已经响应，记录为已检测到正在运行。",
-            "如果端口未响应，启动 desktop-supervise 后轮询端口。",
+            "WiFi Full VSLE 使用当前 EV3 地址直接启动 WeisileLink runtime。",
+            "Bluetooth Full VSLE profile 模式使用 desktop-supervise 后轮询端口。",
             "检查 127.0.0.1:20111。",
             "检查 127.0.0.1:8766。"
         )
-        ManualActions = @("如果没有已保存的 EV3 配置，请继续配对或恢复流程。")
+        ManualActions = @("如果 WiFi 模式端口未响应，请确认 EV3 地址仍可达；如果蓝牙 profile 模式未响应，请继续配对或恢复流程。")
         Evidence = "本机端口检查结果会写入最终安装报告。"
         NextEnabledWhen = "两个本机端口都通过后继续。"
         ProductionReleaseReady = $false

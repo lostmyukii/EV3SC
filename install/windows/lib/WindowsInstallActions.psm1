@@ -344,11 +344,14 @@ function Get-VsleWindowsDesktopBridgePlan {
         [string]$TargetRoot = (Get-VsleDefaultWindowsDesktopTargetRoot),
         [string]$Host = "127.0.0.1",
         [int]$ScratchLinkPort = 20111,
-        [int]$TrainerPort = 8766
+        [int]$TrainerPort = 8766,
+        [AllowNull()]
+        [object]$Ev3SetupInput = $null
     )
 
     $exePath = Join-Path $TargetRoot "WeisileLink.exe"
     $nativeAdapterPath = Join-Path $TargetRoot "native\WeisileEV3BluetoothAdapter.exe"
+    $launchMode = "desktop-supervise"
     $arguments = @(
         "desktop-supervise",
         "--host",
@@ -361,17 +364,81 @@ function Get-VsleWindowsDesktopBridgePlan {
     if (Test-Path -LiteralPath $nativeAdapterPath) {
         $arguments += @("--native-adapter", $nativeAdapterPath)
     }
+    $environment = [ordered]@{
+        WEISILE_LINK_HOST = $Host
+        WEISILE_LINK_PORT = [string]$ScratchLinkPort
+        TRAINER_WS_PORT = [string]$TrainerPort
+        LOG_LEVEL = "INFO"
+    }
+    if (
+        $null -ne $Ev3SetupInput -and
+        $Ev3SetupInput.PSObject.Properties.Name -contains "Transport" -and
+        $Ev3SetupInput.Transport -eq "wifi-full-vsle"
+    ) {
+        $ev3Host = ""
+        if ($Ev3SetupInput.PSObject.Properties.Name -contains "Host") {
+            $ev3Host = ([string]$Ev3SetupInput.Host).Trim()
+        }
+        if ([string]::IsNullOrWhiteSpace($ev3Host)) {
+            $ev3Host = "ev3dev.local"
+        }
+        $launchMode = "direct-runtime"
+        $arguments = @()
+        $environment["WEISILE_TRANSPORT"] = "wifi"
+        $environment["EV3_IP"] = $ev3Host
+        $environment["EV3_WS_PORT"] = "8765"
+    }
 
     [PSCustomObject]@{
         TargetRoot = $TargetRoot
         ExePath = $exePath
         NativeAdapterPath = $nativeAdapterPath
+        LaunchMode = $launchMode
         Host = $Host
         ScratchLinkPort = $ScratchLinkPort
         TrainerPort = $TrainerPort
         Arguments = @($arguments)
         ArgumentLine = ($arguments -join " ")
+        Environment = $environment
         ProductionReleaseReady = $false
+    }
+}
+
+function Set-VsleProcessEnvironment {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Environment
+    )
+
+    $previous = @{}
+    if ($null -eq $Environment) {
+        return $previous
+    }
+
+    foreach ($key in $Environment.Keys) {
+        $previous[$key] = [System.Environment]::GetEnvironmentVariable($key, "Process")
+        [System.Environment]::SetEnvironmentVariable(
+            $key,
+            [string]$Environment[$key],
+            "Process"
+        )
+    }
+
+    return $previous
+}
+
+function Restore-VsleProcessEnvironment {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$PreviousEnvironment
+    )
+
+    foreach ($key in $PreviousEnvironment.Keys) {
+        [System.Environment]::SetEnvironmentVariable(
+            $key,
+            $PreviousEnvironment[$key],
+            "Process"
+        )
     }
 }
 
@@ -429,13 +496,23 @@ function Invoke-VsleWindowsDesktopBridgeVerification {
             }
         }
 
-        $process = Start-Process `
-            -FilePath $Plan.ExePath `
-            -ArgumentList $Plan.Arguments `
-            -WindowStyle Hidden `
-            -PassThru
-        $startAttempted = $true
-        $bridgeProcessId = $process.Id
+        $startParams = @{
+            FilePath = $Plan.ExePath
+            WindowStyle = "Hidden"
+            PassThru = $true
+        }
+        if ($Plan.Arguments.Count -gt 0) {
+            $startParams.ArgumentList = $Plan.Arguments
+        }
+
+        $previousEnvironment = Set-VsleProcessEnvironment -Environment $Plan.Environment
+        try {
+            $process = Start-Process @startParams
+            $startAttempted = $true
+            $bridgeProcessId = $process.Id
+        } finally {
+            Restore-VsleProcessEnvironment -PreviousEnvironment $previousEnvironment
+        }
     }
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
@@ -458,6 +535,9 @@ function Invoke-VsleWindowsDesktopBridgeVerification {
     $evidence = @(
         "Executable: $($Plan.ExePath)",
         "Command: $($Plan.ExePath) $($Plan.ArgumentLine)",
+        "LaunchMode: $($Plan.LaunchMode)",
+        "WEISILE_TRANSPORT: $($Plan.Environment["WEISILE_TRANSPORT"])",
+        "EV3_IP: $($Plan.Environment["EV3_IP"])",
         "StartAttempted: $startAttempted",
         "BridgeProcessId: $bridgeProcessId",
         "scratch_link_endpoint_ok: $scratchOk",

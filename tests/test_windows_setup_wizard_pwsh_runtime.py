@@ -92,6 +92,23 @@ def test_windows_setup_modules_run_under_powershell_core():
             throw "desktop staging status was $($desktopStage.Status)"
         }
 
+        $wifiBridgePlan = Get-VsleWindowsDesktopBridgePlan -Ev3SetupInput $ev3Input
+        if ($wifiBridgePlan.LaunchMode -ne "direct-runtime") {
+            throw "WiFi bridge plan launch mode was $($wifiBridgePlan.LaunchMode)"
+        }
+        if ($wifiBridgePlan.Arguments.Count -ne 0) {
+            throw "WiFi bridge plan should not use desktop-supervise arguments: $($wifiBridgePlan.ArgumentLine)"
+        }
+        if ($wifiBridgePlan.Environment.WEISILE_TRANSPORT -ne "wifi") {
+            throw "WiFi bridge plan did not set WEISILE_TRANSPORT=wifi"
+        }
+        if ($wifiBridgePlan.Environment.EV3_IP -ne "ev3dev.local") {
+            throw "WiFi bridge plan did not preserve EV3_IP"
+        }
+        if ($wifiBridgePlan.Environment.EV3_WS_PORT -ne "8765") {
+            throw "WiFi bridge plan did not set EV3_WS_PORT"
+        }
+
         "pwsh-runtime-ok"
         """
     )

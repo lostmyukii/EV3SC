@@ -835,7 +835,8 @@ function Run-VsleVerifyLocalBridgeStep {
     Set-CurrentStep -Window $Window -Step $runningStep
 
     try {
-        $plan = Get-VsleWindowsDesktopBridgePlan
+        $ev3Input = Get-VsleEv3SetupInputFromWindow -Window $Window
+        $plan = Get-VsleWindowsDesktopBridgePlan -Ev3SetupInput $ev3Input
         $result = Invoke-VsleWindowsDesktopBridgeVerification -Plan $plan
     } catch {
         $result = [PSCustomObject]@{
