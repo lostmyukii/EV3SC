@@ -4116,6 +4116,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, rerun the EV3 Server install step against the current EV3 IP, type `yes` at any new host-key prompt, then type the EV3 `robot` password at both SSH and sudo prompts.
 
+### [2026-06-09] Windows EV3 PowerShell 5 parser-safe hint text
+- **Status**: ✅ Completed
+- **Commit**: `44842db`
+- **What was done**: Fixed the Windows PowerShell parser failure reported from `Ev3ConnectionChecks.psm1` after the sudo hint was added. The EV3 connection module now keeps the parser-facing source ASCII-only and builds the Chinese sudo guidance from Unicode code points at runtime, while tests assert the module remains ASCII-safe and the generated hint still renders in Chinese.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, and start the setup wizard again so Windows PowerShell 5.1 can import the EV3 connection module cleanly.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
