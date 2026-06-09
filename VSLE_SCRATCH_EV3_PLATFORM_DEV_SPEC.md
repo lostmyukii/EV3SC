@@ -4109,6 +4109,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/scripts/vsle_firstboot.py`, `tests/test_ev3_autostart_assets.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, rerun the EV3 Server install step against `169.254.34.253`, then confirm `vsle-firstboot.service` and `vsle-ev3-server.service` become active.
 
+### [2026-06-09] Windows EV3 sudo password failure guidance
+- **Status**: ✅ Completed
+- **Commit**: `e9383dd`
+- **What was done**: Diagnosed the EV3 Server install failure as `sudo: 3 incorrect password attempts` after SSH reached `169.254.120.160`. The Windows wizard now recognizes that raw SSH/sudo output and adds a Chinese action hint telling teachers to rerun the install and enter the EV3 `robot` user password at the sudo prompt without storing the password.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, copy it to Windows, rerun the EV3 Server install step against the current EV3 IP, type `yes` at any new host-key prompt, then type the EV3 `robot` password at both SSH and sudo prompts.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
