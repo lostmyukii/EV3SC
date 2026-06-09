@@ -4123,6 +4123,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`
 - **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, and start the setup wizard again so Windows PowerShell 5.1 can import the EV3 connection module cleanly.
 
+### [2026-06-09] Windows WiFi local bridge startup
+- **Status**: ✅ Completed
+- **Commit**: `f17388e`
+- **What was done**: Diagnosed the local bridge failure as the WiFi Full VSLE path starting `desktop-supervise`, which requires a saved Desktop EV3 profile and therefore never opened the localhost ports in the guided WiFi install flow. The Windows wizard now passes the current EV3 setup input into the bridge plan; WiFi Full VSLE starts `WeisileLink.exe` directly with `WEISILE_TRANSPORT=wifi`, `EV3_IP`, and localhost port environment variables, while Bluetooth profile modes keep using `desktop-supervise`.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
+- **Next step**: Regenerate `/Users/yukii/Desktop/VSLE-Install`, replace the Windows copy, rerun the local bridge step, and confirm `127.0.0.1:20111` and `127.0.0.1:8766` both pass.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
