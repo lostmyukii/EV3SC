@@ -25,6 +25,8 @@ def test_phase_g_local_bridge_action_module_starts_and_checks_ports():
         "direct-runtime",
         "WEISILE_TRANSPORT",
         "EV3_IP",
+        "EV3_BT",
+        "vsle-bluetooth",
         "Set-VsleProcessEnvironment",
         "--host",
         "127.0.0.1",
@@ -70,12 +72,13 @@ def test_phase_g_step_model_and_readme_describe_real_bridge_verification():
     assert "真实启动或检测 WeisileLink Desktop supervisor" in setup
     assert "如果端口已经响应，记录为已检测到正在运行" in setup
     assert "WiFi Full VSLE 使用当前 EV3 地址直接启动 WeisileLink runtime" in setup
-    assert "Bluetooth Full VSLE profile 模式使用 desktop-supervise 后轮询端口" in setup
+    assert "Bluetooth Full VSLE 使用 EV3 蓝牙地址直接启动 WeisileLink runtime" in setup
     assert "两个本机端口都通过后继续" in setup
 
     assert "Phase G Local Bridge Verification" in readme
     normalized_readme = " ".join(readme.split())
     assert "starts or detects the WeisileLink local runtime" in normalized_readme
     assert "WEISILE_TRANSPORT=wifi" in readme
+    assert "WEISILE_TRANSPORT=vsle-bluetooth" in readme
     assert "127.0.0.1:20111" in readme
     assert "127.0.0.1:8766" in readme

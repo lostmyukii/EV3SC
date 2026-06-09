@@ -124,12 +124,12 @@ endpoints are already responding:
 ```
 
 If both endpoints already respond, the wizard records the bridge as already
-running. If either endpoint is not available and the selected transport is WiFi
-Full VSLE, the wizard starts `WeisileLink.exe` directly with
-`WEISILE_TRANSPORT=wifi` and the EV3 host from the wizard fields. Bluetooth
-profile-based modes continue to use `WeisileLink.exe desktop-supervise --host
-127.0.0.1 --port 20111 --trainer-port 8766`. The wizard then polls both ports
-until they pass or the step blocks with evidence.
+running. If either endpoint is not available, WiFi Full VSLE starts
+`WeisileLink.exe` directly with `WEISILE_TRANSPORT=wifi` and the EV3 host from
+the wizard fields. Bluetooth Full VSLE starts `WeisileLink.exe` directly with
+`WEISILE_TRANSPORT=vsle-bluetooth`, `EV3_BT`, the EV3 host fallback, and the
+native adapter path when that adapter is installed. The wizard then polls both
+ports until they pass or the step blocks with evidence.
 
 This phase is a real Windows runtime check, not a manual placeholder. On macOS,
 static and PowerShell Core tests can verify the command plan and module shape,

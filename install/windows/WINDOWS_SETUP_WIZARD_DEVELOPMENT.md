@@ -312,7 +312,9 @@ Automatic actions:
 
 - For WiFi Full VSLE, start `WeisileLink.exe` directly with
   `WEISILE_TRANSPORT=wifi` and the EV3 host from the wizard fields.
-- For Bluetooth profile modes, start `WeisileLink.exe desktop-supervise`.
+- For Bluetooth Full VSLE, start `WeisileLink.exe` directly with
+  `WEISILE_TRANSPORT=vsle-bluetooth`, `EV3_BT`, and the native adapter path
+  when the adapter is installed.
 - Check ports:
 
 ```text

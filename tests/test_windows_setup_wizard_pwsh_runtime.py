@@ -109,6 +109,28 @@ def test_windows_setup_modules_run_under_powershell_core():
             throw "WiFi bridge plan did not set EV3_WS_PORT"
         }
 
+        $bluetoothInput = New-VsleEv3SetupInput `
+            -Transport "bluetooth-full-vsle" `
+            -Host "ev3dev.local" `
+            -User "robot" `
+            -BluetoothAddress "00:16:53:AA:BB:CC"
+        $bluetoothBridgePlan = Get-VsleWindowsDesktopBridgePlan -Ev3SetupInput $bluetoothInput
+        if ($bluetoothBridgePlan.LaunchMode -ne "direct-runtime") {
+            throw "Bluetooth bridge plan launch mode was $($bluetoothBridgePlan.LaunchMode)"
+        }
+        if ($bluetoothBridgePlan.Arguments.Count -ne 0) {
+            throw "Bluetooth bridge plan should not use desktop-supervise arguments: $($bluetoothBridgePlan.ArgumentLine)"
+        }
+        if ($bluetoothBridgePlan.Environment.WEISILE_TRANSPORT -ne "vsle-bluetooth") {
+            throw "Bluetooth bridge plan did not set WEISILE_TRANSPORT=vsle-bluetooth"
+        }
+        if ($bluetoothBridgePlan.Environment.EV3_BT -ne "00:16:53:AA:BB:CC") {
+            throw "Bluetooth bridge plan did not preserve EV3_BT"
+        }
+        if ($bluetoothBridgePlan.Environment.EV3_IP -ne "ev3dev.local") {
+            throw "Bluetooth bridge plan did not keep EV3_IP for fallback"
+        }
+
         "pwsh-runtime-ok"
         """
     )

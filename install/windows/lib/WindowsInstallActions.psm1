@@ -373,7 +373,7 @@ function Get-VsleWindowsDesktopBridgePlan {
     if (
         $null -ne $Ev3SetupInput -and
         $Ev3SetupInput.PSObject.Properties.Name -contains "Transport" -and
-        $Ev3SetupInput.Transport -eq "wifi-full-vsle"
+        $Ev3SetupInput.Transport -in @("wifi-full-vsle", "bluetooth-full-vsle")
     ) {
         $ev3Host = ""
         if ($Ev3SetupInput.PSObject.Properties.Name -contains "Host") {
@@ -384,9 +384,21 @@ function Get-VsleWindowsDesktopBridgePlan {
         }
         $launchMode = "direct-runtime"
         $arguments = @()
-        $environment["WEISILE_TRANSPORT"] = "wifi"
         $environment["EV3_IP"] = $ev3Host
         $environment["EV3_WS_PORT"] = "8765"
+        if ($Ev3SetupInput.Transport -eq "bluetooth-full-vsle") {
+            $ev3Bt = ""
+            if ($Ev3SetupInput.PSObject.Properties.Name -contains "BluetoothAddress") {
+                $ev3Bt = ([string]$Ev3SetupInput.BluetoothAddress).Trim()
+            }
+            $environment["WEISILE_TRANSPORT"] = "vsle-bluetooth"
+            $environment["EV3_BT"] = $ev3Bt
+            if (Test-Path -LiteralPath $nativeAdapterPath) {
+                $environment["WEISILE_VSLE_BT_ADAPTER"] = $nativeAdapterPath
+            }
+        } else {
+            $environment["WEISILE_TRANSPORT"] = "wifi"
+        }
     }
 
     [PSCustomObject]@{
