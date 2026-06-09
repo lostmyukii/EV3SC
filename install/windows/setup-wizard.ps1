@@ -995,11 +995,15 @@ function New-VsleEv3ExternalInstallRunner {
         "`$planPath = $planLiteral",
         "`$resultPath = $resultLiteral",
         'Write-Host "VSLE EV3 Server install is running."',
-        'Write-Host "If prompted for SSH or sudo password, type the EV3 password and press Enter."',
+        'Write-Host "Enter the EV3 robot password once for remote sudo."',
+        'Write-Host "The input is visible so you can verify it. Do not share a screenshot while typing."',
+        '$ev3SudoPassword = Read-Host "EV3 robot password (press Enter to use maker)"',
+        'if ([string]::IsNullOrWhiteSpace($ev3SudoPassword)) { $ev3SudoPassword = "maker" }',
+        'Write-Host "Windows OpenSSH may still request the SSH login password separately."',
         'Write-Host "Do not close this window until it prints a final status."',
         'try {',
         '    $plan = Get-Content -Path $planPath -Raw | ConvertFrom-Json',
-        '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands',
+        '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands -Ev3SudoPassword $ev3SudoPassword',
         '} catch {',
         '    $message = [string]$_.Exception.Message',
         '    if ([string]::IsNullOrWhiteSpace($message)) { $message = [string]$_ }',
@@ -1011,6 +1015,7 @@ function New-VsleEv3ExternalInstallRunner {
         '        Evidence = $message',
         '    }',
         '}',
+        '$ev3SudoPassword = $null',
         '$result | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
         'Write-Host ""',
         'Write-Host ("VSLE EV3 install status: " + $result.Status)',
@@ -1108,7 +1113,7 @@ function Update-VsleEv3ExternalInstallResultStep {
     }
     $evidence = @(
         "外部 EV3 安装窗口尚未写出结果。",
-        "如果窗口仍在运行，请在该窗口完成 SSH/sudo 密码输入并等待最终状态。",
+        "如果窗口仍在运行，请先完成可见的 sudo 密码输入；Windows/OpenSSH 仍可能单独提示 SSH 登录密码。",
         "完成后回到向导点击重试。",
         "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
         "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
@@ -1150,7 +1155,8 @@ function Run-VsleConfirmEv3ServerInstallStep {
         $externalRun = Start-VsleEv3InstallConsole -Plan $Script:VlseLastEv3InstallPlan
         $evidence = @(
             "已打开独立 PowerShell 窗口执行 EV3 安装。",
-            "如果窗口提示 SSH 或 sudo 密码，请在该窗口输入 EV3 密码并按 Enter。",
+            "安装窗口会先显示输入一次 EV3 sudo 密码；直接回车使用默认密码 maker。",
+            "Windows/OpenSSH 仍可能单独提示 SSH 登录密码，该提示不会显示输入字符。",
             "安装窗口打印最终状态后，回到本向导点击重试读取结果。",
             "ProcessId: $($externalRun.ProcessId)",
             "Result file: $($externalRun.ResultPath)",

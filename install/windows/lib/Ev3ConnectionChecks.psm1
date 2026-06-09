@@ -193,6 +193,7 @@ function New-VsleEv3ServerInstallPlan {
             Name = "install-and-check-service"
             Executable = "ssh"
             Arguments = @("-tt", $sshTarget, $remoteInstall)
+            SudoPasswordArgumentIndex = 2
             Preview = "ssh -tt $sshTarget '$remoteInstall'"
         }
     )
@@ -295,13 +296,19 @@ function Invoke-VsleEv3NativeCommand {
         [Parameter(Mandatory = $true)]
         [string]$Executable,
         [Parameter(Mandatory = $true)]
-        [string[]]$Arguments
+        [string[]]$Arguments,
+        [AllowNull()]
+        [string]$StandardInputText
     )
 
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $rawOutput = @(& $Executable @Arguments 2>&1)
+        if ($null -ne $StandardInputText) {
+            $rawOutput = @($StandardInputText | & $Executable @Arguments 2>&1)
+        } else {
+            $rawOutput = @(& $Executable @Arguments 2>&1)
+        }
         $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { $global:LASTEXITCODE }
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -311,6 +318,77 @@ function Invoke-VsleEv3NativeCommand {
         Executable = $Executable
         ExitCode = $exitCode
         Output = $output
+    }
+}
+
+function New-VsleEv3SudoPasswordStandardInput {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RemoteCommand,
+        [Parameter(Mandatory = $true)]
+        [string]$Ev3SudoPassword
+    )
+
+    $separator = " && sudo -v && "
+    $separatorIndex = $RemoteCommand.IndexOf(
+        $separator,
+        [System.StringComparison]::Ordinal
+    )
+    if ($separatorIndex -lt 0) {
+        return $null
+    }
+
+    $beforeSudo = $RemoteCommand.Substring(0, $separatorIndex)
+    $afterSudo = $RemoteCommand.Substring($separatorIndex + $separator.Length)
+    $lines = @(
+        "IFS= read -r VSLE_SUDO_PASSWORD",
+        $Ev3SudoPassword,
+        "set -e",
+        $beforeSudo,
+        'printf ''%s\n'' "$VSLE_SUDO_PASSWORD" | sudo -S -p ''[sudo] password for robot: '' -v',
+        "unset VSLE_SUDO_PASSWORD",
+        $afterSudo
+    )
+
+    return (($lines -join "`n") + "`n")
+}
+
+function Get-VsleEv3CommandExecutionRequest {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Step,
+        [AllowNull()]
+        [string]$Ev3SudoPassword
+    )
+
+    $arguments = @($Step.Arguments)
+    $standardInputText = $null
+
+    $hasSudoPassword = -not [string]::IsNullOrWhiteSpace($Ev3SudoPassword)
+    $sudoPasswordArgumentIndex = $null
+    if ($Step.PSObject.Properties.Name -contains "SudoPasswordArgumentIndex") {
+        $sudoPasswordArgumentIndex = [int]$Step.SudoPasswordArgumentIndex
+    }
+
+    if (
+        $hasSudoPassword -and
+        $null -ne $sudoPasswordArgumentIndex -and
+        $sudoPasswordArgumentIndex -ge 0 -and
+        $sudoPasswordArgumentIndex -lt $arguments.Count
+    ) {
+        $remoteCommand = [string]$arguments[$sudoPasswordArgumentIndex]
+        $standardInputText = New-VsleEv3SudoPasswordStandardInput `
+            -RemoteCommand $remoteCommand `
+            -Ev3SudoPassword $Ev3SudoPassword
+        if ($null -ne $standardInputText) {
+            $arguments[$sudoPasswordArgumentIndex] = "bash -s"
+        }
+    }
+
+    [PSCustomObject]@{
+        Executable = [string]$Step.Executable
+        Arguments = [string[]]$arguments
+        StandardInputText = $standardInputText
     }
 }
 
@@ -408,7 +486,9 @@ function Invoke-VsleEv3ServerInstall {
         [Parameter(Mandatory = $true)]
         [object]$Plan,
         [switch]$ConfirmEv3Install,
-        [switch]$RunSshCommands
+        [switch]$RunSshCommands,
+        [AllowNull()]
+        [string]$Ev3SudoPassword
     )
 
     if (-not $ConfirmEv3Install) {
@@ -450,7 +530,17 @@ function Invoke-VsleEv3ServerInstall {
 
     $results = New-Object System.Collections.Generic.List[object]
     foreach ($step in $Plan.CommandSteps) {
-        $result = Invoke-VsleEv3NativeCommand -Executable $step.Executable -Arguments $step.Arguments
+        $request = Get-VsleEv3CommandExecutionRequest `
+            -Step $step `
+            -Ev3SudoPassword $Ev3SudoPassword
+        $result = Invoke-VsleEv3NativeCommand `
+            -Executable $request.Executable `
+            -Arguments $request.Arguments `
+            -StandardInputText $request.StandardInputText
+        if ($null -ne $request.StandardInputText) {
+            $request.StandardInputText = $null
+            $Ev3SudoPassword = $null
+        }
         $results.Add([PSCustomObject]@{
             Name = $step.Name
             Executable = $step.Executable

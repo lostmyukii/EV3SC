@@ -261,11 +261,17 @@ Manual inputs:
 
 - EV3 SSH host/address.
 - SSH username, default `robot`.
-- Password prompt, default password described as `maker` but not stored.
+- Runtime-visible EV3 sudo password prompt, with blank input using the ev3dev
+  default `maker`.
+- A separate hidden Windows/OpenSSH SSH-login prompt may still appear.
 
 Security:
 
-- Password and pairing token inputs must use secure fields.
+- The visible sudo password is held only for the current external runner and
+  must be sent to the remote `sudo -S` flow through standard input.
+- Passwords must never be included in SSH command arguments, result JSON,
+  diagnostics, or transcript logs.
+- Pairing token inputs must use secure fields.
 - Do not write secrets to transcript logs.
 
 ### Step 6: Enable Bluetooth Full VSLE

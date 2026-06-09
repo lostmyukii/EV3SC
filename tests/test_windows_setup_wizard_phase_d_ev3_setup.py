@@ -64,7 +64,6 @@ def test_phase_d_ev3_module_validates_transport_and_never_stores_secrets():
     forbidden = [
         "PairingToken",
         "WEISILE_PAIRING_TOKEN",
-        "Password",
         "maker",
         "ConvertTo-SecureString",
         "Invoke-Expression",
@@ -96,7 +95,8 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "先填 ev3dev.local" in xaml
     assert "SSH 用户固定填写 robot" in xaml
     assert "默认密码是 maker" in xaml
-    assert "sudo 安装可能分别提示密码" in xaml
+    assert "安装窗口会先显示输入一次 sudo 密码" in xaml
+    assert "直接回车使用 maker" in xaml
     assert "不会写入安装向导证据" in xaml
     assert "蓝牙地址可在 EV3 的 Bluetooth 设置中查看" in xaml
     assert "也可以在 EV3 SSH 里运行 hciconfig -a" in xaml
@@ -115,6 +115,8 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "Start-Process" in script
     assert "ev3-install-result" in script
     assert "Return to the VSLE wizard and click Retry" in script
+    assert 'Read-Host "EV3 robot password (press Enter to use maker)"' in script
+    assert "-Ev3SudoPassword $ev3SudoPassword" in script
     assert '$continueButton.IsEnabled = (' in script
     assert "-not [bool]$Step.Blocking" in script
     assert "ConfirmEv3InstallButton" in script
@@ -141,6 +143,12 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "PowerShell error type:" in module
     assert "Get-VsleEv3CommandFailureHint" in module
     assert 'sudo:\\s*3 incorrect password attempts' in module
+    assert "SudoPasswordArgumentIndex = 2" in module
+    assert "New-VsleEv3SudoPasswordStandardInput" in module
+    assert "sudo -S" in module
+    assert '$lines -join "`n"' in module
+    assert 'Arguments = [string[]]$arguments' in module
+    assert "StandardInputText = $standardInputText" in module
     assert "New-VsleUnicodeString" in module
     assert "0x5bc6, 0x7801, 0x8f93, 0x5165" in module
     assert "Results = $results.ToArray()" in module
@@ -182,8 +190,10 @@ def test_phase_d_setup_model_and_docs_register_ev3_module():
     assert "Windows Settings > Bluetooth & devices > Add device" in readme
     assert "password" in readme.lower()
     assert "not stored" in readme.lower()
-    assert "sudo prompt" in readme
-    assert "no tty present and no askpass program specified" in readme
+    assert "sudo -S" in readme
+    assert "through standard" in readme
+    assert "input" in readme
+    assert "allocates a TTY" in readme
 
     assert "windows/lib/Ev3ConnectionChecks.psm1" in manifest
     assert "windows/lib/Ev3ConnectionChecks.psm1" in check_script
