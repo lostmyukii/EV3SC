@@ -4144,6 +4144,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/setup-wizard.xaml`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, enter the EV3 password once in the visible prompt or press Enter for `maker`, then answer any separate hidden Windows/OpenSSH login prompt and load the result with Retry.
 
+### [2026-06-12] Windows Desktop locked executable upgrade fix
+- **Status**: ✅ Completed
+- **Commit**: `6c60d4a`
+- **What was done**: Fixed the WeisileLink Desktop reinstall failure where Windows denied access to a running `WeisileLink.exe`. Confirmed forced installs now find only the process whose executable path matches the target install directory, stop it by PID, wait for exit, and then replace the files; if the process remains or Windows still denies removal, evidence includes the target path, remaining PIDs, and retry guidance. The desktop `/Users/yukii/Desktop/VSLE-Install` handoff was regenerated and passed its own three-pass install-file verification.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_c_execution.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `docs/superpowers/specs/2026-06-12-windows-desktop-locked-executable-design.md`, `docs/superpowers/plans/2026-06-12-windows-desktop-locked-executable.md`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, reopen the wizard, return to Install WeisileLink Desktop, and click Retry or Confirm Install. The wizard will stop the old target WeisileLink process before replacing the executable.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
