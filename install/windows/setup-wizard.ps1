@@ -785,12 +785,17 @@ function Run-VsleConfirmDesktopInstallStep {
         if ($null -eq $plan) {
             $plan = Get-VsleWindowsDesktopInstallPlan
         }
+        $targetExecutable = Join-Path $plan.TargetRoot "WeisileLink.exe"
         $result = [PSCustomObject]@{
             Status = "blocked"
             Blocking = $true
             ManualConfirmationRequired = $true
             Summary = "确认后安装 Windows Desktop 失败。"
-            Evidence = $_.Exception.Message
+            Evidence = @(
+                "Target executable: $targetExecutable",
+                "Install error: $($_.Exception.Message)",
+                "请在任务管理器中结束 WeisileLink.exe 后点击重试。"
+            ) -join [Environment]::NewLine
             Plan = $plan
         }
     }

@@ -297,6 +297,8 @@ Blocking rules:
 Automatic actions:
 
 - Expand `windows-internal-release-evidence.zip` to a staging directory.
+- Stop an existing WeisileLink process only when its executable path matches
+  the target installation directory, then wait for the file lock to clear.
 - Extract `WeisileLink.exe`.
 - Copy executable and helper files to:
 

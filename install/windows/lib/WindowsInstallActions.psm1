@@ -194,6 +194,215 @@ function Test-VsleWindowsDesktopInstallStaging {
     return New-VsleWindowsDesktopInstallConfirmation -Plan $Plan
 }
 
+function Get-VsleWindowsDesktopProcessId {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Process
+    )
+
+    if ($Process.PSObject.Properties.Name -contains "ProcessId") {
+        return [int]$Process.ProcessId
+    }
+    if ($Process.PSObject.Properties.Name -contains "Id") {
+        return [int]$Process.Id
+    }
+    return 0
+}
+
+function Get-VsleWindowsDesktopProcessPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Process
+    )
+
+    foreach ($propertyName in @("ExecutablePath", "Path")) {
+        if ($Process.PSObject.Properties.Name -contains $propertyName) {
+            $value = [string]$Process.$propertyName
+            if (-not [string]::IsNullOrWhiteSpace($value)) {
+                return $value
+            }
+        }
+    }
+    return ""
+}
+
+function Get-VsleMatchingWindowsDesktopProcesses {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [object[]]$Processes,
+        [Parameter(Mandatory = $true)]
+        [string]$TargetExecutable
+    )
+
+    $targetFullPath = [System.IO.Path]::GetFullPath($TargetExecutable)
+    $matching = New-Object System.Collections.Generic.List[object]
+    foreach ($process in @($Processes)) {
+        if ($null -eq $process) {
+            continue
+        }
+
+        $processPath = Get-VsleWindowsDesktopProcessPath -Process $process
+        if ([string]::IsNullOrWhiteSpace($processPath)) {
+            continue
+        }
+
+        try {
+            $processFullPath = [System.IO.Path]::GetFullPath($processPath)
+        } catch {
+            continue
+        }
+        if ([string]::Equals(
+            $processFullPath,
+            $targetFullPath,
+            [System.StringComparison]::OrdinalIgnoreCase
+        )) {
+            $matching.Add($process)
+        }
+    }
+    return $matching.ToArray()
+}
+
+function Stop-VsleWindowsDesktopProcessesForUpgrade {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TargetRoot,
+        [int]$TimeoutMs = 5000,
+        [AllowNull()]
+        [scriptblock]$ProcessLookup,
+        [AllowNull()]
+        [scriptblock]$StopProcessAction,
+        [AllowNull()]
+        [scriptblock]$SleepAction
+    )
+
+    $targetExecutable = [System.IO.Path]::GetFullPath(
+        (Join-Path $TargetRoot "WeisileLink.exe")
+    )
+
+    if ($null -eq $ProcessLookup) {
+        $ProcessLookup = {
+            if (
+                [System.Environment]::OSVersion.Platform -ne
+                [System.PlatformID]::Win32NT
+            ) {
+                return @()
+            }
+            return @(
+                Get-CimInstance `
+                    -ClassName Win32_Process `
+                    -Filter "Name = 'WeisileLink.exe'" `
+                    -ErrorAction SilentlyContinue
+            )
+        }
+    }
+    if ($null -eq $StopProcessAction) {
+        $StopProcessAction = {
+            param($process)
+            $processId = Get-VsleWindowsDesktopProcessId -Process $process
+            if ($processId -le 0) {
+                throw "WeisileLink process does not expose a valid process ID."
+            }
+            Stop-Process -Id $processId -Force -ErrorAction Stop
+        }
+    }
+    if ($null -eq $SleepAction) {
+        $SleepAction = {
+            param($milliseconds)
+            Start-Sleep -Milliseconds $milliseconds
+        }
+    }
+
+    $initialProcesses = @(
+        Get-VsleMatchingWindowsDesktopProcesses `
+            -Processes @(& $ProcessLookup) `
+            -TargetExecutable $targetExecutable
+    )
+    if ($initialProcesses.Count -eq 0) {
+        return [PSCustomObject]@{
+            Status = "passed"
+            Blocking = $false
+            Summary = "No running target WeisileLink process needed to be stopped."
+            Evidence = "Target executable: $targetExecutable`nStopped process IDs: none"
+            TargetExecutable = $targetExecutable
+            StoppedProcessIds = @()
+            RemainingProcessIds = @()
+        }
+    }
+
+    $stoppedProcessIds = New-Object System.Collections.Generic.List[int]
+    $stopErrors = New-Object System.Collections.Generic.List[string]
+    foreach ($process in $initialProcesses) {
+        $processId = Get-VsleWindowsDesktopProcessId -Process $process
+        try {
+            & $StopProcessAction $process
+            if ($processId -gt 0) {
+                $stoppedProcessIds.Add($processId)
+            }
+        } catch {
+            $stopErrors.Add("PID ${processId}: $($_.Exception.Message)")
+        }
+    }
+
+    $timeout = [Math]::Max(0, $TimeoutMs)
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($timeout)
+    do {
+        $remainingProcesses = @(
+            Get-VsleMatchingWindowsDesktopProcesses `
+                -Processes @(& $ProcessLookup) `
+                -TargetExecutable $targetExecutable
+        )
+        if ($remainingProcesses.Count -eq 0) {
+            $stoppedText = if ($stoppedProcessIds.Count -gt 0) {
+                $stoppedProcessIds.ToArray() -join ", "
+            } else {
+                "none"
+            }
+            return [PSCustomObject]@{
+                Status = "passed"
+                Blocking = $false
+                Summary = "Existing WeisileLink Desktop process stopped before upgrade."
+                Evidence = "Target executable: $targetExecutable`nStopped process IDs: $stoppedText"
+                TargetExecutable = $targetExecutable
+                StoppedProcessIds = $stoppedProcessIds.ToArray()
+                RemainingProcessIds = @()
+            }
+        }
+
+        if ([DateTime]::UtcNow -ge $deadline) {
+            break
+        }
+        & $SleepAction 100
+    } while ($true)
+
+    $remainingProcessIds = @(
+        $remainingProcesses |
+            ForEach-Object { Get-VsleWindowsDesktopProcessId -Process $_ } |
+            Where-Object { $_ -gt 0 }
+    )
+    $evidenceParts = New-Object System.Collections.Generic.List[string]
+    $evidenceParts.Add("Target executable: $targetExecutable")
+    $evidenceParts.Add("Remaining process IDs: $($remainingProcessIds -join ', ')")
+    if ($stopErrors.Count -gt 0) {
+        $evidenceParts.Add("Stop errors: $($stopErrors -join '; ')")
+    }
+    $evidenceParts.Add(
+        "Close WeisileLink Desktop in Task Manager, then click Retry."
+    )
+
+    return [PSCustomObject]@{
+        Status = "blocked"
+        Blocking = $true
+        ManualConfirmationRequired = $true
+        Summary = "Existing WeisileLink Desktop process is still using the install files."
+        Evidence = $evidenceParts.ToArray() -join [Environment]::NewLine
+        TargetExecutable = $targetExecutable
+        StoppedProcessIds = $stoppedProcessIds.ToArray()
+        RemainingProcessIds = $remainingProcessIds
+    }
+}
+
 function Invoke-VsleWindowsDesktopInstallExecution {
     [CmdletBinding()]
     param(
@@ -221,8 +430,38 @@ function Invoke-VsleWindowsDesktopInstallExecution {
     }
 
     Assert-VsleSafeWindowsTargetRoot -TargetRoot $Plan.TargetRoot
+    $processEvidence = "No existing target directory required process cleanup."
     if ((Test-Path -LiteralPath $Plan.TargetRoot) -and $Force) {
-        Remove-Item -LiteralPath $Plan.TargetRoot -Recurse -Force
+        $processResult = Stop-VsleWindowsDesktopProcessesForUpgrade `
+            -TargetRoot $Plan.TargetRoot
+        if ($processResult.Status -eq "blocked") {
+            return [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                ManualConfirmationRequired = $true
+                Summary = $processResult.Summary
+                Evidence = $processResult.Evidence
+                Plan = $Plan
+            }
+        }
+        $processEvidence = $processResult.Evidence
+        try {
+            Remove-Item -LiteralPath $Plan.TargetRoot -Recurse -Force
+        } catch {
+            $targetExecutable = Join-Path $Plan.TargetRoot "WeisileLink.exe"
+            return [PSCustomObject]@{
+                Status = "blocked"
+                Blocking = $true
+                ManualConfirmationRequired = $true
+                Summary = "Windows still denied replacement of WeisileLink Desktop files."
+                Evidence = @(
+                    "Target executable: $targetExecutable",
+                    "Remove error: $($_.Exception.Message)",
+                    "Close WeisileLink Desktop and any antivirus scan using this file, then click Retry."
+                ) -join [Environment]::NewLine
+                Plan = $Plan
+            }
+        }
     }
     if (-not (Test-Path -LiteralPath $Plan.TargetRoot)) {
         [void](New-Item -ItemType Directory -Path $Plan.TargetRoot -Force)
@@ -290,6 +529,7 @@ function Invoke-VsleWindowsDesktopInstallExecution {
 
     $evidence = @(
         "Target root: $($Plan.TargetRoot)",
+        $processEvidence,
         "Executable copied: $targetExe",
         "Install helper copied: $targetInstallScript",
         "Service metadata copied: $targetServiceXml",
@@ -635,4 +875,4 @@ function Prepare-VsleWindowsDesktopInstallStaging {
     return Test-VsleWindowsDesktopInstallStaging -Plan $plan
 }
 
-Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand, Get-VsleWindowsDesktopBridgePlan, Test-VsleTcpPort, Invoke-VsleWindowsDesktopBridgeVerification
+Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Stop-VsleWindowsDesktopProcessesForUpgrade, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand, Get-VsleWindowsDesktopBridgePlan, Test-VsleTcpPort, Invoke-VsleWindowsDesktopBridgeVerification

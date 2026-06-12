@@ -182,6 +182,12 @@ The command sequence runs only after the teacher clicks `Confirm EV3 Install`.
 Bluetooth Full VSLE remains an ev3dev + VSLE server path, and the wizard keeps
 official-firmware Bluetooth separate from Full VSLE.
 
+When reinstalling WeisileLink Desktop, the confirmed install step stops only a
+running `WeisileLink.exe` whose executable path matches the target install
+directory, waits for it to exit, and then replaces the files. If Windows still
+holds the executable open, the wizard reports the target path and remaining
+process IDs so the teacher can close that process in Task Manager and retry.
+
 On macOS, automated validation can check the input model, command plan, source
 file paths, XAML structure, and redaction boundaries. Real USB/WiFi SSH install
 and Windows Bluetooth pairing still require a Windows machine and real EV3

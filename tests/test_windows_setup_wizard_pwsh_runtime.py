@@ -152,6 +152,103 @@ if ($stdin -notmatch "sudo -S") {
             throw "desktop staging status was $($desktopStage.Status)"
         }
 
+        $desktopInstallTarget = Join-Path `
+            ([System.IO.Path]::GetTempPath()) `
+            "VSLE/pwsh-runtime/installed/WeisileLink"
+        if (Test-Path -LiteralPath $desktopInstallTarget) {
+            Remove-Item -LiteralPath $desktopInstallTarget -Recurse -Force
+        }
+        [void](New-Item -ItemType Directory -Path $desktopInstallTarget -Force)
+        Set-Content `
+            -Path (Join-Path $desktopInstallTarget "WeisileLink.exe") `
+            -Value "old-executable" `
+            -Encoding ASCII
+        $desktopStage.Plan.TargetRoot = $desktopInstallTarget
+        $desktopInstall = Invoke-VsleWindowsDesktopInstallExecution `
+            -Plan $desktopStage.Plan `
+            -ConfirmInstall `
+            -Force
+        if ($desktopInstall.Status -ne "passed") {
+            throw "desktop forced replacement status was $($desktopInstall.Status): $($desktopInstall.Evidence)"
+        }
+        if (-not (Test-Path -LiteralPath (Join-Path $desktopInstallTarget "install.ps1"))) {
+            throw "desktop forced replacement did not copy install.ps1"
+        }
+
+        $targetRoot = Join-Path `
+            ([System.IO.Path]::GetTempPath()) `
+            "VSLE/pwsh-runtime/Programs/VSLE/WeisileLink"
+        $targetExe = Join-Path $targetRoot "WeisileLink.exe"
+        $otherExe = Join-Path `
+            ([System.IO.Path]::GetTempPath()) `
+            "VSLE/other/WeisileLink.exe"
+        $global:vsleUpgradeProcesses = @(
+            [pscustomobject]@{
+                ProcessId = 4101
+                ExecutablePath = $targetExe
+            },
+            [pscustomobject]@{
+                ProcessId = 4102
+                ExecutablePath = $otherExe
+            }
+        )
+        $global:vsleStoppedUpgradeProcessIds = @()
+        $lookupUpgradeProcesses = {
+            return @($global:vsleUpgradeProcesses)
+        }
+        $stopUpgradeProcess = {
+            param($process)
+            $global:vsleStoppedUpgradeProcessIds += [int]$process.ProcessId
+            $global:vsleUpgradeProcesses = @(
+                $global:vsleUpgradeProcesses |
+                    Where-Object {
+                        [int]$_.ProcessId -ne [int]$process.ProcessId
+                    }
+            )
+        }
+        $noSleep = { param($milliseconds) }
+        $upgradeStop = Stop-VsleWindowsDesktopProcessesForUpgrade `
+            -TargetRoot $targetRoot `
+            -TimeoutMs 50 `
+            -ProcessLookup $lookupUpgradeProcesses `
+            -StopProcessAction $stopUpgradeProcess `
+            -SleepAction $noSleep
+        if ($upgradeStop.Status -ne "passed") {
+            throw "desktop upgrade process stop status was $($upgradeStop.Status): $($upgradeStop.Evidence)"
+        }
+        if (
+            $global:vsleStoppedUpgradeProcessIds.Count -ne 1 -or
+            $global:vsleStoppedUpgradeProcessIds[0] -ne 4101
+        ) {
+            throw "desktop upgrade stopped the wrong process IDs: $($global:vsleStoppedUpgradeProcessIds -join ',')"
+        }
+        if ($upgradeStop.Evidence -notmatch "4101") {
+            throw "desktop upgrade stop evidence did not include stopped PID"
+        }
+
+        $global:vsleUpgradeProcesses = @(
+            [pscustomobject]@{
+                ProcessId = 4201
+                ExecutablePath = $targetExe
+            }
+        )
+        $neverStops = { param($process) }
+        $upgradeBlocked = Stop-VsleWindowsDesktopProcessesForUpgrade `
+            -TargetRoot $targetRoot `
+            -TimeoutMs 0 `
+            -ProcessLookup $lookupUpgradeProcesses `
+            -StopProcessAction $neverStops `
+            -SleepAction $noSleep
+        if ($upgradeBlocked.Status -ne "blocked") {
+            throw "desktop upgrade locked process status was $($upgradeBlocked.Status)"
+        }
+        if (
+            $upgradeBlocked.Evidence -notmatch "4201" -or
+            $upgradeBlocked.Evidence -notmatch [regex]::Escape($targetExe)
+        ) {
+            throw "desktop upgrade locked evidence omitted PID or target path: $($upgradeBlocked.Evidence)"
+        }
+
         $wifiBridgePlan = Get-VsleWindowsDesktopBridgePlan -Ev3SetupInput $ev3Input
         if ($wifiBridgePlan.LaunchMode -ne "direct-runtime") {
             throw "WiFi bridge plan launch mode was $($wifiBridgePlan.LaunchMode)"

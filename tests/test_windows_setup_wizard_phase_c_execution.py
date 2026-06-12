@@ -26,8 +26,11 @@ def test_phase_c_execution_requires_explicit_confirmation_exports():
 
     assert "Invoke-VsleWindowsDesktopInstallExecution" in text
     assert "Test-VsleWindowsDesktopStartupCommand" in text
+    assert "Stop-VsleWindowsDesktopProcessesForUpgrade" in text
     assert "[switch]$ConfirmInstall" in text
     assert "Manual confirmation required before installing WeisileLink Desktop." in text
+    assert "Remaining process IDs:" in text
+    assert "Target executable:" in text
     assert "Copy-Item" in text
     assert "CallInstallScript = $true" in text
     assert "desktop-supervise" in text
@@ -40,6 +43,22 @@ def test_phase_c_execution_requires_explicit_confirmation_exports():
     )
     assert "Invoke-VsleWindowsDesktopInstallExecution" in export_line
     assert "Test-VsleWindowsDesktopStartupCommand" in export_line
+    assert "Stop-VsleWindowsDesktopProcessesForUpgrade" in export_line
+
+
+def test_phase_c_forced_replace_stops_target_process_before_remove():
+    text = _read(ACTION_MODULE)
+    install_start = text.index("function Invoke-VsleWindowsDesktopInstallExecution")
+    install_end = text.index("\nfunction Test-VsleTcpPort", install_start)
+    install_body = text[install_start:install_end]
+
+    stop_index = install_body.index("Stop-VsleWindowsDesktopProcessesForUpgrade")
+    remove_index = install_body.index(
+        "Remove-Item -LiteralPath $Plan.TargetRoot -Recurse -Force"
+    )
+
+    assert stop_index < remove_index
+    assert '$processResult.Status -eq "blocked"' in install_body
 
 
 def test_phase_c_wizard_has_dedicated_confirmation_control():
