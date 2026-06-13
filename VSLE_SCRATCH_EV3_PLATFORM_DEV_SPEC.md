@@ -4151,6 +4151,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_c_execution.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `docs/superpowers/specs/2026-06-12-windows-desktop-locked-executable-design.md`, `docs/superpowers/plans/2026-06-12-windows-desktop-locked-executable.md`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, reopen the wizard, return to Install WeisileLink Desktop, and click Retry or Confirm Install. The wizard will stop the old target WeisileLink process before replacing the executable.
 
+### [2026-06-13] Windows EV3 external runner status marker
+- **Status**: ✅ Completed
+- **Commit**: `bc6e269`
+- **What was done**: Diagnosed the exported Windows diagnostics as an EV3 external runner result-file gap: the wizard was waiting for `ev3-install-result-20260613-102714.json`, but no result file had been written. The external runner now writes a `running` marker result before password input, wraps module import inside the catch-protected path, reports stale running markers when the process has exited, and includes ProcessId/process-running evidence when no result exists.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and click Retry while the external window is open if it appears idle; the wizard will now show whether it is waiting for password input or whether the runner exited early.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
