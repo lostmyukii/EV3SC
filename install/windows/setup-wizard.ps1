@@ -996,17 +996,26 @@ function New-VsleEv3ExternalInstallRunner {
     $runnerLines = @(
         '$ErrorActionPreference = "Stop"',
         '$Host.UI.RawUI.WindowTitle = "VSLE EV3 Server Install"',
-        "Import-Module $moduleLiteral -Force -DisableNameChecking",
         "`$planPath = $planLiteral",
         "`$resultPath = $resultLiteral",
-        'Write-Host "VSLE EV3 Server install is running."',
-        'Write-Host "Enter the EV3 robot password once for remote sudo."',
-        'Write-Host "The input is visible so you can verify it. Do not share a screenshot while typing."',
-        '$ev3SudoPassword = Read-Host "EV3 robot password (press Enter to use maker)"',
-        'if ([string]::IsNullOrWhiteSpace($ev3SudoPassword)) { $ev3SudoPassword = "maker" }',
-        'Write-Host "Windows OpenSSH may still request the SSH login password separately."',
-        'Write-Host "Do not close this window until it prints a final status."',
+        '$initialResult = [PSCustomObject]@{',
+        '    Status = "running"',
+        '    Blocking = $true',
+        '    ManualConfirmationRequired = $true',
+        '    Summary = "EV3 Server install runner is waiting for password input."',
+        '    Evidence = ("Runner started at: " + (Get-Date -Format "o") + [Environment]::NewLine + "Complete the visible EV3 robot password prompt in the external PowerShell window, then click Retry after the final status prints.")',
+        '}',
+        '$initialResult | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
+        '$ev3SudoPassword = $null',
         'try {',
+        "    Import-Module $moduleLiteral -Force -DisableNameChecking",
+        '    Write-Host "VSLE EV3 Server install is running."',
+        '    Write-Host "Enter the EV3 robot password once for remote sudo."',
+        '    Write-Host "The input is visible so you can verify it. Do not share a screenshot while typing."',
+        '    $ev3SudoPassword = Read-Host "EV3 robot password (press Enter to use maker)"',
+        '    if ([string]::IsNullOrWhiteSpace($ev3SudoPassword)) { $ev3SudoPassword = "maker" }',
+        '    Write-Host "Windows OpenSSH may still request the SSH login password separately."',
+        '    Write-Host "Do not close this window until it prints a final status."',
         '    $plan = Get-Content -Path $planPath -Raw | ConvertFrom-Json',
         '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands -Ev3SudoPassword $ev3SudoPassword',
         '} catch {',
@@ -1088,6 +1097,28 @@ function Update-VsleEv3ExternalInstallResultStep {
     if (Test-Path -LiteralPath $Script:VlseLastEv3ExternalInstallResultPath) {
         try {
             $result = Get-Content -Path $Script:VlseLastEv3ExternalInstallResultPath -Raw | ConvertFrom-Json
+            if ([string]$result.Status -eq "running") {
+                $process = $null
+                if ($null -ne $Script:VlseLastEv3ExternalInstallProcessId) {
+                    $process = Get-Process -Id $Script:VlseLastEv3ExternalInstallProcessId -ErrorAction SilentlyContinue
+                }
+                if ($null -eq $process) {
+                    $result = [PSCustomObject]@{
+                        Status = "blocked"
+                        Blocking = $true
+                        ManualConfirmationRequired = $true
+                        Summary = "EV3 Server install runner stopped before writing a final result."
+                        Evidence = @(
+                            "外部 EV3 安装窗口已结束，但结果文件仍停留在 running 状态。",
+                            "请重新点击确认安装；如果窗口报错，请导出诊断或发送窗口截图。",
+                            "ProcessId: $($Script:VlseLastEv3ExternalInstallProcessId)",
+                            "Process running: False",
+                            "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
+                            "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
+                        ) -join [Environment]::NewLine
+                    }
+                }
+            }
         } catch {
             $result = [PSCustomObject]@{
                 Status = "blocked"
@@ -1120,6 +1151,8 @@ function Update-VsleEv3ExternalInstallResultStep {
         "外部 EV3 安装窗口尚未写出结果。",
         "如果窗口仍在运行，请先完成可见的 sudo 密码输入；Windows/OpenSSH 仍可能单独提示 SSH 登录密码。",
         "完成后回到向导点击重试。",
+        "ProcessId: $($Script:VlseLastEv3ExternalInstallProcessId)",
+        "Process running: $isRunning",
         "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
         "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
     ) -join [Environment]::NewLine

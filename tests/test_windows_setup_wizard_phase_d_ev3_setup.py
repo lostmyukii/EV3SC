@@ -77,6 +77,10 @@ def test_phase_d_ev3_module_validates_transport_and_never_stores_secrets():
 def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     xaml = _read(XAML)
     script = _read(SCRIPT)
+    runner_section = script[
+        script.index("function New-VsleEv3ExternalInstallRunner") :
+        script.index("function Start-VsleEv3InstallConsole")
+    ]
 
     for control in (
         'x:Name="Ev3SetupPanel"',
@@ -115,8 +119,20 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "Start-Process" in script
     assert "ev3-install-result" in script
     assert "Return to the VSLE wizard and click Retry" in script
+    assert "EV3 Server install runner is waiting for password input." in script
+    assert (
+        runner_section.index(
+            "EV3 Server install runner is waiting for password input."
+        )
+        < runner_section.index('Read-Host "EV3 robot password')
+    )
+    assert runner_section.index("'try {'") < runner_section.index(
+        "Import-Module $moduleLiteral -Force -DisableNameChecking"
+    )
     assert 'Read-Host "EV3 robot password (press Enter to use maker)"' in script
     assert "-Ev3SudoPassword $ev3SudoPassword" in script
+    assert "ProcessId:" in script
+    assert "Process running:" in script
     assert '$continueButton.IsEnabled = (' in script
     assert "-not [bool]$Step.Blocking" in script
     assert "ConfirmEv3InstallButton" in script
