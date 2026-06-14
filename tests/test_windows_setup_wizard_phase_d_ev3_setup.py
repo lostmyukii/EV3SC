@@ -81,6 +81,10 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
         script.index("function New-VsleEv3ExternalInstallRunner") :
         script.index("function Start-VsleEv3InstallConsole")
     ]
+    auto_refresh_section = script[
+        script.index("function New-VsleEv3ExternalInstallAutoRefreshTimer") :
+        script.index("function Run-VsleConfirmEv3ServerInstallStep")
+    ]
 
     for control in (
         'x:Name="Ev3SetupPanel"',
@@ -119,7 +123,14 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "Start-Process" in script
     assert "ev3-install-result" in script
     assert "Return to the VSLE wizard and click Retry" in script
+    assert "Write-VsleEv3RunnerStatus" in script
     assert "EV3 Server install runner is waiting for password input." in script
+    assert "EV3 Server install runner is executing SSH/SCP commands." in script
+    assert "OpenSSH host-key, yes/no, or SSH login password prompt" in script
+    assert (
+        runner_section.index("EV3 Server install runner is waiting for password input.")
+        < runner_section.index("EV3 Server install runner is executing SSH/SCP commands.")
+    )
     assert (
         runner_section.index(
             "EV3 Server install runner is waiting for password input."
@@ -133,6 +144,12 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "-Ev3SudoPassword $ev3SudoPassword" in script
     assert "ProcessId:" in script
     assert "Process running:" in script
+    assert "Last checked:" in script
+    assert "New-VsleEv3ExternalInstallAutoRefreshTimer" in script
+    assert "[System.Windows.Threading.DispatcherTimer]" in script
+    assert "Update-VsleEv3ExternalInstallResultStep -Window $window" in script
+    assert "VlseLastEv3ExternalInstallResultPath" in auto_refresh_section
+    assert 'SelectedItem.Status -ne "running"' not in auto_refresh_section
     assert '$continueButton.IsEnabled = (' in script
     assert "-not [bool]$Step.Blocking" in script
     assert "ConfirmEv3InstallButton" in script

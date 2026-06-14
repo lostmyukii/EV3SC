@@ -998,14 +998,23 @@ function New-VsleEv3ExternalInstallRunner {
         '$Host.UI.RawUI.WindowTitle = "VSLE EV3 Server Install"',
         "`$planPath = $planLiteral",
         "`$resultPath = $resultLiteral",
-        '$initialResult = [PSCustomObject]@{',
-        '    Status = "running"',
-        '    Blocking = $true',
-        '    ManualConfirmationRequired = $true',
-        '    Summary = "EV3 Server install runner is waiting for password input."',
-        '    Evidence = ("Runner started at: " + (Get-Date -Format "o") + [Environment]::NewLine + "Complete the visible EV3 robot password prompt in the external PowerShell window, then click Retry after the final status prints.")',
+        'function Write-VsleEv3RunnerStatus {',
+        '    param(',
+        '        [Parameter(Mandatory = $true)]',
+        '        [string]$Summary,',
+        '        [Parameter(Mandatory = $true)]',
+        '        [string]$Evidence',
+        '    )',
+        '    $statusResult = [PSCustomObject]@{',
+        '        Status = "running"',
+        '        Blocking = $true',
+        '        ManualConfirmationRequired = $true',
+        '        Summary = $Summary',
+        '        Evidence = ("Runner updated at: " + (Get-Date -Format "o") + [Environment]::NewLine + $Evidence)',
+        '    }',
+        '    $statusResult | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
         '}',
-        '$initialResult | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
+        'Write-VsleEv3RunnerStatus -Summary "EV3 Server install runner is waiting for password input." -Evidence "Complete the visible EV3 robot password prompt in the external PowerShell window. The wizard auto-refreshes this status, and Retry can still load the latest result."',
         '$ev3SudoPassword = $null',
         'try {',
         "    Import-Module $moduleLiteral -Force -DisableNameChecking",
@@ -1017,6 +1026,7 @@ function New-VsleEv3ExternalInstallRunner {
         '    Write-Host "Windows OpenSSH may still request the SSH login password separately."',
         '    Write-Host "Do not close this window until it prints a final status."',
         '    $plan = Get-Content -Path $planPath -Raw | ConvertFrom-Json',
+        '    Write-VsleEv3RunnerStatus -Summary "EV3 Server install runner is executing SSH/SCP commands." -Evidence "The external PowerShell window may be waiting at an OpenSSH host-key, yes/no, or SSH login password prompt. If it asks Are you sure you want to continue connecting, type yes and press Enter. If it asks Password, type the EV3 SSH password; characters may not appear."',
         '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands -Ev3SudoPassword $ev3SudoPassword',
         '} catch {',
         '    $message = [string]$_.Exception.Message',
@@ -1113,9 +1123,35 @@ function Update-VsleEv3ExternalInstallResultStep {
                             "请重新点击确认安装；如果窗口报错，请导出诊断或发送窗口截图。",
                             "ProcessId: $($Script:VlseLastEv3ExternalInstallProcessId)",
                             "Process running: False",
+                            "Last checked: $(Get-Date -Format 'o')",
                             "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
                             "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
                         ) -join [Environment]::NewLine
+                    }
+                } else {
+                    $summary = [string]$result.Summary
+                    if ([string]::IsNullOrWhiteSpace($summary)) {
+                        $summary = "EV3 Server install runner is still running."
+                    }
+                    $evidence = @(
+                        [string]$result.Evidence,
+                        "向导自动刷新：外部 EV3 安装窗口仍在运行。",
+                        "如果外部窗口显示 Are you sure you want to continue connecting，请输入 yes 后按 Enter。",
+                        "如果外部窗口显示 Password，请输入 EV3 SSH 密码；该输入不会显示字符。",
+                        "ProcessId: $($Script:VlseLastEv3ExternalInstallProcessId)",
+                        "Process running: True",
+                        "Last checked: $(Get-Date -Format 'o')",
+                        "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
+                        "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
+                    ) | Where-Object {
+                        -not [string]::IsNullOrWhiteSpace([string]$_)
+                    }
+                    $result = [PSCustomObject]@{
+                        Status = "running"
+                        Blocking = $true
+                        ManualConfirmationRequired = $true
+                        Summary = $summary
+                        Evidence = ($evidence -join [Environment]::NewLine)
                     }
                 }
             }
@@ -1153,6 +1189,7 @@ function Update-VsleEv3ExternalInstallResultStep {
         "完成后回到向导点击重试。",
         "ProcessId: $($Script:VlseLastEv3ExternalInstallProcessId)",
         "Process running: $isRunning",
+        "Last checked: $(Get-Date -Format 'o')",
         "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
         "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
     ) -join [Environment]::NewLine
@@ -1165,6 +1202,35 @@ function Update-VsleEv3ExternalInstallResultStep {
     }
     Update-VsleEv3SetupStep -Window $Window -StepId "install-ev3-server" -Result $result
     return $true
+}
+
+function New-VsleEv3ExternalInstallAutoRefreshTimer {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Window]$Window,
+        [Parameter(Mandatory = $true)]
+        [object]$StepList
+    )
+
+    [System.Windows.Threading.DispatcherTimer]$timer = New-Object System.Windows.Threading.DispatcherTimer
+    $timer.Interval = [TimeSpan]::FromSeconds(2)
+    $timer.Add_Tick({
+        Invoke-VsleWizardUiAction -Window $Window -Action {
+            if ($null -eq $StepList.SelectedItem) {
+                return
+            }
+            if ([string]$StepList.SelectedItem.Id -ne "install-ev3-server") {
+                return
+            }
+            if ([string]::IsNullOrWhiteSpace($Script:VlseLastEv3ExternalInstallResultPath)) {
+                return
+            }
+
+            [void](Update-VsleEv3ExternalInstallResultStep -Window $window)
+        }
+    }.GetNewClosure())
+
+    return $timer
 }
 
 function Run-VsleConfirmEv3ServerInstallStep {
@@ -1195,7 +1261,7 @@ function Run-VsleConfirmEv3ServerInstallStep {
             "已打开独立 PowerShell 窗口执行 EV3 安装。",
             "安装窗口会先显示输入一次 EV3 sudo 密码；直接回车使用默认密码 maker。",
             "Windows/OpenSSH 仍可能单独提示 SSH 登录密码，该提示不会显示输入字符。",
-            "安装窗口打印最终状态后，回到本向导点击重试读取结果。",
+            "向导会自动刷新外部安装状态；安装窗口打印最终状态后，也可以点击重试读取结果。",
             "ProcessId: $($externalRun.ProcessId)",
             "Result file: $($externalRun.ResultPath)",
             "Script file: $($externalRun.ScriptPath)"
@@ -1354,6 +1420,16 @@ function Open-VsleSetupWizard {
             }
         }
     })
+
+    $ev3ExternalInstallRefreshTimer = New-VsleEv3ExternalInstallAutoRefreshTimer `
+        -Window $window `
+        -StepList $stepList
+    $window.Add_Closed({
+        if ($null -ne $ev3ExternalInstallRefreshTimer) {
+            $ev3ExternalInstallRefreshTimer.Stop()
+        }
+    }.GetNewClosure())
+    $ev3ExternalInstallRefreshTimer.Start()
 
     Set-CurrentStep -Window $window -Step $steps[0]
     [void]$window.ShowDialog()
