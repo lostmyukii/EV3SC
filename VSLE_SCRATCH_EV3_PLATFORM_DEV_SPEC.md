@@ -4158,6 +4158,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and click Retry while the external window is open if it appears idle; the wizard will now show whether it is waiting for password input or whether the runner exited early.
 
+### [2026-06-14] Windows EV3 runner auto-refresh feedback
+- **Status**: ✅ Completed
+- **Commit**: `f64e423`
+- **What was done**: Diagnosed the 2026-06-14 diagnostics and screenshot as an observability gap: the external EV3 PowerShell runner was active and waiting on OpenSSH host-key or SSH password interaction, but the wizard only displayed the initial running marker. The runner now rewrites the result JSON when it moves from visible EV3 password entry into SSH/SCP execution, and the WPF wizard starts a DispatcherTimer that auto-refreshes the EV3 step every two seconds with ProcessId, process-running state, last checked time, and OpenSSH prompt guidance.
+- **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, type `yes` at a new OpenSSH host-key prompt when shown, then enter the EV3 SSH password at hidden `Password:` prompts while the wizard auto-refreshes the current runner status.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
