@@ -4165,6 +4165,13 @@ material into:
 - **Files created/modified**: `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, type `yes` at a new OpenSSH host-key prompt when shown, then enter the EV3 SSH password at hidden `Password:` prompts while the wizard auto-refreshes the current runner status.
 
+### [2026-06-17] Windows EV3 command-level install progress
+- **Status**: ✅ Completed
+- **Commit**: `7e217eb`
+- **What was done**: Diagnosed the two-hour running EV3 installer as a native SSH/SCP command blocked inside `Invoke-VsleEv3ServerInstall`: the wizard could see that the runner process was alive, but the runner only wrote one generic SSH/SCP status before entering the blocking command loop. EV3 install execution now emits a status callback before each command, and the external runner writes command-level fields such as current command name, command index, executable, preview, start time, and elapsed minutes into the result JSON for the wizard to show.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and use the displayed `Current command` field to see whether the run is waiting in `prepare-remote-root`, `copy-ev3-server-files`, or `install-and-check-service`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
