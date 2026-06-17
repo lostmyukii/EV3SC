@@ -142,6 +142,56 @@ if ($stdin -notmatch "sudo -S") {
             throw "EV3 simulated failure evidence collapsed to RemoteException"
         }
 
+        $statusEvents = New-Object System.Collections.Generic.List[object]
+        $statusCallback = {
+            param($event)
+            $statusEvents.Add($event)
+        }
+        $statusPlan = [pscustomobject]@{
+            Status = "needs_manual_action"
+            CommandSteps = @(
+                [pscustomobject]@{
+                    Name = "status-step-one"
+                    Executable = "pwsh"
+                    Arguments = @("-NoLogo", "-NoProfile", "-Command", "exit 0")
+                    Preview = "status step one"
+                },
+                [pscustomobject]@{
+                    Name = "status-step-two"
+                    Executable = "pwsh"
+                    Arguments = @("-NoLogo", "-NoProfile", "-Command", "exit 0")
+                    Preview = "status step two"
+                }
+            )
+        }
+        $statusResult = Invoke-VsleEv3ServerInstall `
+            -Plan $statusPlan `
+            -ConfirmEv3Install `
+            -RunSshCommands `
+            -StatusUpdateScript $statusCallback
+        if ($statusResult.Status -ne "passed") {
+            throw "EV3 status callback plan failed: $($statusResult.Evidence)"
+        }
+        if ($statusEvents.Count -ne 2) {
+            throw "EV3 status callback count was $($statusEvents.Count)"
+        }
+        if (
+            $statusEvents[0].Name -ne "status-step-one" -or
+            $statusEvents[0].StepIndex -ne 1 -or
+            $statusEvents[0].StepCount -ne 2 -or
+            $statusEvents[0].Preview -ne "status step one" -or
+            [string]::IsNullOrWhiteSpace([string]$statusEvents[0].StartedAt)
+        ) {
+            throw "first EV3 status callback payload was wrong: $($statusEvents[0] | ConvertTo-Json -Depth 8)"
+        }
+        if (
+            $statusEvents[1].Name -ne "status-step-two" -or
+            $statusEvents[1].StepIndex -ne 2 -or
+            $statusEvents[1].StepCount -ne 2
+        ) {
+            throw "second EV3 status callback payload was wrong: $($statusEvents[1] | ConvertTo-Json -Depth 8)"
+        }
+
         $stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) `
             "VSLE/pwsh-runtime/windows-release-evidence"
         $desktopStage = Prepare-VsleWindowsDesktopInstallStaging `

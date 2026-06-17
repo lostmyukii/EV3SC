@@ -488,7 +488,9 @@ function Invoke-VsleEv3ServerInstall {
         [switch]$ConfirmEv3Install,
         [switch]$RunSshCommands,
         [AllowNull()]
-        [string]$Ev3SudoPassword
+        [string]$Ev3SudoPassword,
+        [AllowNull()]
+        [scriptblock]$StatusUpdateScript
     )
 
     if (-not $ConfirmEv3Install) {
@@ -529,7 +531,24 @@ function Invoke-VsleEv3ServerInstall {
     }
 
     $results = New-Object System.Collections.Generic.List[object]
-    foreach ($step in $Plan.CommandSteps) {
+    $commandSteps = @($Plan.CommandSteps)
+    $stepCount = $commandSteps.Count
+    for ($stepOffset = 0; $stepOffset -lt $stepCount; $stepOffset++) {
+        $step = $commandSteps[$stepOffset]
+        $preview = ""
+        if ($step.PSObject.Properties.Name -contains "Preview") {
+            $preview = [string]$step.Preview
+        }
+        if ($null -ne $StatusUpdateScript) {
+            & $StatusUpdateScript ([PSCustomObject]@{
+                Name = [string]$step.Name
+                StepIndex = $stepOffset + 1
+                StepCount = $stepCount
+                Executable = [string]$step.Executable
+                Preview = $preview
+                StartedAt = (Get-Date).ToString("o")
+            })
+        }
         $request = Get-VsleEv3CommandExecutionRequest `
             -Step $step `
             -Ev3SudoPassword $Ev3SudoPassword

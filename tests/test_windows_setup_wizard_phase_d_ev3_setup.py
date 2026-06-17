@@ -126,6 +126,10 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "Write-VsleEv3RunnerStatus" in script
     assert "EV3 Server install runner is waiting for password input." in script
     assert "EV3 Server install runner is executing SSH/SCP commands." in script
+    assert "CurrentCommandName" in script
+    assert "CurrentCommandStartedAt" in script
+    assert "Current command elapsed minutes:" in script
+    assert "-StatusUpdateScript $statusCallback" in script
     assert "OpenSSH host-key, yes/no, or SSH login password prompt" in script
     assert (
         runner_section.index("EV3 Server install runner is waiting for password input.")
@@ -179,6 +183,10 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "SudoPasswordArgumentIndex = 2" in module
     assert "New-VsleEv3SudoPasswordStandardInput" in module
     assert "sudo -S" in module
+    assert "[scriptblock]$StatusUpdateScript" in module
+    assert "StepIndex" in module
+    assert "StepCount" in module
+    assert "StartedAt" in module
     assert '$lines -join "`n"' in module
     assert 'Arguments = [string[]]$arguments' in module
     assert "StandardInputText = $standardInputText" in module

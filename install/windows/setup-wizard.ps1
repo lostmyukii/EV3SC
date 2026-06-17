@@ -1003,7 +1003,13 @@ function New-VsleEv3ExternalInstallRunner {
         '        [Parameter(Mandatory = $true)]',
         '        [string]$Summary,',
         '        [Parameter(Mandatory = $true)]',
-        '        [string]$Evidence',
+        '        [string]$Evidence,',
+        '        [int]$CurrentCommandIndex = 0,',
+        '        [int]$CurrentCommandTotal = 0,',
+        '        [string]$CurrentCommandName = "",',
+        '        [string]$CurrentCommandStartedAt = "",',
+        '        [string]$CurrentCommandExecutable = "",',
+        '        [string]$CurrentCommandPreview = ""',
         '    )',
         '    $statusResult = [PSCustomObject]@{',
         '        Status = "running"',
@@ -1011,6 +1017,12 @@ function New-VsleEv3ExternalInstallRunner {
         '        ManualConfirmationRequired = $true',
         '        Summary = $Summary',
         '        Evidence = ("Runner updated at: " + (Get-Date -Format "o") + [Environment]::NewLine + $Evidence)',
+        '        CurrentCommandIndex = $CurrentCommandIndex',
+        '        CurrentCommandTotal = $CurrentCommandTotal',
+        '        CurrentCommandName = $CurrentCommandName',
+        '        CurrentCommandStartedAt = $CurrentCommandStartedAt',
+        '        CurrentCommandExecutable = $CurrentCommandExecutable',
+        '        CurrentCommandPreview = $CurrentCommandPreview',
         '    }',
         '    $statusResult | ConvertTo-Json -Depth 16 | Set-Content -Path $resultPath -Encoding UTF8',
         '}',
@@ -1027,7 +1039,20 @@ function New-VsleEv3ExternalInstallRunner {
         '    Write-Host "Do not close this window until it prints a final status."',
         '    $plan = Get-Content -Path $planPath -Raw | ConvertFrom-Json',
         '    Write-VsleEv3RunnerStatus -Summary "EV3 Server install runner is executing SSH/SCP commands." -Evidence "The external PowerShell window may be waiting at an OpenSSH host-key, yes/no, or SSH login password prompt. If it asks Are you sure you want to continue connecting, type yes and press Enter. If it asks Password, type the EV3 SSH password; characters may not appear."',
-        '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands -Ev3SudoPassword $ev3SudoPassword',
+        '    $statusCallback = {',
+        '        param($event)',
+        '        $stepLabel = ("{0}/{1}" -f $event.StepIndex, $event.StepCount)',
+        '        $startedAt = [string]$event.StartedAt',
+        '        $commandEvidence = @(',
+        '            ("Current command: " + $stepLabel + " " + $event.Name),',
+        '            ("Command started at: " + $startedAt),',
+        '            ("Executable: " + $event.Executable),',
+        '            ("Preview: " + $event.Preview),',
+        '            "This native OpenSSH/SCP command can wait for host-key confirmation or the EV3 SSH password. If the external window asks Are you sure you want to continue connecting, type yes and press Enter. If it asks Password, type the EV3 SSH password; characters may not appear."',
+        '        ) | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }',
+        '        Write-VsleEv3RunnerStatus -Summary ("EV3 Server install command " + $stepLabel + " is running: " + $event.Name + ".") -Evidence ($commandEvidence -join [Environment]::NewLine) -CurrentCommandIndex $event.StepIndex -CurrentCommandTotal $event.StepCount -CurrentCommandName $event.Name -CurrentCommandStartedAt $startedAt -CurrentCommandExecutable $event.Executable -CurrentCommandPreview $event.Preview',
+        '    }',
+        '    $result = Invoke-VsleEv3ServerInstall -Plan $plan -ConfirmEv3Install -RunSshCommands -Ev3SudoPassword $ev3SudoPassword -StatusUpdateScript $statusCallback',
         '} catch {',
         '    $message = [string]$_.Exception.Message',
         '    if ([string]::IsNullOrWhiteSpace($message)) { $message = [string]$_ }',
@@ -1133,8 +1158,41 @@ function Update-VsleEv3ExternalInstallResultStep {
                     if ([string]::IsNullOrWhiteSpace($summary)) {
                         $summary = "EV3 Server install runner is still running."
                     }
-                    $evidence = @(
-                        [string]$result.Evidence,
+                    $currentCommandEvidence = New-Object System.Collections.Generic.List[string]
+                    if (
+                        $result.PSObject.Properties.Name -contains "CurrentCommandName" -and
+                        -not [string]::IsNullOrWhiteSpace([string]$result.CurrentCommandName)
+                    ) {
+                        $commandIndex = [int](Get-VsleObjectPropertyValue -Object $result -Name "CurrentCommandIndex" -DefaultValue 0)
+                        $commandTotal = [int](Get-VsleObjectPropertyValue -Object $result -Name "CurrentCommandTotal" -DefaultValue 0)
+                        $commandName = [string]$result.CurrentCommandName
+                        $currentCommandEvidence.Add("Current command: $commandIndex/$commandTotal $commandName")
+
+                        $commandExecutable = [string](Get-VsleObjectPropertyValue -Object $result -Name "CurrentCommandExecutable" -DefaultValue "")
+                        if (-not [string]::IsNullOrWhiteSpace($commandExecutable)) {
+                            $currentCommandEvidence.Add("Current executable: $commandExecutable")
+                        }
+
+                        $commandPreview = [string](Get-VsleObjectPropertyValue -Object $result -Name "CurrentCommandPreview" -DefaultValue "")
+                        if (-not [string]::IsNullOrWhiteSpace($commandPreview)) {
+                            $currentCommandEvidence.Add("Current preview: $commandPreview")
+                        }
+
+                        $commandStartedAtText = [string](Get-VsleObjectPropertyValue -Object $result -Name "CurrentCommandStartedAt" -DefaultValue "")
+                        if (-not [string]::IsNullOrWhiteSpace($commandStartedAtText)) {
+                            $currentCommandEvidence.Add("Current command started at: $commandStartedAtText")
+                            try {
+                                $commandStartedAt = [System.DateTimeOffset]::Parse($commandStartedAtText)
+                                $elapsed = [System.DateTimeOffset]::Now - $commandStartedAt
+                                $currentCommandEvidence.Add("Current command elapsed minutes: $([Math]::Round($elapsed.TotalMinutes, 1))")
+                            } catch {
+                                $currentCommandEvidence.Add("Current command elapsed minutes: unknown")
+                            }
+                        }
+                    }
+                    $evidence = @([string]$result.Evidence)
+                    $evidence += $currentCommandEvidence.ToArray()
+                    $evidence += @(
                         "向导自动刷新：外部 EV3 安装窗口仍在运行。",
                         "如果外部窗口显示 Are you sure you want to continue connecting，请输入 yes 后按 Enter。",
                         "如果外部窗口显示 Password，请输入 EV3 SSH 密码；该输入不会显示字符。",
@@ -1143,7 +1201,8 @@ function Update-VsleEv3ExternalInstallResultStep {
                         "Last checked: $(Get-Date -Format 'o')",
                         "Result file: $($Script:VlseLastEv3ExternalInstallResultPath)",
                         "Script file: $($Script:VlseLastEv3ExternalInstallScriptPath)"
-                    ) | Where-Object {
+                    )
+                    $evidence = $evidence | Where-Object {
                         -not [string]::IsNullOrWhiteSpace([string]$_)
                     }
                     $result = [PSCustomObject]@{
