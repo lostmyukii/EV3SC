@@ -4172,6 +4172,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and use the displayed `Current command` field to see whether the run is waiting in `prepare-remote-root`, `copy-ev3-server-files`, or `install-and-check-service`.
 
+### [2026-06-18] Windows EV3 bounded remote install
+- **Status**: ✅ Completed
+- **Commit**: `dfee2ac`
+- **What was done**: Fixed the remaining `install-and-check-service` hang by replacing the one long remote SSH chain with a guarded remote Bash install script that emits `VSLE_REMOTE_STEP_START/DONE/FAILED` markers, adds per-stage timeouts for offline dependency unpacking, server compile, systemd install, firstboot inspection, and EV3 server active checks, and captures `systemctl` plus `journalctl` diagnostics when a remote stage fails. Removed the inline `systemctl status` call from the EV3 autostart installer so service diagnosis happens in the bounded wizard check instead of leaving the external install window stuck indefinitely.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `tests/test_ev3_autostart_assets.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and if the EV3-side service still fails, use the returned `VSLE_REMOTE_STEP_FAILED` marker plus bundled service logs to identify the exact EV3 substep.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
