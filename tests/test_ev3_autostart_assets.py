@@ -11,6 +11,7 @@ SERVICE = EV3_DIR / "systemd" / "vsle-ev3-server.service"
 FIRSTBOOT_SERVICE = EV3_DIR / "systemd" / "vsle-firstboot.service"
 INSTALL_ENTRY = EV3_DIR / "scripts" / "install.sh"
 INSTALL = EV3_DIR / "scripts" / "install_ev3_autostart.sh"
+WINDOWS_INSTALL_CHECK = EV3_DIR / "scripts" / "windows_install_and_check.sh"
 ROLLBACK = EV3_DIR / "scripts" / "rollback_ev3_autostart.sh"
 FIRSTBOOT = EV3_DIR / "scripts" / "vsle_firstboot.py"
 SETUP_DOC = ROOT / "docs" / "EV3DEV_SETUP.md"
@@ -194,6 +195,30 @@ def test_install_script_backs_up_installs_dependencies_and_enables_service():
     assert 'FIRSTBOOT_SERVICE_NAME="vsle-firstboot.service"' in text
     assert "vsle_firstboot.py" in text
     assert "systemctl enable --now ${FIRSTBOOT_SERVICE_NAME}" in text
+
+
+def test_windows_install_check_script_prompts_remotely_and_bounds_steps():
+    text = _read(WINDOWS_INSTALL_CHECK)
+
+    assert "set -euo pipefail" in text
+    assert "EV3 robot password (press Enter to use maker)" in text
+    assert 'VSLE_SUDO_PASSWORD="maker"' in text
+    assert "sudo -S" in text
+    assert "VSLE_REMOTE_STEP_START" in text
+    assert "VSLE_REMOTE_STEP_DONE" in text
+    assert "VSLE_REMOTE_STEP_FAILED" in text
+    assert "run_vsle_timed_step" in text
+    assert "timeout" in text
+    assert "unpack-offline-websockets 120s" in text
+    assert "compile-server 60s" in text
+    assert "install-systemd-assets 360s" in text
+    assert "check-vsle-ev3-server 60s" in text
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in text
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl" not in text
+    assert 'journalctl -u "${FIRSTBOOT_SERVICE_NAME}" -n 80 --no-pager' in text
+    assert 'journalctl -u "${SERVICE_NAME}" -n 80 --no-pager' in text
+    assert "unset VSLE_SUDO_PASSWORD" in text
+    assert "pybluez" not in text.lower()
 
 
 def test_install_script_supports_unprovisioned_golden_image_mode():

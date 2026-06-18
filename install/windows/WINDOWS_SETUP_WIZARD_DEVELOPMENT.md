@@ -261,14 +261,15 @@ Manual inputs:
 
 - EV3 SSH host/address.
 - SSH username, default `robot`.
-- Runtime-visible EV3 sudo password prompt, with blank input using the ev3dev
-  default `maker`.
+- Runtime-visible EV3 sudo password prompt inside the remote SSH session, with
+  blank input using the ev3dev default `maker`.
 - A separate hidden Windows/OpenSSH SSH-login prompt may still appear.
 
 Security:
 
-- The visible sudo password is held only for the current external runner and
-  must be sent to the remote `sudo -S` flow through standard input.
+- The visible sudo password is held only by the copied remote EV3 script for
+  the current SSH session and must be sent to `sudo -S` inside that remote
+  script, not streamed from Windows as part of a generated Bash script.
 - Passwords must never be included in SSH command arguments, result JSON,
   diagnostics, or transcript logs.
 - Pairing token inputs must use secure fields.

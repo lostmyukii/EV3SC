@@ -8,6 +8,7 @@ SCRIPT = WIZARD_ROOT / "setup-wizard.ps1"
 XAML = WIZARD_ROOT / "setup-wizard.xaml"
 SETUP_MODULE = WIZARD_ROOT / "lib" / "SetupWizard.psm1"
 EV3_MODULE = WIZARD_ROOT / "lib" / "Ev3ConnectionChecks.psm1"
+REMOTE_INSTALL_SCRIPT = ROOT / "ev3-firmware" / "scripts" / "windows_install_and_check.sh"
 README = WIZARD_ROOT / "README.md"
 MANIFEST = INSTALL / "INSTALL_FILES_MANIFEST.md"
 CHECK_SCRIPT = INSTALL / "check_install_files.sh"
@@ -20,6 +21,7 @@ def _read(path: Path) -> str:
 def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert EV3_MODULE.is_file(), EV3_MODULE
     text = _read(EV3_MODULE)
+    remote_script = _read(REMOTE_INSTALL_SCRIPT)
 
     assert "Set-StrictMode -Version Latest" in text
     assert "New-VsleEv3SetupInput" in text
@@ -30,19 +32,25 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "[switch]$ConfirmEv3Install" in text
     assert "Manual confirmation required before installing the EV3 server." in text
     assert "New-VsleEv3RemoteInstallCommand" in text
-    assert "VSLE_REMOTE_STEP_START" in text
-    assert "VSLE_REMOTE_STEP_FAILED" in text
-    assert "run_vsle_timed_step" in text
-    assert "collect_vsle_service_logs" in text
-    assert "timeout" in text
-    assert "install-systemd-assets" in text
-    assert "journalctl -u vsle-ev3-server.service -n 80 --no-pager" in text
-    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in text
-    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl" not in text
-    assert "sudo -v" in text
+    assert "bash ./scripts/windows_install_and_check.sh" in text
+    assert "SudoPasswordArgumentIndex" not in text
+    assert "bash -s" not in text
+    assert "StandardInputText" not in text
+    assert "VSLE_REMOTE_STEP_START" in remote_script
+    assert "VSLE_REMOTE_STEP_FAILED" in remote_script
+    assert "run_vsle_timed_step" in remote_script
+    assert "collect_vsle_service_logs" in remote_script
+    assert "timeout" in remote_script
+    assert "install-systemd-assets" in remote_script
+    assert 'journalctl -u "${SERVICE_NAME}" -n 80 --no-pager' in remote_script
+    assert 'journalctl -u "${FIRSTBOOT_SERVICE_NAME}" -n 80 --no-pager' in remote_script
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in remote_script
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl" not in remote_script
+    assert "EV3 robot password (press Enter to use maker)" in remote_script
+    assert "sudo -S" in remote_script
     assert "Arguments = @(\"-tt\", $sshTarget, $remoteInstall)" in text
-    assert "systemctl is-active vsle-ev3-server.service" in text
-    assert "python3 -m py_compile vsle_ev3_server.py" in text
+    assert "systemctl is-active vsle-ev3-server.service" in remote_script
+    assert "python3 -m py_compile vsle_ev3_server.py" in remote_script
     assert "scp" in text
     assert "ssh" in text
 
@@ -139,22 +147,17 @@ def test_phase_d_wizard_exposes_ev3_inputs_and_confirm_button():
     assert "CurrentCommandStartedAt" in script
     assert "Current command elapsed minutes:" in script
     assert "-StatusUpdateScript $statusCallback" in script
-    assert "OpenSSH host-key, yes/no, or SSH login password prompt" in script
+    assert "OpenSSH host-key, yes/no, SSH login password prompt" in script
+    assert "remote EV3 sudo password prompt" in script
     assert (
         runner_section.index("EV3 Server install runner is waiting for password input.")
         < runner_section.index("EV3 Server install runner is executing SSH/SCP commands.")
     )
-    assert (
-        runner_section.index(
-            "EV3 Server install runner is waiting for password input."
-        )
-        < runner_section.index('Read-Host "EV3 robot password')
-    )
     assert runner_section.index("'try {'") < runner_section.index(
         "Import-Module $moduleLiteral -Force -DisableNameChecking"
     )
-    assert 'Read-Host "EV3 robot password (press Enter to use maker)"' in script
-    assert "-Ev3SudoPassword $ev3SudoPassword" in script
+    assert 'Read-Host "EV3 robot password (press Enter to use maker)"' not in script
+    assert "-Ev3SudoPassword" not in script
     assert "ProcessId:" in script
     assert "Process running:" in script
     assert "Last checked:" in script
@@ -189,16 +192,15 @@ def test_phase_d_ev3_failures_never_export_empty_evidence():
     assert "PowerShell error type:" in module
     assert "Get-VsleEv3CommandFailureHint" in module
     assert 'sudo:\\s*3 incorrect password attempts' in module
-    assert "SudoPasswordArgumentIndex = 2" in module
-    assert "New-VsleEv3SudoPasswordStandardInput" in module
-    assert "sudo -S" in module
+    assert "SudoPasswordArgumentIndex" not in module
+    assert "New-VsleEv3SudoPasswordStandardInput" not in module
+    assert "sudo -S" not in module
     assert "[scriptblock]$StatusUpdateScript" in module
     assert "StepIndex" in module
     assert "StepCount" in module
     assert "StartedAt" in module
-    assert '$lines -join "`n"' in module
     assert 'Arguments = [string[]]$arguments' in module
-    assert "StandardInputText = $standardInputText" in module
+    assert "StandardInputText" not in module
     assert "New-VsleUnicodeString" in module
     assert "0x5bc6, 0x7801, 0x8f93, 0x5165" in module
     assert "Results = $results.ToArray()" in module
@@ -240,10 +242,11 @@ def test_phase_d_setup_model_and_docs_register_ev3_module():
     assert "Windows Settings > Bluetooth & devices > Add device" in readme
     assert "password" in readme.lower()
     assert "not stored" in readme.lower()
+    assert "windows_install_and_check.sh" in readme
+    assert "remote EV3 sudo prompt" in readme
     assert "sudo -S" in readme
-    assert "through standard" in readme
-    assert "input" in readme
     assert "allocates a TTY" in readme
 
     assert "windows/lib/Ev3ConnectionChecks.psm1" in manifest
     assert "windows/lib/Ev3ConnectionChecks.psm1" in check_script
+    assert "windows_install_and_check.sh" in check_script

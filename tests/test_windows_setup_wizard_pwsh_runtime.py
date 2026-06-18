@@ -50,83 +50,20 @@ def test_windows_setup_modules_run_under_powershell_core():
         if ($installStep.Arguments[0] -ne "-tt") {
             throw "EV3 install SSH step must allocate a tty for sudo"
         }
-        if ($installStep.Arguments[2] -notmatch "sudo -v") {
-            throw "EV3 install remote command must validate sudo before systemd install"
+        if ($installStep.Arguments[2] -notmatch "bash ./scripts/windows_install_and_check.sh") {
+            throw "EV3 install remote command must execute the copied remote install script"
         }
-        if ($installStep.Arguments[2] -notmatch "VSLE_REMOTE_STEP_START") {
-            throw "EV3 install remote command must emit internal progress markers"
+        if ($installStep.Arguments[2] -match "bash -s") {
+            throw "EV3 install remote command must not stream a complex script through stdin"
         }
-        if ($installStep.Arguments[2] -notmatch "timeout") {
-            throw "EV3 install remote command must bound long-running remote steps"
-        }
-        if ($installStep.Arguments[2] -notmatch "install-systemd-assets") {
-            throw "EV3 install remote command must expose the systemd install substep"
+        if ($installStep.PSObject.Properties.Name -contains "SudoPasswordArgumentIndex") {
+            throw "EV3 install SSH step must not inject sudo password through native stdin"
         }
         if ($installStep.Arguments[2] -match "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl") {
             throw "EV3 install remote command must not hide systemd checks behind the install script"
         }
-        if ($installStep.SudoPasswordArgumentIndex -ne 2) {
-            throw "EV3 install SSH step must mark the remote command argument for sudo password injection"
-        }
         if ($installStep.Arguments -join " " -match "maker") {
             throw "EV3 install remote command must not hard-code the default password"
-        }
-
-        $sudoPasswordProbe = @'
-$joinedArgs = $args -join "`n"
-if ($joinedArgs -notmatch "bash -s") {
-    throw "sudo password flow did not switch remote command to bash -s"
-}
-if ($joinedArgs -match "visible-test-password") {
-    throw "raw sudo password leaked into native command arguments"
-}
-$stdin = [Console]::In.ReadToEnd()
-if ($stdin -notmatch "visible-test-password") {
-    throw "sudo password was not sent to the remote script through stdin"
-}
-if ($stdin.Contains("`r")) {
-    throw "remote sudo script must use Unix LF line endings"
-}
-if ($stdin -notmatch "sudo -S") {
-    throw "remote script did not feed sudo through sudo -S"
-}
-"sudo-password-flow-ok"
-'@
-        $sudoPasswordProbePath = Join-Path `
-            ([System.IO.Path]::GetTempPath()) `
-            "VSLE-sudo-password-probe.ps1"
-        Set-Content `
-            -Path $sudoPasswordProbePath `
-            -Value $sudoPasswordProbe `
-            -Encoding UTF8
-        $sudoPasswordStep = [pscustomobject]@{
-            Name = "install-and-check-service"
-            Executable = "pwsh"
-            Arguments = @(
-                "-NoLogo",
-                "-NoProfile",
-                "-File",
-                $sudoPasswordProbePath,
-                "-tt",
-                "robot@ev3dev.local",
-                "cd /tmp && sudo -v && SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl is-active vsle-ev3-server.service"
-            )
-            SudoPasswordArgumentIndex = 6
-        }
-        $sudoPasswordPlan = [pscustomobject]@{
-            Status = "needs_manual_action"
-            CommandSteps = @($sudoPasswordStep)
-        }
-        $sudoPasswordResult = Invoke-VsleEv3ServerInstall `
-            -Plan $sudoPasswordPlan `
-            -ConfirmEv3Install `
-            -RunSshCommands `
-            -Ev3SudoPassword "visible-test-password"
-        if ($sudoPasswordResult.Status -ne "passed") {
-            throw "EV3 sudo password flow status was $($sudoPasswordResult.Status): $($sudoPasswordResult.Evidence)"
-        }
-        if (($sudoPasswordResult | ConvertTo-Json -Depth 16) -match "visible-test-password") {
-            throw "EV3 sudo password leaked into result payload"
         }
 
         $quote = [char]34

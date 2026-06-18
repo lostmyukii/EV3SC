@@ -152,67 +152,7 @@ function New-VsleEv3RemoteInstallCommand {
         [string]$RemoteRoot = "~/vsle-ev3-firmware"
     )
 
-    $beforeSudo = @(
-        "set -e",
-        "cd $RemoteRoot",
-        @'
-run_vsle_timed_step() {
-  VSLE_STEP_NAME="$1"
-  VSLE_STEP_TIMEOUT="$2"
-  shift 2
-  echo "VSLE_REMOTE_STEP_START: ${VSLE_STEP_NAME}"
-  set +e
-  if command -v timeout >/dev/null 2>&1; then
-    timeout "${VSLE_STEP_TIMEOUT}" "$@"
-  else
-    echo "VSLE_REMOTE_STEP_TIMEOUT_UNAVAILABLE: ${VSLE_STEP_NAME}"
-    "$@"
-  fi
-  VSLE_STEP_EXIT=$?
-  set -e
-  if [ "${VSLE_STEP_EXIT}" -ne 0 ]; then
-    echo "VSLE_REMOTE_STEP_FAILED: ${VSLE_STEP_NAME} exit=${VSLE_STEP_EXIT}" >&2
-    return "${VSLE_STEP_EXIT}"
-  fi
-  echo "VSLE_REMOTE_STEP_DONE: ${VSLE_STEP_NAME}"
-}
-
-run_vsle_shell_step() {
-  VSLE_STEP_NAME="$1"
-  VSLE_STEP_TIMEOUT="$2"
-  VSLE_STEP_SCRIPT="$3"
-  run_vsle_timed_step "${VSLE_STEP_NAME}" "${VSLE_STEP_TIMEOUT}" bash -lc "${VSLE_STEP_SCRIPT}"
-}
-
-run_vsle_shell_step unpack-offline-websockets 120s 'SITE="$(python3 -c '"'"'import site; print(site.USER_SITE)'"'"')" && mkdir -p "$SITE" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf "$SITE/websockets" && cp -r /tmp/websockets-7.0/src/websockets "$SITE/websockets"'
-run_vsle_timed_step compile-server 60s python3 -m py_compile vsle_ev3_server.py
-'@
-    ) -join "`n"
-
-    $afterSudo = @'
-collect_vsle_service_logs() {
-  echo "VSLE_REMOTE_DIAGNOSTICS: vsle-firstboot.service"
-  systemctl status vsle-firstboot.service --no-pager -l || true
-  journalctl -u vsle-firstboot.service -n 80 --no-pager || true
-  echo "VSLE_REMOTE_DIAGNOSTICS: vsle-ev3-server.service"
-  systemctl status vsle-ev3-server.service --no-pager -l || true
-  journalctl -u vsle-ev3-server.service -n 80 --no-pager || true
-}
-
-if ! run_vsle_shell_step install-systemd-assets 360s 'SKIP_PIP_INSTALL=1 bash ./scripts/install.sh'; then
-  collect_vsle_service_logs
-  exit 1
-fi
-
-run_vsle_shell_step inspect-vsle-firstboot 45s 'systemctl status vsle-firstboot.service --no-pager -l || true'
-
-if ! run_vsle_shell_step check-vsle-ev3-server 60s 'systemctl is-active vsle-ev3-server.service'; then
-  collect_vsle_service_logs
-  exit 1
-fi
-'@
-
-    return ($beforeSudo.TrimEnd() + " && sudo -v && " + $afterSudo.TrimStart())
+    return "cd $RemoteRoot && bash ./scripts/windows_install_and_check.sh"
 }
 
 function New-VsleEv3ServerInstallPlan {
@@ -262,7 +202,6 @@ function New-VsleEv3ServerInstallPlan {
             Name = "install-and-check-service"
             Executable = "ssh"
             Arguments = @("-tt", $sshTarget, $remoteInstall)
-            SudoPasswordArgumentIndex = 2
             Preview = "ssh -tt $sshTarget '$remoteInstall'"
         }
     )
@@ -365,19 +304,13 @@ function Invoke-VsleEv3NativeCommand {
         [Parameter(Mandatory = $true)]
         [string]$Executable,
         [Parameter(Mandatory = $true)]
-        [string[]]$Arguments,
-        [AllowNull()]
-        [string]$StandardInputText
+        [string[]]$Arguments
     )
 
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        if ($null -ne $StandardInputText) {
-            $rawOutput = @($StandardInputText | & $Executable @Arguments 2>&1)
-        } else {
-            $rawOutput = @(& $Executable @Arguments 2>&1)
-        }
+        $rawOutput = @(& $Executable @Arguments 2>&1)
         $exitCode = if ($null -eq $global:LASTEXITCODE) { 0 } else { $global:LASTEXITCODE }
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -390,74 +323,17 @@ function Invoke-VsleEv3NativeCommand {
     }
 }
 
-function New-VsleEv3SudoPasswordStandardInput {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$RemoteCommand,
-        [Parameter(Mandatory = $true)]
-        [string]$Ev3SudoPassword
-    )
-
-    $separator = " && sudo -v && "
-    $separatorIndex = $RemoteCommand.IndexOf(
-        $separator,
-        [System.StringComparison]::Ordinal
-    )
-    if ($separatorIndex -lt 0) {
-        return $null
-    }
-
-    $beforeSudo = $RemoteCommand.Substring(0, $separatorIndex)
-    $afterSudo = $RemoteCommand.Substring($separatorIndex + $separator.Length)
-    $lines = @(
-        "IFS= read -r VSLE_SUDO_PASSWORD",
-        $Ev3SudoPassword,
-        "set -e",
-        $beforeSudo,
-        'printf ''%s\n'' "$VSLE_SUDO_PASSWORD" | sudo -S -p ''[sudo] password for robot: '' -v',
-        "unset VSLE_SUDO_PASSWORD",
-        $afterSudo
-    )
-
-    return (($lines -join "`n") + "`n")
-}
-
 function Get-VsleEv3CommandExecutionRequest {
     param(
         [Parameter(Mandatory = $true)]
-        [object]$Step,
-        [AllowNull()]
-        [string]$Ev3SudoPassword
+        [object]$Step
     )
 
     $arguments = @($Step.Arguments)
-    $standardInputText = $null
-
-    $hasSudoPassword = -not [string]::IsNullOrWhiteSpace($Ev3SudoPassword)
-    $sudoPasswordArgumentIndex = $null
-    if ($Step.PSObject.Properties.Name -contains "SudoPasswordArgumentIndex") {
-        $sudoPasswordArgumentIndex = [int]$Step.SudoPasswordArgumentIndex
-    }
-
-    if (
-        $hasSudoPassword -and
-        $null -ne $sudoPasswordArgumentIndex -and
-        $sudoPasswordArgumentIndex -ge 0 -and
-        $sudoPasswordArgumentIndex -lt $arguments.Count
-    ) {
-        $remoteCommand = [string]$arguments[$sudoPasswordArgumentIndex]
-        $standardInputText = New-VsleEv3SudoPasswordStandardInput `
-            -RemoteCommand $remoteCommand `
-            -Ev3SudoPassword $Ev3SudoPassword
-        if ($null -ne $standardInputText) {
-            $arguments[$sudoPasswordArgumentIndex] = "bash -s"
-        }
-    }
 
     [PSCustomObject]@{
         Executable = [string]$Step.Executable
         Arguments = [string[]]$arguments
-        StandardInputText = $standardInputText
     }
 }
 
@@ -557,8 +433,6 @@ function Invoke-VsleEv3ServerInstall {
         [switch]$ConfirmEv3Install,
         [switch]$RunSshCommands,
         [AllowNull()]
-        [string]$Ev3SudoPassword,
-        [AllowNull()]
         [scriptblock]$StatusUpdateScript
     )
 
@@ -619,16 +493,10 @@ function Invoke-VsleEv3ServerInstall {
             })
         }
         $request = Get-VsleEv3CommandExecutionRequest `
-            -Step $step `
-            -Ev3SudoPassword $Ev3SudoPassword
+            -Step $step
         $result = Invoke-VsleEv3NativeCommand `
             -Executable $request.Executable `
-            -Arguments $request.Arguments `
-            -StandardInputText $request.StandardInputText
-        if ($null -ne $request.StandardInputText) {
-            $request.StandardInputText = $null
-            $Ev3SudoPassword = $null
-        }
+            -Arguments $request.Arguments
         $results.Add([PSCustomObject]@{
             Name = $step.Name
             Executable = $step.Executable

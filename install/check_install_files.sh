@@ -125,6 +125,7 @@ verify_once() {
     check_exists "START_HERE_WINDOWS.txt" "Windows start-here instructions"
     check_exists "shared/02-ev3-server/ev3-firmware/scripts/install.sh" "EV3 install wrapper"
     check_exists "shared/02-ev3-server/ev3-firmware/scripts/install_ev3_autostart.sh" "EV3 autostart installer"
+    check_exists "shared/02-ev3-server/ev3-firmware/scripts/windows_install_and_check.sh" "EV3 Windows remote install checker"
     check_exists "shared/02-ev3-server/ev3-firmware/systemd/vsle-ev3-server.service" "EV3 systemd unit"
     check_exists "mac/02-weisilelink-desktop/install-macos.sh" "macOS helper install script"
     check_exists "mac/02-weisilelink-desktop/uninstall-macos.sh" "macOS helper uninstall script"

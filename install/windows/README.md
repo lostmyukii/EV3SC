@@ -154,10 +154,11 @@ Teacher-facing input guidance shown in the wizard:
 2. If `ev3dev.local` does not connect, read the IP address from the EV3
    Brickman network information screen and enter that IP as the EV3 SSH address.
 3. Use `robot` as the SSH user.
-4. The external installer first accepts the EV3 `robot` sudo password through
-   a visible PowerShell input. Press Enter to use the ev3dev default `maker`.
-   Windows/OpenSSH may still prompt separately for SSH login with hidden input.
-   Neither password input is stored in the result JSON or wizard evidence.
+4. Windows/OpenSSH may first prompt for SSH login with hidden input. After SSH
+   connects, the copied EV3 script `windows_install_and_check.sh` shows one
+   remote EV3 sudo prompt with visible input. Press Enter at that remote prompt
+   to use the ev3dev default `maker`. Neither password input is stored in the
+   result JSON or wizard evidence.
 5. For Bluetooth Full VSLE, confirm Windows has built-in Bluetooth or a USB
    Bluetooth adapter.
 6. Read the EV3 Bluetooth address from the EV3 Bluetooth settings, or SSH into
@@ -178,15 +179,17 @@ VSLE_REMOTE_STEP_START: check-vsle-ev3-server       # 60s timeout
 
 If an EV3-side command fails or times out, the result evidence includes
 `VSLE_REMOTE_STEP_FAILED` plus `systemctl status` and `journalctl` output for
-`vsle-firstboot.service` and `vsle-ev3-server.service`. The EV3 install script
-does not run an inline `systemctl status` at the end; service diagnosis belongs
-to the guarded wizard check so the external installer does not sit indefinitely
-inside a status command.
+`vsle-firstboot.service` and `vsle-ev3-server.service`. The remote EV3 sudo
+prompt is handled by the copied `windows_install_and_check.sh` file inside the
+SSH session; the Windows runner does not stream a generated Bash script or
+password through native stdin. The EV3 install script does not run an inline
+`systemctl status` at the end; service diagnosis belongs to the guarded wizard
+check so the external installer does not sit indefinitely inside a status
+command.
 
-The SSH install command allocates a TTY. The external runner sends the
-teacher-entered sudo password to a remote `bash -s` script through standard
-input, and that script validates it with `sudo -S`. The password is never
-included in the SSH command arguments, result JSON, or wizard evidence.
+The SSH install command allocates a TTY. The copied remote script validates the
+teacher-entered password with `sudo -S`. The password is never included in the
+SSH command arguments, result JSON, or wizard evidence.
 
 The command sequence runs only after the teacher clicks `Confirm EV3 Install`.
 Bluetooth Full VSLE remains an ev3dev + VSLE server path, and the wizard keeps

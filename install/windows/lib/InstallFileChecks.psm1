@@ -81,6 +81,11 @@ function Get-VsleInstallFileCheckPlan {
                 Required = $true
             }
             @{
+                Name = "EV3 Windows remote install checker"
+                Path = "shared/02-ev3-server/ev3-firmware/scripts/windows_install_and_check.sh"
+                Required = $true
+            }
+            @{
                 Name = "EV3 systemd unit"
                 Path = "shared/02-ev3-server/ev3-firmware/systemd/vsle-ev3-server.service"
                 Required = $true
