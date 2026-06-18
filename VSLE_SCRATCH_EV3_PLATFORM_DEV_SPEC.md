@@ -4179,6 +4179,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `ev3-firmware/scripts/install_ev3_autostart.sh`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `tests/test_ev3_autostart_assets.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, and if the EV3-side service still fails, use the returned `VSLE_REMOTE_STEP_FAILED` marker plus bundled service logs to identify the exact EV3 substep.
 
+### [2026-06-18] Windows EV3 copied remote install script
+- **Status**: ✅ Completed
+- **Commit**: `e77ea31`
+- **What was done**: Fixed the follow-on TTY corruption where Windows OpenSSH echoed and partially executed the generated Bash script from stdin, producing errors such as `ho: command not found`. The Windows EV3 install step now copies `scripts/windows_install_and_check.sh` with the EV3 firmware package and runs that file over SSH, so the remote script owns the visible sudo prompt, bounded stage markers, and service log collection without streaming the script or password through native stdin.
+- **Files created/modified**: `ev3-firmware/scripts/windows_install_and_check.sh`, `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/InstallFileChecks.psm1`, `install/check_install_files.sh`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `tests/test_ev3_autostart_assets.py`, `/Users/yukii/Desktop/VSLE-Install`
+- **Next step**: Replace the Windows copy with the regenerated `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, answer any OpenSSH host-key or hidden SSH password prompts, then use the visible remote EV3 sudo prompt shown by `windows_install_and_check.sh`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
