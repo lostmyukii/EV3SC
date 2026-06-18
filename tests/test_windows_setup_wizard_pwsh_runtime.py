@@ -53,6 +53,18 @@ def test_windows_setup_modules_run_under_powershell_core():
         if ($installStep.Arguments[2] -notmatch "sudo -v") {
             throw "EV3 install remote command must validate sudo before systemd install"
         }
+        if ($installStep.Arguments[2] -notmatch "VSLE_REMOTE_STEP_START") {
+            throw "EV3 install remote command must emit internal progress markers"
+        }
+        if ($installStep.Arguments[2] -notmatch "timeout") {
+            throw "EV3 install remote command must bound long-running remote steps"
+        }
+        if ($installStep.Arguments[2] -notmatch "install-systemd-assets") {
+            throw "EV3 install remote command must expose the systemd install substep"
+        }
+        if ($installStep.Arguments[2] -match "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl") {
+            throw "EV3 install remote command must not hide systemd checks behind the install script"
+        }
         if ($installStep.SudoPasswordArgumentIndex -ne 2) {
             throw "EV3 install SSH step must mark the remote command argument for sudo password injection"
         }

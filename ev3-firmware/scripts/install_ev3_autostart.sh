@@ -126,7 +126,6 @@ if [ "${GOLDEN_IMAGE_MODE}" = "1" ]; then
 else
   "${sudo_cmd[@]}" systemctl enable --now ${FIRSTBOOT_SERVICE_NAME}
   "${sudo_cmd[@]}" systemctl enable --now ${SERVICE_NAME}
-  "${sudo_cmd[@]}" systemctl status --no-pager ${SERVICE_NAME}
 fi
 
 echo "VSLE EV3 autostart installed."

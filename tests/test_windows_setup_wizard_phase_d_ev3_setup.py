@@ -29,7 +29,16 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "New-VsleBluetoothFullVslePairingGuide" in text
     assert "[switch]$ConfirmEv3Install" in text
     assert "Manual confirmation required before installing the EV3 server." in text
+    assert "New-VsleEv3RemoteInstallCommand" in text
+    assert "VSLE_REMOTE_STEP_START" in text
+    assert "VSLE_REMOTE_STEP_FAILED" in text
+    assert "run_vsle_timed_step" in text
+    assert "collect_vsle_service_logs" in text
+    assert "timeout" in text
+    assert "install-systemd-assets" in text
+    assert "journalctl -u vsle-ev3-server.service -n 80 --no-pager" in text
     assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in text
+    assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl" not in text
     assert "sudo -v" in text
     assert "Arguments = @(\"-tt\", $sshTarget, $remoteInstall)" in text
     assert "systemctl is-active vsle-ev3-server.service" in text

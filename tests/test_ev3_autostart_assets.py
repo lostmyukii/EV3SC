@@ -190,7 +190,7 @@ def test_install_script_backs_up_installs_dependencies_and_enables_service():
     assert "chmod 600" in text
     assert "systemctl daemon-reload" in text
     assert "systemctl enable --now ${SERVICE_NAME}" in text
-    assert "systemctl status --no-pager ${SERVICE_NAME}" in text
+    assert "systemctl status --no-pager ${SERVICE_NAME}" not in text
     assert 'FIRSTBOOT_SERVICE_NAME="vsle-firstboot.service"' in text
     assert "vsle_firstboot.py" in text
     assert "systemctl enable --now ${FIRSTBOOT_SERVICE_NAME}" in text

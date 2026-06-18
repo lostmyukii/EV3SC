@@ -146,6 +146,75 @@ function Test-VsleEv3ServerInstallSources {
     }
 }
 
+function New-VsleEv3RemoteInstallCommand {
+    [CmdletBinding()]
+    param(
+        [string]$RemoteRoot = "~/vsle-ev3-firmware"
+    )
+
+    $beforeSudo = @(
+        "set -e",
+        "cd $RemoteRoot",
+        @'
+run_vsle_timed_step() {
+  VSLE_STEP_NAME="$1"
+  VSLE_STEP_TIMEOUT="$2"
+  shift 2
+  echo "VSLE_REMOTE_STEP_START: ${VSLE_STEP_NAME}"
+  set +e
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "${VSLE_STEP_TIMEOUT}" "$@"
+  else
+    echo "VSLE_REMOTE_STEP_TIMEOUT_UNAVAILABLE: ${VSLE_STEP_NAME}"
+    "$@"
+  fi
+  VSLE_STEP_EXIT=$?
+  set -e
+  if [ "${VSLE_STEP_EXIT}" -ne 0 ]; then
+    echo "VSLE_REMOTE_STEP_FAILED: ${VSLE_STEP_NAME} exit=${VSLE_STEP_EXIT}" >&2
+    return "${VSLE_STEP_EXIT}"
+  fi
+  echo "VSLE_REMOTE_STEP_DONE: ${VSLE_STEP_NAME}"
+}
+
+run_vsle_shell_step() {
+  VSLE_STEP_NAME="$1"
+  VSLE_STEP_TIMEOUT="$2"
+  VSLE_STEP_SCRIPT="$3"
+  run_vsle_timed_step "${VSLE_STEP_NAME}" "${VSLE_STEP_TIMEOUT}" bash -lc "${VSLE_STEP_SCRIPT}"
+}
+
+run_vsle_shell_step unpack-offline-websockets 120s 'SITE="$(python3 -c '"'"'import site; print(site.USER_SITE)'"'"')" && mkdir -p "$SITE" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf "$SITE/websockets" && cp -r /tmp/websockets-7.0/src/websockets "$SITE/websockets"'
+run_vsle_timed_step compile-server 60s python3 -m py_compile vsle_ev3_server.py
+'@
+    ) -join "`n"
+
+    $afterSudo = @'
+collect_vsle_service_logs() {
+  echo "VSLE_REMOTE_DIAGNOSTICS: vsle-firstboot.service"
+  systemctl status vsle-firstboot.service --no-pager -l || true
+  journalctl -u vsle-firstboot.service -n 80 --no-pager || true
+  echo "VSLE_REMOTE_DIAGNOSTICS: vsle-ev3-server.service"
+  systemctl status vsle-ev3-server.service --no-pager -l || true
+  journalctl -u vsle-ev3-server.service -n 80 --no-pager || true
+}
+
+if ! run_vsle_shell_step install-systemd-assets 360s 'SKIP_PIP_INSTALL=1 bash ./scripts/install.sh'; then
+  collect_vsle_service_logs
+  exit 1
+fi
+
+run_vsle_shell_step inspect-vsle-firstboot 45s 'systemctl status vsle-firstboot.service --no-pager -l || true'
+
+if ! run_vsle_shell_step check-vsle-ev3-server 60s 'systemctl is-active vsle-ev3-server.service'; then
+  collect_vsle_service_logs
+  exit 1
+fi
+'@
+
+    return ($beforeSudo.TrimEnd() + " && sudo -v && " + $afterSudo.TrimStart())
+}
+
 function New-VsleEv3ServerInstallPlan {
     [CmdletBinding()]
     param(
@@ -167,7 +236,7 @@ function New-VsleEv3ServerInstallPlan {
     }
 
     $sshTarget = "$($SetupInput.User)@$($SetupInput.Host)"
-    $remoteInstall = "cd $RemoteRoot && SITE=`"`$(python3 -c 'import site; print(site.USER_SITE)')`" && mkdir -p `"`$SITE`" && rm -rf /tmp/websockets-7.0 && tar -xzf websockets-7.0.tar.gz -C /tmp && rm -rf `"`$SITE/websockets`" && cp -r /tmp/websockets-7.0/src/websockets `"`$SITE/websockets`" && python3 -m py_compile vsle_ev3_server.py && sudo -v && SKIP_PIP_INSTALL=1 bash ./scripts/install.sh && systemctl is-active vsle-ev3-server.service"
+    $remoteInstall = New-VsleEv3RemoteInstallCommand -RemoteRoot $RemoteRoot
 
     $commandSteps = @(
         [PSCustomObject]@{

@@ -166,12 +166,22 @@ Teacher-facing input guidance shown in the wizard:
 
 The `Install EV3 server` step generates a guarded SSH/SCP command plan that
 copies the EV3SC-owned server files and offline `websockets-7.0.tar.gz`, then
-runs:
+runs a bounded remote install script with these internal markers:
 
 ```text
-SKIP_PIP_INSTALL=1 bash ./scripts/install.sh
-systemctl is-active vsle-ev3-server.service
+VSLE_REMOTE_STEP_START: unpack-offline-websockets   # 120s timeout
+VSLE_REMOTE_STEP_START: compile-server              # 60s timeout
+VSLE_REMOTE_STEP_START: install-systemd-assets      # 360s timeout
+VSLE_REMOTE_STEP_START: inspect-vsle-firstboot      # 45s timeout
+VSLE_REMOTE_STEP_START: check-vsle-ev3-server       # 60s timeout
 ```
+
+If an EV3-side command fails or times out, the result evidence includes
+`VSLE_REMOTE_STEP_FAILED` plus `systemctl status` and `journalctl` output for
+`vsle-firstboot.service` and `vsle-ev3-server.service`. The EV3 install script
+does not run an inline `systemctl status` at the end; service diagnosis belongs
+to the guarded wizard check so the external installer does not sit indefinitely
+inside a status command.
 
 The SSH install command allocates a TTY. The external runner sends the
 teacher-entered sudo password to a remote `bash -s` script through standard
