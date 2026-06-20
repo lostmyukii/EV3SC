@@ -4207,6 +4207,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_vsle_ev3_compat/index.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/engine/runtime.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/virtual-machine.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_vsle_ev3_compat.js`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/containers/scanning-step.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/scanning-step.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/connection-modal.css`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_scratchai_ev3_connection_diagnostics.py`
 - **Next step**: Regenerate the Windows `VSLE-Install` handoff from this branch, replace the teacher machine copy, rerun the local bridge step, then verify ScratchAI shows `Link 可达 / 已发现 EV3 / 正在接收传感器` instead of asking teachers to open the `ws://` URL directly.
 
+### [2026-06-20] Windows EV3 fast reinstall path
+- **Status**: ✅ Completed
+- **Commit**: `3c0ceed`
+- **What was done**: Reduced repeated successful EV3 Server installs by adding a remote `check-existing-install` SSH probe before the full copy/install path. The wizard now computes a package hash for the EV3 server payload, compares it with `~/vsle-ev3-firmware/.vsle-install-manifest`, verifies `vsle-ev3-server.service` is active, and returns `fast-path: matched` without re-copying or re-installing when the EV3 already matches the current package. Full installs now write the manifest after the service is active.
+- **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `ev3-firmware/scripts/windows_install_and_check.sh`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
+- **Next step**: Generate a fresh `/Users/yukii/Desktop/VSLE-Install` handoff, run `check_install_files.sh` inside the generated folder, and have the teacher retest: the first run may do one full install to write the manifest, while later retries should stop after `check-existing-install` if the service remains active.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
