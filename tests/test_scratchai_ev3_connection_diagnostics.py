@@ -25,6 +25,27 @@ def test_connection_modal_passes_ev3_diagnostics_to_scanning_step():
     assert "Link 未启动 / 20111 不可达" in component
 
 
+def test_stage_header_shows_teacher_visible_ev3_connection_status():
+    component = _read(GUI_ROOT / "components" / "stage-header" / "stage-header.jsx")
+    styles = _read(GUI_ROOT / "components" / "stage-header" / "stage-header.css")
+
+    assert "getPeripheralConnectionDiagnostic('ev3')" in component
+    assert "PERIPHERAL_CONNECTED" in component
+    assert "PERIPHERAL_DISCONNECTED" in component
+    assert "ev3ConnectionDiagnosticInterval" in component
+    assert "EV3 已发现" in component
+    assert "EV3 已连接" in component
+    assert "正在接收传感器" in component
+    assert "距上次传感器数据" in component
+    assert "EV3 未连接" in component
+    assert "Link 未启动 / 20111 不可达" in component
+    assert "styles.ev3ConnectionStatus" in component
+    assert ".ev3-connection-status" in styles
+    assert ".ev3-connection-status-ready" in styles
+    assert ".ev3-connection-status-warning" in styles
+    assert ".ev3-connection-status-error" in styles
+
+
 def test_vsle_ev3_compat_diagnostics_are_exposed_through_extension_interface():
     compat = _read(VM_ROOT / "extensions" / "scratch3_vsle_ev3_compat" / "index.js")
 

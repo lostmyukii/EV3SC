@@ -29,6 +29,44 @@ import {getLocalStorageValue, setLocalStorageValue} from '../../lib/local-storag
 
 const LOCAL_STORAGE_KEY = 'hasIntroducedEditorManualSetThumbnail';
 
+const ev3ConnectionStatusText = diagnostic => {
+    if (!diagnostic || !diagnostic.status) return '';
+    switch (diagnostic.status) {
+    case 'sensor_streaming':
+        return `EV3 已连接，正在接收传感器，距上次传感器数据 ${diagnostic.freshnessSeconds} 秒`;
+    case 'sensor_stale':
+        return 'EV3 已连接，传感器未更新';
+    case 'connected':
+        return 'EV3 已连接，等待传感器数据';
+    case 'discovered':
+        return `EV3 已发现${diagnostic.peripheralName ? `：${diagnostic.peripheralName}` : ''}`;
+    case 'connecting':
+        return '正在连接 EV3';
+    case 'searching':
+        return '正在搜索 EV3';
+    case 'origin_rejected':
+        return '网页来源被 WeisileLink 拒绝';
+    case 'link_unavailable':
+        return 'Link 未启动 / 20111 不可达';
+    case 'not_found':
+        return '未发现 EV3';
+    case 'not_connected':
+    default:
+        return 'EV3 未连接';
+    }
+};
+
+const ev3ConnectionStatusClassName = diagnostic => {
+    if (!diagnostic || !diagnostic.status) return null;
+    if (diagnostic.status === 'sensor_streaming' || diagnostic.status === 'connected') {
+        return styles.ev3ConnectionStatusReady;
+    }
+    if (diagnostic.status === 'origin_rejected' || diagnostic.status === 'link_unavailable') {
+        return styles.ev3ConnectionStatusError;
+    }
+    return styles.ev3ConnectionStatusWarning;
+};
+
 const messages = defineMessages({
     largeStageSizeMessage: {
         defaultMessage: 'Switch to large stage',
@@ -112,6 +150,7 @@ const StageHeaderComponent = function (props) {
     const [isThumbnailPromptOpen, setIsThumbnailPromptOpen] = useState(false);
     const [isThumbnailTooltipOpen, setIsThumbnailTooltipOpen] = useState(false);
     const [isUpdatingThumbnail, setIsUpdatingThumbnail] = useState(false);
+    const [ev3ConnectionDiagnostic, setEv3ConnectionDiagnostic] = useState(null);
 
     const shouldShowThumbnailSaveButton = manuallySaveThumbnails && userOwnsProject;
     // TODO: Remove this callout after 60 days of manual thumbnail update release.
@@ -125,6 +164,32 @@ const StageHeaderComponent = function (props) {
             setIsThumbnailTooltipOpen(false);
         }
     }, [shouldShowCallout]);
+
+    useEffect(() => {
+        const refreshEv3ConnectionDiagnostic = () => {
+            if (!vm || typeof vm.getPeripheralConnectionDiagnostic !== 'function') {
+                setEv3ConnectionDiagnostic(null);
+                return;
+            }
+            setEv3ConnectionDiagnostic(vm.getPeripheralConnectionDiagnostic('ev3'));
+        };
+        refreshEv3ConnectionDiagnostic();
+        const ev3ConnectionDiagnosticInterval = window.setInterval(
+            refreshEv3ConnectionDiagnostic,
+            1000
+        );
+        if (vm && typeof vm.on === 'function') {
+            vm.on('PERIPHERAL_CONNECTED', refreshEv3ConnectionDiagnostic);
+            vm.on('PERIPHERAL_DISCONNECTED', refreshEv3ConnectionDiagnostic);
+        }
+        return () => {
+            window.clearInterval(ev3ConnectionDiagnosticInterval);
+            if (vm && typeof vm.removeListener === 'function') {
+                vm.removeListener('PERIPHERAL_CONNECTED', refreshEv3ConnectionDiagnostic);
+                vm.removeListener('PERIPHERAL_DISCONNECTED', refreshEv3ConnectionDiagnostic);
+            }
+        };
+    }, [vm]);
 
     const onUpdateThumbnail = useCallback(
         throttle(() => {
@@ -187,6 +252,27 @@ const StageHeaderComponent = function (props) {
         setIsThumbnailTooltipOpen(false);
     }, []);
 
+    const ev3ConnectionStatus = ev3ConnectionStatusText(ev3ConnectionDiagnostic);
+    const ev3ConnectionStatusTitle = ev3ConnectionDiagnostic ?
+        [
+            ev3ConnectionDiagnostic.message,
+            ev3ConnectionDiagnostic.hint,
+            ev3ConnectionDiagnostic.linkUrl
+        ].filter(Boolean).join('\n') :
+        '';
+    const ev3ConnectionStatusNode = ev3ConnectionStatus ? (
+        <div
+            className={classNames(
+                styles.ev3ConnectionStatus,
+                ev3ConnectionStatusClassName(ev3ConnectionDiagnostic)
+            )}
+            title={ev3ConnectionStatusTitle}
+        >
+            <span className={styles.ev3ConnectionStatusDot} />
+            <span>{ev3ConnectionStatus}</span>
+        </div>
+    ) : null;
+
     if (isFullScreen) {
         const stageDimensions = getStageDimensions(null, true);
         const stageButton = showBranding ? (
@@ -226,6 +312,7 @@ const StageHeaderComponent = function (props) {
                     style={{width: stageDimensions.width}}
                 >
                     <Controls vm={vm} />
+                    {ev3ConnectionStatusNode}
                     {stageButton}
                 </Box>
             </Box>
@@ -258,6 +345,7 @@ const StageHeaderComponent = function (props) {
             <Box className={styles.stageHeaderWrapper}>
                 <Box className={styles.stageMenuWrapper}>
                     <Controls vm={vm} />
+                    {ev3ConnectionStatusNode}
                     <div className={styles.stageSizeRow}>
                         <FeatureCalloutPopover
                             isOpen={isThumbnailTooltipOpen}
