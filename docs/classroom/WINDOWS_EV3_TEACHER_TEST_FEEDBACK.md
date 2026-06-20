@@ -1,6 +1,6 @@
-# Windows EV3 Teacher Test Feedback Form
+# Windows EV3 老师测试反馈表
 
-用途：请老师按本表测试 Windows 版 VSLE Scratch-EV3 安装向导，并把填写结果、诊断 JSON、截图一起反馈。默认测试路径是 `Bluetooth Full VSLE`，不是 WiFi 连接。
+用途：请老师按本表测试 Windows 版 VSLE Scratch-EV3 安装向导，并把填写结果、诊断 JSON、截图一起反馈。默认测试路径是 `Bluetooth Full VSLE` 蓝牙全功能模式，不是 WiFi 连接。
 
 安全提醒：
 
@@ -47,7 +47,7 @@ hciconfig -a | grep "BD Address"
 | 1. 打开向导 | 在 Windows 上打开 `VSLE-Install`，双击 `Start-VSLE-Setup-Wizard.cmd`。 | 出现 `VSLE Scratch-EV3 安装向导` 窗口。 |  |
 | 2. 检查安装文件 | 进入 `检查安装文件`，点击下一步或重试。 | 安装文件检查通过。 |  |
 | 3. 刷写 SD 卡 | 如果已经刷好 ev3dev SD 卡，选择确认继续；如果没有刷，请按向导完成刷写。 | EV3 能启动 ev3dev。 |  |
-| 4. 选择连接方式 | 选择 `Bluetooth Full VSLE`。填写 EV3 SSH 地址、SSH 用户 `robot`、EV3 蓝牙地址。不要选择 WiFi 或 Official Firmware Bluetooth。 | 向导接受输入并进入 `安装 EV3 Server`。 |  |
+| 4. 选择连接方式 | 选择 `Bluetooth Full VSLE`。填写 EV3 SSH 地址、SSH 用户 `robot`、EV3 蓝牙地址。不要选择 WiFi，也不要选择 `Official Firmware Bluetooth`。 | 向导接受输入并进入 `安装 EV3 Server`。 |  |
 | 5. 安装 EV3 Server | 点击确认安装。外部 PowerShell 出现后按提示操作：如果问 `Are you sure you want to continue connecting`，输入 `yes` 回车；如果出现隐藏的 `Password:`，输入 EV3 SSH 密码回车；如果出现可见的 `EV3 robot password (press Enter to use maker)`，默认密码就直接回车。 | 外部窗口最后显示 `VSLE EV3 install status: passed`；回到向导点 `重试` 后，向导显示 `EV3 service check command completed: systemctl is-active vsle-ev3-server.service`。 |  |
 | 6. 不要重复重装 | 如果第 5 步已经通过，不要再反复点击确认安装 EV3 Server；直接点下一步。 | 向导进入 `启用 Bluetooth Full VSLE` 或后续步骤。 |  |
 | 7. 启用 Bluetooth Full VSLE | 按向导提示确认 EV3 已配对，必要时打开 Windows 设置里的蓝牙页面完成配对。 | 此步骤通过，左侧显示已跳过或已通过均可接受，取决于当前向导版本。 |  |
@@ -127,4 +127,3 @@ EV3 测试反馈：
 - 向导当前页面截图
 - 外部 PowerShell 窗口截图
 - 如果 ScratchAI 已打开，再附 ScratchAI EV3 积木或连接状态截图
-
