@@ -4214,6 +4214,13 @@ material into:
 - **Files created/modified**: `install/windows/lib/Ev3ConnectionChecks.psm1`, `ev3-firmware/scripts/windows_install_and_check.sh`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`
 - **Next step**: Generate a fresh `/Users/yukii/Desktop/VSLE-Install` handoff, run `check_install_files.sh` inside the generated folder, and have the teacher retest: the first run may do one full install to write the manifest, while later retries should stop after `check-existing-install` if the service remains active.
 
+### [2026-06-20] ScratchAI visible EV3 connection status
+- **Status**: ✅ Completed
+- **Commit**: `33feb63`
+- **What was done**: Added a teacher-visible EV3 connection status pill to the ScratchAI stage header, backed by `getPeripheralConnectionDiagnostic('ev3')` and refreshed every second plus on peripheral connect/disconnect events. The page now directly shows EV3 discovery, EV3 connected, sensor streaming freshness, stale sensor data, Link unavailable, Origin rejection, and not-found states without asking teachers to open the internal `ws://` address.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/stage-header/stage-header.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/stage-header/stage-header.css`, `tests/test_scratchai_ev3_connection_diagnostics.py`
+- **Next step**: Rebuild or redeploy the ScratchAI browser bundle that serves `http://101.42.92.6:18612`, then have the teacher confirm the new stage-header status text while the wizard step 9 evidence shows `scratch_link_protocol_ok=True` and `scratch_link_discover_ok=True`.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
