@@ -29,6 +29,11 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "New-VsleEv3ServerInstallPlan" in text
     assert "Invoke-VsleEv3ServerInstall" in text
     assert "New-VsleBluetoothFullVslePairingGuide" in text
+    assert "New-VsleEv3InstallManifest" in text
+    assert "check-existing-install" in text
+    assert "VSLE_FAST_PATH_READY" in text
+    assert "VSLE_INSTALL_PACKAGE_HASH" in text
+    assert ".vsle-install-manifest" in text
     assert "[switch]$ConfirmEv3Install" in text
     assert "Manual confirmation required before installing the EV3 server." in text
     assert "New-VsleEv3RemoteInstallCommand" in text
@@ -42,6 +47,9 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "collect_vsle_service_logs" in remote_script
     assert "timeout" in remote_script
     assert "install-systemd-assets" in remote_script
+    assert "write_vsle_install_manifest" in remote_script
+    assert ".vsle-install-manifest" in remote_script
+    assert "VSLE_INSTALL_PACKAGE_HASH" in remote_script
     assert 'journalctl -u "${SERVICE_NAME}" -n 80 --no-pager' in remote_script
     assert 'journalctl -u "${FIRSTBOOT_SERVICE_NAME}" -n 80 --no-pager' in remote_script
     assert "SKIP_PIP_INSTALL=1 bash ./scripts/install.sh" in remote_script
@@ -49,6 +57,8 @@ def test_phase_d_ev3_module_exists_and_exports_input_and_runner_functions():
     assert "EV3 robot password (press Enter to use maker)" in remote_script
     assert "sudo -S" in remote_script
     assert "Arguments = @(\"-tt\", $sshTarget, $remoteInstall)" in text
+    assert "FastPathProbe = $true" in text
+    assert "PackageHash" in text
     assert "systemctl is-active vsle-ev3-server.service" in remote_script
     assert "python3 -m py_compile vsle_ev3_server.py" in remote_script
     assert "scp" in text

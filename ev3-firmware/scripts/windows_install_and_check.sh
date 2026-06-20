@@ -70,6 +70,19 @@ validate_vsle_sudo() {
   echo "VSLE_REMOTE_STEP_DONE: validate-sudo"
 }
 
+write_vsle_install_manifest() {
+  echo "VSLE_REMOTE_STEP_START: write-install-manifest"
+  if [ -z "${VSLE_INSTALL_PACKAGE_HASH:-}" ]; then
+    echo "VSLE_REMOTE_INSTALL_MANIFEST_HASH_MISSING"
+  else
+    {
+      printf 'package_hash=%s\n' "${VSLE_INSTALL_PACKAGE_HASH}"
+      date -u '+installed_at=%Y-%m-%dT%H:%M:%SZ'
+    } > .vsle-install-manifest
+  fi
+  echo "VSLE_REMOTE_STEP_DONE: write-install-manifest"
+}
+
 read_vsle_sudo_password
 
 run_vsle_shell_step unpack-offline-websockets 120s \
@@ -94,3 +107,5 @@ if ! run_vsle_shell_step check-vsle-ev3-server 60s \
   collect_vsle_service_logs
   exit 1
 fi
+
+write_vsle_install_manifest

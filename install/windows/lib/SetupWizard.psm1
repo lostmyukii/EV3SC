@@ -202,6 +202,7 @@ $Script:VlseSetupWizardSteps = @(
         Summary = "老师确认 SSH 信息后，复制并安装 EV3SC 自有 EV3 server 文件；本页列出需要复制的文件位置。"
         AutomaticActions = @(
             "检查 SSH 是否可连接。",
+            "如果远端安装签名一致且 EV3 server 服务已 active，则快速通过，不重复复制和重装。",
             "复制 EV3 firmware 文件。",
             "复制 install/shared/02-ev3-server/ev3-firmware/vsle_ev3_server.py。",
             "复制 install/shared/02-ev3-server/ev3-firmware/scripts/。",
@@ -215,7 +216,7 @@ $Script:VlseSetupWizardSteps = @(
             "SSH 密码：maker。密码由 Windows/OpenSSH 单独提示，不会写入安装向导证据。",
             "确认 EV3 server 服务状态。"
         )
-        Evidence = "服务状态会作为 EV3 安装证据记录。"
+        Evidence = "服务状态、安装包 hash 和 fast-path 命中情况会作为 EV3 安装证据记录。"
         NextEnabledWhen = "EV3 server 服务为 active 后继续。"
         ProductionReleaseReady = $false
         CompletionCondition = "EV3 server 安装计划生成成功，或确认安装后服务状态为 active。"

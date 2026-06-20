@@ -146,13 +146,120 @@ function Test-VsleEv3ServerInstallSources {
     }
 }
 
+function Get-VsleEv3InstallRelativePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $trimChars = [char[]]@(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    )
+    $rootPath = [System.IO.Path]::GetFullPath($Root).TrimEnd($trimChars)
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    if ($fullPath.StartsWith($rootPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $relative = $fullPath.Substring($rootPath.Length).TrimStart($trimChars)
+    } else {
+        $relative = [System.IO.Path]::GetFileName($fullPath)
+    }
+    return ($relative -replace "\\", "/")
+}
+
+function New-VsleSha256TextHash {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text
+    )
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return (($sha256.ComputeHash($bytes) | ForEach-Object {
+            $_.ToString("x2")
+        }) -join "")
+    } finally {
+        $sha256.Dispose()
+    }
+}
+
+function New-VsleEv3InstallManifest {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Sources
+    )
+
+    $firmwareRoot = [System.IO.Path]::GetFullPath($Sources.FirmwareRoot)
+    $manifestRows = New-Object System.Collections.Generic.List[object]
+    $sourceFiles = New-Object System.Collections.Generic.List[object]
+    [void]$sourceFiles.Add((Get-Item -LiteralPath $Sources.ServerPath))
+    foreach ($sourceRoot in @($Sources.ScriptsPath, $Sources.SystemdPath)) {
+        foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -File -Recurse) {
+            [void]$sourceFiles.Add($file)
+        }
+    }
+    [void]$sourceFiles.Add((Get-Item -LiteralPath $Sources.WebsocketsPath))
+
+    $websocketsFullPath = [System.IO.Path]::GetFullPath($Sources.WebsocketsPath)
+    foreach ($file in $sourceFiles) {
+        if ($file.FullName -eq $websocketsFullPath) {
+            $relativePath = "websockets-7.0.tar.gz"
+        } else {
+            $relativePath = Get-VsleEv3InstallRelativePath `
+                -Root $firmwareRoot `
+                -Path $file.FullName
+        }
+        [void]$manifestRows.Add([PSCustomObject]@{
+            RelativePath = $relativePath
+            Sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        })
+    }
+
+    $entryLines = @($manifestRows |
+        Sort-Object RelativePath |
+        ForEach-Object { "$($_.RelativePath)=$($_.Sha256)" })
+    $manifestText = ($entryLines -join "`n")
+    [PSCustomObject]@{
+        PackageHash = New-VsleSha256TextHash -Text $manifestText
+        Entries = $entryLines
+        Text = $manifestText
+    }
+}
+
 function New-VsleEv3RemoteInstallCommand {
     [CmdletBinding()]
     param(
-        [string]$RemoteRoot = "~/vsle-ev3-firmware"
+        [string]$RemoteRoot = "~/vsle-ev3-firmware",
+        [string]$InstallPackageHash = ""
     )
 
-    return "cd $RemoteRoot && bash ./scripts/windows_install_and_check.sh"
+    $hashPrefix = ""
+    if (-not [string]::IsNullOrWhiteSpace($InstallPackageHash)) {
+        $hashPrefix = "VSLE_INSTALL_PACKAGE_HASH='$InstallPackageHash' "
+    }
+    return "cd $RemoteRoot && ${hashPrefix}bash ./scripts/windows_install_and_check.sh"
+}
+
+function New-VsleEv3FastPathProbeCommand {
+    [CmdletBinding()]
+    param(
+        [string]$RemoteRoot = "~/vsle-ev3-firmware",
+        [Parameter(Mandatory = $true)]
+        [string]$InstallPackageHash
+    )
+
+    $manifestPath = "$RemoteRoot/.vsle-install-manifest"
+    return @(
+        "if [ -f $manifestPath ]",
+        "&& grep -qx 'package_hash=$InstallPackageHash' $manifestPath",
+        "&& systemctl is-active vsle-ev3-server.service >/dev/null 2>&1;",
+        "then echo VSLE_FAST_PATH_READY;",
+        "else echo VSLE_FAST_PATH_MISS;",
+        "fi"
+    ) -join " "
 }
 
 function New-VsleEv3ServerInstallPlan {
@@ -176,9 +283,22 @@ function New-VsleEv3ServerInstallPlan {
     }
 
     $sshTarget = "$($SetupInput.User)@$($SetupInput.Host)"
-    $remoteInstall = New-VsleEv3RemoteInstallCommand -RemoteRoot $RemoteRoot
+    $installManifest = New-VsleEv3InstallManifest -Sources $sources
+    $remoteInstall = New-VsleEv3RemoteInstallCommand `
+        -RemoteRoot $RemoteRoot `
+        -InstallPackageHash $installManifest.PackageHash
+    $fastPathProbe = New-VsleEv3FastPathProbeCommand `
+        -RemoteRoot $RemoteRoot `
+        -InstallPackageHash $installManifest.PackageHash
 
     $commandSteps = @(
+        [PSCustomObject]@{
+            Name = "check-existing-install"
+            Executable = "ssh"
+            Arguments = @($sshTarget, $fastPathProbe)
+            Preview = "ssh $sshTarget 'check .vsle-install-manifest and vsle-ev3-server.service'"
+            FastPathProbe = $true
+        },
         [PSCustomObject]@{
             Name = "prepare-remote-root"
             Executable = "ssh"
@@ -211,7 +331,9 @@ function New-VsleEv3ServerInstallPlan {
         "SSH target: $sshTarget",
         "Bluetooth address: $($SetupInput.RedactedBluetoothAddress)",
         "Remote root: $RemoteRoot",
+        "Install package hash: $($installManifest.PackageHash)",
         "Command count: $($commandSteps.Count)",
+        "Fast path: existing matching manifest and active service skip full copy/install.",
         "Manual confirmation required before SSH or SCP commands run.",
         "OfficialFirmwareCompatibility: false"
     ) -join [Environment]::NewLine
@@ -225,6 +347,7 @@ function New-VsleEv3ServerInstallPlan {
         Input = $SetupInput
         Sources = $sources
         RemoteRoot = $RemoteRoot
+        InstallManifest = $installManifest
         CommandSteps = $commandSteps
     }
 }
@@ -503,6 +626,29 @@ function Invoke-VsleEv3ServerInstall {
             ExitCode = $result.ExitCode
             Output = $result.Output
         })
+        $isFastPathProbe = $false
+        if ($step.PSObject.Properties.Name -contains "FastPathProbe") {
+            $isFastPathProbe = [bool]$step.FastPathProbe
+        }
+        if (
+            $isFastPathProbe -and
+            $result.ExitCode -eq 0 -and
+            $result.Output -match "VSLE_FAST_PATH_READY"
+        ) {
+            return [PSCustomObject]@{
+                Status = "passed"
+                Blocking = $false
+                ManualConfirmationRequired = $false
+                Summary = "EV3 server already matches this install package and service is active."
+                Evidence = @(
+                    "fast-path: matched",
+                    "Remote .vsle-install-manifest matched the current package hash.",
+                    "EV3 service check command completed: systemctl is-active vsle-ev3-server.service."
+                ) -join [Environment]::NewLine
+                Results = $results.ToArray()
+                Plan = $Plan
+            }
+        }
         if ($result.ExitCode -ne 0) {
             $evidence = Format-VsleEv3CommandFailureEvidence -Step $step -Result $result
             return [PSCustomObject]@{

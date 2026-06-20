@@ -174,8 +174,15 @@ Teacher-facing input guidance shown in the wizard:
 7. Pair from Windows Settings > Bluetooth & devices > Add device.
 
 The `Install EV3 server` step generates a guarded SSH/SCP command plan that
-copies the EV3SC-owned server files and offline `websockets-7.0.tar.gz`, then
-runs a bounded remote install script with these internal markers:
+first checks whether the existing EV3 install already matches this package.
+The fast-path probe reads `~/vsle-ev3-firmware/.vsle-install-manifest`, compares
+the current package hash, and runs `systemctl is-active
+vsle-ev3-server.service`. If both match, the step records
+`fast-path: matched` and skips the slow full copy/install sequence.
+
+When the fast path does not match, the command plan copies the EV3SC-owned
+server files and offline `websockets-7.0.tar.gz`, then runs a bounded remote
+install script with these internal markers:
 
 ```text
 VSLE_REMOTE_STEP_START: unpack-offline-websockets   # 120s timeout
@@ -183,6 +190,7 @@ VSLE_REMOTE_STEP_START: compile-server              # 60s timeout
 VSLE_REMOTE_STEP_START: install-systemd-assets      # 360s timeout
 VSLE_REMOTE_STEP_START: inspect-vsle-firstboot      # 45s timeout
 VSLE_REMOTE_STEP_START: check-vsle-ev3-server       # 60s timeout
+VSLE_REMOTE_STEP_START: write-install-manifest      # after service active
 ```
 
 If an EV3-side command fails or times out, the result evidence includes

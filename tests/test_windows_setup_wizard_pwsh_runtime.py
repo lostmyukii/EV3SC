@@ -38,8 +38,30 @@ def test_windows_setup_modules_run_under_powershell_core():
         if ($ev3Plan.Status -ne "needs_manual_action") {
             throw "EV3 plan status was $($ev3Plan.Status)"
         }
-        if ($ev3Plan.CommandSteps.Count -ne 3) {
+        if ($ev3Plan.CommandSteps.Count -ne 4) {
             throw "EV3 plan command count was $($ev3Plan.CommandSteps.Count)"
+        }
+        $fastPathStep = $ev3Plan.CommandSteps |
+            Where-Object { $_.Name -eq "check-existing-install" } |
+            Select-Object -First 1
+        if ($null -eq $fastPathStep) {
+            throw "EV3 plan did not include check-existing-install"
+        }
+        if (-not [bool]$fastPathStep.FastPathProbe) {
+            throw "EV3 fast path step was not marked as FastPathProbe"
+        }
+        if ($fastPathStep.Arguments[1] -notmatch "VSLE_FAST_PATH_READY") {
+            throw "EV3 fast path command did not include ready marker"
+        }
+        if ($fastPathStep.Arguments[1] -notmatch [regex]::Escape(".vsle-install-manifest")) {
+            throw "EV3 fast path command did not check the remote install manifest"
+        }
+        if (
+            $null -eq $ev3Plan.InstallManifest -or
+            [string]::IsNullOrWhiteSpace([string]$ev3Plan.InstallManifest.PackageHash) -or
+            [string]$ev3Plan.InstallManifest.PackageHash -notmatch "^[0-9a-f]{64}$"
+        ) {
+            throw "EV3 plan did not include a stable install package hash"
         }
         $installStep = $ev3Plan.CommandSteps |
             Where-Object { $_.Name -eq "install-and-check-service" } |
@@ -52,6 +74,9 @@ def test_windows_setup_modules_run_under_powershell_core():
         }
         if ($installStep.Arguments[2] -notmatch "bash ./scripts/windows_install_and_check.sh") {
             throw "EV3 install remote command must execute the copied remote install script"
+        }
+        if ($installStep.Arguments[2] -notmatch "VSLE_INSTALL_PACKAGE_HASH=") {
+            throw "EV3 install remote command must pass the install package hash"
         }
         if ($installStep.Arguments[2] -match "bash -s") {
             throw "EV3 install remote command must not stream a complex script through stdin"
@@ -89,6 +114,38 @@ def test_windows_setup_modules_run_under_powershell_core():
         }
         if ($ev3Failure.Evidence.Trim() -eq "System.Management.Automation.RemoteException") {
             throw "EV3 simulated failure evidence collapsed to RemoteException"
+        }
+
+        $fastPathPlan = [pscustomobject]@{
+            Status = "needs_manual_action"
+            CommandSteps = @(
+                [pscustomobject]@{
+                    Name = "check-existing-install"
+                    Executable = "pwsh"
+                    Arguments = @("-NoLogo", "-NoProfile", "-Command", "Write-Output VSLE_FAST_PATH_READY; exit 0")
+                    Preview = "check existing EV3 install manifest"
+                    FastPathProbe = $true
+                },
+                [pscustomobject]@{
+                    Name = "slow-step-should-not-run"
+                    Executable = "pwsh"
+                    Arguments = @("-NoLogo", "-NoProfile", "-Command", "throw 'slow step ran'")
+                    Preview = "slow step"
+                }
+            )
+        }
+        $fastPathResult = Invoke-VsleEv3ServerInstall `
+            -Plan $fastPathPlan `
+            -ConfirmEv3Install `
+            -RunSshCommands
+        if ($fastPathResult.Status -ne "passed") {
+            throw "EV3 fast path status was $($fastPathResult.Status): $($fastPathResult.Evidence)"
+        }
+        if ($fastPathResult.Results.Count -ne 1) {
+            throw "EV3 fast path should stop after one command, but ran $($fastPathResult.Results.Count)"
+        }
+        if ($fastPathResult.Evidence -notmatch "fast-path: matched") {
+            throw "EV3 fast path evidence did not record the matched fast path: $($fastPathResult.Evidence)"
         }
 
         $statusEvents = New-Object System.Collections.Generic.List[object]
