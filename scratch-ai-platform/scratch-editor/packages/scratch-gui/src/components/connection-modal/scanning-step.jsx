@@ -17,6 +17,15 @@ import styles from './connection-modal.css';
 
 const ScanningStep = props => {
     const showUpdate = !!(props.onUpdatePeripheral && !props.scanning);
+    const diagnostic = props.connectionDiagnostic || {};
+    const diagnosticMessage = diagnostic.message || (
+        props.scanning ?
+            '正在连接本机 Link。' :
+            'Link 未启动 / 20111 不可达。'
+    );
+    const diagnosticHint = diagnostic.hint ||
+        '这是内部 WebSocket 地址，不能直接在浏览器地址栏打开；请在同一台 Windows 电脑打开 ScratchAI 页面。';
+    const diagnosticUrl = diagnostic.linkUrl || 'ws://127.0.0.1:20111/scratch/bt';
     return (<Box className={styles.body}>
         <Box className={styles.activityArea}>
             {props.scanning ? (
@@ -64,6 +73,17 @@ const ScanningStep = props => {
             )}
         </Box>
         <Box className={styles.bottomArea}>
+            <Box className={styles.connectionDiagnostic}>
+                <div className={styles.connectionDiagnosticStatus}>
+                    {diagnosticMessage}
+                </div>
+                <div className={styles.connectionDiagnosticUrl}>
+                    {diagnosticUrl}
+                </div>
+                <div className={styles.connectionDiagnosticHint}>
+                    {diagnosticHint}
+                </div>
+            </Box>
             <Box className={classNames(styles.bottomAreaItem, styles.instructions)}>
                 {(props.scanning || props.peripheralList.length > 0) && (
                     // Show this message if we're still scanning OR if we've found devices
@@ -126,6 +146,14 @@ const ScanningStep = props => {
 };
 
 ScanningStep.propTypes = {
+    connectionDiagnostic: PropTypes.shape({
+        freshnessSeconds: PropTypes.number,
+        hint: PropTypes.string,
+        linkUrl: PropTypes.string,
+        message: PropTypes.string,
+        peripheralName: PropTypes.string,
+        status: PropTypes.string
+    }),
     connectionSmallIconURL: PropTypes.string,
     onConnecting: PropTypes.func,
     onRefresh: PropTypes.func,

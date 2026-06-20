@@ -290,19 +290,21 @@ $Script:VlseSetupWizardSteps = @(
         Status = "pending"
         Blocking = $true
         ManualConfirmationRequired = $false
-        Summary = "真实启动或检测 WeisileLink Desktop supervisor，并检查本机端口。"
+        Summary = "真实启动或检测 WeisileLink Desktop supervisor，并检查本机端口和 Scratch Link 协议。"
         AutomaticActions = @(
-            "如果端口已经响应，记录为已检测到正在运行。",
+            "如果端口已经响应，继续验证 Scratch Link WebSocket 协议。",
             "WiFi Full VSLE 使用当前 EV3 地址直接启动 WeisileLink runtime。",
             "Bluetooth Full VSLE 使用 EV3 蓝牙地址直接启动 WeisileLink runtime。",
             "检查 127.0.0.1:20111。",
-            "检查 127.0.0.1:8766。"
+            "检查 127.0.0.1:8766。",
+            "发送 getVersion，确认返回 WeisileLink。",
+            "发送 discover，确认发现 EV3 主机。"
         )
-        ManualActions = @("如果 Bluetooth Full VSLE 端口未响应，请确认 Windows 已配对 EV3 且蓝牙地址填写正确。")
-        Evidence = "本机端口检查结果会写入最终安装报告。"
-        NextEnabledWhen = "两个本机端口都通过后继续。"
+        ManualActions = @("如果 Bluetooth Full VSLE 端口或协议未响应，请确认 Windows 已配对 EV3、蓝牙地址填写正确，并且 ScratchAI 页面和 WeisileLink 在同一台电脑上。")
+        Evidence = "本机端口、getVersion 和 discover 协议检查结果会写入最终安装报告。"
+        NextEnabledWhen = "两个本机端口都通过后继续验证协议；getVersion 返回 WeisileLink 且 discover 返回 EV3 主机后继续。"
         ProductionReleaseReady = $false
-        CompletionCondition = "127.0.0.1:20111 和 127.0.0.1:8766 都能响应。"
+        CompletionCondition = "127.0.0.1:20111、127.0.0.1:8766、Scratch Link getVersion 和 discover 都能响应。"
         HardwareLocation = "当前设备：操作 Windows 电脑；WeisileLink Desktop 在本机运行。"
         StepProgressPercent = 0
         CheckItems = @()

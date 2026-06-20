@@ -15,15 +15,22 @@ class ScanningStep extends React.Component {
             'handlePeripheralListUpdate',
             'handlePeripheralScanTimeout',
             'handleUserPickedPeripheral',
-            'handleRefresh'
+            'handleRefresh',
+            'refreshConnectionDiagnostic'
         ]);
         this.state = {
             scanning: true,
-            peripheralList: []
+            peripheralList: [],
+            connectionDiagnostic: null
         };
     }
     componentDidMount () {
         this.props.vm.scanForPeripheral(this.props.extensionId);
+        this.refreshConnectionDiagnostic();
+        this.connectionDiagnosticInterval = window.setInterval(
+            this.refreshConnectionDiagnostic,
+            1000
+        );
         this.props.vm.on(
             'PERIPHERAL_LIST_UPDATE', this.handlePeripheralListUpdate);
         this.props.vm.on(
@@ -33,6 +40,9 @@ class ScanningStep extends React.Component {
     }
     componentWillUnmount () {
         // @todo: stop the peripheral scan here
+        if (this.connectionDiagnosticInterval) {
+            window.clearInterval(this.connectionDiagnosticInterval);
+        }
         this.props.vm.removeListener(
             'PERIPHERAL_LIST_UPDATE', this.handlePeripheralListUpdate);
         this.props.vm.removeListener(
@@ -45,6 +55,7 @@ class ScanningStep extends React.Component {
             scanning: false,
             peripheralList: []
         });
+        this.refreshConnectionDiagnostic();
     }
     handlePeripheralListUpdate (newList) {
         // TODO: sort peripherals by signal strength? so they don't jump around
@@ -52,12 +63,14 @@ class ScanningStep extends React.Component {
             newList[id]
         );
         this.setState({peripheralList: peripheralArray});
+        this.refreshConnectionDiagnostic();
     }
     handleUserPickedPeripheral (newList) {
         const peripheralArray = Object.keys(newList).map(id =>
             newList[id]
         );
         this.setState({peripheralList: peripheralArray});
+        this.refreshConnectionDiagnostic();
         if (peripheralArray.length > 0) {
             this.props.onConnecting(peripheralArray[0].peripheralId);
         }
@@ -68,10 +81,20 @@ class ScanningStep extends React.Component {
             scanning: true,
             peripheralList: []
         });
+        this.refreshConnectionDiagnostic();
+    }
+    refreshConnectionDiagnostic () {
+        if (typeof this.props.vm.getPeripheralConnectionDiagnostic !== 'function') {
+            return;
+        }
+        this.setState({
+            connectionDiagnostic: this.props.vm.getPeripheralConnectionDiagnostic(this.props.extensionId)
+        });
     }
     render () {
         return (
             <ScanningStepComponent
+                connectionDiagnostic={this.state.connectionDiagnostic}
                 connectionSmallIconURL={this.props.connectionSmallIconURL}
                 peripheralList={this.state.peripheralList}
                 phase={this.state.phase}

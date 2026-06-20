@@ -1566,6 +1566,19 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Return optional teacher-facing connection diagnostics for an extension.
+     * @param {string} extensionId - the id of the extension.
+     * @returns {?object} - diagnostic state, if exposed by the extension.
+     */
+    getPeripheralConnectionDiagnostic (extensionId) {
+        const extension = this.peripheralExtensions[extensionId];
+        if (extension && typeof extension.getConnectionDiagnostic === 'function') {
+            return extension.getConnectionDiagnostic();
+        }
+        return null;
+    }
+
+    /**
      * Emit an event to indicate that the microphone is being used to stream audio.
      * @param {boolean} listening - true if the microphone is currently listening.
      */

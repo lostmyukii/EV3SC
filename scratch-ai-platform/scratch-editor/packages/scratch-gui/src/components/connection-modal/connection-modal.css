@@ -380,6 +380,34 @@
     margin-top: 1rem;
 }
 
+.connection-diagnostic {
+    border: 1px solid $ui-black-transparent;
+    border-radius: 0.25rem;
+    color: $text-primary;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    max-width: 100%;
+    padding: 0.5rem;
+    text-align: left;
+    width: 100%;
+    word-break: break-word;
+}
+
+.connection-diagnostic-status {
+    font-weight: 600;
+}
+
+.connection-diagnostic-url {
+    color: $text-primary-transparent;
+    font-family: monospace;
+    margin-top: 0.25rem;
+}
+
+.connection-diagnostic-hint {
+    color: $text-primary-transparent;
+    margin-top: 0.25rem;
+}
+
 .instructions {
     text-align: center;
 }

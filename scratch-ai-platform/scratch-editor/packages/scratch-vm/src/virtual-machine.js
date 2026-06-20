@@ -304,6 +304,15 @@ class VirtualMachine extends EventEmitter {
     }
 
     /**
+     * Return optional teacher-facing connection diagnostics for an extension.
+     * @param {string} extensionId - the id of the extension.
+     * @returns {?object} - diagnostic state, if exposed by the extension.
+     */
+    getPeripheralConnectionDiagnostic (extensionId) {
+        return this.runtime.getPeripheralConnectionDiagnostic(extensionId);
+    }
+
+    /**
      * Load a Scratch project from a .sb, .sb2, .sb3 or json string.
      * @param {string | object} input A json string, object, or ArrayBuffer representing the project to load.
      * @returns {!Promise} Promise that resolves after targets are installed.

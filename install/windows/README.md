@@ -115,21 +115,29 @@ PowerShell 5.1 smoke run.
 ## Phase G Local Bridge Verification
 
 The `Start and Verify Local Bridge` step starts or detects the WeisileLink local
-runtime on the Windows teacher computer. It first checks whether the localhost
-endpoints are already responding:
+runtime on the Windows teacher computer. It checks whether the localhost
+endpoints are responding:
 
 ```text
 127.0.0.1:20111
 127.0.0.1:8766
 ```
 
-If both endpoints already respond, the wizard records the bridge as already
-running. If either endpoint is not available, WiFi Full VSLE starts
+If both endpoints already respond, the wizard still validates the Scratch Link
+WebSocket protocol before it records the bridge as usable. The probe connects
+to `ws://127.0.0.1:20111/scratch/bt`, sends `getVersion`, requires
+`implementation = WeisileLink`, sends `discover`, and requires a
+`didDiscoverPeripheral` EV3 host result. This `ws://` address is not a browser
+URL; teachers should not paste it into the address bar.
+
+If either endpoint is not available, WiFi Full VSLE starts
 `WeisileLink.exe` directly with `WEISILE_TRANSPORT=wifi` and the EV3 host from
 the wizard fields. Bluetooth Full VSLE starts `WeisileLink.exe` directly with
 `WEISILE_TRANSPORT=vsle-bluetooth`, `EV3_BT`, the EV3 host fallback, and the
 native adapter path when that adapter is installed. The wizard then polls both
-ports until they pass or the step blocks with evidence.
+ports and validates the WebSocket protocol until they pass or the step blocks
+with evidence. A port that opens but does not answer as WeisileLink is treated
+as blocked because another process may be using `20111`.
 
 This phase is a real Windows runtime check, not a manual placeholder. On macOS,
 static and PowerShell Core tests can verify the command plan and module shape,

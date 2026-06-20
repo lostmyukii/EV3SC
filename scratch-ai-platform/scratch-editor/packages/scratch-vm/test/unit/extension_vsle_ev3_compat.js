@@ -136,6 +136,73 @@ test('official EV3 reporters and hats use synchronous VSLE sensor cache reads', 
     t.end();
 });
 
+test('official EV3 compatibility extension exposes local Link diagnostics', t => {
+    const nowValues = [102300, 106000];
+    const extension = new Scratch3VSLEEV3Compat({}, 'ev3', {
+        Scratch: makeScratchApi(),
+        link: new FakeLink(),
+        clock: () => nowValues.shift() || 106000,
+        sensorCache: new FakeSensorCache({
+            timestamp: 100000
+        })
+    });
+
+    let diagnostic = extension.getConnectionDiagnostic();
+
+    t.equal(diagnostic.linkUrl, 'ws://127.0.0.1:20111/scratch/bt');
+    t.equal(diagnostic.status, 'not_connected');
+    t.match(diagnostic.message, /Link 未连接/);
+    t.match(diagnostic.hint, /不能直接在浏览器地址栏打开/);
+
+    extension.scan();
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'searching');
+    t.match(diagnostic.message, /正在连接本机 Link/);
+
+    extension._recordPeripheralDiscovered({
+        peripheralId: 'vsle-ev3-wifi',
+        name: 'VSLE EV3 WiFi'
+    });
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'discovered');
+    t.equal(diagnostic.peripheralName, 'VSLE EV3 WiFi');
+
+    extension._recordConnected();
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'sensor_streaming');
+    t.equal(diagnostic.freshnessSeconds, 2.3);
+    t.match(diagnostic.message, /正在接收传感器实时数据/);
+
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'sensor_stale');
+    t.equal(diagnostic.freshnessSeconds, 6);
+    t.match(diagnostic.message, /传感器数据已停止更新/);
+    t.end();
+});
+
+test('official EV3 compatibility extension maps Link search failures to teacher-readable diagnostics', t => {
+    const extension = new Scratch3VSLEEV3Compat({}, 'ev3', {
+        Scratch: makeScratchApi(),
+        link: new FakeLink()
+    });
+
+    extension._recordConnectionError({code: 1008, reason: 'origin not allowed'});
+    let diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'origin_rejected');
+    t.match(diagnostic.message, /网页来源未被 WeisileLink 允许/);
+
+    extension._recordConnectionError(new Error('timeout'));
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'link_unavailable');
+    t.match(diagnostic.message, /Link 未启动/);
+
+    extension._recordSearchTimeout();
+    diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'not_found');
+    t.match(diagnostic.message, /没有发现 EV3 主机/);
+    t.end();
+});
+
 test('official EV3 sb3 fixture loads with VSLE-backed ev3 primitives', async t => {
     const vm = new VirtualMachine();
     const projectPath = path.resolve(

@@ -10,6 +10,8 @@ const MOTOR_PORTS = ['A', 'B', 'C', 'D'];
 const SENSOR_PORTS = ['S1', 'S2', 'S3', 'S4'];
 const DEFAULT_MOTOR_POWER = 50;
 const DEFAULT_VOLUME = 100;
+const SENSOR_STREAMING_STATUS = 'sensor_streaming';
+const SENSOR_STALE_STATUS = 'sensor_stale';
 
 const deepMerge = (target, source) => {
     for (const [key, value] of Object.entries(source)) {
@@ -76,9 +78,14 @@ class WeisileLinkClient {
         this.WebSocket = options.WebSocket || globalObject.WebSocket;
         this.sensorCache = options.sensorCache || new SensorCache();
         this.timeoutMs = options.timeoutMs || COMMAND_TIMEOUT_MS;
+        this._clock = options.clock || (() => Date.now());
+        this._onSensorUpdate = options.onSensorUpdate || null;
         this._ws = null;
         this._nextId = 1;
         this._pending = new Map();
+        this._discoveryPending = null;
+        this.lastSensorUpdateMs = 0;
+        this.lastDiscoveredPeripheral = null;
     }
 
     async connect () {
@@ -127,6 +134,35 @@ class WeisileLinkClient {
         });
     }
 
+    async probeDiscovery () {
+        const version = await this.sendCommand({method: 'getVersion'});
+        if (!version || version.implementation !== 'WeisileLink') {
+            throw new Error('端口被其他程序占用，或不是当前 VSLE WeisileLink runtime。');
+        }
+
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                this._discoveryPending = null;
+                reject(new Error('没有发现 EV3 主机。'));
+            }, this.timeoutMs);
+            this._discoveryPending = {resolve, reject, timer};
+            this.sendCommand({method: 'discover'}).catch(error => {
+                if (this._discoveryPending) {
+                    clearTimeout(this._discoveryPending.timer);
+                    this._discoveryPending = null;
+                }
+                reject(error);
+            });
+        });
+    }
+
+    close () {
+        if (this._ws && this._ws.readyState === this.WebSocket.OPEN) {
+            this._ws.close();
+        }
+        this._ws = null;
+    }
+
     _installHandlers (ws) {
         ws.onmessage = event => this._handleMessage(event.data);
         ws.onclose = () => {
@@ -143,6 +179,10 @@ class WeisileLinkClient {
         if (message.method === 'notifyDeviceDidReceiveMessage' ||
             message.method === 'didReceiveMessage') {
             this._handleSensorNotification(message.params || {});
+            return;
+        }
+        if (message.method === 'didDiscoverPeripheral') {
+            this._handleDiscoveryNotification(message.params || {});
             return;
         }
 
@@ -167,6 +207,20 @@ class WeisileLinkClient {
             decodeBase64(params.message) :
             params.message;
         this.sensorCache.update(JSON.parse(decoded));
+        this.lastSensorUpdateMs = this._clock();
+        if (this._onSensorUpdate) {
+            this._onSensorUpdate(this.lastSensorUpdateMs);
+        }
+    }
+
+    _handleDiscoveryNotification (params) {
+        this.lastDiscoveredPeripheral = params;
+        if (!this._discoveryPending) {
+            return;
+        }
+        clearTimeout(this._discoveryPending.timer);
+        this._discoveryPending.resolve(params);
+        this._discoveryPending = null;
     }
 }
 
@@ -192,11 +246,17 @@ class Scratch3VSLEEV3Compat {
         this.BlockType = Scratch.BlockType || BlockType;
         this.Cast = Scratch.Cast || Cast;
         this.sensorCache = options.sensorCache || new SensorCache();
+        this._clock = options.clock || (() => Date.now());
+        this._lastSensorUpdateMs = 0;
         this.link = options.link || new WeisileLinkClient({
             sensorCache: this.sensorCache,
             WebSocket: options.WebSocket,
             url: options.linkURL,
-            timeoutMs: options.timeoutMs
+            timeoutMs: options.timeoutMs,
+            clock: this._clock,
+            onSensorUpdate: timestamp => {
+                this._lastSensorUpdateMs = timestamp;
+            }
         });
         this._sleep = options.sleep || (ms => new Promise(resolve => {
             setTimeout(resolve, ms);
@@ -205,6 +265,13 @@ class Scratch3VSLEEV3Compat {
             powers[port] = DEFAULT_MOTOR_POWER;
             return powers;
         }, {});
+        this._connected = false;
+        this._discoveredPeripheral = null;
+        this._diagnostic = {
+            status: 'not_connected',
+            message: 'Link 未连接。',
+            hint: '这是内部 WebSocket 地址，不能直接在浏览器地址栏打开；请在同一台 Windows 电脑打开 ScratchAI 页面。'
+        };
 
         if (this.runtime.registerPeripheralExtension) {
             this.runtime.registerPeripheralExtension(this._extensionId, this);
@@ -400,11 +467,73 @@ class Scratch3VSLEEV3Compat {
         });
     }
 
-    scan () {}
+    scan () {
+        this._recordSearchStarted();
+        if (typeof this.link.probeDiscovery !== 'function') {
+            return;
+        }
+        this.link.probeDiscovery()
+            .then(peripheral => {
+                this._recordPeripheralDiscovered(peripheral);
+                this._emitPeripheralListUpdate(peripheral);
+            })
+            .catch(error => {
+                this._recordConnectionError(error);
+                this._emitRuntimeEvent('PERIPHERAL_SCAN_TIMEOUT');
+            });
+    }
 
-    connect () {}
+    connect (peripheralId) {
+        this._diagnostic = {
+            status: 'connecting',
+            message: '正在连接 EV3 主机。',
+            hint: '如果长时间停留在这里，请确认 EV3 已开机、蓝牙已配对，并且 WeisileLink 在同一台 Windows 电脑上运行。'
+        };
+        this.link.sendCommand({
+            method: 'connect',
+            params: {peripheralId: peripheralId || this._defaultPeripheralId()}
+        })
+            .then(() => this.link.sendCommand({method: 'startNotifications'}))
+            .then(() => {
+                this._recordConnected();
+                this._emitRuntimeEvent('PERIPHERAL_CONNECTED');
+            })
+            .catch(error => {
+                this._recordConnectionError(error);
+                this._emitRuntimeEvent('PERIPHERAL_REQUEST_ERROR');
+            });
+    }
 
-    disconnect () {}
+    disconnect () {
+        this._connected = false;
+        if (this.link && typeof this.link.close === 'function') {
+            this.link.close();
+        }
+        this._diagnostic = {
+            status: 'not_connected',
+            message: 'Link 未连接。',
+            hint: '这是内部 WebSocket 地址，不能直接在浏览器地址栏打开；请在同一台 Windows 电脑打开 ScratchAI 页面。'
+        };
+        this._emitRuntimeEvent('PERIPHERAL_DISCONNECTED');
+    }
+
+    isConnected () {
+        return this._connected;
+    }
+
+    getConnectionDiagnostic () {
+        if (this._connected) {
+            return this._connectedDiagnostic();
+        }
+        const diagnostic = Object.assign({}, this._diagnostic);
+        return Object.assign(diagnostic, {
+            linkUrl: DEFAULT_LINK_URL,
+            peripheralName: this._discoveredPeripheral ?
+                this._discoveredPeripheral.name :
+                '',
+            freshnessSeconds: null
+        });
+    }
 
     async _legacyTimedMotor (args, direction) {
         const port = this._legacyMotorPort(args.PORT);
@@ -439,6 +568,129 @@ class Scratch3VSLEEV3Compat {
 
     _sendSoundCommand (method, params) {
         return this._sendMotorCommand(method, params);
+    }
+
+    _recordSearchStarted () {
+        this._connected = false;
+        this._diagnostic = {
+            status: 'searching',
+            message: '正在连接本机 Link，并搜索 EV3 主机。',
+            hint: 'Link 地址是 ws://127.0.0.1:20111/scratch/bt。它是内部 WebSocket 地址，不能直接在浏览器地址栏打开。'
+        };
+    }
+
+    _recordPeripheralDiscovered (peripheral) {
+        this._discoveredPeripheral = peripheral || {};
+        this._diagnostic = {
+            status: 'discovered',
+            message: '已发现 EV3 主机，请点击连接。',
+            hint: '如果点击连接后失败，请确认 EV3 服务和蓝牙配对状态。',
+            peripheralName: this._discoveredPeripheral.name || ''
+        };
+    }
+
+    _recordConnected () {
+        this._connected = true;
+        this._diagnostic = {
+            status: 'connected',
+            message: 'EV3 已连接，等待传感器实时数据。',
+            hint: '运行 EV3 积木或观察传感器 reporter，确认数据会更新。'
+        };
+    }
+
+    _recordConnectionError (error) {
+        this._connected = false;
+        const reason = `${error && (error.reason || error.message || error.type || error)}`;
+        if (reason.indexOf('没有发现 EV3 主机') !== -1) {
+            this._recordSearchTimeout();
+            return;
+        }
+        if (reason.indexOf('origin not allowed') !== -1 || error.code === 1008) {
+            this._diagnostic = {
+                status: 'origin_rejected',
+                message: '网页来源未被 WeisileLink 允许。',
+                hint: '请用 http://101.42.92.6:18612 打开 ScratchAI，并确认 WeisileLink 由 VSLE 向导启动。'
+            };
+            return;
+        }
+        this._diagnostic = {
+            status: 'link_unavailable',
+            message: 'Link 未启动 / 20111 不可达。',
+            hint: '请回到 VSLE 安装向导的“启动并检查本地桥接”步骤，确认 20111 和 8766 都通过。'
+        };
+    }
+
+    _recordSearchTimeout () {
+        this._connected = false;
+        this._diagnostic = {
+            status: 'not_found',
+            message: '没有发现 EV3 主机。',
+            hint: '请确认选择 Bluetooth Full VSLE、EV3 已开机、Windows 已配对 EV3，且 EV3 Server 已安装通过。'
+        };
+    }
+
+    _connectedDiagnostic () {
+        const freshnessSeconds = this._sensorFreshnessSeconds();
+        const stale = freshnessSeconds === null || freshnessSeconds > 5;
+        return {
+            linkUrl: DEFAULT_LINK_URL,
+            status: stale ? SENSOR_STALE_STATUS : SENSOR_STREAMING_STATUS,
+            message: stale ?
+                '传感器数据已停止更新。' :
+                `正在接收传感器实时数据，距上次传感器数据 ${freshnessSeconds} 秒。`,
+            hint: stale ?
+                '请确认 EV3 服务仍在运行，蓝牙连接没有断开。' :
+                '连接正常，可以继续运行 EV3 积木。',
+            peripheralName: this._discoveredPeripheral ?
+                this._discoveredPeripheral.name :
+                '',
+            freshnessSeconds
+        };
+    }
+
+    _sensorFreshnessSeconds () {
+        const timestamp = this._safeNumber(this.sensorCache.get('timestamp'), 0) ||
+            this._lastSensorUpdateMs ||
+            0;
+        if (timestamp <= 0) {
+            return null;
+        }
+        return Math.max(0, roundTwoPlaces((this._clock() - timestamp) / 1000));
+    }
+
+    _defaultPeripheralId () {
+        return this._discoveredPeripheral && this._discoveredPeripheral.peripheralId ?
+            this._discoveredPeripheral.peripheralId :
+            'vsle-ev3-wifi';
+    }
+
+    _emitPeripheralListUpdate (peripheral) {
+        if (!peripheral || !peripheral.peripheralId) {
+            return;
+        }
+        this._emitRuntimeEvent('PERIPHERAL_LIST_UPDATE', {
+            [peripheral.peripheralId]: peripheral
+        });
+    }
+
+    _emitPeripheralScanTimeout () {
+        this._recordSearchTimeout();
+        this._emitRuntimeEvent('PERIPHERAL_SCAN_TIMEOUT');
+    }
+
+    _emitRuntimeEvent (eventName, payload) {
+        if (!this.runtime || !this.runtime.constructor || !this.runtime.emit) {
+            return;
+        }
+        const event = this.runtime.constructor[eventName];
+        if (!event) {
+            return;
+        }
+        if (typeof payload === 'undefined') {
+            this.runtime.emit(event);
+        } else {
+            this.runtime.emit(event, payload);
+        }
     }
 
     _legacyMotorPort (value) {

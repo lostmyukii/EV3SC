@@ -578,6 +578,196 @@ function Test-VsleTcpPort {
     }
 }
 
+function New-VsleScratchLinkProtocolResult {
+    param(
+        [bool]$ProtocolOk = $false,
+        [bool]$DiscoverOk = $false,
+        [string]$Implementation = "",
+        [string]$PeripheralName = "",
+        [string]$ErrorMessage = ""
+    )
+
+    [PSCustomObject]@{
+        ProtocolOk = $ProtocolOk
+        DiscoverOk = $DiscoverOk
+        Implementation = $Implementation
+        PeripheralName = $PeripheralName
+        ErrorMessage = $ErrorMessage
+    }
+}
+
+function Send-VsleScratchLinkWebSocketJson {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebSockets.ClientWebSocket]$Client,
+        [Parameter(Mandatory = $true)]
+        [string]$Json,
+        [int]$TimeoutMs = 2000
+    )
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($Json)
+    $segment = [System.ArraySegment[byte]]::new($bytes)
+    $task = $Client.SendAsync(
+        $segment,
+        [System.Net.WebSockets.WebSocketMessageType]::Text,
+        $true,
+        [System.Threading.CancellationToken]::None
+    )
+    if (-not $task.Wait($TimeoutMs)) {
+        throw "Timed out sending Scratch Link WebSocket message."
+    }
+}
+
+function Receive-VsleScratchLinkWebSocketJson {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebSockets.ClientWebSocket]$Client,
+        [int]$TimeoutMs = 2000
+    )
+
+    $buffer = New-Object byte[] 8192
+    $segment = [System.ArraySegment[byte]]::new($buffer)
+    $stream = New-Object System.IO.MemoryStream
+    try {
+        do {
+            $task = $Client.ReceiveAsync(
+                $segment,
+                [System.Threading.CancellationToken]::None
+            )
+            if (-not $task.Wait($TimeoutMs)) {
+                throw "Timed out waiting for Scratch Link WebSocket message."
+            }
+            $result = $task.Result
+            if ($result.MessageType -eq [System.Net.WebSockets.WebSocketMessageType]::Close) {
+                throw "Scratch Link WebSocket closed before protocol probe completed."
+            }
+            if ($result.Count -gt 0) {
+                $stream.Write($buffer, 0, $result.Count)
+            }
+        } while (-not $result.EndOfMessage)
+
+        $text = [System.Text.Encoding]::UTF8.GetString($stream.ToArray())
+        if ([string]::IsNullOrWhiteSpace($text)) {
+            throw "Scratch Link WebSocket returned an empty message."
+        }
+        return ($text | ConvertFrom-Json)
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Test-VsleScratchLinkProtocol {
+    [CmdletBinding()]
+    param(
+        [string]$Host = "127.0.0.1",
+        [int]$Port = 20111,
+        [int]$TimeoutMs = 2500
+    )
+
+    # Default Scratch Link WebSocket: ws://127.0.0.1:20111/scratch/bt
+    $url = "ws://${Host}:${Port}/scratch/bt"
+    $client = New-Object System.Net.WebSockets.ClientWebSocket
+    try {
+        $connectTask = $client.ConnectAsync(
+            [System.Uri]$url,
+            [System.Threading.CancellationToken]::None
+        )
+        if (-not $connectTask.Wait($TimeoutMs)) {
+            return New-VsleScratchLinkProtocolResult `
+                -ErrorMessage "Link 未启动 / 20111 不可达。"
+        }
+
+        Send-VsleScratchLinkWebSocketJson `
+            -Client $client `
+            -Json '{"jsonrpc":"2.0","id":1,"method":"getVersion"}' `
+            -TimeoutMs $TimeoutMs
+
+        $implementation = ""
+        $protocolOk = $false
+        $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+        do {
+            $message = Receive-VsleScratchLinkWebSocketJson `
+                -Client $client `
+                -TimeoutMs $TimeoutMs
+            if (
+                $message.PSObject.Properties.Name -contains "id" -and
+                [string]$message.id -eq "1"
+            ) {
+                if (
+                    $message.PSObject.Properties.Name -contains "result" -and
+                    $message.result.PSObject.Properties.Name -contains "implementation"
+                ) {
+                    $implementation = [string]$message.result.implementation
+                }
+                $protocolOk = ($implementation -eq "WeisileLink")
+                break
+            }
+        } while ((Get-Date) -lt $deadline)
+
+        if (-not $protocolOk) {
+            return New-VsleScratchLinkProtocolResult `
+                -Implementation $implementation `
+                -ErrorMessage "端口被其他程序占用，或不是当前 VSLE WeisileLink runtime。"
+        }
+
+        Send-VsleScratchLinkWebSocketJson `
+            -Client $client `
+            -Json '{"jsonrpc":"2.0","id":2,"method":"discover"}' `
+            -TimeoutMs $TimeoutMs
+
+        $peripheralName = ""
+        $discoverOk = $false
+        $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+        do {
+            $message = Receive-VsleScratchLinkWebSocketJson `
+                -Client $client `
+                -TimeoutMs $TimeoutMs
+            if (
+                $message.PSObject.Properties.Name -contains "method" -and
+                [string]$message.method -eq "didDiscoverPeripheral"
+            ) {
+                $discoverOk = $true
+                if (
+                    $message.PSObject.Properties.Name -contains "params" -and
+                    $message.params.PSObject.Properties.Name -contains "name"
+                ) {
+                    $peripheralName = [string]$message.params.name
+                }
+                break
+            }
+        } while ((Get-Date) -lt $deadline)
+
+        if (-not $discoverOk) {
+            return New-VsleScratchLinkProtocolResult `
+                -ProtocolOk $true `
+                -Implementation $implementation `
+                -ErrorMessage "Link 可用，但未发现 EV3 主机。"
+        }
+
+        return New-VsleScratchLinkProtocolResult `
+            -ProtocolOk $true `
+            -DiscoverOk $true `
+            -Implementation $implementation `
+            -PeripheralName $peripheralName
+    } catch {
+        return New-VsleScratchLinkProtocolResult `
+            -ErrorMessage ([string]$_.Exception.Message)
+    } finally {
+        if ($client.State -eq [System.Net.WebSockets.WebSocketState]::Open) {
+            try {
+                $closeTask = $client.CloseAsync(
+                    [System.Net.WebSockets.WebSocketCloseStatus]::NormalClosure,
+                    "VSLE probe completed",
+                    [System.Threading.CancellationToken]::None
+                )
+                [void]$closeTask.Wait(500)
+            } catch {
+            }
+        }
+        $client.Dispose()
+    }
+}
+
 function Get-VsleWindowsDesktopBridgePlan {
     [CmdletBinding()]
     param(
@@ -768,18 +958,29 @@ function Invoke-VsleWindowsDesktopBridgeVerification {
     }
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $scratchProtocol = New-VsleScratchLinkProtocolResult
     do {
         $scratchOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.ScratchLinkPort
         $trainerOk = Test-VsleTcpPort -Host $Plan.Host -Port $Plan.TrainerPort
-        if ($scratchOk -and $trainerOk) {
+        if ($scratchOk) {
+            $scratchProtocol = Test-VsleScratchLinkProtocol `
+                -Host $Plan.Host `
+                -Port $Plan.ScratchLinkPort
+        }
+        if ($scratchOk -and $trainerOk -and $scratchProtocol.ProtocolOk -and $scratchProtocol.DiscoverOk) {
             break
         }
         Start-Sleep -Milliseconds $PollIntervalMs
     } while ((Get-Date) -lt $deadline)
 
-    $status = if ($scratchOk -and $trainerOk) { "passed" } else { "blocked" }
-    $summary = if ($scratchOk -and $trainerOk) {
-        "本地桥接已启动或已检测到运行，两个本机端口都通过。"
+    $bridgeOk = $scratchOk -and $trainerOk -and $scratchProtocol.ProtocolOk -and $scratchProtocol.DiscoverOk
+    $status = if ($bridgeOk) { "passed" } else { "blocked" }
+    $summary = if ($bridgeOk) {
+        "本地桥接已启动或已检测到运行，端口和 Scratch Link 协议都通过。"
+    } elseif ($scratchOk -and -not $scratchProtocol.ProtocolOk) {
+        "本地桥接端口打开，但 Scratch Link 协议不是 WeisileLink。"
+    } elseif ($scratchProtocol.ProtocolOk -and -not $scratchProtocol.DiscoverOk) {
+        "Link 可用，但未发现 EV3 主机。"
     } else {
         "本地桥接未通过端口检查。"
     }
@@ -793,21 +994,31 @@ function Invoke-VsleWindowsDesktopBridgeVerification {
         "StartAttempted: $startAttempted",
         "BridgeProcessId: $bridgeProcessId",
         "scratch_link_endpoint_ok: $scratchOk",
+        "scratch_link_protocol_ok: $($scratchProtocol.ProtocolOk)",
+        "scratch_link_discover_ok: $($scratchProtocol.DiscoverOk)",
+        "scratch_link_protocol_implementation: $($scratchProtocol.Implementation)",
+        "scratch_link_protocol_peripheral: $($scratchProtocol.PeripheralName)",
+        "scratch_link_protocol_error: $($scratchProtocol.ErrorMessage)",
         "trainer_endpoint_ok: $trainerOk",
         "Scratch Link endpoint: $($Plan.Host):$($Plan.ScratchLinkPort)",
+        "Scratch Link WebSocket: ws://$($Plan.Host):$($Plan.ScratchLinkPort)/scratch/bt",
+        "Note: 这是内部 WebSocket 地址，不能直接在浏览器地址栏打开。",
         "Trainer endpoint: $($Plan.Host):$($Plan.TrainerPort)",
         "ProductionReleaseReady: false"
     ) -join [Environment]::NewLine
 
     [PSCustomObject]@{
         Status = $status
-        Blocking = -not ($scratchOk -and $trainerOk)
+        Blocking = -not $bridgeOk
         ManualConfirmationRequired = $false
         Summary = $summary
         Evidence = $evidence
         Plan = $Plan
         BridgeProcessId = $bridgeProcessId
         scratch_link_endpoint_ok = $scratchOk
+        scratch_link_protocol_ok = $scratchProtocol.ProtocolOk
+        scratch_link_discover_ok = $scratchProtocol.DiscoverOk
+        scratch_link_protocol_error = $scratchProtocol.ErrorMessage
         trainer_endpoint_ok = $trainerOk
     }
 }
@@ -875,4 +1086,4 @@ function Prepare-VsleWindowsDesktopInstallStaging {
     return Test-VsleWindowsDesktopInstallStaging -Plan $plan
 }
 
-Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Stop-VsleWindowsDesktopProcessesForUpgrade, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand, Get-VsleWindowsDesktopBridgePlan, Test-VsleTcpPort, Invoke-VsleWindowsDesktopBridgeVerification
+Export-ModuleMember -Function Get-VsleWindowsDesktopInstallPlan, Prepare-VsleWindowsDesktopInstallStaging, Test-VsleWindowsDesktopInstallStaging, New-VsleWindowsDesktopInstallConfirmation, Stop-VsleWindowsDesktopProcessesForUpgrade, Invoke-VsleWindowsDesktopInstallExecution, Test-VsleWindowsDesktopStartupCommand, Get-VsleWindowsDesktopBridgePlan, Test-VsleTcpPort, Test-VsleScratchLinkProtocol, Invoke-VsleWindowsDesktopBridgeVerification
