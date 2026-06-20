@@ -4186,6 +4186,13 @@ material into:
 - **Files created/modified**: `ev3-firmware/scripts/windows_install_and_check.sh`, `install/windows/lib/Ev3ConnectionChecks.psm1`, `install/windows/setup-wizard.ps1`, `install/windows/lib/InstallFileChecks.psm1`, `install/check_install_files.sh`, `install/windows/README.md`, `install/windows/WINDOWS_SETUP_WIZARD_DEVELOPMENT.md`, `tests/test_windows_setup_wizard_phase_d_ev3_setup.py`, `tests/test_windows_setup_wizard_pwsh_runtime.py`, `tests/test_ev3_autostart_assets.py`, `/Users/yukii/Desktop/VSLE-Install`
 - **Next step**: Replace the Windows copy with the regenerated `/Users/yukii/Desktop/VSLE-Install`, rerun Install EV3 Server, answer any OpenSSH host-key or hidden SSH password prompts, then use the visible remote EV3 sudo prompt shown by `windows_install_and_check.sh`.
 
+### [2026-06-20] Windows EV3 teacher feedback checklist
+- **Status**: ✅ Completed
+- **Commit**: `974d18a`
+- **What was done**: Added a teacher-fillable Windows EV3 test feedback form for the Bluetooth Full VSLE classroom path. The checklist separates Windows setup wizard steps, EV3 Server install evidence, local bridge endpoint checks, ScratchAI EV3 function tests, failure capture fields, and a WeChat-ready feedback template.
+- **Files created/modified**: `docs/classroom/WINDOWS_EV3_TEACHER_TEST_FEEDBACK.md`, `docs/classroom/README.md`
+- **Next step**: Send the checklist to the teacher, collect the filled results plus `vsle-setup-wizard-diagnostics-*.json`, wizard screenshot, external PowerShell screenshot, and ScratchAI EV3 screenshot, then diagnose the first failed or blocked step.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
