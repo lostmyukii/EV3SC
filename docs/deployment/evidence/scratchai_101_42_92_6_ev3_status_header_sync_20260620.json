@@ -1,0 +1,51 @@
+{
+  "status": "completed",
+  "generated_at": "2026-06-20T09:28:10Z",
+  "public_url": "http://101.42.92.6:18612/",
+  "public_gui_url": "http://101.42.92.6:18612/gui.js",
+  "public_extension_url": "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+  "remote_host": "101.42.92.6",
+  "remote_user": "ubuntu",
+  "remote_base_dir": "/home/ubuntu/ev3sc-scratchai-18612",
+  "previous_release": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260603-bt-reconnect-cadence",
+  "release": "scratchai-18612-20260620-ev3-status",
+  "current_release": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260620-ev3-status",
+  "code_commits": {
+    "scratchai_status_indicator": "33feb63",
+    "progress_log": "d8bfbd5"
+  },
+  "hashes": {
+    "local_gui_js_sha256": "faef661f4d559e3bc8d455e921c8bec5176aacead48121d3e7e759218d8ba1ce",
+    "remote_release_gui_js_sha256": "faef661f4d559e3bc8d455e921c8bec5176aacead48121d3e7e759218d8ba1ce",
+    "public_gui_js_sha256": "faef661f4d559e3bc8d455e921c8bec5176aacead48121d3e7e759218d8ba1ce",
+    "public_vsle_ev3_extension_index_sha256": "cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d"
+  },
+  "service_status": {
+    "ev3sc-scratchai-preview-18612.service": "active",
+    "ev3sc-scratchai-middleware-18614.service": "active",
+    "ev3sc-scratchai-asset-18615.service": "active"
+  },
+  "public_http": {
+    "root_status": 200,
+    "root_content_type": "text/html; charset=utf-8",
+    "gui_status": 200,
+    "gui_content_type": "application/javascript; charset=utf-8",
+    "gui_cache_control": "public, max-age=300"
+  },
+  "verified_markers": [
+    "EV3 已连接",
+    "正在接收传感器",
+    "Link 未启动 / 20111 不可达",
+    "http://101.42.92.6:18612/vsle-ev3-extension/index.js",
+    "SCRATCH_AI_ENABLED=true",
+    "SCRATCH_AI_PANEL_ENABLED=true",
+    "SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true",
+    "ai-logic-coach-toggle",
+    "ai-logic-coach-asset-generator"
+  ],
+  "local_verification": [
+    "CI=1 SCRATCH_AI_ENABLED=true SCRATCH_AI_PANEL_ENABLED=true SCRATCH_AI_EXTENSION_ENABLED=true SCRATCH_AI_MENU_ENABLED=true SCRATCH_AI_LOGGING_ENABLED=true SCRATCH_AI_IMAGE_BLOCKS_ENABLED=true SCRATCH_AI_MIDDLEWARE_URL=/ SCRATCH_AI_ASSET_HOST=same-origin SCRATCH_AI_PROJECT_HOST=same-origin SCRATCH_AI_VSLE_EV3_EXTENSION_URL=http://101.42.92.6:18612/vsle-ev3-extension/index.js npm run build:dev",
+    ".venv/bin/python scripts/verify_scratchai_preview.py --url http://101.42.92.6:18612/ --timeout-seconds 20"
+  ],
+  "boundary": "The public host verifies the ScratchAI browser bundle and EV3 extension route only. Real EV3 connection and sensor freshness still require the teacher Windows computer to run local WeisileLink Desktop and open this public URL on the same machine."
+}

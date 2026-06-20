@@ -269,6 +269,41 @@ uses the 200 ms connection reporter constant that caused slow Bluetooth
 classroom sampling to appear disconnected. The preview, middleware, and asset
 worker services were restarted and verified active.
 
+## 2026-06-20 EV3 Status Header Sync
+
+Evidence:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.md`
+
+Release:
+
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260620-ev3-status`
+
+This copied the previous public release and replaced the ScratchAI static browser
+bundle with a rebuilt `gui.js` from commit `33feb63`. The rebuilt page adds a
+teacher-visible EV3 status pill in the stage header, backed by
+`getPeripheralConnectionDiagnostic('ev3')`, while preserving the public VSLE-EV3
+extension URL.
+
+The public `gui.js` SHA-256 now matches the local rebuilt bundle:
+
+```text
+faef661f4d559e3bc8d455e921c8bec5176aacead48121d3e7e759218d8ba1ce
+```
+
+The public EV3 extension SHA-256 remains:
+
+```text
+cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d
+```
+
+The public `gui.js` contains the new EV3 teacher feedback strings, including
+`EV3 已连接`, `正在接收传感器`, and `Link 未启动 / 20111 不可达`.
+The preview verifier passed against `http://101.42.92.6:18612/`, and the
+preview, middleware, and asset worker services were restarted and verified
+active.
+
 ## Notes
 
 - `http://49.232.81.132:18602/` and its API routes require preview authentication from the old deployment, so public unauthenticated API introspection was not possible.
