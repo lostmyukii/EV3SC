@@ -4193,6 +4193,13 @@ material into:
 - **Files created/modified**: `docs/classroom/WINDOWS_EV3_TEACHER_TEST_FEEDBACK.md`, `docs/classroom/README.md`
 - **Next step**: Send the checklist to the teacher, collect the filled results plus `vsle-setup-wizard-diagnostics-*.json`, wizard screenshot, external PowerShell screenshot, and ScratchAI EV3 screenshot, then diagnose the first failed or blocked step.
 
+### [2026-06-20] Windows EV3 Chinese feedback form polish
+- **Status**: ✅ Completed
+- **Commit**: `bdb338a`
+- **What was done**: Localized the teacher-facing Windows EV3 test feedback form title and classroom README entry into Chinese while keeping fixed product names, command names, and diagnostic field names unchanged for accurate troubleshooting.
+- **Files created/modified**: `docs/classroom/WINDOWS_EV3_TEACHER_TEST_FEEDBACK.md`, `docs/classroom/README.md`
+- **Next step**: Send the Chinese Markdown form to the teacher and ask them to fill the table plus attach diagnostics and screenshots.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
