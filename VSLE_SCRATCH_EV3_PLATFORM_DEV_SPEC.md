@@ -4221,6 +4221,13 @@ material into:
 - **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/stage-header/stage-header.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/stage-header/stage-header.css`, `tests/test_scratchai_ev3_connection_diagnostics.py`
 - **Next step**: Rebuild or redeploy the ScratchAI browser bundle that serves `http://101.42.92.6:18612`, then have the teacher confirm the new stage-header status text while the wizard step 9 evidence shows `scratch_link_protocol_ok=True` and `scratch_link_discover_ok=True`.
 
+### [2026-06-20] Public ScratchAI EV3 status header deployment
+- **Status**: ✅ Completed
+- **Commit**: `cf11e8a`
+- **What was done**: Rebuilt the public ScratchAI browser bundle with the EV3 status header enabled and deployed it to `http://101.42.92.6:18612/` as release `scratchai-18612-20260620-ev3-status`. Public `gui.js` now matches local SHA-256 `faef661f4d559e3bc8d455e921c8bec5176aacead48121d3e7e759218d8ba1ce`, contains the EV3 connection feedback strings, and the three ScratchAI services are active after restart.
+- **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.json`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
+- **Next step**: Ask the teacher to hard refresh `http://101.42.92.6:18612/`, load the EV3 extension, and confirm the stage header shows `EV3 已发现`, `EV3 已连接`, or `正在接收传感器` while the local Windows WeisileLink service is running.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
