@@ -4200,6 +4200,13 @@ material into:
 - **Files created/modified**: `docs/classroom/WINDOWS_EV3_TEACHER_TEST_FEEDBACK.md`, `docs/classroom/README.md`
 - **Next step**: Send the Chinese Markdown form to the teacher and ask them to fill the table plus attach diagnostics and screenshots.
 
+### [2026-06-20] Windows ScratchAI link protocol feedback
+- **Status**: ✅ Completed
+- **Commit**: `1887f5d`
+- **What was done**: Upgraded the Windows local bridge step from simple localhost port checks to a Scratch Link WebSocket protocol probe that sends `getVersion`, verifies `implementation = WeisileLink`, sends `discover`, and blocks when no EV3 host is discovered. Added ScratchAI EV3 connection diagnostics that show the internal Link address, teacher-readable connection states, discovery failures, Origin/availability errors, and sensor data freshness.
+- **Files created/modified**: `install/windows/lib/WindowsInstallActions.psm1`, `install/windows/lib/SetupWizard.psm1`, `install/windows/README.md`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_vsle_ev3_compat/index.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/engine/runtime.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/virtual-machine.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_vsle_ev3_compat.js`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/containers/scanning-step.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/scanning-step.jsx`, `scratch-ai-platform/scratch-editor/packages/scratch-gui/src/components/connection-modal/connection-modal.css`, `tests/test_windows_setup_wizard_phase_g_local_bridge.py`, `tests/test_scratchai_ev3_connection_diagnostics.py`
+- **Next step**: Regenerate the Windows `VSLE-Install` handoff from this branch, replace the teacher machine copy, rerun the local bridge step, then verify ScratchAI shows `Link 可达 / 已发现 EV3 / 正在接收传感器` instead of asking teachers to open the `ws://` URL directly.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*
