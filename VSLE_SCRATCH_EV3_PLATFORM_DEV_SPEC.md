@@ -4228,6 +4228,13 @@ material into:
 - **Files created/modified**: `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.json`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_status_header_sync_20260620.md`, `VSLE_SCRATCH_EV3_PLATFORM_DEV_SPEC.md`
 - **Next step**: Ask the teacher to hard refresh `http://101.42.92.6:18612/`, load the EV3 extension, and confirm the stage header shows `EV3 已发现`, `EV3 已连接`, or `正在接收传感器` while the local Windows WeisileLink service is running.
 
+### [2026-06-21] ScratchAI EV3 discovery modal compatibility
+- **Status**: ✅ Completed
+- **Commit**: `dbaf08b`
+- **What was done**: Fixed the case where the Windows wizard showed `scratch_link_discover_ok=True` but the ScratchAI connection modal stayed on "正在查找设备". The browser-side EV3 compatibility layer now normalizes discovered peripherals that lack `peripheralId` and accepts legacy `discover` result payloads even when no `didDiscoverPeripheral` notification arrives; the rebuilt bundle was deployed to `http://101.42.92.6:18612/` as release `scratchai-18612-20260621-discover-normalize`.
+- **Files created/modified**: `scratch-ai-platform/scratch-editor/packages/scratch-vm/src/extensions/scratch3_vsle_ev3_compat/index.js`, `scratch-ai-platform/scratch-editor/packages/scratch-vm/test/unit/extension_vsle_ev3_compat.js`, `docs/deployment/SCRATCHAI_101_42_92_6_DEPLOYMENT_AUDIT.md`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_discovery_modal_sync_20260621.json`, `docs/deployment/evidence/scratchai_101_42_92_6_ev3_discovery_modal_sync_20260621.md`
+- **Next step**: Ask the teacher to close and reopen the EV3 connection modal or hard-refresh ScratchAI, then confirm the modal lists `VSLE EV3 WiFi` and the stage header advances from searching to discovered/connected/sensor status.
+
 ---
 
 *Document ends. Next: CLAUDE.md for development assistant instructions.*

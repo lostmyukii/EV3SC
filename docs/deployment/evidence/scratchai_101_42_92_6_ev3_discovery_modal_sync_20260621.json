@@ -1,0 +1,39 @@
+{
+  "date": "2026-06-21",
+  "public_url": "http://101.42.92.6:18612/",
+  "release": "scratchai-18612-20260621-discover-normalize",
+  "remote_release_path": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260621-discover-normalize",
+  "current_release_path": "/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260621-discover-normalize",
+  "code_commit": "dbaf08b",
+  "local_gui_sha256": "49489a730fb1658cf00cc52e43b924e298038ecb434fdb0092aa814bb2eff718",
+  "remote_gui_sha256": "49489a730fb1658cf00cc52e43b924e298038ecb434fdb0092aa814bb2eff718",
+  "public_gui_sha256": "49489a730fb1658cf00cc52e43b924e298038ecb434fdb0092aa814bb2eff718",
+  "public_vsle_ev3_extension_sha256": "cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d",
+  "services": {
+    "ev3sc-scratchai-preview-18612.service": "active",
+    "ev3sc-scratchai-middleware-18614.service": "active",
+    "ev3sc-scratchai-asset-18615.service": "active"
+  },
+  "public_bundle_markers": [
+    "peripheral_id",
+    "deviceId",
+    "VSLE EV3 WiFi",
+    "EV3 已连接"
+  ],
+  "fix_scope": [
+    "Normalize discovered EV3 peripherals without peripheralId into Scratch connection modal entries.",
+    "Accept legacy discover JSON-RPC result payloads when no didDiscoverPeripheral notification is sent."
+  ],
+  "verification": {
+    "node_missing_peripheral_id_script": "passed",
+    "node_result_only_discover_script": "passed",
+    "node_compat_require": "passed",
+    "pytest_scratchai_ev3_connection_diagnostics": "3 passed",
+    "git_diff_check": "passed",
+    "scratch_gui_build_dev": "passed",
+    "verify_scratchai_preview": "passed"
+  },
+  "known_test_limitations": [
+    "scratch-vm tap file and eslint invocation timed out or hung in this local environment; focused Node behavior scripts covered the changed discovery flows."
+  ]
+}

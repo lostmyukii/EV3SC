@@ -304,6 +304,41 @@ The preview verifier passed against `http://101.42.92.6:18612/`, and the
 preview, middleware, and asset worker services were restarted and verified
 active.
 
+## 2026-06-21 EV3 Discovery Modal Sync
+
+Evidence:
+
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_discovery_modal_sync_20260621.json`
+- `docs/deployment/evidence/scratchai_101_42_92_6_ev3_discovery_modal_sync_20260621.md`
+
+Release:
+
+`/home/ubuntu/ev3sc-scratchai-18612/releases/scratchai-18612-20260621-discover-normalize`
+
+This rebuilt and redeployed the ScratchAI browser bundle from code commit
+`dbaf08b` after fixing the EV3 discovery handoff between WeisileLink and the
+Scratch connection modal. The browser now normalizes discovered EV3 peripherals
+that provide a name but no `peripheralId`, and it also accepts legacy
+`discover` JSON-RPC result payloads when no separate `didDiscoverPeripheral`
+notification is sent.
+
+The public `gui.js` SHA-256 now matches the local rebuilt bundle:
+
+```text
+49489a730fb1658cf00cc52e43b924e298038ecb434fdb0092aa814bb2eff718
+```
+
+The public EV3 extension SHA-256 remains:
+
+```text
+cadc93d718ff77097024a423e279dbbf9eee26d1875a9925c84657fa361ff22d
+```
+
+The public bundle contains the discovery compatibility markers
+`peripheral_id`, `deviceId`, `VSLE EV3 WiFi`, and `EV3 已连接`. The preview
+verifier passed against `http://101.42.92.6:18612/`, and the preview,
+middleware, and asset worker services were restarted and verified active.
+
 ## Notes
 
 - `http://49.232.81.132:18602/` and its API routes require preview authentication from the old deployment, so public unauthenticated API introspection was not possible.
