@@ -5,6 +5,8 @@ const Cast = require('../../util/cast');
 const globalObject = typeof globalThis === 'undefined' ? {} : globalThis;
 const LEGO_RED = '#E6001F';
 const DEFAULT_LINK_URL = 'ws://127.0.0.1:20111/scratch/bt';
+const DEFAULT_PERIPHERAL_ID = 'vsle-ev3-wifi';
+const DEFAULT_PERIPHERAL_NAME = 'VSLE EV3 WiFi';
 const COMMAND_TIMEOUT_MS = 5000;
 const MOTOR_PORTS = ['A', 'B', 'C', 'D'];
 const SENSOR_PORTS = ['S1', 'S2', 'S3', 'S4'];
@@ -45,6 +47,26 @@ const clamp = (value, min, max) => {
 };
 
 const roundTwoPlaces = value => Math.round(value * 100) / 100;
+
+const normalizeDiscoveredPeripheral = peripheral => {
+    const source = peripheral && typeof peripheral === 'object' ? peripheral : {};
+    const peripheralId = source.peripheralId ||
+        source.peripheral_id ||
+        source.id ||
+        source.deviceId ||
+        DEFAULT_PERIPHERAL_ID;
+    const name = source.name ||
+        source.peripheralName ||
+        source.peripheral_name ||
+        source.deviceName ||
+        DEFAULT_PERIPHERAL_NAME;
+    const rssi = Number.isFinite(Number(source.rssi)) ? Number(source.rssi) : 0;
+    return Object.assign({}, source, {
+        peripheralId,
+        name,
+        rssi
+    });
+};
 
 class SensorCache {
     constructor () {
@@ -146,14 +168,52 @@ class WeisileLinkClient {
                 reject(new Error('没有发现 EV3 主机。'));
             }, this.timeoutMs);
             this._discoveryPending = {resolve, reject, timer};
-            this.sendCommand({method: 'discover'}).catch(error => {
-                if (this._discoveryPending) {
-                    clearTimeout(this._discoveryPending.timer);
-                    this._discoveryPending = null;
-                }
-                reject(error);
-            });
+            this.sendCommand({method: 'discover'})
+                .then(result => this._resolveDiscoveryResult(result))
+                .catch(error => {
+                    if (this._discoveryPending) {
+                        clearTimeout(this._discoveryPending.timer);
+                        this._discoveryPending = null;
+                    }
+                    reject(error);
+                });
         });
+    }
+
+    _resolveDiscoveryResult (result) {
+        const peripheral = this._peripheralFromDiscoveryResult(result);
+        if (!peripheral || !this._discoveryPending) {
+            return;
+        }
+        clearTimeout(this._discoveryPending.timer);
+        this._discoveryPending.resolve(peripheral);
+        this._discoveryPending = null;
+    }
+
+    _peripheralFromDiscoveryResult (result) {
+        if (!result || typeof result !== 'object') {
+            return null;
+        }
+        if (Array.isArray(result)) {
+            return result[0] || null;
+        }
+        if (Array.isArray(result.peripherals)) {
+            return result.peripherals[0] || null;
+        }
+        if (Array.isArray(result.devices)) {
+            return result.devices[0] || null;
+        }
+        if (result.peripheral && typeof result.peripheral === 'object') {
+            return result.peripheral;
+        }
+        if (result.name ||
+            result.peripheralName ||
+            result.peripheralId ||
+            result.id ||
+            result.deviceId) {
+            return result;
+        }
+        return null;
     }
 
     close () {
@@ -474,8 +534,10 @@ class Scratch3VSLEEV3Compat {
         }
         this.link.probeDiscovery()
             .then(peripheral => {
-                this._recordPeripheralDiscovered(peripheral);
-                this._emitPeripheralListUpdate(peripheral);
+                const normalizedPeripheral =
+                    normalizeDiscoveredPeripheral(peripheral);
+                this._recordPeripheralDiscovered(normalizedPeripheral);
+                this._emitPeripheralListUpdate(normalizedPeripheral);
             })
             .catch(error => {
                 this._recordConnectionError(error);
@@ -580,7 +642,7 @@ class Scratch3VSLEEV3Compat {
     }
 
     _recordPeripheralDiscovered (peripheral) {
-        this._discoveredPeripheral = peripheral || {};
+        this._discoveredPeripheral = normalizeDiscoveredPeripheral(peripheral);
         this._diagnostic = {
             status: 'discovered',
             message: '已发现 EV3 主机，请点击连接。',
@@ -661,15 +723,13 @@ class Scratch3VSLEEV3Compat {
     _defaultPeripheralId () {
         return this._discoveredPeripheral && this._discoveredPeripheral.peripheralId ?
             this._discoveredPeripheral.peripheralId :
-            'vsle-ev3-wifi';
+            DEFAULT_PERIPHERAL_ID;
     }
 
     _emitPeripheralListUpdate (peripheral) {
-        if (!peripheral || !peripheral.peripheralId) {
-            return;
-        }
+        const normalizedPeripheral = normalizeDiscoveredPeripheral(peripheral);
         this._emitRuntimeEvent('PERIPHERAL_LIST_UPDATE', {
-            [peripheral.peripheralId]: peripheral
+            [normalizedPeripheral.peripheralId]: normalizedPeripheral
         });
     }
 

@@ -31,6 +31,55 @@ class FakeLink {
     }
 }
 
+class FakeDiscoveryLink extends FakeLink {
+    constructor (peripheral) {
+        super();
+        this.peripheral = peripheral;
+    }
+
+    async probeDiscovery () {
+        return this.peripheral;
+    }
+}
+
+class FakeResultOnlyDiscoveryWebSocket {
+    constructor () {
+        this.readyState = FakeResultOnlyDiscoveryWebSocket.OPEN;
+        setTimeout(() => {
+            if (this.onopen) {
+                this.onopen();
+            }
+        }, 0);
+    }
+
+    send (raw) {
+        const request = JSON.parse(raw);
+        const result = request.method === 'getVersion' ?
+            {
+                protocol: '1.3',
+                implementation: 'WeisileLink'
+            } :
+            request.method === 'discover' ?
+                {name: 'VSLE EV3 WiFi'} :
+                null;
+        setTimeout(() => {
+            this.onmessage({
+                data: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: request.id,
+                    result
+                })
+            });
+        }, 0);
+    }
+
+    close () {
+        this.readyState = 3;
+    }
+}
+
+FakeResultOnlyDiscoveryWebSocket.OPEN = 1;
+
 const makeScratchApi = () => ({
     ArgumentType,
     BlockType,
@@ -178,6 +227,72 @@ test('official EV3 compatibility extension exposes local Link diagnostics', t =>
     t.equal(diagnostic.freshnessSeconds, 6);
     t.match(diagnostic.message, /传感器数据已停止更新/);
     t.end();
+});
+
+test('official EV3 scan lists discovered Link peripheral even when peripheralId is missing', async t => {
+    const events = [];
+    const runtime = {
+        constructor: {
+            PERIPHERAL_LIST_UPDATE: 'PERIPHERAL_LIST_UPDATE',
+            PERIPHERAL_SCAN_TIMEOUT: 'PERIPHERAL_SCAN_TIMEOUT'
+        },
+        emit: (eventName, payload) => events.push({eventName, payload})
+    };
+    const extension = new Scratch3VSLEEV3Compat(runtime, 'ev3', {
+        Scratch: makeScratchApi(),
+        link: new FakeDiscoveryLink({
+            name: 'VSLE EV3 WiFi'
+        })
+    });
+
+    extension.scan();
+    await Promise.resolve();
+
+    const listUpdate = events.find(event => event.eventName === 'PERIPHERAL_LIST_UPDATE');
+    t.ok(listUpdate, 'scan should emit a list update for the Scratch connection modal');
+    t.same(listUpdate.payload, {
+        'vsle-ev3-wifi': {
+            peripheralId: 'vsle-ev3-wifi',
+            name: 'VSLE EV3 WiFi',
+            rssi: 0
+        }
+    });
+
+    const diagnostic = extension.getConnectionDiagnostic();
+    t.equal(diagnostic.status, 'discovered');
+    t.equal(diagnostic.peripheralName, 'VSLE EV3 WiFi');
+});
+
+test('official EV3 scan accepts a discover result without a notification', async t => {
+    const events = [];
+    const runtime = {
+        constructor: {
+            PERIPHERAL_LIST_UPDATE: 'PERIPHERAL_LIST_UPDATE',
+            PERIPHERAL_SCAN_TIMEOUT: 'PERIPHERAL_SCAN_TIMEOUT'
+        },
+        emit: (eventName, payload) => events.push({eventName, payload})
+    };
+    const extension = new Scratch3VSLEEV3Compat(runtime, 'ev3', {
+        Scratch: makeScratchApi(),
+        WebSocket: FakeResultOnlyDiscoveryWebSocket,
+        timeoutMs: 50
+    });
+
+    extension.scan();
+    await new Promise(resolve => {
+        setTimeout(resolve, 20);
+    });
+
+    const listUpdate = events.find(event => event.eventName === 'PERIPHERAL_LIST_UPDATE');
+    t.ok(listUpdate, 'scan should accept old Link discover result payloads');
+    t.same(listUpdate.payload, {
+        'vsle-ev3-wifi': {
+            peripheralId: 'vsle-ev3-wifi',
+            name: 'VSLE EV3 WiFi',
+            rssi: 0
+        }
+    });
+    t.equal(extension.getConnectionDiagnostic().status, 'discovered');
 });
 
 test('official EV3 compatibility extension maps Link search failures to teacher-readable diagnostics', t => {
